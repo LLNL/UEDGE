@@ -1,0 +1,41 @@
+# DEFINE THE FUNCTION TO PLOT CONTOURS OF HYDROGENIC RADIATION POWER LOSS
+
+function plotpwrhq 
+
+titlet = "CONTOURS OF HYDROGENIC RADIATION ENERGY DENSITY (MW/m**3)"
+
+#********************************************************************
+if (mhdgeo .eq. 1 ) then   #For tokamak orientation
+#********************************************************************
+
+   titlel = "VERTICAL DISTANCE (m)"
+   titleb = "MAJOR RADIUS (m)"
+#
+#    First plot the hydrogenic power lost
+#
+   if (ixpt1.ge.1) plotz var_LL,rm_LL,zm_LL, lev=prcontour
+   if (ixpt1.ge.1) plotz var_UL,rm_UL,zm_UL, lev=prcontour
+   if (ixpt2.le.nx) plotz var_UR,rm_UR,zm_UR, lev=prcontour
+   if (ixpt2.le.nx) plotz var_LR,rm_LR,zm_LR, lev=prcontour
+
+#*********************************************************************
+else   # reverse roles of zm,rm for cylindrical and cartesian meshes
+#*********************************************************************
+
+   titlel = "TRANSVERSE DISTANCE (m)"
+   titleb = "AXIAL DISTANCE (m)"
+
+#    First plot the hydrogenic power lost
+
+   plotz var_UR,zm_UR,rm_UR, lev=prcontour
+   plotz var_LR,zm_LR,rm_LR, lev=prcontour
+
+#*********************************************************************
+endif
+#*********************************************************************
+#
+# Now plot grid boundaries and the separatrix
+#
+call plotbdyq
+#
+endf

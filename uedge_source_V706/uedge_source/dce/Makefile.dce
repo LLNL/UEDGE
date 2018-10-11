@@ -1,0 +1,40 @@
+#!/bin/csh
+# Makefile for use with GNU Make.
+# Generates a library of distributed computing environment (dce)
+# routines for the tokamak edge modelling code UEDGE.
+# Written by Gary R. Smith, 25-Feb-93.
+
+#-------------------------Definitions:----------------------------------
+
+# C options:
+CFLAGS = -c -g
+
+# Library:
+DCE_LIBRARY = ../libuedge_dce.a
+
+# Objects:
+DCE_OBJECTS = c_dce.o basis_dce_clnt.o basis_dce_xdr.o basis_dce_svc_proc.o interp.o ledgecvt.o masub.o polyfill.o
+
+# Include file:
+DCE_HEADER = basis_dce.h
+
+#-------------------------Rules:----------------------------------------
+
+# Pattern rule for C sources:
+%.o: %.c $(DCE_HEADER)
+	$(CC) $(CFLAGS) $<
+
+#-------------------------Targets:--------------------------------------
+
+# Make library for distributed computing:
+$(DCE_LIBRARY): $(DCE_OBJECTS)
+	rm -f $@
+	bld r $@ $^
+
+# Generate some C sources and an include file:
+basis_dce_clnt.c basis_dce_xdr.c $(DCE_HEADER): basis_dce.x
+	rpcgen basis_dce.x
+
+# Remove intermediate files:
+clean:
+	rm -f basis_dce_*.c $(DCE_OBJECTS) $(DCE_HEADER)

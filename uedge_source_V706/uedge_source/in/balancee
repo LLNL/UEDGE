@@ -1,0 +1,598 @@
+# balancee copied from Tom at LLNL 11 June 2018
+# includes neutral energy fluxes to plates and walls.
+#
+# added sbindzin, sbindzout, pbindzin, pbindzout	11 June 2018 (GDP)
+# TOTAL POWER AND PARTICLE FLOWS
+#
+echo=no
+#
+# The function ave gives the harmonic average of two numbers
+function ave(a1,a2)
+real8 y1
+y1 = 2 * a1 * a2 / (a1 + a2)
+return (y1)
+endf
+#
+integer ix,iy,id
+integer ixdivout=nx;integer ixdivin=0;integer iycore=0
+integer ixoneut=nx; integer ixineut=1
+integer iybegin=1
+if(islimon.eq.1 )then
+  if(nyomitmx.ne.0) then  #two ifs to be able to used old executables
+    ixdivout = ix_lim-1
+    ixdivin = ix_lim+1
+    iybegin = iy_lims
+  endif
+endif
+#
+integer iysep=iysptrx         # DEFINITION
+#
+# here we calculate the distance along the inner and outer divertor plates,
+# ydpin and ydpout in meters
+#
+real8 dysepi=0.;real8 dysepo=0.;real8 ydpin(0:ny+1);real8 ydpout(0:ny+1)
+dysepi = 1/(gy(0,0)*cos(angfx(0,0)))
+dysepo = 1/(gy(nx+1,0)*cos(angfx(nx+1,0)))
+do iy = 1, iysptrx
+dysepi = dysepi + 1/( gy(0,iy)* \
+                  cos(angfx(0,iy)) )
+dysepo = dysepo + 1/( gy(nx,iy)* \
+                   cos(angfx(nx,iy)) )
+enddo
+ydpin(0)  = -dysepi
+ydpout(0) = -dysepo
+do iy	 = 1, ny+1
+ydpin(iy)  = ydpin (iy-1) + ( 1/gy(0   ,iy-1) + 1/gy(0   ,iy) ) / \
+                            ( cos(angfx(0,iy-1))+cos(angfx(0,iy)) )
+ydpout(iy) = ydpout(iy-1) + ( 1/gy(nx,iy-1) + 1/gy(nx,iy) ) / \
+                            ( cos(angfx(nx,iy-1))+cos(angfx(nx,iy)) )
+enddo
+#
+# power outflow from separatrix
+real8 psepi=0.;real8 psepe=0.;real8 pbcorei=0.;real8 pbcoree=0.;real8 pcorebd=0.
+if(.not. exists("fluxfacy"))  real8 fluxfacy=1.
+
+integer ix1
+if (isguardc .eq. 0) iycore = 1
+do ix=max(ixpt1+1,0), ixpt2
+   ix1 = ixm1(ix,iysep)
+   psepi=psepi +  fluxfacy*( feiy(ix,iysep) + (mi(1)/32)*
+               (up(ix1,iysep  )+up(ix,iysep  )+
+                up(ix1,iysep+1)+up(ix,iysep+1))**2*fniy(ix,iysep) -
+       cfvisy*0.125*sy(ix,iysep)*ave( visy(ix,iysep  )*gy(ix,iysep  ),
+                                    visy(ix,iysep+1)*gy(ix,iysep+1) ) *
+            ( (up(ix1,iysep+1)+up(ix,iysep+1))**2 -
+              (up(ix1,iysep  )+up(ix,iysep  ))**2 ) )
+   ix1 = ixm1(ix,iycore)
+   psepe=psepe+ fluxfacy*feey(ix,iysep)
+   pbcorei=pbcorei+ fluxfacy*( feiy(ix,iycore) + (mi(1)/32)*
+               (up(ix1,iycore  )+up(ix,iycore  )+
+                up(ix1,iycore+1)+up(ix,iycore+1))**2*fniy(ix,iycore) -
+        cfvisy*0.125*sy(ix,iycore)*ave( visy(ix,iycore  )*gy(ix,iycore  ),
+                                     visy(ix,iycore+1)*gy(ix,iycore+1) ) *
+            ( (up(ix1,iycore+1)+up(ix,iycore+1))**2 -
+              (up(ix1,iycore  )+up(ix,iycore  ))**2 ) )
+   pbcoree=pbcoree+fluxfacy*feey(ix,iycore)
+   pcorebd=pcorebd + fluxfacy*fniy(ix,iycore)*ebind*ev
+enddo
+#
+# particle outflow from separatrix
+#
+real8 isephyd=0.
+do ix=max(ixpt1+1,0), ixpt2
+   isephyd=isephyd+fniy(ix,iysep,1)
+enddo
+isephyd=isephyd*qe
+#
+#       POWER INPUT FROM BIAS SUPPLY
+real8 p_bias
+p_bias = -par.sum(fqx(nx,1:ny)*(phi0r(1:ny)-phi0l(1:ny)))
+p_bias
+#       TOTAL BIAS CURRENT
+real8 i_bias
+i_bias = par.sum(fqx(nx,1:ny))
+i_bias
+#       ION SATURATION CURRENT
+real8 i_sat_outer = qe*zi(1)*par.sum(fnix(nx,1:ny,1))
+real8 i_sat_inner = qe*zi(1)*par.sum(fnix(0,1:ny,1))
+i_sat_outer
+i_sat_inner
+#       CURRENT AND POWER FROM FIXED VOLUME SOURCES
+real8 p_e_vol = par.sum(pwrsore(0:nx+1,0:ny+1))
+real8 p_i_vol = par.sum(pwrsori(0:nx+1,0:ny+1))
+real8 i_vol = qe*par.sum(volpsor(0:nx+1,0:ny+1,))
+if (l_parloss .le. 1e9) then
+  p_e_vol = p_e_vol - par.sum(nuvl*vol*ne*bcee*te)
+  p_i_vol = p_i_vol - par.sum(nuvl*vol*ni(,,1)*bcei*ti)
+  i_vol = i_vol - par.sum(nuvl*vol*ni(,,1))*qe
+endif
+
+#########################################################################
+# 2-D arrays for checking energy conservation, and for calculation of
+# ionization and radiation sources 
+
+real8 ptotin = pbcoree+pbcorei ## +p_i_vol+p_e_vol
+real8 ptotin = pbcoree+pbcorei  +p_i_vol+p_e_vol
+
+   call engbal(ptotin)
+
+#########################################################################
+
+# power incident on divertor plate
+real8 pdiviin=0.;real8 pdiviout=0.;real8 pdiveout=0.;real8 pdivein=0.
+real8 pbindout=0.;real8 pbindin=0.;real pdivnout=0.;real8 pdivnin=0.
+real8 pbindzout=0.;real8 pbindzin=0.
+real8 pneutout=0.;real8 pneutin=0.
+real8 pradhout=0.;real8 pradzout=0.;real8 pradhin=0.;real8 pradzin=0.
+real8 sdrout(0:ny+1);real8 sdrin(0:ny+1)
+integer ixi=ixdivin; integer ixo=ixdivout
+# note: ixi=ixdivin has been set to 1 to allow velocity derivatives to be calc.
+real8 sdiout(0:ny+1);real8 sdeout(0:ny+1);real8 sdiin(0:ny+1)
+real8 sdein(0:ny+1);real8 sdtout(0:ny+1);real8 sdtin(0:ny+1)
+real8 sbindout(0:ny+1);real8 sbindin(0:ny+1)
+real8 sbindzout(0:ny+1);real8 sbindzin(0:ny+1)
+real8 sneutout(0:ny+1);real8 sneutin(0:ny+1)
+real8 sdioutd(0:ny+1,1:nfsp);real8 sdiind(0:ny+1,1:nfsp)
+real8 sdnout(0:ny+1);real8 sdnin(0:ny+1)
+real8 sxo,sxi,tempvo,tempvi,vxni,vxno,vynpf,vynw
+
+# Allow use of "old" or "new" switches for neutral energy loss
+
+if(.not. exists("cenggpl")) real8 cenggpl=0.
+if(.not. exists("cenggw")) real8 cenggw=0.
+
+
+# First get radiation power in pwr_plth and pwr_pltz
+   call pradpltwl
+   sdrin = pwr_plth(,1)+pwr_pltz(,1)
+   sdrout = pwr_plth(,2)+pwr_pltz(,2)
+
+# here the sd's are ion and electron poloidal power fluxes in W/m**2
+do iy=iybegin,ny
+   sxo = sx(ixo,iy)/(cos(angfx(ixo,iy)))
+   sxi = sx(ixi,iy)/(cos(angfx(ixi,iy)))
+   sdiout(iy) = 0.
+   sdiin(iy) = 0.
+   vxno =  0.25*sqrt(8*tg(ixoneut,iy,1)/(pi*mg(1)))
+   vxni =  0.25*sqrt(8*tg(ixineut,iy,1)/(pi*mg(1)))
+   do id = 1, nfsp    # note: upi=0 for the netural species
+     if (zi(id) .gt. 0) then
+      sdioutd(iy,id) = ( 0.5*mi(id)*upi(ixo,iy,id)**2*fnix(ixo,iy,id) )/sxo
+      sdiind(iy,id) = ( -0.5*mi(id)*upi(ixi,iy,id)**2*fnix(ixi,iy,id) )/sxi
+     else  #zero-out neutrals as fnix will be into plasma 5/27/08 - TDR
+      sdioutd(iy,id)=1e-20*( 0.5*mi(id)*up(ixo,iy,id)**2*fnix(ixo,iy,id) )/sxo
+      sdiind(iy,id)=1e-20*( -0.5*mi(id)*up(ixi,iy,id)**2*fnix(ixi,iy,id) )/sxi
+     endif
+      sdiout(iy) = sdiout(iy) + sdioutd(iy,id)
+      sdiin(iy) = sdiin(iy) + sdiind(iy,id)
+   enddo
+   do id = 1, nusp      # note: up for the netural species in nonzero
+      tempvo =  - ckinfl(1)*0.5*sx(ixo,iy)*visx(ixo,iy,id)*gx(ixo,iy)*\
+                    ( up(ixo,iy,id)**2 - up(ixo-1,iy,id)**2 ) /sxo
+      tempvi =  + ckinfl(1)*0.5*sx(ixi,iy)*visx(ixi+1,iy,id)*gx(ixi+1,iy)*\
+                   ( up(ixi+1,iy,id)**2 - up(ixi,iy,id)**2 ) / sxi
+      sdioutd(iy,id) = sdioutd(iy,id) + tempvo
+      sdiout(iy) = sdiout(iy) + tempvo
+      sdiind(iy,id) = sdiind(iy,id) + tempvi
+      sdiin(iy) = sdiin(iy) + tempvi
+   enddo
+   sdiout(iy) = sdiout(iy) + feix(ixo,iy)/sxo
+   sbindout(iy) = fnix(ixo,iy,1) * ebind*ev / sxo
+
+#  Compute binding-energy energy fluxes for impurities
+   integer id3,id2,id2min,id2max
+   do id=1,nzdf
+     if (id .eq. 1) then 
+       id2min=nhsp+1
+       id2max=id2min+nzsp(id)-1
+     else 
+       id2min=nhsp+1+sum(nzsp(1:id-1))
+       id2max=id2min+nzsp(id)-1
+     endif
+     do id2=id2min,id2max
+       do id3=0,znucl(id)-1
+         sbindzout(iy)=sbindzout(iy)+fnix(ixo,iy,id2)*\
+         ebindz(id3,znucl(id2))*ev/sxo
+         sbindzin(iy)=sbindzin(iy)-fnix(ixi,iy,id2)*\
+         ebindz(id3,znucl(id2))*ev/sxo
+       enddo
+     enddo
+   enddo
+
+   sneutout(iy) = cenggpl*2.*vxno*ng(ixoneut,iy)*tg(ixoneut,iy,1)
+   sdeout(iy) = ( feex(ixo,iy)+fqx(ixo,iy)*(phi(ixo,iy)-phi0r(iy)) )/sxo
+   sdtout(iy) = sdeout(iy) + sdiout(iy) + sbindout(iy) + \
+                   sbindzout(iy) + pwr_plth(iy,2) + pwr_pltz(iy,2)
+   sdiin(iy)  = sdiin(iy) - feix(ixi,iy)/sxi 
+   sbindin(iy) = - fnix(ixi,iy,1) * ebind*ev / sxi
+   sneutin(iy) = cenggpl*2.*vxni*ng(ixineut,iy)*tg(ixineut,iy,1)
+   sdein(iy)  = -( feex(ixi,iy) + .001*fqx(ixi,iy)*(phi(ixi,iy)-phi0l(iy)) ) /
+                  sxi
+   sdtin(iy) = sdein(iy) + sdiin(iy) + sbindin(iy) + \
+                  sbindzin(iy) + pwr_plth(iy,1) + pwr_pltz(iy,1)
+   pdiviout = pdiviout + sdiout(iy)*sxo ## + sdioutd(iy,1)*sxo
+   pdiveout = pdiveout + sdeout(iy)*sxo
+   pdiviin  = pdiviin  + sdiin(iy)*sxi ## + sdiind(iy,1)*sxi
+   pdivein  = pdivein  + sdein(iy)*sxi
+   pbindout = pbindout + sbindout(iy)*sxo
+   pbindzout = pbindzout + sbindzout(iy)*sxo
+   pbindin = pbindin + sbindin(iy)*sxi
+   pbindzin = pbindzin + sbindzin(iy)*sxi
+   pneutout = pneutout + sneutout(iy)*sxo
+   pneutin = pneutin + sneutin(iy)*sxo
+   pradhout = pradhout + pwr_plth(iy,2)*sxo
+   pradzout = pradzout + pwr_pltz(iy,2)*sxo
+   pradhin = pradhin + pwr_plth(iy,1)*sxi
+   pradzin = pradzin + pwr_pltz(iy,1)*sxi
+   if (isupgon(1).eq.1) then    # Approx. neutral energy flux
+      sdnout(iy)=sdioutd(iy,2) + ( sx(ixo,iy)*hcxn(ixo,iy)*gxf(ixo,iy)* \
+                                            (ti(ixo,iy)-ti(ixo+1,iy)) + \
+                                  2.5*fnix(ixo,iy,2)*ti(ixo+1,iy) ) / sxo
+      sdnin(iy)=sdiind(iy,2) + ( sx(ixi,iy)*hcxn(ixi,iy)*gxf(ixi,iy)* \
+                                          (ti(ixi,iy)-ti(ixi+1,iy)) + \
+                                  2.5*fnix(ixi,iy,2)*ti(ixi,iy) ) / sxi
+      pdivnout = pdivnout + 1.e-20*sdnout(iy)*sxo
+      pdivnin = pdivnin + 1.e-20*sdnin(iy)*sxi
+   endif
+enddo
+# 
+# added, 11Jun2018 GDP - only diagnostic; not used below
+real8 ptot=pdiviout+pdiveout+pdiviin+pdivein+pbindout+pbindin+\
+           pbindzin+pbindzout+pneutout+pneutin
+#
+
+# Fix up boundary values
+sdtin(0) = sdtin(1)
+sdtin(ny+1) = sdtin(ny)
+sdein(0) = sdein(1)
+sdein(ny+1) = sdein(ny)
+sdiin(0) = sdiin(1)
+sdiin(ny+1) = sdiin(ny)
+sdtout(0) = sdtout(1)
+sdtout(ny+1) = sdtout(ny)
+sdeout(0) = sdeout(1)
+sdeout(ny+1) = sdeout(ny)
+sdiout(0) = sdiout(1)
+sdiout(ny+1) = sdiout(ny)
+
+
+#
+real8 ptotpart = pdiviout+pdiveout+pdiviin+pdivein+pbindout+pbindin+\
+                 pbindzout+pbindzin+pneutout+pneutin
+real8 ptotrad = pradhout+pradzout+pradhin+pradzin
+#
+# ion current to divertor plate
+real8 idivout(1:nfsp)=0.;real8 idivin(1:nfsp)=0.
+real8 igasout(ngsp); real8 igasin(ngsp)
+igasout = 0; igasin = 0
+do iy=iybegin,ny
+   do id = 1, nfsp
+      idivout(id)=idivout(id)+fnix(ixdivout,iy,id)
+      idivin(id)=idivin(id)+fnix(ixdivin,iy,id)
+   enddo
+   do igsp = 1, ngsp
+      if (isupgon(igsp) .eq. 0) then
+         igasout(igsp)=igasout(igsp) + fngx(ixdivout,iy,igsp)
+         igasin(igsp)=igasin(igsp) + fngx(ixdivin,iy,igsp)
+      else
+         igasout(igsp)=igasout(igsp) + fnix(ixdivout,iy,2)
+         igasin(igsp)=igasin(igsp) + fnix(ixdivin,iy,2)
+      endif
+   enddo
+enddo
+idivout=idivout*qe;idivin=idivin*qe;igasout=igasout*qe;igasin=igasin*qe
+#
+# ion current to the core
+real8 icore(1:nfsp)=0.
+do ix=max(0,ixpt1+1), ixpt2
+   do id = 1, nfsp
+      icore(id)=icore(id)+fluxfacy*fniy(ix,0,id)
+   enddo
+enddo
+icore=icore*qe
+#
+integer iywall=ny       # DEFINITION
+integer iypf=0
+#
+# power flow to vessel and private flux wall
+real8 pwalli=0.;real8 ppfi=0.;real8 pwalle=0.;real8 ppfe=0.
+real8 pwallbd=0.;real8 ppfbd=0.
+real8 pradhwall=0.;real8 pradzwall=0.;real8 pradhpf=0.;real8 pradzpf=0.
+real8 sneutpf(0:nx+1);real8 sneutw(0:nx+1)
+real8 pneutpf=0.;real8 pneutw=0.
+do ix=0,nx+1
+   ix1 = ixm1(ix,iywall)
+   vynw = 0.25*sqrt(8*tg(ix,ny+1,1)/(pi*mg(1)))
+   pwalli=pwalli+ fluxfacy*( feiy(ix,iywall) +
+            0.125*mi(1)*(up(ix1,iywall)+up(ix,iywall))**2*fniy(ix,iywall) -
+            cfvisy*0.125*sy(ix,iywall)*ave( visy(ix,iywall)*gy(ix,iywall),
+                                     visy(ix,iywall+1)*gy(ix,iywall+1) ) *
+            ( (up(ix1,iywall+1)+up(ix,iywall+1))**2 -
+              (up(ix1,iywall  )+up(ix,iywall  ))**2 ) )
+   pwalle=pwalle + fluxfacy*feey(ix,iywall)
+   pwallbd=pwallbd + fluxfacy*fniy(ix,iywall)*ebind*ev
+   pradhwall = pradhwall + fluxfacy*pwr_wallh(ix)*sy(ix,iywall)
+   pradzwall = pradzwall + fluxfacy*pwr_wallz(ix)*sy(ix,iywall)
+   sneutw(ix) = cenggw*2.*vynw*tg(ix,ny+1,1)*sx(ix,ny)
+   pneutw = pneutw + sneutw(ix)
+enddo
+do ix=0,ixpt1
+   ix1 = ixm1(ix,iypf)
+   vynpf = 0.25*sqrt(8*tg(ix,0,1)/(pi*mg(1)))
+   ppfi=ppfi - fluxfacy*(feiy(ix,iypf) -
+            0.125*mi(1)*(up(ix1,iypf)+up(ix,iypf))**2*fniy(ix,iypf) +
+            cfvisy*0.125*sy(ix,iypf)*ave( visy(ix,iypf )*gy(ix,iypf ),
+                                   visy(ix,iypf+1)*gy(ix,iypf+1) ) *
+            ( (up(ix1,iypf+1)+up(ix,iypf+1))**2 -
+              (up(ix1,iypf  )+up(ix,iypf  ))**2 ) )
+   ppfe=ppfe - fluxfacy*feey(ix,iypf)
+   ppfbd=ppfbd - fluxfacy*fniy(ix,iypf)*ebind*ev
+##   pradhpf = pradhpf + fluxfacy*pwr_pfh(ix)*sy(ix,iywall)
+##   pradzpf = pradzpf + fluxfacy*pwr_pfz(ix)*sy(ix,iywall)
+   sneutpf(ix) = cenggw*2.*vynw*tg(ix,0,1)*sx(ix,0)
+   pneutpf = pneutpf + sneutpf(ix)
+enddo
+do ix=ixpt2+1,nx+1
+   ix1 = ixm1(ix,iypf)
+   vynpf = 0.25*sqrt(8*tg(0,iy,1)/(pi*mg(1)))
+   ppfi=ppfi - fluxfacy*( feiy(ix,iypf) -
+            0.125*mi(1)*(up(ix1,iypf)+up(ix,iypf))**2*fniy(ix,iypf) +
+            cfvisy*0.125*sy(ix,iypf)*ave( visy(ix,iypf )*gy(ix,iypf ),
+                                   visy(ix,iypf+1)*gy(ix,iypf+1) ) *
+            ( (up(ix1,iypf+1)+up(ix,iypf+1))**2 -
+              (up(ix1,iypf  )+up(ix,iypf  ))**2 ) )
+   ppfe = ppfe - fluxfacy*feey(ix,iypf)
+   ppfbd = ppfbd - fluxfacy*fniy(ix,iypf) * ebind*ev
+enddo
+#
+# ion current to vessel wall
+real8 iwall(nfsp)=0.;real8 ipf(nfsp)=0.;real8 igaswall(ngsp)
+real8 igaspf(ngsp);real8 igascr(ngsp)
+igaswall=0.; igascr=0.; igaspf=0.
+do ix=0,nx+1
+  do id = 1, nfsp
+    iwall(id)=iwall(id)+fluxfacy*fniy(ix,iywall,id)
+  enddo
+  do igsp = 1, ngsp
+    igaswall(igsp)=igaswall(igsp)+fluxfacy*fngy(ix,iywall,igsp)
+  enddo
+enddo
+do ix=0,ixpt1
+   do id = 1, nfsp
+      ipf(id)=ipf(id)+fluxfacy*fniy(ix,iypf,id)
+   enddo
+   do igsp = 1, ngsp
+      igaspf(igsp)=igaspf(igsp)+fluxfacy*fngy(ix,iypf,igsp)
+   enddo
+enddo
+do ix=ixpt2+1,nx+1
+   do id = 1, nfsp
+      ipf(id)=ipf(id)+fluxfacy*fniy(ix,iypf,id)
+   enddo
+   do igsp = 1, ngsp
+      igaspf(igsp)=igaspf(igsp)+fluxfacy*fngy(ix,iypf,igsp)
+   enddo
+enddo
+do ix=max(ixpt1+1,0), ixpt2
+   do igsp = 1, ngsp
+      igascr(igsp)=igascr(igsp)+fluxfacy*fngy(ix,iypf,igsp)
+   enddo
+enddo
+iwall=iwall*qe;igaswall=igaswall*qe
+ipf=ipf*qe;igaspf=igaspf*qe;igascr=igascr*qe
+#
+remark " "
+remark "Power Flow [Watts] from Core to Scrape-off Layer is:"
+pbcorei,pbcoree,pcorebd,pbcorei+pbcoree+pcorebd
+psepi,psepe,psepi+psepe
+#
+remark " "
+remark "Power Input [Watts] from Fixed Volume Sources (Sinks):"
+p_i_vol
+p_e_vol
+#
+remark " "
+remark "Power Flow [Watts] incident on Divertor Plate is:"
+pdiviin,pdivein,pbindin,pneutin,pradhin,pradzin
+pdiviin+pdivein+pbindin+pneutin+pradhin+pradzin
+pdiviout,pdiveout,pbindout,pneutout,pradhout,pradzout
+pdiviout+pdiveout+pbindout+pneutout+pradhout+pradzout
+ptotpart,ptotrad
+ptotpart+ptotrad
+#
+if (isupgon(1).eq.1) then
+   remark " "
+   remark "Portion of pdiviout and pdivin from Neutrals (backscatter) [Watts]:"
+   pdivnout,pdivnin
+endif
+#
+remark " "
+remark "Power [W] lost via ionization & recombination radiation is:"
+pradht
+#
+remark " "
+remark "Power [W] lost via recombination only (included in pradht above):"
+pradrc
+#
+remark " "
+remark "Power [W] lost at ionization but carried as ion binding-energy:"
+pbinde
+#
+remark " "
+remark "Power [W] gained by electrons in 3-body recombination (via binding eng):"
+pbindrc
+#
+if (isimpon .ne. 0) then
+  remark " "
+  remark "Power [W] lost via impurity radiation is:"
+integer id2=nhsp
+do id = 1, nzdf
+   id2 = id2 + nzsp(id)
+   << "  for nuclear charge = "<<znucl(id2)<<";  Power = "<<pradimpt(id)   
+enddo
+   << "  for fixed-fraction species;  Power = "<<pradfft   
+#
+remark " "
+remark "Electron Power [W] lost at impur. ioniz. but carried as binding-energy:"
+pradzbind
+#
+endif
+remark " "
+remark "Power [W] lost via dissociation of molecules is:"
+prdiss
+#
+remark " "
+remark "Power [W] gained by ions from initial Franck-Condon Energy:"
+pibirth
+#
+remark " "
+remark "Power [W] lost in parallel momentum exhange via charge exchange:"
+pvmomcx
+#
+remark " "
+remark "Power [W] from J.E Joule heating - goes to electrons:" 
+ptjdote
+#
+remark " "
+remark "Power Flow [Watts] incident on Vessel Wall is:"
+pwalli,pwalle,pwallbd,pradhwall,pradzwall,pneutw
+pwalli+pwalle+pwallbd+pradhwall+pradzwall+pneutw
+remark " "
+remark "Power Flow [Watts] incident on Private Flux Wall is:"
+ppfi,ppfe,ppfbd,pneutpf,ppfi+ppfe+ppfbd+pneutpf
+real8 powbal
+# Here particle power and radiation power are separate terms
+powbal = (pbcoree+pbcorei+pcorebd+p_i_vol+p_e_vol+ptjdote - ptotpart -
+          pwalli-pwalle-pwallbd - ppfi-ppfe-ppfbd - sum(pradimpt) -
+          pradfft-pradht-prdiss-pvmomcx+pibirth)/
+          abs(ptotin + ptjdote)
+remark " "
+remark "Power Balance: (Pin-Pout)/Pin"
+powbal
+#
+remark "============================================================== "
+remark " "
+remark "Particle Flow [Amps] from Core to Scrape-off Layer is:"
+do id = 1, nfsp
+ if (zi(id) .gt. 0.) then
+   << "  for nuclear charge = "<<znucl(id)<<"; ion charge = "<<zi(id)
+   << "  icore = "<<icore(id)
+   remark " "
+ endif
+enddo
+do id = 1, ngsp
+   <<"  for gas species = " << id << "; igascr = " \
+   << igascr(id)
+enddo
+   << "  hydrogen ion current at separatrix, isephyd = " << isephyd
+#
+remark " "
+remark "Current from Fixed Volume Source (Sinks) [Amps]:"
+   << "  ion current, i_vol = " << i_vol
+#
+remark " "
+remark "Ionization current [Amps] created by re-ionization of gas is:"
+do id = 1, ngsp
+   <<"  for gas species = " << id <<"; iion = " << iion(id)
+enddo
+remark " "
+remark "Recomb. current [Amps] from ions --> gas by electron-ion recombination:"
+do id = 1, ngsp
+   <<"  for gas species = " << id <<"; irecomb = " << irecomb(id)
+enddo
+remark " "
+remark "Charge exchange current [Amps] from ions --> gas by iter-species cx:"
+do id = 1, ngsp
+   <<"  for gas species = " << id <<"; icxgas = " << icxgas(id)
+enddo
+remark " "
+remark "Particle Flow [Amps] incident on Divertor Plate is:"
+do id = 1, nfsp
+ if (zi(id) .gt. 0.) then
+   << "  for nuclear charge = "<<znucl(id)<<"; ion charge = "<<zi(id)
+   << "  idivin = "<<idivin(id)<<"   idivout = "<<idivout(id)
+   remark " "
+ endif
+enddo
+remark "Neutral Flow [Amps] away from Divertor Plate is:"
+do id = 1, ngsp
+   <<"  for gas species = " << id << "; igasin = " \
+   << igasin(id) << ",  igasout = " << igasout(id)
+enddo
+#
+remark " "
+remark "Particle Flow [Amps] incident on Vessel Wall is:"
+do id = 1, nfsp
+   <<"  for ion species = " << id << "; iwall = " << iwall(id)
+enddo
+do id = 1, ngsp
+   <<"  for gas species = " << id << "; igaswall = " \
+   << igaswall(id)
+enddo
+remark " "
+remark "Particle Flow [Amps] incident on Private Flux Wall is:"
+do id = 1, nfsp
+   <<"  for ion species = " << id << "; ipf = " << ipf(id)
+enddo
+do id = 1, ngsp
+   <<"  for gas species = " << id << "; igaspf = " \
+   << igaspf(id)
+enddo
+#
+real8 deligas
+real8 igastot = 0.
+real8 igasdenom = 0.
+do id = 1, ngsp
+   igastot = igastot + igasin(id)-igasout(id)-igaswall(id)+igaspf(id)\
+                     + igascr(id) + i_vol
+   igasdenom = igasdenom + igasin(id) -igasout(id)
+enddo
+if (ishymol .eq. 1) then  # add id=2 case again because of 2 atoms/molecule
+   igastot = igastot + igasin(2)-igasout(2)-igaswall(2)+igaspf(2)\
+                     + igascr(2)
+   igasdenom = igasdenom + igasin(2) -igasout(2)
+endif
+deligas= (igastot - iion_tot - irecomb_tot - icxgas_tot) / igasdenom
+remark " "
+remark "Particle Balance for Neutrals: Itotal/Iinput"
+deligas
+#
+remark " "
+remark "Peak electron temperatures [eV] on divertor plates"
+real8 te_hat_outer = sup(te(nx+1,1:ny))/ev
+real8 te_hat_inner = sup(te(0,1:ny))/ev
+te_hat_outer
+te_hat_inner
+#
+remark " "
+remark "Peak ion temperatures [eV] on divertor plates"
+real8 ti_hat_outer = sup(ti(nx+1,1:ny))/ev
+real8 ti_hat_inner = sup(ti(0,1:ny))/ev
+ti_hat_outer
+ti_hat_inner
+#
+remark " "
+remark "Peak power flux [MW/m**2] on divertor plates"
+real8 p_hat_outer = 1.e-6*sup(sdtout(1:ny))
+real8 p_hat_inner = 1.e-6*sup(sdtin(1:ny))
+p_hat_outer
+p_hat_inner
+#
+remark " "
+remark "Peak ion densities [m**(-3)] on divertor plates"
+real8 ni_hat_outer = sup(ni(nx+1,1:ny,1))
+real8 ni_hat_inner = sup(ni(0,1:ny,1))
+ni_hat_outer
+ni_hat_inner
+#
+remark " "
+remark "Peak gas densities [m**(-3)] on divertor plates"
+  # note: guard cell gas density often meaningless, so use on cell in
+real8 ngcx_hat_outer = sup(ng(nx,1:ny,1))
+real8 ngcx_hat_inner = sup(ng(1,1:ny,1))
+ngcx_hat_outer
+ngcx_hat_inner
+#
+#
+echo=yes
+#

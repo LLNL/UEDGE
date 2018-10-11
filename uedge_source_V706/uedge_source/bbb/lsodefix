@@ -1,0 +1,1 @@
+define([lsode],[ifelse([$*],,[slsode],[slsode([$*])])])

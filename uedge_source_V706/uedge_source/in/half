@@ -1,0 +1,13 @@
+nxleg=nxleg/2;nxcore=nxcore/2;nycore=nycore/2;nysol=nysol/2
+if (nxomit .gt. 0) then
+  nxomit=(nxomit-2*nxxpt)/2 + 2*nxxpt
+endif
+if (kxmesh .eq. 4) then
+  real dxgasold=dxgas
+  real alfxold=alfx
+  alfx=alfxold*2.
+  dxgas=dxgasold*(exp(alfx)-1)/(exp(alfxold)-1)
+  nxgas=nxgas/2
+endif
+restart=1;newgeo=1;gengrid=1;isnintp=1
+ixdstar = nxcore(1,2)+1

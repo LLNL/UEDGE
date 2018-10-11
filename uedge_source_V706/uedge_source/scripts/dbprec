@@ -1,0 +1,8 @@
+# following should be read in only on single precision machines.
+
+define float {float}         # undo "define float ..." in case of re-reads
+function realsingprec(arg); float(float(arg)); endf   # works on all types
+
+define complex double{complex}
+define real double
+define float dble

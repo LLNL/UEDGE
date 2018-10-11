@@ -1,0 +1,6 @@
+real nisl=nis;real upsl=ups;real tesl=tes;real tisl=tis
+real ngsl=ngs;real phisl=phis
+nxold=nx;nyold=ny
+call gchange("Interp",0)
+call gridseq
+nis=ni;ups=up;tes=te;tis=ti;ngs=ng;phis=phi

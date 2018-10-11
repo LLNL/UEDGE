@@ -1,0 +1,112 @@
+errortrp("off")
+echo = no
+
+<< "--------------------------------------------------------------------------"
+<< "Character = abcdefghijklmnopqrstuvwxyz  (dec/oct/hex)"
+character a(2,13) = shape(["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"], [2,13])
+formdesc = "dec"
+a
+formdesc = "oct"
+a
+formdesc = "hex"
+a
+formdesc = "dec"
+
+# shape complains about this (inconsistent!!!!)
+# << "--------------------------------------------------------------------------"
+# << "Character = abdc  (dec/oct/hex)"
+# character*4 a1(2,4) = shape(["abcd", "hijk", "pqrs", "wxyz"], [2,4])
+# formdesc = "dec"
+# a1
+# formdesc = "oct"
+# a1
+# formdesc = "hex"
+# a1
+# formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+<< "Integer = iota(3,4)  (dec/oct/hex)"
+integer b(3,4) = shape(iota(12), [3,4])
+formdesc = "dec"
+b
+formdesc = "oct"
+b
+formdesc = "hex"
+b
+formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+<< "Logical = true  (dec/oct/hex)"
+logical c(4,6) = shape(true, [4,6])
+c(2,:) = false
+formdesc = "dec"
+c
+formdesc = "oct"
+c
+formdesc = "hex"
+c
+formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+<< "Range = iota[5,2]  (dec/oct/hex)"
+range d(5,2) = shape(iota(10), [5,2])
+formdesc = "dec"
+d
+formdesc = "oct"
+d
+formdesc = "hex"
+d
+formdesc = "dec"
+
+#<< "--------------------------------------------------------------------------"
+#<< "Address = 8192  (dec/oct/hex)"
+#Address e = 8192
+#e
+
+<< "--------------------------------------------------------------------------"
+<< "Real = iota[2,10] (dec/oct/hex)"
+real w(2,10) = shape(iota(20), [2,10])
+formdesc = "dec"
+w
+formdesc = "oct"
+w
+formdesc = "hex"
+w
+formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+<< "Double = iota[2,5] (dec/oct/hex)"
+double x(2,5) = shape(iota(10), [2,5])
+formdesc = "dec"
+x
+formdesc = "oct"
+x
+formdesc = "hex"
+x
+formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+<< "Complex = iota(5)*cmplx(1,2)  (dec/oct/hex)"
+complex y(2,3) = shape(iota(6)*cmplx(1,2), [2,3])
+formdesc = "dec"
+y
+formdesc = "oct"
+y
+formdesc = "hex"
+y
+formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+<< "Double complex = iota(7)*dcmplx(2,3)  (dec/oct/hex)"
+double complex z(4,2) = shape(iota(8)*dcmplx(2.71,3.14), [4,2])
+formdesc = "dec"
+z
+formdesc = "oct"
+z
+formdesc = "hex"
+z
+formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+
+quit

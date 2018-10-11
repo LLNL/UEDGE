@@ -1,0 +1,8 @@
+#
+# UEDGE - basic structural information.
+#
+
+ProgName = xuedge
+Packages = aph api bbb com dce flx grd ncl svr wdf mds idf psi std dst .
+Macros = sptodp
+RealSize = 8

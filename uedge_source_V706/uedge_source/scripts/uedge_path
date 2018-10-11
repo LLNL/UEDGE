@@ -1,0 +1,3 @@
+call pathadd ("$UEDGE/in/api")
+call pathadd ("$UEDGE/in")
+call pathadd ("$UEDGE/$CPU")

@@ -1,0 +1,23 @@
+The dce (for Distributed Computing Environment) provides
+access to a series of RPC routines. This package was 
+conceived of at a time when Uedge was almost exclusively
+run on Cray computers at the NERSC facility. Computer time
+was expensive, and the Cray response was not particularly 
+fast with regard to wall time. The dce routines are mostly
+meant for data visualization which is done in realtime. 
+I will not document the routines here as that already exists
+elsewhere. The main routine is rzxform which simply does a 
+polyfill of the Uedge grid space onto a rectalinear r-z
+grid to be visualized with any one of many imaging tools.
+With the advent of fast, and cheap, desktop workstations
+this package is rapidly becoming obsolete. 
+
+Version 1 - All the routines in version 1 are provided by
+an rpc server. It first attempts to utilize the "well known
+port" 12100. This makes it easier to tunnel through firewalls
+or across networks. If that fails the portmapper is used
+to determine the server port. The "well known port" can be
+turned off by modifying PackageMake.
+
+Version 2 - In this version the rzxform routine has been brought
+directly into Uedge, instead of being served as an rpc. 

@@ -1,0 +1,19 @@
+LANGUAGE = C
+PKG = com
+POINTER = cray
+
+VDF = com.v
+
+NVDF = ../aph/aph.v ../api/api_basis.v ../bbb/bbb_basis.v ../grd/grd_basis.v\
+       ../flx/flx_basis.v  ../wdf/wdf.v
+
+SM = comutil.m 
+
+SU = blasext.m misc.m mnbrak.m brent.m
+
+SF1 = error.f getmsg.f glbwrlog.f
+
+SC = handlers.c
+
+SYSTEM SUN4 HP700 SOL SGI RS6000 AXP CS2 IRIX64 LINUX MACOSX
+SF = dsum.f

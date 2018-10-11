@@ -1,0 +1,18 @@
+# Convertor script to create .F files from mppl files for uedge.
+# Location for new tree is ../uedge_Forthon.
+from convert import *
+# puts output F files in same directory as input mppl files
+targetdir = "."
+#create the directory list
+f=open("Dirlist","r")
+dirlist =f.read().split()
+print "directory list =",dirlist
+# define the mppl to f90 class
+class M2F(generic):
+   suffixin = "m"
+   suffixout = "F"
+   subrules = globalsubrules + M2Fsubrules
+import convert
+convert.M2F = M2F
+processall.classlist.append("M2F")
+pd = processdirs(dirlist,targetdir)

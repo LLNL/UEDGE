@@ -1,0 +1,194 @@
+# This script calculations flux surface averages particle and energy sources
+# for the UEDGE interpretive mode.
+# Note that in SOL, averages are from X-point to X-point; divertor omitted.  
+# Also, in the SOL, poloidal fluxes are ignored (inaccurate); in core, 
+# average to 0. 
+# First, read input file, then read rdfitdata_new, then execute once with
+# issfon=0 and ftol=1e20, and finally read this file.
+
+# del_Wicv	# dWi/dt for ions radial convective heat flux [W/m**3]
+# del_Wecv	# dWe/dt for elec radial convective heat flux [W/m**3]
+# del_Widd	# dWi/dt for ions radial diffusive heat flux [W/m**3]; diagnos
+# del_Wedd	# dWe/dt for elec radial diffusive heat flux [W/m**3]; diagnos
+# del_Wicd	# dWi/dt for ions radial diffusive heat flux [W/m**3]; pow bal
+# del_Wecd	# dWe/dt for elec radial diffusive heat flux [W/m**3]; pow bal
+# del_Cei	# dWe/dt=-dWi/dt elec-ion collisional exchange [W/m**3]
+# del_Wivdp	# dWi/dt for ions p-v type pressure-work terms [W/m**3]
+# del_Wevdp	# dWi/dt for elec p-v type pressure-work terms [W/m**3]
+
+# del_Wecv	# dW/dt from radial convective heat fluxe
+
+## Limit variables that user may want to change:
+double dif_min = 0.1		#minimum dif_min before convection is used
+double kyi_min = 0.001 		#minimum kyi allowed
+double kye_min = 0.001  	#minimum kye allowed
+double kyi_max = 100.  		#maximum kyi allowed
+double kye_max = 100.  		#maximum kye allowed
+double taudndt = 0.2		#global density rise-time (s)
+
+
+double del_Sp(0:ny+1), del_Witot(0:ny+1), del_Wetot(0:ny+1), del_dNdt(0:ny+1)
+double del_Wicd(0:ny+1), del_Wicv(0:ny+1), del_Wecd(0:ny+1), del_Wecv(0:ny+1)
+double del_Wecv2(0:ny+1), del_Wecv3(0:ny+1), del_Wicdd(0:ny+1), del_Wecdd(0:ny+1)
+double del_Cei(0:ny+1), del_Wivdp(0:ny+1), del_Wevdp(0:ny+1)
+double dif_int(0:ny+1), kyi_int(0:ny+1), kye_int(0:ny+1)
+double vyn_int(0:ny+1), vyei_int(0:ny+1), vyee_int(0:ny+1)
+double gamp(0:ny+1), gamei(0:ny+1), gamee(0:ny+1), pfmpg(0:ny+1)
+double facgam(0:nx+1,0:ny+1), floyd(0:nx+1,0:ny+1)
+double vtot, aiy, aiym1, arat, gamp_difmin, gamei_kyimin, gamee_kyemin
+double fracl = gyf(ixmp,1)/gyf(ixmp,0)
+double fracr = gyf(ixmp,ny-1)/gyf(ixmp,ny)
+range core = ixpt1+1:ixpt2
+integer ncells = ixpt2-ixpt1
+
+integer oldecho = echo
+echo = 0
+
+#######################################################
+# First calculate the particle source and radial flux
+#######################################################
+# For testing with UEDGE solution, compute curcore(1)
+recycc(1) = 0.
+if(curcore(1) == 0.) curcore(1) = sum(fniy(core,0))*qe
+##
+gamp(0) = ( curcore(1)/qe - recycc(1)*sum(fngy(core,0)) )/sum(sy(core,0))
+do iy = 1, ny
+  vtot = sum(vol(core,iy))
+  del_Sp(iy) = sum( psor(core,iy) ) / vtot
+  del_dNdt(iy) = sum( ni(core,iy,1)*vol(core,iy) ) / (taudndt*vtot)
+  aiy = sum(sy(core,iy))
+  aiym1 = sum(sy(core,iy-1))
+  arat = aiym1/aiy
+  gamp(iy) = gamp(iy-1)*arat + (del_Sp(iy)-del_dNdt(iy))*sum(vol(core,iy))/aiy
+  pfmpg(iy) = gyf(ixmp,iy)*sum(sy(core,iy))/sum(sy(core,iy)*gyf(core,iy))
+  do ix = ixpt1+1, ixpt2
+    facgam(ix,iy) = gyf(ix,iy)*sum(sy(core,iy))/sum(sy(core,iy)*gyf(core,iy))
+    floyd(ix,iy) = cfloyi*gamp(iy)*facgam(ix,iy)*sy(ix,iy)*0.5
+  enddo
+enddo
+
+do ix = ixpt1+1, ixpt2
+  floyd(ix,0) = floyd(ix,1) - (floyd(ix,2)-floyd(ix,1))*fracl
+enddo
+pfmpg(0) = pfmpg(1)
+ 
+#######################################################
+# Calculate the energy sources and fluxes
+#######################################################
+do iy = 1, ny
+  vtot = sum(vol(core,iy))
+  del_Wicv(iy)  = sum( floyd(core,iy  )*(ti(core,iy  )+ti(core,iy+1)) -  \
+                       floyd(core,iy-1)*(ti(core,iy-1)+ti(core,iy  )) )/ \
+                                                                    vtot
+  del_Wecv(iy)  = sum( floyd(core,iy  )*(te(core,iy  )+te(core,iy+1)) -  \
+                       floyd(core,iy-1)*(te(core,iy-1)+te(core,iy  )) )/ \
+                                                                    vtot
+##  del_Wicdd(iy) =-sum( conyi(core,iy  )*(ti(core,iy+1)-ti(core,iy  )) -  \
+##                       conyi(core,iy-1)*(ti(core,iy  )-ti(core,iy-1)) )/\
+##                                                                    vtot
+##  del_Wecdd(iy) =-sum( conye(core,iy  )*(te(core,iy+1)-te(core,iy  )) -  \
+##                       conye(core,iy-1)*(te(core,iy  )-te(core,iy-1)) )/ \
+##                                                                    vtot
+  del_Cei(iy)   = sum( eqp(core,iy)*(te(core,iy)-ti(core,iy))* \
+                                                     vol(core,iy) )/vtot
+  del_Wivdp(iy) = sum( seic(core,iy) ) / vtot
+  del_Wevdp(iy) = sum( seec(core,iy) ) / vtot
+  del_Wicd(iy)  = -del_Wicv(iy) - del_Cei(iy) + del_Wivdp(iy)
+  del_Wecd(iy)  = -del_Wecv(iy) + del_Cei(iy) + del_Wevdp(iy)
+  del_Wicdd(iy) = del_Wicd(iy)  # must sum with others to zero for power bal
+  del_Wecdd(iy) = del_Wecd(iy)  # must sum with others to zero for power bal
+enddo
+
+# Fill in guard-cell values using linear interpolation
+
+  del_Sp(0)    = del_Sp(1)    - (del_Sp(2)-del_Sp(1))*fracl
+  del_dNdt(0)  = del_dNdt(1)  - (del_dNdt(2)-del_dNdt(1))*fracl
+  del_Witot(0) = del_Witot(1) - (del_Witot(2)-del_Witot(1))*fracl
+  del_Wetot(0) = del_Wetot(1) - (del_Wetot(2)-del_Wetot(1))*fracl
+  del_Wicv(0)  = del_Wicv(1)  - (del_Wicv(2)-del_Wicv(1))*fracl
+  del_Wecv(0)  = del_Wecv(1)  - (del_Wecv(2)-del_Wecv(1))*fracl
+  del_Wicd(0)  = del_Wicd(1)  - (del_Wicd(2)-del_Wicd(1))*fracl
+  del_Wecd(0)  = del_Wecd(1)  - (del_Wecd(2)-del_Wecd(1))*fracl
+  del_Cei(0)   = del_Cei(1)   - (del_Cei(2)-del_Cei(1))*fracl
+  del_Wivdp(0) = del_Wivdp(1) - (del_Wivdp(2)-del_Wivdp(1))*fracl
+  del_Wevdp(0) = del_Wevdp(1) - (del_Wevdp(2)-del_Wevdp(1))*fracl
+
+  del_Sp(ny+1)    = del_Sp(ny)    + (del_Sp(ny)-del_Sp(ny-1))*fracr
+  del_dNdt(ny+1)  = del_dNdt(ny)  + (del_dNdt(ny)-del_dNdt(ny-1))*fracr
+  del_Witot(ny+1) = del_Witot(ny) + (del_Witot(ny)-del_Witot(ny-1))*fracr
+  del_Wetot(ny+1) = del_Wetot(ny) + (del_Wetot(ny)-del_Wetot(ny-1))*fracr
+  del_Wicv(ny+1)  = del_Wicv(ny)  + (del_Wicv(ny)-del_Wicv(ny-1))*fracr
+  del_Wecv(ny+1)  = del_Wecv(ny)  + (del_Wecv(ny)-del_Wecv(ny-1))*fracr
+  del_Wicd(ny+1)  = del_Wicd(ny)  + (del_Wicd(ny)-del_Wicd(ny-1))*fracr
+  del_Wecd(ny+1)  = del_Wecd(ny)  + (del_Wecd(ny)-del_Wecd(ny-1))*fracr
+  del_Cei(ny+1)   = del_Cei(ny)   + (del_Cei(ny)-del_Cei(ny-1))*fracr
+  del_Wivdp(ny+1) = del_Wivdp(ny) + (del_Wivdp(ny)-del_Wivdp(ny-1))*fracr
+  del_Wevdp(ny+1) = del_Wevdp(ny) + (del_Wevdp(ny)-del_Wevdp(ny-1))*fracr
+
+##########################################################
+# Calculate energy fluxes (UEDGE must know pcoree,i) #
+##########################################################
+# For testing with UEDGE solution, compute pcoree,i
+if(pcorei = 0.) pcorei = sum(feiy(core,0))
+if(pcoree = 0.) pcoree = sum(feey(core,0))
+##
+
+  gamei(0) = pcorei/sum(sy(core,0)) - cfloyi*gamp(0)*0.5* \
+                              (ti(ixmp,0)+ti(ixmp,1))
+  gamee(0) = pcoree/sum(sy(core,0)) - cfloye*gamp(0)*0.5* \
+                              (te(ixmp,0)+te(ixmp,1))
+
+  do iy = 1, ny
+    aiy = sum(sy(core,iy))
+    aiym1 = sum(sy(core,iy-1))
+    arat = aiym1/aiy
+    gamei(iy) = gamei(iy-1)*arat + del_Wicd(iy)*sum(vol(core,iy))/aiy
+    gamee(iy) = gamee(iy-1)*arat + del_Wecd(iy)*sum(vol(core,iy))/aiy
+  enddo
+
+######################################################################
+# Calculate effective diffusion/convection coefficients from data above
+######################################################################
+
+do iy = 1, ny
+  dif_int(iy) = - gamp(iy)*pfmpg(iy) /  \
+                         ((ni(ixmp,iy+1) - ni(ixmp,iy))*gyf(ixmp,iy))
+  if(dif_int(iy) < dif_min) then
+    dif_int(iy) = dif_min
+    gamp_difmin = -dif_min*( (ni(ixmp,iy+1) - ni(ixmp,iy))* \
+                                   gyf(ixmp,iy) ) / pfmpg(iy)
+    vyn_int(iy) = (gamp(iy)+gamp_difmin)/(ni(ixmp,iy+1) + ni(ixmp,iy))
+  endif
+       
+  kyi_int(iy) = -2*gamei(iy)*pfmpg(iy) /  \
+                       ( (ni(ixmp,iy+1)+ni(ixmp,iy))*        \
+                         (ti(ixmp,iy+1)-ti(ixmp,iy))*gyf(ixmp,iy) ) 
+  kyi_int(iy) = min(kyi_int(iy), kyi_max)
+  if (kyi_int(iy) < kyi_min) then
+    kyi_int(iy) = kyi_min
+    gamei_kyimin = 
+ 
+  kye_int(iy) = -2*gamee(iy)*pfmpg(iy) /  \
+                       ( (ni(ixmp,iy+1)+ni(ixmp,iy))*        \
+                         (te(ixmp,iy+1)-te(ixmp,iy))*gyf(ixmp,iy) )  
+  kye_int(iy) = max(kye_int(iy), kye_min) 
+  kye_int(iy) = min(kye_int(iy), kye_max)
+enddo
+
+# Set guard-cell values by extrapolation
+  double rdelyf = gy(ixmp,2)/gy(ixmp,1)
+  dif_int(0) = dif_int(1) - (dif_int(2)-dif_int(1))*rdelyf
+  kyi_int(0) = kyi_int(1) - (kyi_int(2)-kyi_int(1))*rdelyf
+  kye_int(0) = kye_int(1) - (kye_int(2)-kye_int(1))*rdelyf
+  dif_int(ny+1) = dif_int(ny)
+  kyi_int(ny+1) = kyi_int(ny)
+  kye_int(ny+1) = kye_int(ny)
+
+# Set other poloidal values (excluding divertor region)
+##do ix = ixpt1+1, ixpt2
+##  dif_use(ix,) = dif_use(ixmp,)
+##  kyi_use(ix,) = kyi_use(ixmp,)
+##  kye_use(ix,) = kye_use(ixmp,)
+##enddo
+
+echo = oldecho

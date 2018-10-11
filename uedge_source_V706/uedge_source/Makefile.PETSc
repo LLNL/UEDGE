@@ -1,0 +1,12 @@
+PETSC_DIR   = /homes/mccomic/petsc-uedge
+PETSC_ARCH  = linux-uedge
+FARGS       = --fargs  -I$(PETSC_DIR) --fargs -I$(PETSC_DIR)/$(PETSC_ARCH)/include \
+              --fargs -I$(PETSC_DIR)/include --fargs -DUSE_PETSC 
+FCOMP       = -F g95 $(FARGS)
+
+include Makefile.Forthon
+
+MYPYTHONP = python-uedge
+SETUPOPTS   = --petsc
+PETSC-UEDGE = petsc-uedge.F90
+

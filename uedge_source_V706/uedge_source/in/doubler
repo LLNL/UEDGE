@@ -1,0 +1,4 @@
+nxleg=1*nxleg;nxcore=1*nxcore;nycore=2*nycore;nysol=2*nysol;nxomit=1*nxomit
+if (nyomitmx .eq. 1) nysol = 1
+restart=1;newgeo=1;gengrid=1;isnintp=1
+

@@ -1,0 +1,41 @@
+# DEFINE THE FUNCTION TO PLOT CONTOURS OF TI
+
+function plotticq 
+
+titlet = "CONTOURS OF ION TEMPERATURE (eV)"
+
+#********************************************************************
+if (mhdgeo .eq. 1 ) then   #For tokamak orientation
+#********************************************************************
+
+   titlel = "VERTICAL DISTANCE (m)"
+   titleb = "MAJOR RADIUS (m)"
+#
+#    First plot the ion temperature
+#
+   if (ixpt1.ge.1) plotz var_LL,rm_LL,zm_LL, lev=ticontour
+   if (ixpt1.ge.1) plotz var_UL,rm_UL,zm_UL, lev=ticontour
+   if (ixpt2.le.nx) plotz var_UR,rm_UR,zm_UR, lev=ticontour
+   if (ixpt2.le.nx) plotz var_LR,rm_LR,zm_LR, lev=ticontour
+
+#*********************************************************************
+else   # reverse roles of zm,rm for cylindrical and cartesian meshes
+#*********************************************************************
+
+   titlel = "TRANSVERSE DISTANCE (m)"
+   titleb = "AXIAL DISTANCE (m)"
+
+#    First plot the ion density
+
+   plotz var_UR,zm_UR,rm_UR, lev=ticontour
+   plotz var_LR,zm_LR,rm_LR, lev=ticontour
+
+#*********************************************************************
+endif
+#*********************************************************************
+##
+# Now plot grid boundaries and the separatrix
+#
+call plotbdyq
+#
+endf

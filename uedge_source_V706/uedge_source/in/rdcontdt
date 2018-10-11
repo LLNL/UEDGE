@@ -1,0 +1,206 @@
+# This file runs a time-dependent case using dtreal.  First, read rdinitdt
+# to set variables, and then read this file.
+# If a mistake is made, to restart this file without a Jacobian evaluation,
+# be sure to reset iterm=1 (=> last step was successful)
+
+echo = no
+if (i_stor==0) then
+  dt_tot = 0.
+  character*80 s(1)
+  s(1)="create pfdt_"//savefname//" "
+endif
+if (i_stor==0 .and. n_stor > 1) then
+  real ni_stor(1:n_stor,0:nx+1,0:ny+1,1:nisp)=0.	#set storage arrays
+  real up_stor(1:n_stor,0:nx+1,0:ny+1,1:nisp)=0.
+  real te_stor(1:n_stor,0:nx+1,0:ny+1)=0.
+  real ti_stor(1:n_stor,0:nx+1,0:ny+1)=0.
+  real ng_stor(1:n_stor,0:nx+1,0:ny+1,1:ngsp)=0.
+  real phi_stor(1:n_stor,0:nx+1,0:ny+1)=0.
+  real tim_stor(1:n_stor)=0.
+  real dtreal_stor(1:n_stor)=0.
+  integer nfe_stor(1:n_stor)=0
+  dt_stor = (tstor_e - tstor_s)/(n_stor - 1)
+  character*80 s2(1)
+  if (n_stor.gt.0) s2(1)="create pftstor_"//savefname//" "
+endif
+i_stor = max(i_stor,1)			# set counter for storage arrays
+dt_tot = max(dt_tot,0.)
+nfe_tot = max(nfe_tot,0)
+real8 deldt_0 = deldt
+real8 fnrm_old
+integer isdtsf_sav = isdtsfscal
+integer numrev, numfwd, numrfcum
+numrev = 0
+numfwd = 0
+numrfcum = 0
+
+if (ipt.eq.1 .and. isteon.eq.1) then 	#reset ipt to te(nx,iysptrx+1) if no user value
+  ipt = idxte(nx,iysptrx+1)
+endif
+#
+##exmain
+##if (iterm .ne. 1) paws
+newgeo=0
+itermx = itermxrdc
+##ftol = ftol_dt
+dtreal = dtreal/mult_dt		#adjust dtreal for multiplic. to follow
+dtphi = rdtphidtr*dtreal
+irev = -1
+ylodt = yl
+call pandf1 (-1, -1, 0, neq, 1., yl, &yldot)
+fnrm_old = sqrt(sum((yldot(1:neq)*sfscal(1:neq))**2))
+do ii1 = 1, ii1max
+   if (ismfnkauto==1) mfnksol = 3
+   if (irev .eq. 0) then  # dtreal in increased
+      dtreal = 3*dtreal		#first move forward after reduction
+      dtphi = rdtphidtr*dtreal
+      if (ismfnkauto==1 .and. dtreal > dtmfnk3) mfnksol = -3
+      deldt =  3*deldt
+   else  # both increase/decrease; only decrease if irev=1
+      dtreal = mult_dt*dtreal
+      dtphi = rdtphidtr*dtreal
+      if (ismfnkauto==1 .and. dtreal > dtmfnk3) mfnksol = -3
+      deldt =  mult_dt*deldt
+   endif
+   dtreal = min(dtreal,dt_max)
+   dtphi = rdtphidtr*dtreal
+   if (ismfnkauto==1 .and. dtreal > dtmfnk3) mfnksol = -3
+   deldt = min(deldt,deldt_0)
+   deldt = max(deldt,deldt_min)
+   ii1
+   dtreal
+   nsteps_nk=1
+##   ftol = ftol_dt/(1 + 100*dtreal/dt_max) # gives better converg at large dt
+   itermx = itermxrdc
+   if (ii1.gt.1 .or. initjac.eq.1) then	# first time calc Jac if initjac=1
+      if (irev == 1) then  # decrease in dtreal
+        if (numrev < numrevjmax .and. \
+            numrfcum < numrevjmax+numfwdjmax) then #dont recompute jac
+          icntnunk = 1	
+	  numrfcum = numrfcum + 1
+        else                          # force jac calc, reset numrev
+          icntnunk = 0
+          numrev = -1		      # yields zero in next statement
+	  numrfcum = 0
+        endif
+        numrev = numrev + 1
+        numfwd = 0
+      else  # increase in dtreal
+        if (numfwd < numfwdjmax .and. \
+            numrfcum < numrevjmax+numfwdjmax) then 	#dont recompute jac
+          icntnunk = 1
+	  numrfcum = numrfcum + 1
+        else
+          icntnunk = 0			#recompute jacobian for increase dt
+          numfwd = -1
+	  numrfcum = 0
+        endif
+        numfwd = numfwd + 1
+        numrev = 0			#restart counter for dt reversals
+      endif	
+      isdtsfscal = isdtsf_sav
+      ftol = min(ftol_dt, 0.001*fnrm_old)
+      exmain
+      if (iterm .eq. 1) then
+        dt_tot = dt_tot + dtreal
+	nfe_tot = nfe_tot + nfe(1,1)
+	ylodt = yl
+	call pandf1 (-1, -1, 0, neq, 1., yl, &yldot)
+        fnrm_old = sqrt(sum((yldot(1:neq)*sfscal(1:neq))**2))
+      endif
+   endif
+   icntnunk=1
+   isdtsfscal = 0
+   do ii2 = 1, ii2max
+      if (iterm .eq. 1) then
+         itermx = itermxrdc
+         ftol = min(ftol_dt, 0.001*fnrm_old)
+         exmain
+         if (iterm .eq. 1) then
+	    ylodt = yl
+	    call pandf1 (-1, -1, 0, neq, 1., yl, &yldot)
+	    fnrm_old = sqrt(sum((yldot(1:neq)*sfscal(1:neq))**2))
+            dtreal_sav = dtreal
+	    dt_tot = dt_tot + dtreal
+            nfe_tot = nfe_tot + nfe(1,1)
+            if (dt_tot>=t_stop.or.fnrm_old<ftol_min.or.dtreal<dt_kill) break
+            << " Total time = " << dt_tot << "; Timestep = " << dtreal << \
+	       "; yl(ipt), ipt = " << yl(ipt) << ", "<< ipt
+            remark " "
+            parse(s,1) #see file rdinitdt - this creates pfdt_"//savefname//"
+            write nis,ups,tes,tis,ngs,phis,dtreal_sav,dt_tot,ii1
+            close
+##          Store variables if a storage time has been crossed
+            if (dt_tot .ge. dt_stor*i_stor .and. i_stor.le.n_stor) then
+               ni_stor(i_stor,,,) = ni
+               up_stor(i_stor,,,) = up
+               te_stor(i_stor,,) = te
+               ti_stor(i_stor,,) = ti
+               ng_stor(i_stor,,,) = ng
+               phi_stor(i_stor,,) = phi
+               tim_stor(i_stor) = dt_tot
+               nfe_stor(i_stor) = nfe_tot
+               dtreal_stor(i_stor) = dtreal
+               i_stor = i_stor + 1
+            endif
+##          End of storage section
+         endif
+      endif
+   enddo
+   
+## Write out the time-dependent arrays in outer loop if i_stor > 1
+   if (i_stor .gt. 1) then
+      parse(s2,1)
+      write ni_stor,up_stor,te_stor,ti_stor,ng_stor,phi_stor,tim_stor
+      close
+   endif
+
+   if (dt_tot>=t_stop.or.fnrm_old<ftol_min.or.dtreal<dt_kill) break   # need for both loops
+   irev = irev-1
+   if (iterm .ne. 1) then	#print bad eqn, cut dtreal by 3, set irev flag
+
+####### just a copy of idtroub script ########################
+      integer oldecho=echo
+      echo=no
+      integer ii
+      real8 ydmax 
+      real8 scalfac = sfscal
+      if (svrpkg .ne. "nksol") scalfac = 1/(yl + 1.e-30)  # for time-dep calc.
+      ydmax = 0.999999999*sup(abs(yldot(1:neq)*scalfac(1:neq)))
+      do ii=1,neq
+        if (abs(yldot(ii)*scalfac(ii)) .gt. ydmax) then
+          integer itrouble=ii
+          remark "** Index of trouble making equation is:"
+          itrouble
+          break
+        endif
+      enddo
+      remark "** Number of variables is:"
+      numvar
+      remark " "
+      integer iv_t = mod(itrouble-1, numvar) + 1
+      remark "** Troublemaker equation is:"
+      iv_t
+      remark " "
+      remark "** Troublemaker cell (ix,iy) is:"
+      igyl(itrouble,)
+      remark " "
+      remark "** Timestep for troublemaker equation:"
+      dtuse(itrouble)
+      remark " "
+      remark "** yl for troublemaker equation:"
+      yl(itrouble)
+      remark " "
+      echo=oldecho
+######## end of idtroub script ##############################
+
+      irev = 1
+      dtreal = dtreal/(3*mult_dt)
+      dtphi = rdtphidtr*dtreal
+      if (ismfnkauto==1 .and. dtreal > dtmfnk3) mfnksol = -3
+      deldt =  deldt/(3*mult_dt) 
+      iterm = 1
+   endif
+enddo
+
+echo = yes

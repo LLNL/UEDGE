@@ -1,0 +1,44 @@
+# DEFINE THE FUNCTION TO PLOT CONTOURS OF NI
+
+function plotnicq (is)
+
+chameleon spec = "HYDROGENIC ION"
+if (is .gt. nhsp) spec = "Z=" // format(is-nhsp,0) // " IMPURITY"
+
+titlet = "CONTOURS OF " // spec // " DENSITY (1.e20 /m**3)"
+
+#********************************************************************
+if (mhdgeo .eq. 1 ) then   #For tokamak orientation
+#********************************************************************
+
+   titlel = "VERTICAL DISTANCE (m)"
+   titleb = "MAJOR RADIUS (m)"
+#
+#    First plot the ion density
+#
+   if (ixpt1.ge.1) plotz var_LL,rm_LL,zm_LL, lev=nicontour
+   if (ixpt1.ge.1) plotz var_UL,rm_UL,zm_UL, lev=nicontour
+   if (ixpt2.le.nx) plotz var_UR,rm_UR,zm_UR, lev=nicontour
+   if (ixpt2.le.nx) plotz var_LR,rm_LR,zm_LR, lev=nicontour
+
+#*********************************************************************
+else   # reverse roles of zm,rm for cylindrical and cartesian meshes
+#*********************************************************************
+
+   titlel = "TRANSVERSE DISTANCE (m)"
+   titleb = "AXIAL DISTANCE (m)"
+
+#    First plot the ion density
+
+   plotz var_UR,zm_UR,rm_UR, lev=nicontour
+   plotz var_LR,zm_LR,rm_LR, lev=nicontour
+
+#*********************************************************************
+endif
+#*********************************************************************
+#
+# Now plot grid boundaries and the separatrix
+#
+call plotbdyq
+#
+endf

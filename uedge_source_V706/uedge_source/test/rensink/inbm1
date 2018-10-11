@@ -1,0 +1,89 @@
+probname = "bm1"
+#
+# input file for UEDGE benchmark case 1 :
+# DIII-D, no current, no drifts, one neutral species, 8x4 grid
+#
+# initialize packages --
+	package flx;package grd;package bbb
+# core plasma boundary conditions --
+	tcoree=100.;tcorei=100.;ncore=2.e19
+# difference method flags --
+	methn=24;methu=33;methe=33;methi=33;methg=33;methp=33
+# anomalous perpendicular transport --
+	difni(1)=1.;kye=1.;kyi=1.;travis(1)=1.
+# parallel transport --
+	kxe=1.;kxi=1.;parvis(1)=1.
+# sheath parameters:
+	newbc=0
+	bcei=2.5;bcee=4.0	# sheath energy transmission factors (newbc=0)
+# ionization and charge-exchange rate parameters --
+	icnucx=0;cnucx=0.;icnuiz=0;cnuiz=5.e4
+# flux limit factors --
+	flalfv=1.e50;flalfe=0.1;flalfi=1.e20;flalfgx=1.e20;flalfgy=1.e20
+# mesh construction --
+!rm aeqdsk neqdsk
+!cp aeqdskd3d aeqdsk
+!cp neqdskd3d neqdsk
+	mhdgeo=1
+	geometry="snull"
+	psi0min1=.98;psi0min2=.98;psi0sep=1.00001;psi0max=1.07
+	alfcy=.0001
+	slpxt=1.0
+	ngrid=1
+	nxleg(1)=2;nxcore(1)=2;nycore(1)=1;nysol(1)=3
+# newton iteration parameters --
+	scrit=1.e-3;nmaxnewt=20
+# Jacobian increments --
+	xrinc=1;xlinc=2;yinc=1
+	del=1.0e-07
+# lsodpk parameters --
+	jacflg=1;jpre=1
+# miscellaneous switches and options:
+	tedge=2.
+	cfvisx=1.;cfvisy=1.;cnfx=1.;cnfy=1.
+	cmfx=1.;cmfy=1.;cpgx=1.;cnsor=1.;cngsor=1.;ctsor=1.
+	cvgp=1.;cnurn=1.;cnuru=1.;cnure=1.;cnuri=1.;cnurg=1.
+	cngatol=1.;inopt=0
+	rlx=.4
+	nurlx=1.e8;rtolv=1.e-3
+# current and potential parameters:
+	isphion=0
+	rsigpl=1.e-8;cfjhf=0.;jhswitch=0;cfjve=0.
+# neutral gas model parameters:
+	ngsp=1
+	recycp(,1)=0.80
+	cngfx=1.;cngfy=1.	# coefficients for grad-T terms in v_neutral
+	cngflox=0.;cngfloy=0.	# coefficients for convective terms in v_neutral
+	sxgsol=1.;sxgpr=1.	# x-stretching factors for neutral diffusion
+	xgscal=.1
+	igas=0
+# more neutral gas model parameters (for ngsp=2 only):
+	recycp(,2)=0.00		# FC recycling at the plates
+	tfcx=1.;tfcy=1.		# FC thermal speed
+	cngtgx=0.;cngtgy=0.	# combine ion and CX-neutral energy equations
+# magnetic field scale factor:
+	b0=1.
+# classical cross-field flux coefficients:
+	cfjp2=0.;cfjpy=0.	# diamagnetic current
+	cf2dd=0.;cfydd=0.	# diamagnetic drift
+	cf2ef=0.;cfyef=0.	# E x B drift
+	cfbgt=0.		# B x grad_T heat flux
+# move package com to top of search stack so allocate works correctly
+	package com
+# impurity radiation model:
+	isimpon=0
+	if (isimpon .eq. 1) then
+		read setup.argon	# read MIST data files for argon
+		cnimp=1.	# globalscale factor for radiation loss
+		allocate
+		afrac(,)=.001	# atomic concentration of impurity
+		atau(,)=1.	# lifetime (sec) of impurity atoms
+	endif
+# solution method flags:
+	svrpkg="nksol"
+	runtim=1.0e-07		# convergence for VODPK
+	rwmin=1.0e-11		# convergence for NEWTON
+# restart option:
+	if (restart .eq. 1) then
+	   allocate;restore pfbm1
+	endif

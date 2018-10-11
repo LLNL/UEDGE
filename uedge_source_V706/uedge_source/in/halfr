@@ -1,0 +1,2 @@
+nxleg=nxleg;nxcore=nxcore;nycore=nycore/2;nysol=nysol/2;nxomit=nxomit
+restart=1;newgeo=1;gengrid=1;isnintp=1

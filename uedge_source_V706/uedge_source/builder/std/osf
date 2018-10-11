@@ -1,0 +1,25 @@
+#
+# OSF - basic AXP UEDGE configuration using NCAR graphics
+#
+
+include packages
+#Packages = aph api bbb com flx grd svr wdf .
+
+PackFiles = ${BasInc}/pfb.pack ${BasInc}/ezn.pack
+AUXLibs = RL pfb ezn ezd basis
+SYSLibs   = readline termcap
+
+define WARN_PATTERN "warning WARNING Info:"
+
+FGroup    = 1
+  Use     = compaq_f90
+  Flags   = -align dcommons -recursive
+
+CGroup    = 1
+  Use     = compaq_cc
+  Flags   = -std1
+  LXFlags = -w1 -std1
+
+LDGroup   = 1
+  Use     = compaq_f90
+  MapName = code.map

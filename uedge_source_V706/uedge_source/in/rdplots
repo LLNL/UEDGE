@@ -1,0 +1,87 @@
+package bbb
+echo=no
+#
+# Define functions.
+#
+#read plotmesh   # uncomment this line to plot the entire mesh
+read setup_quad
+read plotbdyq
+read plotnicq
+read plotngcq
+read plottecq
+read plotticq
+read plotpwrhq
+read plotpwriq
+#
+# Change some of the defaults of the EZN plot package.
+#
+ezcshow=false   # don't advance frame after each plot command
+ezclegfr=0.     # eliminate all space below plots for legends
+ezcextra=0.     # eliminate extra space below ymin & and above ymax
+ezcreset=false  # don't reset attributes when starting a new frame
+attr labels=no	# omit labels from curves
+#
+# Define limits for all plots made by this file.
+#
+real r_min = inf(rm)
+real r_max = sup(rm)
+real z_min = inf(zm)
+real z_max = sup(zm)
+integer is
+#
+# Activate output to a CGM file.
+cgm on
+#
+# Plot the ion density
+real nicontour(14) = [30., 20., 10., 5., 2., 1., 0.7, 0.4, 0.25, 0.15,\
+                      0.1, 0.05, 0.02, 0.01]
+do is = 1, nisp
+   if (is == nhsp+1) nicontour = 0.01 * nicontour
+   call var_quad(ni(,,is)/1.e20)
+   frame r_min, r_max, z_min, z_max
+   call plotnicq (is)
+enddo
+#
+# Plot the gas density
+real ngcontour(12) = [30., 20., 10., 5., 2., 1., 0.5, 0.2,\
+                      0.1, 0.03, 0.01, 0.001]
+call var_quad(ng(,,1)/1.e20)
+frame r_min, r_max, z_min, z_max
+call plotngcq
+#
+# Plot the electron temperature
+real tecontour(12) = [1,2,10,20,30,50,100,150,200,300,400,500]
+call var_quad(te/ev)
+frame r_min, r_max, z_min, z_max
+call plottecq
+#
+# Plot the ion temperature
+real ticontour(12) = [1,2,10,20,30,50,100,150,200,300,400,500]
+call var_quad(ti/ev)
+frame r_min, r_max, z_min, z_max
+call plotticq
+#
+# Plot the hydrogenic radiation energy density
+real prcontour(13) = [0.1, 0.2, 0.5, 1., 2., 5., 10., 20., 50., 100.,\
+                      200., 500., 1000.]
+# Fix boundary values of eeli
+   eeli(0,)=eeli(1,);eeli(nx+1,)=eeli(nx,)
+   eeli(,0)=eeli(,1);eeli(,ny+1)=eeli(,ny)
+call var_quad(1.e-6*(eeli-ebind*ev)*psor(,,1)/vol)
+frame r_min, r_max, z_min, z_max
+call plotpwrhq
+#
+# Plot the impurity radiation energy density
+real pricontour(13) = [0.1, 0.2, 0.5, 1., 2., 5., 10., 20., 50., 100.,\
+                       200., 500., 1000.]
+if (isimpon .ne. 0) then
+   call var_quad(1.e-6*prad)
+   frame r_min, r_max, z_min, z_max
+   call plotpwriq
+endif
+
+echo=yes
+ezcreset=true   # turn attribute resetting back on
+#
+# Give the command:  cgm off
+# if future plots should not go to CGM file

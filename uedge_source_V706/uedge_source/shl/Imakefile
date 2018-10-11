@@ -1,0 +1,49 @@
+########################################################################
+##
+##  Imakefile for dynamic linking loader
+##  $Id: Imakefile,v 7.0 2018/02/28 18:59:56 meyer8 Exp $
+##
+########################################################################
+
+##
+## Generic instructions to build shl package:
+##
+FCC = $(BASIS_BINDIR)/Fcc
+
+VDFS = shl.v
+
+#SRC.M  = shl.m
+SRC.M  = 
+
+SRC.C = shlWrap.c cshl.c links.c
+SRC.CC = 
+SRC.O  =
+
+ComplexPackageTarget(shl)
+
+########################################################################
+### Dependencies:
+########################################################################
+
+#ifdef InObjectCodeDir
+
+shl_h = shl.h
+
+#SHL.MAC = shl.mac
+
+shl.o: 
+
+ARCHDEFS.C = 
+#ifdef HPArchitecture
+ARCHDEFS.C =  -D_HPUX_SOURCE
+#endif
+
+cshl.o: $(SRC)/cshl.c
+	$(CC) $(SRC)/cshl.c -c -I$(BASIS_ROOT)/include -I$(PACT)/include $(ARCHDEFS.C) 1>cshl.err 2>&1
+
+shlWrap.c: $(SRC)/shlWrap.fcc
+	${FCC} $(SRC)/shlWrap.fcc >shlWrap.c 2>shlWrap.err
+	                                                                                
+
+
+#endif

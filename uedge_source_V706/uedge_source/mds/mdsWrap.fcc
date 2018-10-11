@@ -1,0 +1,5 @@
+Integer Mdsbfcn(Integer, string, & Integer)
+Integer Mdsconnect(string)
+Integer Mdssavevar(string,string)
+Integer Mdssave(string)
+Integer Mdscopyvar(string,string,string,string, & Integer, & Integer, & Integer)

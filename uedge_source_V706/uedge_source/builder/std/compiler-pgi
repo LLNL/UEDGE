@@ -1,0 +1,34 @@
+#
+# COMPILER-PGI - define Portland group compilers for UEDGE
+#
+
+define WARN_PATTERN "PGF90-W- PGC-W-"
+define ERR_PATTERN  "PGF90-S- PGC-S-"
+define LAPACKDir    ${CmpLib}/lib
+
+RPATH = ${CmpLib} /usr/X11R6/${LIB} /usr/${LIB}
+
+FGroup : uedge {
+  use(pgi_f90)
+  Flags    = -Mrecursive
+  Optimize = -O1
+}
+
+#FGroup : fimp {
+#  use(pgi_f77)
+#  MPPL_lang = to f77
+#  Targets = api/fimp.m
+#  Flags   = -Mrecursive
+#}
+
+CGroup : uedge {
+  use(gnu_cc)
+  Optimize = -g -O1
+  Debug    = -g
+}
+
+#LDGroup : uedge {
+#  use(pgi_f90)
+#  Flags = -Wl,-rpath,${RPATH}
+#  MapName  = code.map
+#}

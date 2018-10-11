@@ -1,0 +1,32 @@
+tedge=2.;csout=1.;methe=33;methu=33;methg=33
+methn=33;methi=33;ifixsrc=0;c1n=0.;c1e=0.;c1i=0.
+a1n=.5e+23;a1e=150.e23;a1i=45.e23
+b1n=.1111;b1e=.1111;b1i=.1111;iflux=1
+concap=0;cefx=1.;cifx=1.
+cefy=1.;cify=1.;cfvisx=1.;cfvisy=1.;cnfx=1.;cnfy=1.
+cmfx=1.;cmfy=1.;cpgx=1.;cnsor=1.;cngsor=1.
+vboost=1.;convis=0;cvgp=1.;cnurn=1.;cnuru=1.;cnure=1.;cnuri=1.;cnurg=1.
+difni(1)=2.;flalfe=0.1;flalfgx=1.e20;flalfgy=1.e20
+kye=4.;kyi=.2;travis(1)=1.;parvis(1)=1.;recycp(1)=.97
+kxe=1.;kxi=1.;bcei=2.5;newbc=0
+runtim=1.e-7;jacflg=1;jpre=1
+cngatol=1.;iplot=1;inopt=0
+tbcl=.25;tbcr=.75
+xrinc=1;xlinc=2;yinc=1;icnuiz=0;cnuiz=5.e4
+icnucx=0;cnucx=0.;flalfv=1.e50
+cngfx=1.;cngfy=1.;cngflox=0.;igas=0;ngas=1.e17
+ad=1.e6
+nmxmap=0;scrit=1.e-4
+rlx=.4;rwmin=1.e-10
+geometry="snull";ngrid=3
+package flx;package grd;package bbb
+slpxt=1.3
+nxleg=2; nycore=1; nxcore=2; nysol=3; inewton=0; mhdgeo=1
+nxleg(2)=4;nycore(2)=2;nxcore(2)=4;nysol(2)=6;inewton(2)=0
+nxleg(3)=8;nycore(3)=4;nxcore(3)=8;nysol(3)=12;inewton(3)=0
+xgscal=.1;igas=0
+scrit=1.e-3;nmaxnewt=100;rwmin=1.e-11
+ijmap=1;nmxmap=3
+ngrid=1;rsigpl=1.e-8;cfjhf=0.;jhswitch=0;isphion=0
+
+

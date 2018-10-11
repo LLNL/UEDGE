@@ -1,0 +1,8 @@
+PKG = wdf
+POINTER = cray
+
+VDF = wdf.v
+
+NVDF = ../com/com.v
+
+SM = wdf.m

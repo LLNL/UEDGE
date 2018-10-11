@@ -1,0 +1,18 @@
+VDF = mds.v
+PKG = mds
+
+
+SYSTEM LINUX
+Real4
+SC = cmds.c
+SFCC = mdsWrap.fcc 
+SM = mds.m
+
+RULE
+
+cmds.o: ../cmds.c
+	$(CC) $(CFLAGS) -I$(BASIS_ROOT)/include -I$(MDSROOT)/include -I$(PACT)/include ../cmds.c -c -o cmds.o
+
+
+
+ENDRULE

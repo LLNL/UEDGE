@@ -1,0 +1,43 @@
+/Configure/7.0/Wed Feb 28 18:32:41 2018//TV7_06
+/Configure.sys/7.0/Wed Feb 28 18:32:41 2018//TV7_06
+/Dirlist/7.1/Wed May  2 18:11:07 2018//TV7_06
+/Makefile.Forthon/7.1/Thu Jul 26 18:07:35 2018//TV7_06
+/Makefile.PETSc/7.0/Wed Feb 28 18:32:42 2018//TV7_06
+/Package/7.0/Wed Feb 28 18:32:42 2018//TV7_06
+/ProgramMake/7.1/Wed May  2 18:11:07 2018//TV7_06
+/README-FORTHON/7.0/Wed Feb 28 18:32:42 2018//TV7_06
+/README.disclaimer/7.0/Wed Feb 28 18:32:42 2018//TV7_06
+/README_Pyuedge/7.0/Wed Feb 28 18:32:42 2018//TV7_06
+/README_Uedge_vers/7.0/Wed Feb 28 18:32:42 2018//TV7_06
+/convertor/7.0/Wed Feb 28 18:32:42 2018//TV7_06
+/localrules.py/7.0/Wed Feb 28 18:32:42 2018//TV7_06
+/mppl.h/7.0/Wed Feb 28 18:32:42 2018//TV7_06
+/setup.py/7.0/Wed Feb 28 18:32:42 2018//TV7_06
+/sptodp/7.0/Wed Feb 28 18:32:42 2018//TV7_06
+/sptodp.h/7.0/Wed Feb 28 18:32:42 2018//TV7_06
+/uedge.pack/7.0/Wed Feb 28 18:32:42 2018//TV7_06
+/uedgeC_Forthon.c/7.0/Wed Feb 28 18:32:42 2018//TV7_06
+D/Pyuedge////
+D/aph////
+D/api////
+D/bbb////
+D/builder////
+D/com////
+D/dce////
+D/doc////
+D/dst////
+D/flx////
+D/grd////
+D/idf////
+D/in////
+D/mds////
+D/ncl////
+D/psi////
+D/pyscripts////
+D/pyuedgesrvr////
+D/scripts////
+D/shl////
+D/std////
+D/svr////
+D/test////
+D/wdf////

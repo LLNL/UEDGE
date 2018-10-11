@@ -1,0 +1,38 @@
+#
+# AX-PGI-32-NCAR - 32 bit PGI UEDGE configuration with NCAR graphics
+#
+
+getenv(PGI)
+CmpLib = ${PGI}/linux86/6.0
+Library : Lapack {
+  Archives = lapack blas
+  LibPaths = ${CmpLib}/lib
+}
+
+#define NCARG_ROOT /tmp/ncar440
+getenv(NCARG_ROOT)
+Library: NCAR {
+  Archives = ncarg ncarg_gks ncarg_c
+  LibPaths = ${NCARG_ROOT}/lib
+}
+
+Library: Compiler_Libs {
+  Archives = pgsse1 pgsse2
+}
+
+Library: pact {
+  Libraries = Compiler_Libs
+}
+
+include packages_pppl
+
+Directories += ezn ezd
+Packages += ezn ezd
+
+NCARV = 411
+VCDef += NCARV
+
+include compiler-pgi
+
+PackFiles = ${BasInc}/pfb.pack ${BasInc}/ezn.pack
+AUXLibs = RL pfb ezn basis

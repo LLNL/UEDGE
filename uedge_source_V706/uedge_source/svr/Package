@@ -1,0 +1,11 @@
+PKG = svr
+POINTER = cray
+
+VDF = svr.v
+
+SU = daspk.m nksol.m svrut1.m svrut2.m svrut3.m svrut4.m vodpk.m
+SM = uoa.m
+
+SYSTEM SUN4 HP700 SOL SGI RS6000 AXP CS2 IRIX64 LINUX MACOSX
+SF =daux1.f
+##SF = dgbco.f dlsode.f

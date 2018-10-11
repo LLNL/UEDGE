@@ -1,0 +1,7 @@
+codename = "UEDGE"
+cprompt = "UEDGE> "
+paths = ($UEDGE_SCRIPTS)
+startups = (.aph_dir .uedge_path .init.bas .uedge)
+#objs = "glbtmdat.o"
+echo = yes
+verbose = yes

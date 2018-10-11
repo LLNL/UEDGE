@@ -1,0 +1,68 @@
+# DEFINE THE FUNCTION TO PLOT EDGE OF GRID AND SEPARATRIX
+
+function plotbdyq 
+#
+# plot wall boundaries
+#
+#***************************************************************************
+if (mhdgeo .eq. 1) then
+#***************************************************************************
+integer ixt1 = max(ixpt1, 0)
+integer nj = max(nxomit, 0)
+
+attr style=dashed                                           # lines are dashed
+attr color=red                                              #    and red
+                                                      
+plot zm(nj:nx+nj,ny+1,4),rm(nj:nx+nj,ny+1,4)                # outer wall
+if (ixt1.gt.0) plot zm(0:ixt1,0,2),rm(0:ixt1,0,2)           # inner pf wall
+plot zm(ixpt2+1+nj:nx+1+nj,0,1),rm(ixpt2+1+nj:nx+1+nj,0,1)  # outer pf wall
+plot zm(ixt1+1+nj:ixpt2+nj,0,1),rm(ixt1+1+nj:ixpt2+nj,0,1)  # core boundary
+plot zm(ixpt2-1+nj:ixpt2+nj,0,2),rm(ixpt2-1+nj:ixpt2+nj,0,2)# last seg. core
+if (ixt1.gt.0) plot zm(0,0:ny+1,1),rm(0,0:ny+1,1)           # inner div. plate
+plot zm(nx+1+nj,0:ny+1,2),rm(nx+1+nj,0:ny+1,2)              # outer div. plate
+if (isfixlb.eq.2) then                                      # core/pf cut
+   plot zm(ixpt2+nj,0:iysptrx+1,2),rm(ixpt2+nj,0:iysptrx+1,2)
+   plot zm(ixpt2+1+nj,0:iysptrx+1,1),rm(ixpt2+1+nj,0:iysptrx+1,1)
+endif
+#
+# plot the separatrix
+#
+attr style=dotted                                     # separatrix is dotted
+attr color=magenta                                    #    and magenta
+plot zm(nj:nx+nj,iysptrx,4),rm(nj:nx+nj,iysptrx,4) labels=no   
+
+attr style=dashed                                # lines are dashed
+attr color=red                                   #    and red
+plot rm(0:nx,ny+1,4),zm(0:nx,ny+1,4)             # outer wall
+if (ixpt1 .ge. 1) then
+   plot rm(0:ixpt1,0,2),zm(0:ixpt1,0,2)          # inner private flux wall
+   plot rm(ixpt1,0:iysptrx,4),zm(ixpt1,0:iysptrx,4) # inner pf/core cut
+endif
+plot rm(ixpt2+1:nx+1,0,1),zm(ixpt2+1:nx+1,0,1)   # outer pf wall
+plot rm(ixpt1+1:ixpt2,0,1),zm(ixpt1+1:ixpt2,0,1) # core boundary
+plot rm(ixpt2-1:ixpt2,0,2),zm(ixpt2-1:ixpt2,0,2) # last seg. of core
+plot rm(0,0:ny+1,1),zm(0,0:ny+1,1)               # inner div. plate
+plot rm(nx+1,0:ny+1,2),zm(nx+1,0:ny+1,2)         # outer div. plate
+#
+# plot the separatrix
+#
+attr style=dotted                                # separatrix is dotted
+attr color=magenta                               #    and magenta
+plot rm(0:nx,iysptrx,4),zm(0:nx,iysptrx,4)
+plot rm(ixpt2,0:iysptrx,4),zm(ixpt2,0:iysptrx,4) # outer pf/core cut
+
+#********************************************************************
+endif
+#********************************************************************
+#
+# show the constructed picture in an X-window (if active) and
+# output the frame to any device that is on
+#
+nf
+#
+# reset style and color attributes
+#
+attr style=solid
+attr color=fgcolor	# doesn't really seem to matter if we do this or not
+
+endf

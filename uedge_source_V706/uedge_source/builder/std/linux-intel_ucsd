@@ -1,0 +1,35 @@
+#
+#  LINUX - UEDGE using NCAR graphics and Intel Group
+#
+
+include packages
+
+PackFiles = ${BasInc}/pfb.pack ${BasInc}/ezn.pack ${BasInc}/par.pack ${BasInc}/mth.pack ${BasInc}/hst.pack ${BasInc}/pva.pack ${BasInc}/ctl.pack  ${BasInc}/tim.pack
+AUXLibs = -lRL -lpfb -lezn -lezd -lbasis -lmth -lhst -lpva -lctl -ltim -lfbasis -lmkl_lapack -lmkl_solver -lmkl_ia32 -lreadline
+PACTRoot  = /usr/local/pact
+SYSLDPath = /usr/lib /opt/intel/mkl/8.1.1/lib/32
+
+define NCARG_ROOT /usr/local/ncarg
+define NCARV      411
+
+define WARN_PATTERN "***Warning:"
+define ERR_PATTERN  "***Error:"
+
+FGroup     = 1
+  Use      = intel_f90
+  Optimize = -O2 -mp
+  Debug    = -g -C
+  Flags    = -recursive
+
+CGroup     = 1
+  Use      = intel_cc
+  Optimize = -O2 -mp
+  Debug    = -g 
+
+LDGroup    = 1
+  Use      = intel_f90
+  MapName  = code.map
+
+FGroup     = 2 (api/fimp.m)
+  Use      = intel_f90
+  Flags    = -recursive

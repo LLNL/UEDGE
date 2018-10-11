@@ -1,0 +1,21 @@
+SYSTEM LINUX
+
+#
+# define WELL_KNOWN_PORT to have the package look for
+#   rpc service at well known port before using portmapper
+#   this allows the package to be socksified/proxied
+#
+CF=-DWELL_KNOWN_PORT
+
+
+SYSTEM SUN4 HP700 SOL SGI RS6000 AXP CS2 IRIX64 LINUX
+# Generate some C sources and an include file:
+# (copy them to directory .. because SYSTEM/Makefile.SUN4 expects them there)
+../basis_dce.h ../basis_dce_clnt.c ../basis_dce_xdr.c: ../basis_dce.x
+	@/bin/rm -f ../basis_dce.h ../basis_dce_clnt.c ../basis_dce_xdr.c
+	@/bin/rm -f basis_dce.x
+	@/bin/cp ../basis_dce.x basis_dce.x
+	rpcgen basis_dce.x
+	@/bin/cp basis_dce.h ../basis_dce.h
+	@/bin/cp basis_dce_clnt.c ../basis_dce_clnt.c
+	@/bin/cp basis_dce_xdr.c ../basis_dce_xdr.c

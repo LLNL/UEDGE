@@ -1,0 +1,8 @@
+PKG = grd
+POINTER = cray
+
+VDF = grd_basis.v
+
+NVDF = ../com/com.v
+
+SM = grdcomp.m grddriv.m grdinit.m grdread.m grdwrit.m

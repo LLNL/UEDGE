@@ -1,0 +1,13 @@
+      MODULE MpiVars
+c_mpi       use mpi
+        implicit none
+CC c_mpi       include "mpif.h"
+      !DO NOT ALWAYS USE PETSC: PetscInt :: uedgeComm=0
+        integer, parameter :: int4=selected_int_kind(9)
+        integer, parameter :: int8=SELECTED_INT_KIND(18)
+@MPI_INT4_TRUE@        integer, parameter :: mpiue = int4
+@MPI_INT8_TRUE@        integer, parameter :: mpiue = int8
+        integer(int4) :: uedgeComm=0
+c_mpi        integer, parameter :: MPI_UE_INT=@MPI_UE_INT@
+
+      END MODULE MpiVars

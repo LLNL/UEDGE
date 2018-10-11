@@ -1,0 +1,33 @@
+LANGUAGE = C
+PKG = dce
+POINTER = cray
+VDF = dce.v
+
+SM = dce.m
+
+SYSTEM SUN4 HP700 SOL SGI RS6000 AXP CS2 IRIX64 LINUX
+Real4
+# The following files all depend on basis_dce.h, but does mmm support
+# include files in the SC list?
+SC = basis_dce.h basis_dce_clnt.c basis_dce_xdr.c c_dce.c basis_dce_svc_proc.c interp.c ledgecvt.c polyfill.c
+SF = masub.f 
+
+RULE
+
+DCE_HEADER = basis_dce.h
+
+RPC_GENERATED = $(DCE_HEADER) basis_dce_clnt.c basis_dce_svc.c basis_dce_xdr.c
+
+../$(DCE_HEADER): $(RPC_GENERATED)
+
+$(RPC_GENERATED) : ../basis_dce.x
+	cp ../basis_dce.x .
+	rpcgen basis_dce.x
+	cp $(RPC_GENERATED) ..
+
+dceclean:
+	cd ../
+	rm -f $(RPC_GENERATED)
+	cd -
+
+ENDRULE

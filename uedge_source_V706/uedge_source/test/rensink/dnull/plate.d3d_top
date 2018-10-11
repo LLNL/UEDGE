@@ -1,0 +1,33 @@
+# Define upper divertor plate for DIII-D
+
+integer oldecho=echo
+echo=no
+
+# for inboard half of mesh:
+nplate1=3
+call gchange("grd.Mmod",0)
+
+rplate1=[\
+1.14830E+00,
+1.01600E+00,  1.01600E+00]
+
+zplate1=[\
+2.48500E-01,
+3.82700E-01,  1.60000E+00]
+
+# for outboard half of mesh:
+nplate2=10
+call gchange("grd.Mmod",0)
+
+rplate2=[\
+2.06670E+00,  1.78450E+00,  1.64690E+00,  1.64330E+00,
+1.60780E+00,  1.39740E+00,  1.38680E+00,  1.38680E+00,
+1.38680E+00,  1.14830E+00]
+
+
+zplate2=[\
+5.59500E-01,  5.23200E-01,  5.23200E-01,  5.22200E-01,
+5.05300E-01,  3.28800E-01,  3.10400E-01,  2.88600E-01,
+2.48500E-01,  2.48500E-01]
+
+echo=oldecho

@@ -1,0 +1,245 @@
+# This file defines arrays for each quadrant in (R,Z) space to 
+# facilitate R-Z contour plots that include the x-point region
+
+#----------------------------------------------------------------------#
+
+integer nj = max(nxomit, 0)
+
+# For the lower left (R,Z) quadrant:
+integer ixmin_LL=1
+integer ixmax_LL=ixpt1
+
+if (ixmax_LL .ge. 1) then
+   real rm_LL(ixmin_LL-1:ixmax_LL,0:ny)
+   rm_LL(ixmin_LL:ixmax_LL,1:ny)=rm(ixmin_LL:ixmax_LL,1:ny,4)
+   rm_LL(ixmin_LL-1,1:ny)=rm(ixmin_LL,1:ny,3)
+   rm_LL(ixmin_LL:ixmax_LL,0)=rm(ixmin_LL:ixmax_LL,1,2)
+   rm_LL(ixmin_LL-1,0)=rm(ixmin_LL,1,1)
+   real zm_LL(ixmin_LL-1:ixmax_LL,0:ny)
+   zm_LL(ixmin_LL:ixmax_LL,1:ny)=zm(ixmin_LL:ixmax_LL,1:ny,4)
+   zm_LL(ixmin_LL-1,1:ny)=zm(ixmin_LL,1:ny,3)
+   zm_LL(ixmin_LL:ixmax_LL,0)=zm(ixmin_LL:ixmax_LL,1,2)
+   zm_LL(ixmin_LL-1,0)=zm(ixmin_LL,1,1)
+
+   real var_LL(ixmin_LL-1:ixmax_LL,0:ny)
+endif
+
+#----------------------------------------------------------------------#
+
+# For the upper left (R,Z) quadrant:
+integer ixmin_UL=max(ixpt1+1, 1)
+integer ixmax_UL=nxleg(1,1)+nxcore(1,1)-nxomit
+if (isgrdsym .eq. 1) ixmax_UL=ixpt1
+if (geometry .eq. "dnbot") ixmax_UL=nxleg(1,1)+nxcore(1,1)-1
+if (ixmax_UL .ge.1) then
+   real rm_UL(ixmin_UL-1:ixmax_UL,0:ny)
+   rm_UL(ixmin_UL:ixmax_UL,1:ny)=rm(ixmin_UL:ixmax_UL,1:ny,4)
+   rm_UL(ixmin_UL-1,1:ny)=rm(ixmin_UL,1:ny,3)
+   rm_UL(ixmin_UL:ixmax_UL,0)=rm(ixmin_UL:ixmax_UL,1,2)
+   rm_UL(ixmin_UL-1,0)=rm(ixmin_UL,1,1)
+   real zm_UL(ixmin_UL-1:ixmax_UL,0:ny)
+   zm_UL(ixmin_UL:ixmax_UL,1:ny)=zm(ixmin_UL:ixmax_UL,1:ny,4)
+   zm_UL(ixmin_UL-1,1:ny)=zm(ixmin_UL,1:ny,3)
+   zm_UL(ixmin_UL:ixmax_UL,0)=zm(ixmin_UL:ixmax_UL,1,2)
+   zm_UL(ixmin_UL-1,0)=zm(ixmin_UL,1,1)
+
+   real var_UL(ixmin_UL-1:ixmax_UL,0:ny)
+endif
+
+#----------------------------------------------------------------------#
+
+# For the upper right (R,Z) quadrant:
+integer ixmin_UR=nxleg(1,1)+nxcore(1,1)+1-nxomit
+if (isgrdsym .eq. 1) ixmin_UR=ixpt1+1
+if (geometry .eq. "dnbot") ixmin_UR=nxleg(1,1)+nxcore(1,1)+2
+integer ixmax_UR=ixpt2
+
+if (ixmax_UR .ge. 1) then
+   real rm_UR(ixmin_UR-1:ixmax_UR,0:ny)
+   rm_UR(ixmin_UR:ixmax_UR,1:ny)=rm(ixmin_UR+nj:ixmax_UR+nj,1:ny,4)
+   rm_UR(ixmin_UR-1,1:ny)=rm(ixmin_UR+nj,1:ny,3)
+   rm_UR(ixmin_UR:ixmax_UR,0)=rm(ixmin_UR+nj:ixmax_UR+nj,1,2)
+   rm_UR(ixmin_UR-1,0)=rm(ixmin_UR+nj,1,1)
+   real zm_UR(ixmin_UR-1:ixmax_UR,0:ny)
+   zm_UR(ixmin_UR:ixmax_UR,1:ny)=zm(ixmin_UR+nj:ixmax_UR+nj,1:ny,4)
+   zm_UR(ixmin_UR-1,1:ny)=zm(ixmin_UR+nj,1:ny,3)
+   zm_UR(ixmin_UR:ixmax_UR,0)=zm(ixmin_UR+nj:ixmax_UR+nj,1,2)
+   zm_UR(ixmin_UR-1,0)=zm(ixmin_UR+nj,1,1)
+
+   real var_UR(ixmin_UR-1:ixmax_UR,0:ny)
+endif
+
+#----------------------------------------------------------------------#
+
+# For the lower right (R,Z) quadrant:
+integer ixmin_LR=ixpt2+1
+integer ixmax_LR=nx
+
+real rm_LR(ixmin_LR-1:ixmax_LR,0:ny)
+rm_LR(ixmin_LR:ixmax_LR,1:ny)=rm(ixmin_LR+nj:ixmax_LR+nj,1:ny,4)
+rm_LR(ixmin_LR-1,1:ny)=rm(ixmin_LR+nj,1:ny,3)
+rm_LR(ixmin_LR:ixmax_LR,0)=rm(ixmin_LR+nj:ixmax_LR+nj,1,2)
+rm_LR(ixmin_LR-1,0)=rm(ixmin_LR+nj,1,1)
+real zm_LR(ixmin_LR-1:ixmax_LR,0:ny)
+zm_LR(ixmin_LR:ixmax_LR,1:ny)=zm(ixmin_LR+nj:ixmax_LR+nj,1:ny,4)
+zm_LR(ixmin_LR-1,1:ny)=zm(ixmin_LR+nj,1:ny,3)
+zm_LR(ixmin_LR:ixmax_LR,0)=zm(ixmin_LR+nj:ixmax_LR+nj,1,2)
+zm_LR(ixmin_LR-1,0)=zm(ixmin_LR+nj,1,1)
+
+real var_LR(ixmin_LR-1:ixmax_LR,0:ny)
+
+#----------------------------------------------------------------------#
+#----------------------------------------------------------------------#
+
+function var_quad(array_name)
+
+integer ix,iy
+
+# define values at cell vertices using a simple algebraic average
+
+if (ixpt1 .gt. 0) then
+ do iy=0,ny
+   var_LL(ixmin_LL-1,iy)=0.25*(array_name(ixm1(ixmin_LL,iy),iy) \
+                              +array_name(ixmin_LL,iy) \
+                              +array_name(ixm1(ixmin_LL,iy+1),iy+1) \
+                              +array_name(ixmin_LL,iy+1))
+   do ix=ixmin_LL,ixmax_LL-1
+      var_LL(ix,iy)=0.25*(array_name(ix,iy) \
+                         +array_name(ixp1(ix,iy),iy) \
+                         +array_name(ix,iy+1) \
+                         +array_name(ixp1(ix,iy),iy+1))
+   enddo
+   var_LL(ixmax_LL,iy)=0.25*(array_name(ixmax_LL,iy) \
+                             +array_name(ixp1(ixmax_LL,iy),iy) \
+                             +array_name(ixmax_LL,iy+1) \
+                             +array_name(ixp1(ixmax_LL,iy+1),iy+1))
+   # redefine for inner-half space problem at the cut
+   if (ixpt2 .gt. nx .and. iy .lt. iysptrx) then  
+      var_LL(ixmax_LL,iy)=0.5*(array_name(ixmax_LL,iy) \
+                              +array_name(ixmax_LL,iy+1))
+   endif   
+ enddo
+endif
+
+if (nxleg(1,1)+nxcore(1,1)-nxomit .gt. 0 .or. ixpt1.gt.0) then
+ do iy=0,ny
+   var_UL(ixmin_UL-1,iy)=0.25*(array_name(ixm1(ixmin_UL,iy),iy) \
+                              +array_name(ixmin_UL,iy) \
+                              +array_name(ixm1(ixmin_UL,iy+1),iy+1) \
+                              +array_name(ixmin_UL,iy+1))
+   # redefine for inner-half space problem at the cut
+   if (ixpt2 .gt. nx .and. iy .lt. iysptrx) then 
+      var_UL(ixmin_UL-1,iy)=0.5*(array_name(ixmin_UL,iy) \
+                                +array_name(ixmin_UL,iy+1))
+   endif   
+   do ix=ixmin_UL,ixmax_UL-1
+      var_UL(ix,iy)=0.25*(array_name(ix,iy) \
+                         +array_name(ixp1(ix,iy),iy) \
+                         +array_name(ix,iy+1) \
+                         +array_name(ixp1(ix,iy),iy+1))
+   enddo
+   var_UL(ixmax_UL,iy)=0.25*(array_name(ixmax_UL,iy) \
+                             +array_name(ixp1(ixmax_UL,iy),iy) \
+                             +array_name(ixmax_UL,iy+1) \
+                             +array_name(ixp1(ixmax_UL,iy+1),iy+1))
+ enddo
+endif
+
+if (ixpt2 .gt. 0 .and. ixpt2 .lt. nx) then
+ do iy=0,ny
+   var_UR(ixmin_UR-1,iy)=0.25*(array_name(ixm1(ixmin_UR,iy),iy) \
+                              +array_name(ixmin_UR,iy) \
+                              +array_name(ixm1(ixmin_UR,iy+1),iy+1) \
+                              +array_name(ixmin_UR,iy+1))
+   
+   do ix=ixmin_UR,ixmax_UR-1
+      var_UR(ix,iy)=0.25*(array_name(ix,iy) \
+                         +array_name(ixp1(ix,iy),iy) \
+                         +array_name(ix,iy+1) \
+                         +array_name(ixp1(ix,iy),iy+1))
+   enddo
+   var_UR(ixmax_UR,iy)=0.25*(array_name(ixmax_UR,iy) \
+                             +array_name(ixp1(ixmax_UR,iy),iy) \
+                             +array_name(ixmax_UR,iy+1) \
+                             +array_name(ixp1(ixmax_UR,iy+1),iy+1))
+   # redfine for outer-half space problem at the cut
+   if (ixpt1 .lt. 0 .and. iy .lt. iysptrx) then  
+      var_UR(ixmax_UR,iy)=0.5*(array_name(ixmax_UR,iy) \
+                              +array_name(ixmax_UR,iy+1))
+   endif
+ enddo
+endif
+
+if (ixpt2 .lt. nx) then
+ do iy=0,ny
+   var_LR(ixmin_LR-1,iy)=0.25*(array_name(ixm1(ixmin_LR,iy),iy) \
+                              +array_name(ixmin_LR,iy) \
+                              +array_name(ixm1(ixmin_LR,iy+1),iy+1) \
+                              +array_name(ixmin_LR,iy+1))
+   # redfine for outer-half space problem at the cut
+   if (ixpt1 .lt. 0 .and. iy .lt. iysptrx) then 
+      var_LR(ixmin_LR-1,iy)=0.5*(array_name(ixmin_LR,iy) \
+                                +array_name(ixmin_LR,iy+1))
+   endif
+   do ix=ixmin_LR,ixmax_LR-1
+      var_LR(ix,iy)=0.25*(array_name(ix,iy) \
+                         +array_name(ixp1(ix,iy),iy) \
+                         +array_name(ix,iy+1) \
+                         +array_name(ixp1(ix,iy),iy+1))
+   enddo
+   var_LR(ixmax_LR,iy)=0.25*(array_name(ixmax_LR,iy) \
+                            +array_name(ixp1(ixmax_LR,iy),iy) \
+                            +array_name(ixmax_LR,iy+1) \
+                            +array_name(ixp1(ixmax_LR,iy+1),iy+1))
+ enddo
+endif
+
+# special definition for x-point (average over 8 cells):
+if (ixpt1 .gt. 0) then
+   real var_xpt=0.125*(array_name(ixpt1,iysptrx) \
+                      +array_name(ixpt1,iysptrx+1) \
+                      +array_name(ixpt1+1,iysptrx) \
+                      +array_name(ixpt1+1,iysptrx+1) \
+                      +array_name(ixpt2,iysptrx) \
+                      +array_name(ixpt2,iysptrx+1) \
+                      +array_name(ixpt2+1,iysptrx) \
+                      +array_name(ixpt2+1,iysptrx+1))
+   var_LL(ixpt1,iysptrx)=var_xpt
+   var_UL(ixpt1,iysptrx)=var_xpt
+   var_UR(ixpt2,iysptrx)=var_xpt
+   var_LR(ixpt2,iysptrx)=var_xpt
+endif
+
+# Do a four-point average for the x-point for outer-half problem
+
+if (ixpt1 .lt. 0 .and. ixpt2 .gt. 0) then
+   real var_xpt=0.25*(array_name(ixpt2,iysptrx) \
+                     +array_name(ixpt2,iysptrx+1) \
+                     +array_name(ixpt2+1,iysptrx) \
+                     +array_name(ixpt2+1,iysptrx+1))
+   var_UR(ixpt2,iysptrx)=var_xpt
+   var_LR(ixpt2,iysptrx)=var_xpt
+endif
+
+# Do a four-point average for the x-point for inner-half problem
+if (ixpt1 .gt. 0 .and. ixpt2 .gt. nx) then
+   real var_xpt=0.25*(array_name(ixpt1,iysptrx) \
+                     +array_name(ixpt1,iysptrx+1) \
+                     +array_name(ixpt1+1,iysptrx) \
+                     +array_name(ixpt1+1,iysptrx+1))
+   var_LL(ixpt1,iysptrx)=var_xpt
+   var_UL(ixpt1,iysptrx)=var_xpt
+endif
+
+
+return
+endf
+
+#----------------------------------------------------------------------#
+#----------------------------------------------------------------------#
+
+
+
+
+
+

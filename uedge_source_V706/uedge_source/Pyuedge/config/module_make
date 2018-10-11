@@ -1,0 +1,81 @@
+##########################################################################
+#
+# Makefile for standard python/basis module
+#   $Id: module_make,v 7.0 2018/02/28 18:32:43 meyer8 Exp $
+#
+##########################################################################
+
+
+include $(CONFIG)/ALL.config
+
+# note: this file is read by make executed in an $(ARCH) subdir; so ./
+# is that subdir.
+
+FFLAGS = $(FFFLAGS)
+CFLAGS = $(CCFLAGS) $(PYTHON_INCLUDES)
+
+ifdef MKMOD.O
+  override MKMOD.O = $(PKG)pymodule.o
+endif
+
+all: $(PKG).sor.o $(PKG).p.o $(MKMOD.O)
+
+
+############## Make source file objects ########################################
+
+$(PKG).sor.o: $(PKG).sor.f
+	$(FORT) $(FFLAGS) -c -w $(PKG).sor.f 
+
+$(PKG).sor.f: $(PKG).sor.m $(PKG).d
+	$(MPPL_ROOT)/bin/mppl -I$(MPPL_ROOT)/include -DNO_INCLUDES=1 -t$(ARCH_PB) \
+		-r$(RealSize) -DCOMPILER=F90 $(TOP)/$(Macros) $(OTHER_DFILES) \
+		$(PKG).d $(PKG).sor.m > $(PKG).sor.f.tmp 2>$(PKG).sor.f.err
+	$(MV) $(PKG).sor.f.tmp $(PKG).sor.f
+
+
+############## Make pybasis-equivalent variable descriptor files ###############
+
+lib$(PKG)py.a: $(PKG)pymodule.o $(PKG).p.o
+	rm -rf $@
+	ar -r $@ $(PKG)pymodule.o $(PKG).p.o
+
+$(PKG)py.o: $(PKG)pymodule.o $(PKG).p.o
+	ld -r -o $(PKG)py.o $(PKG)pymodule.o $(PKG).p.o
+
+$(PKG)pymodule.o: $(PKG)pymodule.c
+	$(CC) $(CFLAGS) -c $(PKG)pymodule.c $(PYTHON_INCLUDES) $(PYBASIS_INCLUDES)
+
+$(PKG).p.o: $(PKG).p.f
+	$(FORT) $(FFLAGS) -c $(PKG).p.f
+
+$(PKG).p.f: $(PKG).p.m $(PKG).d $(OTHER_DFILES) 
+	$(MPPL_ROOT)/bin/mppl -I$(MPPL_ROOT)/include -DNO_INCLUDES=1 -t$(ARCH_PB) \
+		-r$(RealSize) -DCOMPILER=F90 $(TOP)/$(Macros) $(OTHER_DFILES) \
+		$(PKG).d $(PKG).p.m > $(PKG).p.f.tmp 2>$(PKG).p.f.err
+	$(MV) $(PKG).p.f.tmp $(PKG).p.f
+
+$(PKG).d: $(PKG).v
+	$(MAC) -$(ARCH_PB) -r$(RealSize) -s -x -d $(PKG).cmt -m $(PKG).d \
+		-y $(PKG).y.m $(PKG).v 1>$(PKG).d.err 2>&1
+
+$(PKG)pymodule.c $(PKG).p.m: $(PKG).v $(OTHER_VFILES)
+	$(PYTHON) $(PYMAC) -t$(ARCH_PB) $(OTHER_SCALARS) $(PKG).v $(OTHER_VFILES)
+
+$(PKG).sor.m: $(TOP)/$(PKG)/*.m 
+	cat $(TOP)/$(PKG)/*.m > $@
+
+$(PKG).v: $(TOP)/$(PKG)/$(PKG).v
+	@cp -p $(TOP)/$(PKG)/$(PKG).v .
+
+clean:: clean.pkg
+	rm -rf *.p.m  *.o *.so *.a *.f *.scalars $(PKG)pymodule.c *.err \
+	.$(PKG)ym .$(PKG)wc .$(PKG)d .$(PKG)cmt \
+	*.d $(PKG).cmt $(PKG).y.m ww$(PKG) pybasisf2c.h $(PKG).v
+
+clean.pkg:
+	rm -rf $(PKG).sor.m
+
+dbgdir:
+	@pwd
+	@echo TOP=$(TOP)xxx HasBASIS=$(HasBASIS)xxx
+	@ ls ./

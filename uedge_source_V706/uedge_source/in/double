@@ -1,0 +1,18 @@
+nxleg=2*nxleg;nxcore=2*nxcore;nycore=2*nycore;nysol=2*nysol
+if (nxomit.gt.0) then
+  if (geometry=="dnbot") then
+    nxomit = nxleg(1,1)+nxcore(1,1) + 2*nxxpt + 1
+  else
+    nxomit=2*(nxomit-2*nxxpt) + 2*nxxpt  # assumes nxomit removes 1/2 SOL
+  endif
+endif
+if (nyomitmx .eq. 1) nysol = 1
+if (kxmesh .eq. 4) then
+   real dxgasold=dxgas
+   real alfxold=alfx
+   alfx=alfxold/2.
+   dxgas=dxgasold*(exp(alfx)-1)/(exp(alfxold)-1)
+   nxgas=2*nxgas
+endif
+restart=1;newgeo=1;gengrid=1;isnintp=1
+ixdstar = nxcore(1,2)+1

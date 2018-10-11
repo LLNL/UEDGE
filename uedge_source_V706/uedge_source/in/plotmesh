@@ -1,0 +1,65 @@
+integer oldecho = echo
+echo = 0
+
+# This file defines a function to plot the UEDGE mesh, and
+# then calls the function to plot the entire mesh.
+# To use this file in a simple way, give the following commands:
+#    read plotmesh
+#    nf
+# The function could then be used in a more sophisticated way
+# to plot portions of the mesh, possibly with customized plot limits
+# (by resetting any of r_min, r_max, z_min, and z_max):
+#    call plotmesh(ixmn,ixmx,iymn,iymx)
+#    nf
+# where ixmn, ixmx, iymn, and iymx are integer variables or
+# expressions.  Always give an "nf" command after reading the file
+# plotmesh or calling the function plotmesh.
+
+# DEFINE THE PLOT FUNCTION --
+
+function plotmesh(ixmin,ixmax,iymin,iymax)
+# Plot the cell boundaries for cell indices (ix,iy),
+#               ixmin <= ix <= ixmax
+#               iymin <= iy <= iymax
+integer ix,iy
+real r0(5),z0(5)
+
+frame r_min, r_max, z_min, z_max
+
+attr labels=no     # don't label curves
+attr scale=equal   # use equal horiz. & vert. grid spacing
+
+titlet=runid
+titleb="RADIAL POSITION (m)"
+titlel="VERTICAL POSITION (m)"
+
+do ix=ixmin,ixmax
+   do iy=iymin,iymax
+      r0=[rm(ix,iy,1),rm(ix,iy,2),rm(ix,iy,4),rm(ix,iy,3),rm(ix,iy,1)]
+      z0=[zm(ix,iy,1),zm(ix,iy,2),zm(ix,iy,4),zm(ix,iy,3),zm(ix,iy,1)]
+      plot z0,r0
+   enddo
+enddo
+sf   # show constructed figure to the user
+
+endf
+
+# MAKE THE PLOT --
+
+ezcshow=false      # don't advance frame after each plot command
+ezclegfr=0.        # eliminate all space below plots for legends
+
+real x2=sup(rm(,ny,4)), x1=inf(rm(,ny,4))
+real r_min=0.9*x1
+real r_max=x2+0.1*x1
+real ds=1.1*sup(zm)
+real z_min= inf(0., 1.1*inf(zm(,ny,4)))
+real z_max=sup(z_min+ds, 1.1*sup(zm(,ny,4)))
+
+call plotmesh(1+nxomit,nxm,1,ny)
+
+# To reset ezc parameters for other plots do: 
+ezcshow=true; ezclegfr=0.125
+
+echo = oldecho
+ 

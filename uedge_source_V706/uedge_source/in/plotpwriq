@@ -1,0 +1,40 @@
+# DEFINE THE FUNCTION TO PLOT CONTOURS OF IMPURITY RADIATION POWER LOSS
+
+function plotpwriq 
+
+titlet = "CONTOURS OF IMPURITY RADIATION ENERGY DENSITY (MW/m**3)"
+
+#********************************************************************
+if (mhdgeo .eq. 1 ) then   #For tokamak orientation
+#********************************************************************
+
+   titlel = "VERTICAL DISTANCE (m)"
+   titleb = "MAJOR RADIUS (m)"
+#
+#    First plot the impurity radiation power lost
+#
+   if (ixpt1.ge.1) plotz var_LL,rm_LL,zm_LL, lev=pricontour
+   if (ixpt1.ge.1) plotz var_UL,rm_UL,zm_UL, lev=pricontour
+   if (ixpt2.le.nx) plotz var_UR,rm_UR,zm_UR, lev=pricontour
+   if (ixpt2.le.nx) plotz var_LR,rm_LR,zm_LR, lev=pricontour
+
+#*********************************************************************
+else   # reverse roles of zm,rm for cylindrical and cartesian meshes
+#*********************************************************************
+
+   titlel = "TRANSVERSE DISTANCE (m)"
+   titleb = "AXIAL DISTANCE (m)"
+
+#    First plot the impurity radiation power lost
+
+   plotz var_UR,zm_UR,rm_UR, lev=pricontour
+   plotz var_LR,zm_LR,rm_LR, lev=pricontour
+
+#*********************************************************************
+endif
+#
+# Now plot grid boundaries and the separatrix
+#
+call plotbdyq
+#
+endf

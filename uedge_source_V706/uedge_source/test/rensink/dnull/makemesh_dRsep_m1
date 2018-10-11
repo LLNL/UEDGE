@@ -1,0 +1,339 @@
+# This script implements the procedure for generating a full up/down
+# asymmetric double-null mesh.
+
+# The following files should be present when executing this script:
+#	a105335.05200
+#	g105335.05200
+#	rdmesh.dnull.top
+#	rdmesh.dnull.bot
+#	plate.d3d_top
+#	plate.d3d_bot
+
+# DIII-D shot 105335 at 5200 msec is nominally a lower single null
+# configuration, but there is a secondary x-point in the upper
+# divertor region; the distance between the two separatrices at the
+# outboard midplane is dRsep = -1.0 cm.
+
+# The following steps generate a mesh that includes both x-points:
+#	1) read the eqdsk to identify x-points and separatrices
+#	2) specify the radial distribution of flux surfaces
+#	3) construct the mesh for the upper half of the configuration
+#	4) construct the mesh for the lower half of the configuration
+#	5) combine the two halves of the mesh
+#	6) define guard cells at the divertor target plates
+#	7) compute magnetic field values for each cell
+#	8) write out the gridue file
+
+# NOTE: the guard cells at the radial boundaries are not defined by
+# the above procedure; that is done by the bbb package as part of the
+# exmain command.
+
+# NOTE: must generate bottom-half mesh last in order to get 
+#	normal-orientation eqdsk data in call to subroutine
+#	magnetics before writing the final 'gridue' file.
+
+#integer oldecho=echo
+#echo=no
+# initialize packages --
+	package flx;package grd;package aph;package com;package bbb
+
+####################################################################
+### STEP 1: read the eqdsk to identify x-points and separatrices ###
+####################################################################
+
+# mesh construction --
+!rm -f aeqdsk neqdsk
+!rm -f flx-grd
+!cp a105335.05200 aeqdsk
+!cp g105335.05200 neqdsk
+	mhdgeo=1
+# Read eqdsks to identify x-points
+	geometry="dnull"
+	call readefit
+
+# Input factor to ensure that psi0sep is slightly outside of LCFS
+	psifac=1.0001
+
+# Set normalized separatrix flux values
+	psi0sep1=psifac*(sibdry1-simagx)/(sibdry-simagx)
+	psi0sep2=psifac*(sibdry2-simagx)/(sibdry-simagx)
+
+# NOTE: If psi0sep1 < psi0sep2, then lower divertor is primary, so dRsep < 0.
+#       If psi0sep1 > psi0sep2, then upper divertor is primary, so dRsep > 0.
+
+# NOTE: sibdry is the un-normalized flux at the last closed flux surface (LCFS)
+
+## Diagnostic plots of the two separatrices and limiter surface:
+## plot ylim xlim style=dashed scale=equal labels=blank
+## plotz (fold-simagx)/(sibdry-simagx) xold yold lev=[psi0sep1,psi0sep2]
+##             a) global view:
+## frame .9 2.5 0 3.2
+##             b) zoom in on lower divertor
+## frame .9 1.9 0 1
+##             c) zoom in on upper divertor
+## frame .9 1.9 2.2 3.2
+##             d) zoom in on outboard midplane
+## frame 2.26 2.36 zmagx-.05 zmagx+.05
+
+################################################################
+### STEP 2: specify the radial distribution of flux surfaces ###
+################################################################
+
+# Input flux boundary values
+	psi0min1=0.97		# must be less than 1.00
+	psi0max_outer=1.08	# must be greater than max(psi0sep1,psi0sep2)
+	psi0max_inner=1.07	# must be greater than max(psi0sep1,psi0sep2)
+	psi0min2_lower=0.960	# must be less than psi0sep1
+	psi0min2_upper=1.010	# must be less than psi0sep2
+	psi0max=psi0max_outer	# don't change this line
+
+if (psi0max_outer .lt. max(psi0sep1,psi0sep2)) then
+   remark(" ")
+   remark("   *** INPUT ERROR: psi0max_outer less than max(psi0sep1,psi0sep2)")
+   psi0max_outer,psi0sep1,psi0sep2
+   remark(" ")
+   call kaboom(0)
+endif
+if (psi0max_inner .lt. max(psi0sep1,psi0sep2)) then
+   remark(" ")
+   remark("   *** INPUT ERROR: psi0max_inner less than max(psi0sep1,psi0sep2)")
+   psi0max_inner,psi0sep1,psi0sep2
+   remark(" ")
+   call kaboom(0)
+endif
+if (psi0min2_lower .ge. psi0sep1) then
+   remark(" ")
+   remark("   *** INPUT ERROR: psi0min2_lower greater than psi0sep1")
+   psi0min2_lower,psi0sep1
+   remark(" ")
+   call kaboom(0)
+endif
+if (psi0min2_upper .ge. psi0sep2) then
+   remark(" ")
+   remark("   *** INPUT ERROR: psi0min2_upper greater than psi0sep2")
+   psi0min2_upper,psi0sep2
+   remark(" ")
+   call kaboom(0)
+endif
+
+# Input number of cells in each radial region
+	nycore(1)=2	# closed flux surfaces
+	nysol(1)= 2	# open to one divertor only; =0 for balanced dnull
+	nyout(1)= 2	# open to both divertors
+
+# For balanced (but up/down asymmetric) double null configuration
+# (OK if psi0sep1,2 are not too different and radial mesh is not too fine):
+	if (nysol(1)==0) then
+		psi0sep1=max(psi0sep1,psi0sep2)
+		psi0sep2=psi0sep1
+	endif
+
+# Shape factors for radial mesh
+	slp2fac=1.0	# =1 for uniform mesh between separatrices
+			# <1 concentrates mesh near primary separatrix
+	slp3fac=1.0	# =1 for uniform mesh between separatrices
+			# <1 concentrates mesh near secondary separatrix
+
+# Option for radial mesh construction
+	kymesh=0	# user-specified flux contour values for radial mesh
+
+# Set dimensions for flx package arrays
+	nym=nycore(1)+nysol(1)+nyout(1)
+	jdim=2*nym+3
+	call allot("flx.psitop",0)
+	call allot("flx.psibot",0)
+	call gallot("flx.Workdn", 0)
+
+# Compute flux contour values:
+integer j1,j2,j3,j4,js
+real8 t(0:nym)=iota(0:nym)
+real8 t1,t2,t3,t4,ts,r1,r2,r3,r4,rs,r2p,r3p,rsp
+j1=0
+t1=j1
+j2=j1+nycore(1)
+t2=j2
+j3=j2+nysol(1)
+t3=j3
+j4=j3+nyout(1)
+t4=j4
+
+
+# First, psi0_mp_outer:
+r1=psi0min1
+r2=min(psi0sep1,psi0sep2)
+r3=max(psi0sep1,psi0sep2)
+r4=psi0max_outer
+if (t3 .gt. t2) then	# use 3-region model for unbalanced dnull
+   call rho3dn(t,&psi0_mp_outer,nym,t1,t2,t3,t4,r1,r2,r3,r4,\
+                                         slp2fac,slp3fac,&r2p,&r3p)
+else			# use 2-region model for balanced dnull
+   r2p=slp2fac*(r2-r1)/(t2-t1)
+   call rho5(t,&psi0_mp_outer,nym,t1,t2,t4,r1,r2,r4,r2p)
+   r3p=r2p
+endif
+
+# Next, psi0_mp_inner:
+psi0_mp_inner(0:j3)=psi0_mp_outer(0:j3)
+r4=psi0max_inner
+call rho1l(&t(j3),&psi0_mp_inner(j3),j4-j3,t3,t4,r3,r4,r3p)
+
+# Next, psi0_dp_upper_outer:
+if (psi0sep1 .lt. psi0sep2) then	# lower divertor is primary
+   js=j3
+   rs=r3
+   rsp=r3p
+   ts=t3
+else					# upper divertor is primary
+   js=j2
+   rs=r2
+   rsp=r2p
+   ts=t2
+endif
+psi0_dp_upper_outer(js:j4)=psi0_mp_outer(js:j4)
+r1=psi0min2_upper
+call rho1r(t,&psi0_dp_upper_outer,js-j1,t1,ts,r1,rs,rsp)
+
+# Next, psi0_dp_upper_inner:
+psi0_dp_upper_inner(j1:js)=psi0_dp_upper_outer(j1:js)
+psi0_dp_upper_inner(js:j4)=psi0_mp_inner(js:j4)
+
+# Next, psi0_dp_lower_outer:
+if (psi0sep1 .lt. psi0sep2) then	# lower divertor is primary
+   js=j2
+   rs=r2
+   rsp=r2p
+   ts=t2
+else					# upper divertor is primary
+   js=j3
+   rs=r3
+   rsp=r3p
+   ts=t3
+endif
+psi0_dp_lower_outer(js:j4)=psi0_mp_outer(js:j4)
+r1=psi0min2_lower
+call rho1r(t,&psi0_dp_lower_outer,js-j1,t1,ts,r1,rs,rsp)
+
+# Next, psi0_dp_lower_inner:
+psi0_dp_lower_inner(j1:js)=psi0_dp_lower_outer(j1:js)
+psi0_dp_lower_inner(js:j4)=psi0_mp_inner(js:j4)
+
+## Diagnostic plot of radial distribution of flux surfaces at outboard midplane
+## plot ylim xlim style=dashed scale=equal labels=blank
+## plotz (fold-simagx)/(sibdry-simagx) xold yold lev=psi0_mp_outer
+## frame 2.26 2.36 zmagx-.05 zmagx+.05
+
+# flux contour search parameters:
+	istchkon=1
+	dtheta_exclude    = [.75,.50]*pi
+	dtheta_overlap_pf = [.05,.05]*pi
+	altsearch=1
+
+#echo=oldecho
+
+##########################################################################
+### STEP 3: construct the mesh for the upper half of the configuration ###
+##########################################################################
+
+read rdmesh.dnull.top
+
+# save mesh in temporary arrays:
+nxmu=nxm
+nymu=nym
+call gchange("grd.Dnull_temp",0)
+rmu=rm
+zmu=zm
+ixpt1u=ixpt1
+ixtopu=ixtop
+ixpt2u=ixpt2
+iysptrxu=iysptrx1
+
+##########################################################################
+### STEP 4: construct the mesh for the lower half of the configuration ###
+##########################################################################
+
+read rdmesh.dnull.bot
+
+# save mesh in temporary arrays:
+nxmb=nxm
+nymb=nym
+call gchange("grd.Dnull_temp",0)
+rmb=rm
+zmb=zm
+ixpt1b=ixpt1
+ixtopb=ixtop
+ixpt2b=ixpt2
+iysptrxb=iysptrx1
+
+##################################################
+### STEP 5: combine the two halves of the mesh ###
+##################################################
+
+geometry="dnull"
+
+# allocate space for full double null mesh data
+nxpt=2
+call gchange("com.Xpoint_indices",0)
+nxm=nxmb+nxmu-2
+nym=nymb
+call gchange("com.RZ_grid_info",0)
+
+# set separatrix indices (poloidal indices are set below in map subroutines)
+if (psi0sep1 .lt. psi0sep2) then
+   iysptrx1(1) = nycore(igrid)
+   iysptrx2(1) = nycore(igrid) + nysol(igrid)
+else
+   iysptrx1(1) = nycore(igrid) + nysol(igrid)
+   iysptrx2(1) = nycore(igrid)
+endif
+iysptrx1(2) = iysptrx2(1)
+iysptrx2(2) = iysptrx1(1)
+
+# NOTE: must map bottom half first, then top half, to get indexing correct:
+
+# map dnbot data onto full mesh
+call mapdnbot
+# map dntop data onto full mesh
+call mapdntop
+
+# ensure that upper & lower mesh exactly coincide at the midplane
+
+integer iy,jx
+real8 ravg,zavg
+do jx=1,nxpt
+  do iy=1,nym
+    ravg = 0.5*( rm(ixmdp(jx),iy,2) + rm(ixmdp(jx)+1,iy,1) )
+    zavg = 0.5*( zm(ixmdp(jx),iy,2) + zm(ixmdp(jx)+1,iy,1) )
+    rm(ixmdp(jx)  ,iy,2) = ravg
+    rm(ixmdp(jx)+1,iy,1) = ravg
+    zm(ixmdp(jx)  ,iy,2) = zavg
+    zm(ixmdp(jx)+1,iy,1) = zavg
+    ravg = 0.5*( rm(ixmdp(jx),iy,4) + rm(ixmdp(jx)+1,iy,3) )
+    zavg = 0.5*( zm(ixmdp(jx),iy,4) + zm(ixmdp(jx)+1,iy,3) )
+    rm(ixmdp(jx)  ,iy,4) = ravg
+    rm(ixmdp(jx)+1,iy,3) = ravg
+    zm(ixmdp(jx)  ,iy,4) = zavg
+    zm(ixmdp(jx)+1,iy,3) = zavg
+  enddo
+enddo
+
+################################################################
+### STEP 6: define guard cells at the divertor target plates ###
+################################################################
+
+# construct guard cells at target plates
+call add_guardc_tp
+
+###########################################################
+### STEP 7: compute magnetic field values for each cell ###
+###########################################################
+
+# get magnetics data
+call magnetics(0,nxm+1,1,nym)
+
+#########################################
+### STEP 8: write out the gridue file ###
+#########################################
+
+# write out gridue file
+call writednf ("gridue", runid)
+

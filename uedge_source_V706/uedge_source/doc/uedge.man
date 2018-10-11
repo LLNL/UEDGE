@@ -1,0 +1,2233 @@
+****************************************************************************
+*   Copyright 1994.  The Regents of the University of California.  All
+*   rights reserved.
+*   
+*   This work was produced at the University of California, Lawrence
+*   Livermore National Laboratory (UC LLNL) under contract no. W-7405-ENG-48
+*   (Contract 48) between the U.S. Department of Energy (DOE) and The
+*   Regents of the University of California (University) for the operation
+*   of UC LLNL.  Copyright is reserved to the University for purposes of
+*   controlled dissemination, commercialization through formal licensing, or
+*   other disposition under terms of Contract 48; DOE policies, regulations
+*   and orders; and U.S. statutes.  The rights of the Federal Government are
+*   reserved under Contract 48 subject to the restrictions agreed upon by
+*   the DOE and University as allowed under DOE Acquisition Letter 88-1.
+*   
+*   			       DISCLAIMER
+*   
+*   This software was prepared as an account of work sponsored by an agency
+*   of the United States Government.  Neither the United States Government
+*   nor the University of California nor any of their employees, makes any
+*   warranty, express or implied, or assumes any liability or responsibility
+*   for the accuracy, completeness, or usefulness of any information,
+*   apparatus, product, or process disclosed, or represents that its
+*   specific commercial products, process, or service by trade name,
+*   trademark, manufacturer, or otherwise, does not necessarily constitute
+*   or imply its endorsement, recommendation, or favoring by the United
+*   States Government or the University of California.  The views and
+*   opinions of authors expressed herein do not necessarily state or reflect
+*   those of the United States Government or the University of California,
+*   and shall not be used for advertising or product endorsement purposes.
+*   
+*   This computer software has been developed under the sponsorship of the
+*   Department of Energy.  Any further distribution by any holder of this
+*   software package or other data therein outside of DOE offices or other
+*   DOE contractors, unless otherwise specifically provided for, is
+*   prohibited without the approval of the National Energy Software Center.
+*   Requests from outside the Department for DOE-developed computer software
+*   shall be directed to the Director, NESC, Argonne National Laboratory,
+*   9700 South Cass Avenue, Argonne, Ill. 60439.
+*****************************************************************************
+*****************************************************************************
+
+                 AN INTRODUCTION TO THE 2-D FLUID CODE UEDGE 
+-----------------------------------------------------------------------------
+
+The most current version of this manual is in the file uedge.man available on
+wobegon.llnl.gov in the directory ~rognlien/uedge/doc. Send any suggestions or
+questions to rognlien@wobegon.llnl.gov.
+
+-----------------------------------------------------------------------------
+
+                           TABLE OF CONTENTS
+
+**** MECHANICS OF CODE EXECUTION ****
+
+   -- Reading Input and Execution --
+
+   -- Displaying Results --
+
+   -- Instantaneous Output and Run Abort --
+
+   -- Restarting from Present Solution --
+
+   -- Restarting from a BASIS Savefile --
+
+   -- Interpolating the Solution to a New Mesh and Restarting --
+
+
+**** VARIABLE DESCRIPTION AND THE SOURCE CODE ****
+
+   -- Variables --
+
+   -- Source Code --
+
+   -- Recompiling and Loading a New Executable --
+
+
+**** RUNNING IN THE TIME-DEPENDENT MODE ****
+
+   -- Simulation Time and Diagnostic Output --
+
+   -- Calculation of Jacobian --
+
+   -- Accuracy --
+
+   -- Boundary Conditions for the Time-Dependent Mode --
+
+   -- Using NKSOL Newton package in Time-Dependent Mode --
+
+
+**** RUNNING THE CODE WITH A DIRECT NEWTON ITERATION TO STEADY STATE ****
+
+   -- Switches and Diagnostic Output --
+
+   -- Determining Convergence Trends and Abort Command --
+
+
+**** RUNNING THE CODE WITH A KRYLOV NEWTON ITERATION TO STEADY STATE ****
+
+   -- Switches and Diagnostic Output --
+
+   -- Row and Column Scaling and Reordering--
+
+   -- Pseudo-Transient Timestep (Continuation)
+
+
+**** BOUNDARY CONDITION OPTIONS ****
+
+   -- SPECIFYING GAS INPUT AND PUMPING ON THE SIDE WALLS --
+
+   -- OTHER SIDE-WALL BOUNDARY CONDITION OPTIONS --
+
+   -- END-PLATE BOUNDARY CONDITION OPTIONS --
+
+   -- BOUNDARY CONDITIONS AT THE CORE INTERFACE --
+
+   -- SPUTTERING BOUNDARY CONDITIONS FOR THE GAS SPECIES --
+
+
+**** SOURCES AND SINKS ****
+
+
+**** FLUX-LIMITING TRANSPORT COEFFICIENTS ****
+
+
+**** MODELS FOR NEUTRAL GAS ****
+
+   -- FLUID AND DIFFUSIVE MODELS FOR ATOMS --
+
+   -- OPTIONS FOR TEMPERATURE OF NEUTRALS --
+
+   -- INCLUSION OF FLUID MOLECULES --
+
+   -- COUPLING TO A MONTE CARLO NEUTRALS CODE --
+
+
+**** ATOMIC PHYSICS MODELS FOR IONIZATION, RADIATION AND RECOMBINATION ****
+
+
+**** MODEL FOR IMPURITY RADIATION ****
+
+   -- FIXED-FRACTION MODEL --
+
+   -- MULTI-SPECIES MODELS --
+
+
+**** SPECIFYING ANOMALOUS RADIAL TRANSPORT COEFFICIENTS (INCLUDING BOHM) ****
+
+
+**** GRID GENERATION ****
+
+   -- NON-ORTHOGONAL GRIDS --
+
+   -- ADAPTIVE MESH CAPABILITY --
+
+   -- ADDING POLOIDAL CELLS NEAR THE X-POINT --
+
+   -- TOP-OF-MESH/LIMITER OPTION --
+
+**** CONVERTING FROM FULL-SPACE TO HALF-SPACE SOLUTIONS & VICE VERSA ****
+
+
+**** USING THE DCE (DISTRIBUTED COMPUTING ENVIRONMENT) GRAPHICS PACKAGE ****
+
+-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+
+
+**** MECHANICS OF CODE EXECUTION ****
+
+   -- Reading Input and Execution --
+
+The executable is called uedge and can be accessed if /usr/local/pub is in
+your path for the C90.  On workstations, the executable is often called
+xuedge, and is typically found in ~developer/uedge/SOL, where developer
+is the name of the person who created the executable and SOL refers to
+the SUN Solaris system.  On other workstations, SOL will be replaced
+by something like HP700 for HPs or AXP for DECs, etc.  
+
+Before running uedge or xuedge, you need to set two environmental variables.
+If you are running on the LLNL MFE SUN solaris system, you can just set two
+environmental variables: UEDGE_SCRIPTS to /home/rognlien/uedge/scripts and
+UEDGE to /home/rognlien/uedge.  Then you need not worry about the aphdir and
+uedge_path files. If you are on another system, or want to read you own atomic
+physics and script files, place the contents of uedge/in/aph and uedge/in/api
+in some directory, and then set the environmental variable UEDGE to point to
+them.  Likewise, copy and then change what is in uedge/scripts and set up the
+environmental variable UEDGE_SCRIPTS to point to that directory.
+
+The aphdir file tell uedge where to locate the hydrogen atomic rate files, and
+on the LLNL MFE SUN solaris system, it should contain the line
+
+aphdir = "/home/rognlien/uedge/in/aph"
+
+The second file, uedge_path, tells uedge where to find various diagnostic
+files.  Again, on the LLNL MFE SUN solaris system, it should contain the line
+
+call pathadd("/home/rognlien/uedge/in")
+
+One can add other lines to tell uedge to search other paths (directories)
+in response to a command issued from the parser.
+
+To run a case, simply type uedge or xuedge if you are using the non-public
+version.  The executable will then automatically read a default input file
+called .basis, if it exists in the directory (generally not used, however).
+After uedge has read the .basis file, it comes back with the prompt UEDGE>, at
+which point you need to type a command.  Typically, you will read a second
+input file that begins with the letters rd which stands for "read."  Thus, you
+will type read rddata2, for example.  Some example files can be found in the
+location noted below in Sample Problems section. You can also change any
+variable at the prompt by typing, say, runtim=1.e-10, to modify runtim.
+
+Once all the variables have been set, you execute the code by typing
+exmain.  What this does is tell the BASIS system to execute the subroutine
+named exmain, which calls all the appropriate subroutines to execute a
+full run.  It is also possible under BASIS to call other subroutines
+independently, but this is usually only done for debugging purposes.
+Thus, a typical session with UEDGE will look as follows:
+
+uedge
+UEDGE> read rddata2
+UEDGE> exmain
+UEDGE>
+
+The last prompt means the code has successfully completed the run and is
+ready for more input.  If you want to stop, just type end.  You can also
+display the results without exiting from the BASIS session.
+ 
+
+   -- Sample Problems --
+
+There are a set of sample problems that can be run.  For example, on the
+LLNL MFE SUN system, one can go to the directory
+
+  ~rognlien/uedge/Applic/Examples
+
+It is best to check with one of the current users to  learn more details
+of these examples.
+ 
+   -- Displaying Results --
+
+You may want to list any variable or array to see what the solution looks
+like.  For example, the 2-D electron temperature is stored in the array
+te(0:nx+2,0:ny+2) in units of Joules.  You may specify the number of
+places to be displayed after the decimal point by typing fuzz=2, for
+example.  Thus, the following sequence will print out the electron
+temperature array in electron volts:
+
+fuzz=2
+te/ev
+
+where ev=1.6e-19 is a variable in the code for converting from Joules to
+electron volts.  If you want to list some other variable to 4 decimal
+places you must first type fuzz=4, which will hold until another fuzz=
+statement.
+
+You can also do plots of arrays to look at the present solution.  To
+plot the function y(x), type plot y,x.  To do a contour plot of z(x,y),
+type plotz z,x,y.
+
+All of the commands given at the UEDGE> prompt are in the BASIS
+command language, which is extensive and powerful yet easy to learn.
+The BASIS manual can be read and searched with a browser like Mosaic
+on the World-Wide Web (see this URL:
+http://www-phys.llnl.gov/X_Div/htdocs/basis.html).
+
+   -- Instantaneous Output and Run Abort --
+
+While running a time-dependent problem with any solver except lsode, you
+may obtain information on the present status of the solution by typing "s"
+or "status" and a return.  You will receive lines of output giving the
+total number of function and preconditioner evaluations, nfe and npe,
+respectively, and the yl index ieq (imxtstep) of the equation that is
+restricting the time step.  A second index, imxnewt, gives the ieq of the
+equation that is requiring the Jacobian to be reevaluated, if that is
+limiting the time step.  In addition, it gives the total simulation time
+and the present time step, dt.  A third line gives detail data on the
+error estimates from the ODE solver: bigts is for the time integration and
+dsm is for the Jacobian.
+
+If you want to abort  the present simulation and return  to the UEDGE> prompt,
+type ctrl-c and a  return. At this point,  BASIS with give the prompt  DEBUG>;
+you know  may query UEDGE for variable  values, etc., and  then type "cont" if
+you want  to continue  the calculation.  If  you type  "abort",  to the DEBUG>
+prompt, you  will return to  the UEDGE>  prompt.  You can  do  this for DEBUG>
+eithera  time-dependent solution or a Newton  iteration.   If you then restart
+after  changing some  parameters,  the code  initializes itself as though the
+aborted run had not taken place.
+
+   -- Restarting from Present Solution --
+
+If you are still in an active BASIS session, you can set restart=1 to use
+the present solution as initial conditions for the next execution.  You
+can also double the grid in both x and y directions by being sure that
+newgeo=1, restart=1 and by doubling nxleg, nxcore, nycore, nysol, and
+nxomit.  The present solution is then interpolated to the finer grid as
+the initial conditions for the new run.  This is conveniently done by
+reading a file called double with BASIS (i.e., type read double) that has
+the necessary parameter adjustments in it. You can double the mesh separately
+in the radial or poloidal direction, or incrementally; see the subsection 
+entitled "Interpolating the Solution to a New Mesh and Restarting" for more
+details.
+
+   -- Restarting from a BASIS Portable File or Savefile --
+
+BASIS has a nice facility to save any variables you wish to a portable file
+that can be read in a subsequent session.  To do this, type create sfile,
+where sfile is some name you choose for the data file.  Then you can save
+any variables you want by typing write x,y,te.  This command can be
+repeated; to stop the writing to this file, type close.  The minimum
+data set you must save in a portable file to make a restart is the set of
+plasma variables; you should also save any special variable settings.  An
+example for the minimum saving procedure is as follows:
+
+create stest1
+write nis,ups,tes,tis,ngs,phis
+close
+
+Note that the plasma variables used for restarting all have an "s"
+appended to them.
+
+To use the portable file, you must be sure that you have the same grid size
+as that of the saved data.  You then execute uedge as for a normal run by
+reading input files (but don't type exmain yet).  Then give the following
+commands:
+
+allocate
+restore stest1
+restart=1
+
+Here, allocate generates the appropriate arrays through dynamic
+allocation.  At this point, one may type exmain to begin the run with
+the values saved previously in stest1.  It is convenient to save the
+final state of "good" runs in case you want to restart from them at
+some later date.  Also, the portable files can be moved (binary mode
+of ftp) to computers using different numerical representations and
+used to continue runs.
+
+Before version 10.0 of BASIS, a capability was present to create
+savefiles using commands "save to", "save", and "save off".  The
+portable file capability should be used now to create new files, but
+the user may want to use a version of UEDGE created with version 9.11
+of BASIS to convert from the savefile format to the portable format.
+Use the "readb" command to read a savefile just as you would use
+"restore" to read a portable file.  Then use "create", "write", and
+"close" to save the data in a portable file.
+
+   -- Interpolating the Solution to a New Mesh and Restarting --
+
+The code has three different linear interpolating options; these are
+controlled by the switches isnintp and isgindx. If isnintp=0, isgindx is
+immaterial, and the "old" interpolator is used that only allows the users to
+double the mesh in each direction. That is, if you are starting from a
+solution with a certain set of grid indices nxleg(1,1), nxleg(1,2),
+nxcore(1,1), nxcore(1,2), nysol(1), and nycore(1), you must double all of
+these (conveniently done with a simple file that you can read from basis, or
+type in manually). This interpolation is rather crude in that it assumes the
+mesh is uniform in each direction, but it works surprisingly well. However,
+doubling the mesh in each direction is sometimes too large a change for the
+Newton method to converge on the finer mesh. The next two methods allow an
+arbitrary change in the number of mesh points.
+
+If isnintp=1 the user may increase or decrease the mesh by any amount in
+either direction. For this case, two options are available: isgindx=1 and 0.
+For isgindx=1 (default and recommended setting), the interpolation to occurs
+in index space as though the mesh is uniform. This case is thus similar to the
+isnintp=0 option discussed above.  However, there is a difference (other than
+the arbitrary mesh change) in that here values are not interpolated across the
+separatrix or across the radial cut through the x-point, but are rather
+extrapolated at these locations. The reason for doing this across the
+separatrix is that linear interpolation often does a poor job because of the
+abrupt change in variables there; it is done across the radial cut only for
+simplicity of the algorithm. Treating the region above and below the
+separatrix independently (and on either side of the cut) allows one to add
+extra mesh points in either region without perturbing the other.
+
+For isnintp=1 and isgindx=0, the code does a linear interpolation using the
+actual (normalized) mesh which is not uniform or rectangular. This scheme does
+not seem to outperform the simpler index-based algorithm, and sometimes has
+trouble finding the appropriate mesh points for performing the interpolation.
+The message "***** grdinty cannot find straddling grid..." is printed if the
+algorithm fails to find the appropriate mesh points. In that case, switch
+to isgindx=1.
+
+It is possible to interpolate from a save-file solution, even if the code does
+not converge to this case first. One needs to generate the old mesh and then
+type call gridseq from the interactive basis prompt (the parser). Alternatively,
+use a very loose tolerance for svrpkg="nksol", say ftol=1.e10, so the code
+will think it has converged after one iteration. The mesh may then be changed
+without any extra call to gridseq.
+
+
+
+**** VARIABLE DESCRIPTION AND THE SOURCE CODE ****
+
+   -- Variables --
+
+All of the variables, together with a one-line description, are listed in
+a file called the variable descriptor file in the BASIS code-development
+system.  For the physics and numerical portion of the code (excluding grid
+generation), this file is called bbb.v.  The variables are combined into
+groups to make the process of identification somewhat easier.  Also, if
+you know the name of the variable, at the UEDGE> prompt, you may type list
+xyz, and you will receive the information about that variable included in
+the variable descriptor file.  Also, if you know the name of the group,
+you can type list groupname, and receive a listing of that group from the
+variable descriptor file.
+
+The primary plasma fluid variables used in the code are as follows:
+ni(0:nx+1,0:ny+1,nfld)  # Ion dens. [m**(-3)], nfld=species index (default=1)
+up(0:nx+1,0:ny+1,nfld)  # Parallel ion flow velocity [m/s]
+te(0:nx+1,0:ny+1)       # Electron temperature [Joules]
+ti(0:nx+1,0:ny+1)       # Ion temperature [Joules]
+ng(0:nx+1,0:ny+1,ngsp)  # Neutral gas density [m**(-3)], ngsp=species index
+phi(0:nx+1,0:ny+1)      # Electrostatic potential [Volts]
+
+The primary plasma fluid variables are used to evaluate the spatial
+derivatives and source terms in the PDE's.  However, the variables that
+are passed to the ODE solvers are somewhat different and normalized.
+These are as follows:
+
+For density:   ni/norm, where norm is a constant over the grid
+For velocity:  ni*up/(norm*cs), where cs is a constant ion-acoustic speed
+For Te:        ne*te/(norm*tnorm), where tnorm is a constant, ne = elec. dens.
+For Ti:        ne*ti/(norm*tnorm), where tnorm is a constant, ne = elec. dens.
+For ng:        ng/norm
+For phi:       ev*phi/tnorm, where ev=1.6e-19 is the electron charge
+
+The conversion from plasma variables to ODE variables is done in
+subroutine convrs; the reverse conversion is done by subroutine convert.
+
+The ODE variables are stored in a 1-D vector call yl, starting at ix=0,
+iy=0.  The variables at that point are stored in the order listed above,
+then the poloidal index, ix, is incremented until the ix=nx+1 boundary is
+reach, then iy is incremented by unity, and the process repeated.  There
+are index arrays that allow the user to determine the index ieq of yl(ieq)
+that corresponds to a variable at a given (ix,iy) location on the grid;
+these arrays are defined as follows:
+
+idxni(ix,iy,ifld): yl ieq index for ni/norm
+idxup(ix,iy,ifld): yl ieq index for ni*up/(norm*cs)
+idxte(ix,iy):      yl ieq index for ne*te/(norm*tnorm)
+idxti(ix,iy):      yl ieq index for ne*ti/(norm*tnorm)
+idxng(ix,iy,igsp): yl ieq index for ng/norm
+idxphi(ix,iy):     yl ieq index for ev*phi/tnorm
+
+There are also two arrays that the give the ix and iy indices for a given
+yl index ieq:
+
+igyl(ieq,1):  ix poloidal index for ODE variable ieq 
+igyl(ieq,2):  iy radial index for ODE variable ieq 
+
+   -- Source Code --
+
+The source code is maintained in a CVS archive on sundance.llnl.gov.
+Precompilation processing is done on any workstation that can access
+/home/user2/gsmith.  Compilation and loading is done on the machine
+where UEDGE is to be run.  Details of this procedure are described in the
+file make_procedure, which is stored in the same directories as this
+manual.
+
+There are ten BASIS packages, two associated with the grid generation,
+called flx and grd, one (wdf) that writes files for input to DEGAS,
+another (dce) containing an interface to distributed computing
+facilities that allow display of color plots of UEDGE data arrays, and
+a fifth (pfb) that reads and writes data in a portable format.  The
+remaining five packages contain the physics routines and numerical solvers.
+These packages appear on the C-90 as ten combined source files called
+pkgPKG.f, where PKG is replaced by the package names.  However, if one
+wishes to change a subroutine, it should be done on a workstation
+after checking out a complete set of source files from the CVS archive
+on sundance.llnl.gov.
+
+The Krylov ODE and Newton solvers are kept in a package called svr,
+and are called daspk.m, vodpk.m, and nksol.m.  These files are
+combined into pkgsvr.f, along with other files containing utility routines.
+The standard direct solve (i.e., non-Krylov) ODE package Lsode can
+also be used, but is gotten from the NERSC system files on Cray
+computers.  The routines needed by daspk.m, etc., for the
+preconditioner are in package bbb.  The routines that calculate the
+Jacobian are called jac... for the different solvers.  There are also
+corresponding psol... routines for solving the preconditioning problem.
+
+   -- Recompiling and Loading a New Executable --
+
+Follow the procedure in file make_procedure.
+
+
+ 
+**** RUNNING IN THE TIME-DEPENDENT MODE ****
+
+UEDGE can use a variety of ODE integrators of the LSODE type. The variable
+name that selects the integrator is called svrpkg, and one sets it by typing
+svrpkg="iname"
+
+where iname is one of the following:
+iname = lsode   # standard direct solve LSODE package for ODE's
+iname = vodpk   # preconditioned Krylov package for ODE's
+iname = daspk   # preconditioned Krylov package for ODE's & algebraic eqns
+
+The default is svrpkg="vodpk". There are also two Newton solvers with the
+names nksol and newton.  More details of the Newton solvers are described
+following the next section on time-dependent simulations.
+
+It is very effective to precondition the Jacobian matrix for both the
+time-dependent and the steady-state Newton iterations. The options are
+discussed in the section on the Newton solver nksol below (search for the
+words nksol and premeth). Here we mention that three options are available
+for the time-dependent mode, premeth="banded", "inel", or "ilut".
+
+   -- Simulation Time and Diagnostic Output --
+
+Output data concerning the performance of the time integration is
+stored in a sequence of evenly spaced logarithmic time intervals.  The
+number of outputs is set by isteps(1), which is defaulted to 100.  The
+total simulation time is given by trange*runtim [sec].  The variable
+runtim gives the time increment for the first interval; trange and
+runtim are defaulted to 1.e+7 and 1.e-7, respectively; the default
+total simulation time is thus 1.0 sec.  Specifically, the output time
+corresponding to the cumulative output index, say iout, is tout =
+(1.17489756)**iout * runtim.  The plasma variables are also stored at
+these output times in the arrays nist1, upst1, test1, tist1, ngst1,
+and phist1 (see subroutine uedriv in file odesolve.m).
+
+The most important thing to know from the last paragraph is that for the
+default settings, the total simulation time is 1.e7*runtim sec.
+
+   -- Calculation of Jacobian --
+
+A few useful variables to note are for svrpkg="lsode".  The variable mf=24
+means use our own Jacobian for a banded system and mf=25 means let lsode
+calculate the Jacobian for us.  For the other solvers, jpre=1 and jacflg=1
+means the Jacobian is calculated by us and used for the preconditioner.
+If jpre=jacflg=0, the Jacobian is not used or calculated, i.e., there is
+no preconditioning.
+
+We use the same subroutine, pandf, to evaluate the full right-hand sides
+of the ODE over the whole grid, and to calculate the Jacobian.  In
+calculating the Jacobian, the range of the do-loops over the grid is
+restricted to the vicinity of the variable that is being perturbed.  This
+range is controlled by three variables: xlinc(=1) is the incremental range
+to smaller ix, xrinc(=2) is the incremental range to larger ix, and
+yinc(=1) is the incremental range to both smaller and larger iy.  One can
+test the Jacobian calculation by setting these to values larger than nx+1
+and ny+1 so that the whole range of the do-loops is done for every
+perturbation; this is very inefficient, however.
+
+   -- Accuracy --
+
+The relative accuracy of the time-dependent integration is set by rtolv,
+which is a vector of length 30 to allow for the possibility of setting up
+a maximum of 30 different sequential runs where one might change rtolv and
+runtim, for example; in practice, we may use 2 or 3 for grid sequencing.
+For a given run rtolv is used to set the lsod...  relative error variable
+rtol.  We then define the lsod... absolute error variable
+atol(i)=catol*rtol*(guess at solution for variable i).  Here catol stands
+for a set of scale factors for each variable set, i.e., cniatol, cupatol,
+cteatol, ctiatol, cngatol, and cphiatol.  Typically, we choose rtolv=1.e-3
+or 1.e-4, which is large by usual lsod...  standards.  However, we want to
+reach steady state as quickly as possible.  The usage of the large rtolv
+required us to add a variable to the Krylov solvers for calculating the
+vector A*v by finite difference.  The perturbation previously used for the
+finite difference was rtol on the assumption that the user would choose
+rtol~ sqrt(machine roundoff) or ~1.e-7 for the Cray.  As we may have
+rtol~1.e-3, we let the perturbation in the Krylov solver be srtolpk*rtol,
+with the default srtolpk=1.e-4 used to give a perturbation of ~1.e-7.
+
+   -- Boundary Conditions for the Time-Dependent Mode --
+
+The boundary conditions are set in subroutine bouncon (see file boundary.m).
+For the solvers lsode and vodpk, the boundary conditions are implemented as
+ODE's.  For example, if we want the density ni to be nb, then the equation
+is
+
+                  d ni / dt = - cnurn*nurlx*(ni - nb)
+
+where nurlx=1.e8 [sec] is a large relaxation frequency to force the
+boundary condition to be satisfied on a time scale short compared to the
+evolution of the non-boundary variables.  The scale factor cnurn(=1 for
+default) applies only to the density equations.  A similar equation is
+used to specify a flux-like boundary condition.  The other variables have
+the same type of boundary equations and use the scale factors cnuru,
+cnure, cnuri, cnurg, and cnurp to allow independent adjustment for up, te,
+ti, ng, and phi, respectively.  It should be noted that the potential
+equation, arising from divergence J = 0, has no natural time derivative,
+and thus is treated this same way.
+
+If one uses daspk as the solver, the boundary conditions are specified as
+algebraic equations.  This guarantees that the boundary conditions are
+satisfied at each timestep and should be viewed as the preferable method.
+At the initial time, the algebraic equations must be satisfied to a given
+level of accuracy.  This is now performed by effectively using the NSKSOL
+Newton solver to satisfy only the boundary conditions and the potential
+equation if it is switched on (isphion=1).
+
+   -- Using NKSOL Newton package in Time-Dependent Mode --
+
+It is possible to use svrpkg="nksol" in the time-dependent mode by setting
+dtreal to the desired timestep in seconds.  Here a term is added to each of
+the non-boundary equations to account for a linear, or backward Euler, time
+advance; i.e., d(yl)/dt -> (yl_new - yl_old)/dtreal. It is possible to also
+add the dtreal term to the boundary equations and the potential equation by
+setting the flag isbcwdt=1; this can be useful for relaxing the complete
+system far from equilibrium and is similar to what vodpk does.  The number of
+such timesteps is controlled by the parameter nsteps_nk (defaulted to 1).  If
+nsteps_nk > nsteps, the time-dependent arrays test1(istep,ix,iy) will be
+filled until the number of steps exceeds nsteps, and then the last value will
+be overwritten with the last value.  This option is similar to the pseudo
+timestep method for NKSOL described below which is contolled by the parameter
+dtnewt.  Note that these cannot be used together, and an error message is
+issued if dtreal and dtnewt are simultaneously less than 1.e5 seconds.
+
+**** RUNNING THE CODE WITH A DIRECT NEWTON ITERATION TO STEADY STATE ****
+
+   -- Switches and Diagnostic Output --
+
+To invoke the simple direct (non-Krylov) Newton iteration, svrpkg="newton"
+The code then uses the subroutine newton to update the solution in the form
+
+              deltayl = -(Jacobian)^-1 * F(ylold)
+
+where F is the right-hand side of the ODE's and deltayl is the change in
+yl.  At each iteration, the code prints out two lines of diagnostics.
+Here, sumnew1 is the average change in the magnitude of the yl's for this
+iteration, sumr1dy is the average of abs(deltayl/yl), and saux2 is the
+fraction of the Newton update allowed based on the variable rlx.  Here rlx
+is the maximum amount that any yl is allowed to change relative to its old
+value for a given iteration.  The default is rlx=0.4.  The second output
+line gives sumf, the average of the magnitude of the right-hand-sides,
+ivmxchng is the ieq index of the yl(ieq) that has the largest magnitude of
+deltayl/yl, and the ix,iy gives the location on the grid for this yl
+variable.
+ 
+   -- Preconditioning for the svrpkg="newton" case --
+
+Only premeth="banded" works for this option. It uses the direct banded
+solver SGBFA.  An error message will be received if any other option is
+specified for premeth when svrpkg="newton".
+
+   -- Determining Convergence Trends and Abort Command --
+ 
+The Newton iteration should show a clear trend toward convergence, i.e.,
+sumnew1 and sumf decreasing after 5 to 10 iterations.  If this does not occur,
+experience shows that convergence is very unlikely.  To abort the iteration,
+type ctrl-c which will return you to the DEBUG> prompt; following the
+instructions that appear on the terminal, you may interrogate UEDGE and then
+type "cont" to continue, or type "abort" to return to the UEDGE> prompt.
+Another good measure of convergence is the initial value of saux2; if saux2 <
+1.e-2, convergence is very unlikely, if 1.e-2 < saux2 < 1.e-1, convergence is
+somewhat likely, and if saux2 > 1.e-1, convergence is quite likely.
+
+The criterion for convergence is that sumnew1 < rwmin, with rwmin=1.e-11
+as the default.  Other useful control variables are nmaxnewt which is the
+maximum number of iterations that the code will try (with a absolute
+hardwired upper limit of 101).  The variable scrit causes the old Jacobian
+to be used if the average of abs(deltayl/yl) is less than scrit; the
+default is scrit=1.e-4.
+
+
+
+**** RUNNING THE CODE WITH A KRYLOV NEWTON ITERATION TO STEADY STATE ****
+
+   -- Switches and Diagnostic Output --
+
+To invoke the preconditioned Krylov Newton solver set, svrpkg="nksol".
+There are a variety of options for this package that are briefly described
+in the variable descriptor file bbb.v (groups Lsode and Ilut).  Commonly
+changed flags are mfnksol, mdif, and mmaxu:
+
+mfnksol = 1   :dogleg search strategy using GMRES iterative solver
+        = 2   :linesearch with Arnoldi method iterative solver
+        = 3   :linesearch with GMRES method (default)
+
+mdif    = 0   :Matrix-vector multiply J*v is approximated by numerical 
+              :finite difference of RHS (default)
+        = 1   :Matrix-vector multiply J*v is done directly with current J
+
+rlx     = 0.4 :restricts relative change of density and temperatures to be
+              :less than rlx at each point
+
+stepmx  =1.e9 :restricts global change of variables, sum{sqrt[(del(u)**2)],
+              :to be less than stepmx.  Can be used instead of rlx.
+
+itermx  = 30  :Maximum number of nonlinear iterations
+
+inpcset = 5   :Maximum nonlinear iteration before Jacobian is reevaluated 
+
+mmaxu   =     :Now calculated internally with the algorithm mmaxu=neq**0.5 
+              :To set a specific value at input, set ismmaxuc=0 (default is 1).
+
+epscon1 = 0.1 :Use to define tolerance of linear iterative matrix solutions
+              :with the algorithm epsfac=epscon1*min(epscon2+frnm). Final
+              :tolerance is epsfac*frnm
+
+epscon2=1.e-2 :Use to define tolerance of linear iterative matrix solutions
+              :with the algorithm epsfac=epscon1*min(epscon2+frnm). Final
+              :tolerance is epsfac*frnm
+
+An important part of the Newton iteration is the preconditioning of the
+Jacobian matrix.  There are several methods available and these are
+controlled by the flag premeth="iname"; the different options for the
+preconditioner are:
+
+premeth="banded"  :uses the direct banded solver SGBFA.  Requires a lot of
+                  :storage for large problems, but is fast on the Cray for
+                  :moderate size problems 
+
+premeth="inel"    :uses a partial LU decomposition with fill-in on existing
+                   :diagonals of J only; called ILU0
+
+premeth="ilut"    :uses a partial LU decomposition about existing elements of
+                  :J - no based on diagonals.  Amount of fill-in controlled
+                  :by lfililut; typical problems require lfililut=30-->100.
+
+The output data on performance of the nksol routine at each nonlinear
+iteration is controlled by the flag iprint.  No output occurs if iprint=0.
+If iprint=1 (default), the iteration count, norm of the residual, and
+number of right-hand-side evaluations are printed, indicating roughly the
+number of linear iterations.  If iprint=2, detailed data concerning the
+linear iteration is printed for each nonlinear iteration:  the norm of the
+residual and the value of norm required to meet convergence test.  Also, if
+the constraint condition preventing negative densities or temperatures, or
+a relative step size is too big [Del(u)/u > rlx], resulting in a reduced
+step size, the message "ivio=1, pnrm=..." will appear.
+
+   -- Row and Column Scaling and Rescaling --
+
+Several techniques are used to improve the numerical properties of the
+Jacobian preconditioning matrix and to better condition the nonlinear
+Newton problem.  The most straightforward is scaling the rows of the
+Jacobian by the largest element in the row; this is effected by the switch
+issfon=1 (default) which generates the scaling vector sfscal.  This
+scaling is actually applied to the Jacobian is isrnorm=1 (default).
+
+Column scaling is a more recent addition (mid-1995) and is turned on by the
+switch iscolnorm (default=0).  Presently, either iscolnorm = 2 or 3 is
+recommended, and both have nearly the same effect; 2 completely disregards
+the old global scaling and 3 does the column scaling after the global
+scaling.  The column scaling is essentially a local normalization of the
+variables over the mesh to be of order unity, which improves the numerical 
+solve-ability of the system.
+
+Rescaling of the Jacobian matrix is activated by the switch ireorder=1 
+(default).  This causes the Jacobian to be reorder using the reverse
+Cuthill-McKee algorithm.  Typically it reduces the number of linear Krylov
+iterations by 30-50%, but can make the difference between convergence and
+no convergence.
+
+   -- Pseudo-Transient Timestep (Continuation) --
+
+A pseudo timestep can be added to the Jacobian for svrpkg="nksol" which
+generally increases the radius of convergence (one can take larger steps
+away from existing solutions), but decreases the rate of convergence.  The
+timestep adds a diagonal term to the left-hand side of the linear matrix
+equation but not to the right-hand side.  Specifically, consider the
+time-dependent equation for a vector of variables x of the form dx/dt+f = 0.
+Performing a Taylor series expansion gives the Jacobian, J, and
+
+          (x_n - x_o)/dt + J . x_n = -f(x_o)
+
+where x_o and x_n are the variable values at the old and new timestep,
+respectively. The pseudo transient technique neglects the -x_o/dt term, but
+includes x_n/dt, yielding the equation
+
+              (I/dt + J) . x_n = -f(x_o)
+
+where I is the identity matrix.  This additional term is added to both the
+preconditioning Jacobian, and to the J.x finite-difference Jacobian-vector
+product calculated in the Krylov algorithm.
+
+In UEDGE, the pseudo timestep, dt, is called dtnewt.  The default value for
+dtnewt is 1.e20 seconds which effectively removes the I/dt term.  To use
+this technique, it is typical to start with dtnewt=1.e-5 to 1.e-4, and run
+for about 10 iterations (set itermx=10). The residual as measured by fnrm
+should be decreasing, but do not expect convergence.  Then update the "save"
+variables by doing a "read reset", increase dtnewt by a factor of 3 or 10,
+and repeat the procedure.  By the time you get to dtnewt=1.e-3, or so, the
+convergence should be accelerating, and one can often increase dtnewt by
+larger factors; typically, dtnewt=0.1-1.0 is almost equivalent to dtnewt=1.e20.
+As of yet, there is no systematic procedure coded for automatically running
+through the sequence described above, although Knoll and McHugh have had
+some success with the Switched-Evolution Relaxation (SER) method.
+
+
+**** BOUNDARY CONDITION OPTIONS ***
+
+   -- SPECIFYING GAS INPUT AND PUMPING ON THE SIDE WALLS --
+
+One can specify up to 10 sources (or sinks - pumping regions) on the outer
+wall (iy=ny) and 10 on the inner wall (iy=0) by setting the variable nwsor
+to the number desired. The sources come in pairs, but the inner and outer
+parameters can be specified independently. These gas boundary conditions
+are set up in subroutine walsor.  Each source uses a variable called
+igspsori(i) or igspsoro(i) for the inner and outer wall sources, respectively
+that defines which gas species the source contributes to.  Thus, igspsori(i)=j
+means that source i contributes to gas species j.
+
+The location of the sources is set by xgasi(i) and xgaso(i) for inner (private
+flux) and outer walls, respectively.  To set these input parameters, it is
+helpful to examine the arrays xfwi and xfwo which give distances along these
+flux surfaces. If issorlb(i)=1, the distances xgasi,o(i) [m] are measured from
+the inner, or left divertor plate; if issorlb(i)=0, the distances are measured
+from the outer, or right divertor plate. The total width of the region is
+given by wgasi,o(i); if igasi,o(i) > 0, the source is taken to be a gas source
+with a cosine shape over the defined region, going to zero at the edge. If
+there are multiple, finite strength sources present, the net source at a given
+location is the sum of all of the overlapping sources.
+
+The special setting of igasi,o(i)=0 is used to specify a pumping region with a
+uniform albedo defined by albdsi,o(i) over the region of the source.  The
+albedo of the side walls are now (9/26/97) be specified for each gas species
+separately as follows: For each source which has igasi,o(i)=0, the second
+variable, igspsori,o(i), defines which gas species the source defines the
+albedo for, just as for finite gas sources (see above). For example, if you
+want to set the albedoi (for the private-flux wall) for gas species 1 to 0.95
+and that of gas species 2 to 0.90, you should use two sources by setting
+nwsor=2, and
+	igasi(1:2) = 0
+	xgasi(1:2) = 0 
+	wgasi(1:2) = 1000.   # (a large number spanning albedo region)
+	igspsori(1) = 1
+	albdsi(1) = 0.95
+	igspsori(2) = 2
+	albdsi(2) = 0.90
+
+The gas input depends on the number of gas species used. If only one gas
+species is used (ngsp=1), the current igasi,o(i) is the boundary condition
+for that single species in the given region and one needs to account for
+simultaneous puffing and pumping be reducing the net gas input. 
+
+The wall sources can also be used to redistribute the gas flux measured at one
+location by injecting it at another location. This coupling in limited to
+reinjecting gas from the same region (private-flux or outer-wall) from which
+it escapes. Here the neutral flux is calculated from the albedo defined over a
+specified source region, and then reinjecting as a gas flux over a different
+(or the same) region with a cosine distribution characteristic of the sources.
+As an example, consider measuring the current produced by the albedo albdsi(k)
+over the region specified by source k with location and width xgasi(k) and
+wgasi(k), respectively.  To reinject this current over the region specified by
+source j, with location and width xgasi(j) and wgasi(j), set ncpli(k)=j to
+establish the coupling, and set cplsori(k) equal to the fraction of the
+current that will come through the source with index j [cplsor(k)=1 gives the
+full current at source j]. Note that one may use k=j.
+
+One can also specify the side walls as material surfaces that emit recycled
+gas. This is done by switching on the flag matwalli,o(i)=1 for a given wall
+source with igasi,o(i)=0.; if igasi,o(i) is nonzero, the gas input boundary
+conditions will be used and not the material wall condition even if
+matwalli,o(i)=1. The gas input at the boundary for matwalli,o(i)=1 is
+determined by the wall recycling coefficients recycw(1) for hydrogen. The
+models for material side walls are still evolving, so users should check with
+the authors if they intent to use this option.
+
+The end plates are also sources of neutrals, where the gas flux is
+specified as -recycp*(ion flux). Again, recycp(1) refers to the flux into
+the hydrogen gas, and recycp(2...) refers to impurity gases.
+
+
+   -- OTHER SIDE-WALL BOUNDARY CONDITION OPTIONS --
+
+There are several options to use for the density and temperature boundary
+conditions on the private-flux wall (iy=0) and the outer wall (iy=ny+1).
+
+   Constant value (Dirichlet) boundary conditions:
+
+      For ion density, set isnwconi=1 for the private flux boundary (iy=0)
+      and isnwcono=1 for the outer wall boundary (iy=ny+1). The density
+      values can be set through the poloidal arrays nwalli and nwallo for
+      the inner and outer walls, respectively. Be careful if the mesh is
+      increased and interpolation is used, as one must then update nwalli
+      and nwallo.
+
+      For electron and ion temperature, set istepfc=1. and istipfc=1. for
+      the private-flux boundary, and set istewc=1. and istiwc=1. for the
+      outer wall boundary. Each of these switches can be set separately to
+      different. The temperatures are then set to tedge (eV) or can be
+      given separate and poloidally varying values through the arrays
+      tewalli, tiwalli, tewallo, and tiwallo, where the final letter
+      denotes inner(i) or private-flux boundary and outer(o), or outer wall
+      boundary. Before you set tewalli, etc. to nonzero values, you must
+      allocate memory for these arrays by typing allocate at the basis
+      prompt. In using this option, be careful of interpolating to a
+      larger grid, as the tewalli, etc will have to be manually interpolated
+      after the allocate.
+
+   Flux (Neumann) boundary conditions:
+
+      For ion density, be sure that isnwconi and/or isnwcono = 0, as well
+      as isextrnpf and/or isextrnw = 0 and ifluxni=1. Because there is a
+      possibility of conflict between the switches, the follow order of
+      dominance is follow: isextrnpf, isnwconi, and finally ifluxni. The
+      same is true for isextrnw, isnwcono, and ifluxni.
+
+      For electron and ion temperature, set istepfc=0., istipfc=0.,
+      istewc=0., and istiwc=0. This results in the normal derivative being
+      set to zero dT/dy=0. Note that the switches istepfc, istipfc, istewc,
+      and istiwc are real variables that take on any value. Thus, you can
+      continuously evolve from one boundary condition to the other by
+      taking fractional steps between 0. and 1.0. This can be especially
+      useful for Newton iterations.
+
+   Extrapolation boundary conditions:
+
+      For the density and temperatures, it is possible to set extrapolation
+      boundary conditions at iy=0 and iy=ny+1. This condition sets the
+      boundary value to be a linear extrapolation of the previous two
+      points in the radial direction. For the density, the inner (private
+      flux) and outer wall switches are isextrnpf and isexrtnw,
+      respectively, and setting either to 1 forces the extrapolation
+      condition independent of the settings of the other switches. For the
+      temperature, both the electron and ion values are set together for
+      the inside or outside with variables isextrtpf and isextrtw. Again,
+      if the extrapolation switches are set to 1, they take precedence
+      over any setting of istewc, etc.
+
+
+   -- END-PLATE BOUNDARY CONDITION OPTIONS --
+
+   The ion parallel velocity is taken to be the sound speed at the divertor
+plates. If the switch isupss=1, then the parallel velocity is allowed to
+be supersonic at the plate if the solution seeks this state.
+
+   The recycling coefficients at the plates can be made a function of radial
+position or an albedo can be specified over a limited region to pump gas
+through the plate. The following variables are used to set the recycling and
+albedos:
+
+   ndati(igsp)      # number of data points along plate; if=0, recycling
+                    # is uniform and specified by recycp*recycfi
+   ndato(igsp)      # number of data points along outer plate; if=0,
+                    # recycling uniform and  specified by recycp*recycfo
+   ydati(igsp,idat) # dis. from inner sep. of data point for rdati & albpi
+   rdati(igsp,idat) # value of recycling coeff. at plate location ydati;
+                    # inbetween data points, linear interp. is used
+   adati(igsp,idat) # value of albedo at data point ydati; lin. interp used
+   ydato(igsp,idat) # outer-plate counterpart to ydati
+   rdato(igsp,idat) # outer-plate counterpart to rdati
+   adato(igsp,idat) # outer-plate counterpart to adati
+
+If the albedo in any segment along the plate is less than unity (the default),
+then the albedo boundary condition for the gas takes precedent over the
+recycling boundary condition. Note that is only makes sense to use at least
+two data points on the inside or outside because linear interpolation is used
+between the points. Operationally, one needs to first generate the mesh and
+run through nphygeo (just do a very short calculation) to generate the mesh
+locations relative to the separatrix on the plates; these are yylb and yyrb
+for the inner plate (left boundary) and outer plate (right boundary), 
+respectivly. With this information, you can decide where to put your data
+points (ydati and ydato).
+
+
+   -- BOUNDARY CONDITIONS AT THE CORE INTERFACE --
+
+The ion density boundary condition is controlled by the variable 
+isnicore(ifld), where ifld is the index of the ion density, ni(ifld). Thus,
+the settings of isnicore correspond to:
+	    #=1, set uniform, fixed density, ncore
+	    #=0, set flux to curcore
+	    #=2, set flux & ni over range
+	    #=3, set integrated flux, const ni
+	    #=4, use impur. source terms (impur only)
+
+The gas density boundary condition is controlled by the variable
+isngcore(igsp), where igsp is the index of the gas species, ng(isgp).  Note
+that inertial neutral gas is controlled by isngcore(1). Thus, the settings
+of isngcore correspond to:
+	    #=0, set zero flux
+	    #=1, set uniform, fixed density, ngcore
+	    #=2, set rad. grad. to sqrt(lam_i*lam_cx)
+	    #=3, extrap. for diff. gas only
+	    #=anything else, set zero deriv which was prev default for
+			     inertial hydrogen
+
+In restarting from a isnicore=0 case (zero flux), use mfnksol=-3 if
+svrpkg="nksol".
+   For the core temperature boundary conditions on Te and Ti, one may set
+either a specified power for electrons and ions as pcoree,i in Watts and
+setting the switch iflcore=1.  To us fixed temperature boundary conditions,
+set iflcore=0, and then tcoree and tcorei give the electron and ion
+temperatures on the boundary in eV, respectively.
+   The parallel velocity boundary condition is set by isupcore, where
+      isupcore = 0  # sets up=0 on core edge
+      isupcore = 1  # sets d(up)/dy=0 on core edge
+      isupcore = 0  # sets uu=0 on core edge, where uu is poloidal velocity.
+
+
+   -- SPUTTERING BOUNDARY CONDITIONS FOR THE GAS SPECIES --
+
+There can be wall or plate sources of gas that arise from sputtering, either
+physical or chemical.  These are controlled by two flags for each gas
+species, isph_sput(igsp) for physical sputtering and isch_sput(igsp) for
+chemical sputtering.
+
+  PHYSICAL SPUTTERING ON PLATES
+ --------------------------------
+  For isph_sput(igsp) = 0:
+    The sputtering of gas species igsp is controlled by the simple yield
+factor sputtr if the sputtering arrays sputto(iy,igsp) and sputti(iy,igsp) are
+zero as at the initialization of a run.  Then sputto,i <-- sputtr. However, to
+change the sputtering after it has been set initially by sputtr, you must
+directly change the arrays sputti(iy,igsp) for the inner plate and
+sputto(iy,igsp) for the outer plate.
+
+   For isph_sput(igsp) = 1:
+     This setting uses the DIVIMP/JET model obtained from David Elder.  To use
+this properly, you must set the following input parameters:
+	cion	# atomic number of the target material; default is 6 for carbon
+	cizb	# max charge state of plasma ions; default is 1 for hydrogen
+	crmb	# mass of plasma ions in AMU; default is 2. for deuterium
+The resulting yield along the divertor plate is put into the arrays
+sputti(iy,igsp) and sputto(iy,igsp).
+
+  CHEMICAL SPUTTERING ON SIDE WALLS
+ ------------------------------------
+  For isch_sput(igsp) = 0:
+    This setting allows the user to specify the chemical sputtering yield
+by initializing chemsputi,o(i,j), where the resulting flux boundary condition
+for gas species i is then
+
+	fngy(igsp=i) = Sum_j [chemsputi,o(i,j)*ng(j)*vt*sy]
+
+  For isch_sput(igsp) > 0:
+    Note that isch_sput(igsp) should be nonzero for only one gas species and
+this species should be carbon.  These settings (1-6) use various models for
+the chemical sputtering of carbon from the side walls; this package comes from
+DIVIMP via David Elder.  The various models are:
+
+  isch_sput      -  Options for chemical sputtering:               *
+         1       -  Garcia-Rosales' formula (EPS94)                *
+         2       -  according to Pospieszczyk (EPS95)              *
+         3       -  Vietzke (in Physical processes of the inter-   *
+                    action of Fusion Plasmas with Solids)          *
+         4       -  Haasz (Submitted to J.Nucl.Mater.,Dec. 1995)   *
+         5       -  Roth & Garcia-Rosales (Submitted to Nucl.      *
+                    Fusion, March 1996)                            *
+         6       -  Haasz 1997 (Brian Mech's PhD Thesis)           *
+	 7       -  Haasz 1997 + reduced 1/5 from 10->5 eV (Porter)*
+
+It is recommended that isch_sput = 5 or 6 be used.  Other input is the
+temperature of the surface, t_surf, in degrees K; the default is 300 K.  The
+resulting chemical sputtering yield is stored in the arrays yld_carbi,o(ix)
+along the inner and outer walls.  
+
+
+**** SOURCES AND SINKS ****
+
+   The sources and sinks are normally determined by ionization of neutral
+gas and recombination of ion-electrons into neutrals. A special background
+source is used to prevent the neutral density from becoming too small. The
+gas continuity has the form
+
+   d n_g / dt + grad (n_g v_g) = -nuiz * (n_g - bgsor)
+
+where bgsor is given by
+
+   bgsor = ngbackg*(0.9 + 0.1*(ngbackg/ng)**ingb
+
+Normally, nbackg=1.e15 m**(-3), and ingb=0 for defaults. However, sometimes
+it is useful to set ingb=4 to prevent "pump out" of low density cells.
+
+
+**** FLUX-LIMITING TRANSPORT COEFFICIENTS ****
+
+   The flux limits used in UEDGE for the parallel transport are of the form
+
+    chi = chi_spitzer / [1 + abs(q_spitzer/q_free-stream)**flgam]**(1/flgam)
+
+where chi is a classical diffusion transport coefficient and flgam=1 is the
+default value (seldom changed).  q_spitzer is just the classical Spitzer flux
+and q_free-stream is given by (for the electron heat flux example)
+
+            q_free-stream = flalfe*ne*vte*te
+
+where flalfe is a parameter often set to 0.21 to match some kinetic modeling,
+ne is the electron density, vte=sqrt(te/me), and te is the electron
+temperature.  If flalfe=1e20 (the default), the flux limiting is effectively
+switched off.  There are three flux limits used for the plasma:
+	
+	flafle		:for electron parallel heat flux
+	flafli		:for ion parallel heat flux
+	flafle		:for ion parallel viscosity
+
+These parameters are all defaulted to large values (1e20 or 1e10) which gives
+effectively no flux limiting.  A recommended set of values to model moderate
+departures from Spitzer fluxes are
+
+	flalfe = 0.21
+	flalfi = 0.21
+	flalfv = 1.0
+
+These should not be viewed as firm numbers, but they are often reasonable and
+have some basis from Monte Carlo and other kinetic modeling.
+   There are also flux-limiting coefficients for the diffusive gas fluxes.
+These are called flalfgx, flalfgy, and flalfgxy for diffusion driven by the
+density gradients in the x-, y-, and nonorthogonal xy- directions.  In
+addition, fluxes can be driven by gradients in temperature which have
+flux-limit coefficients flalftgx and flalftgy.  Finally, the neutral gas
+viscosity coefficients can be limited through the parameters flalfvgx and
+flalfvgy.  All of the gas flux-limit parameters are defaulted to large
+numbers, but physically reasonable values are in the range of unity which
+are left as an option for the user.  Our experience is that the code can
+have difficulty with these flux limits if gradients become too steep - this
+is the reason for having them switched off as a default.
+
+
+**** MODELS FOR NEUTRAL GAS ****
+
+   -- FLUID AND DIFFUSIVE MODELS FOR ATOMS --
+
+UEDGE uses two models for the neutral gas, the most general being a fluid
+model that solves the parallel momentum equation along the direction of the
+magnetic field,B, and diffusion in the two directions perpendicular to B
+(implemented by F. Wising).  For this model, set isupgon(1)=1, isngon(1)=0,
+nhsp=2, and ziin(2)=0.  Neutral viscosity and thermal conduction is included
+using both charge-exchange collisions and neutral-neutral collisions.
+
+The simpler gas model solves a diffusion equation in the 2-D poloidal plane.
+For hydrogen, it is activated by setting isngon(1)=1, isupgon(1)=0, and
+nhsp=1.  The diffusion coefficient is given by D_g=Ti/[mi*(nucx+nuiz)].
+
+The impurity gas is modeled by the diffusion equation just mentioned and is
+activated by setting isngon(2)=1 (if more than one impurity species is
+present, then isngon(3)=1, etc.).  Here the diffusion coefficient is somewhat
+more general by including elastic collisions as D_g=Tg/(mg*nuix), where
+
+     nuix = rcxighg*nucx_h + nuiz + massfac*(kelighi*ni_h + kelighg*ng_h)
+
+Here, nucx_h is the charge-exchange frequency between hydrogen neutrals and
+impurity ions, rcxighg is a scale factor (usually small) to convert this rate
+to that between impurity neutrals and hydrogen ions.  To account for elastic
+collisions of impurity gas with hydrogen ions and gas, we use the last
+two terms.  Details of this model were suggested by S. Krasheninnikov, where
+
+            massfac = 16*mi_h / [3*(mi_imp + mi_h)]
+
+and kelighi and kelighg are the sigma-v rates.  Estimated values are kelighi =
+kelighg = 5e-16 m**3/s at temperatures of ~1 eV, but the temperature dependence
+is neglected. These values are very uncertain. Values of kelighi and kelighg
+should be set in the users input file.
+   Thus, if you set rcxighg=0., you should set kelighi(igsp) = kelighg(igsp) =
+5.e-16, or some more accurate value if available.  This procedure prevents D_g
+from becoming very large in low temperature (~1 eV) regions when rcxighg=0 and
+nuiz are very small.
+
+   -- OPTIONS FOR TEMPERATURE OF NEUTRALS --
+
+One can let the neutrals have a multiple of the common ion temperature or
+use a specified constant value.  These options are controlled as follows:
+  If istgcon=0, then
+    the gas temperature, tg, is a multiple of the ion temperature, ti. 
+    Specifically, then tg=rtg2ti*ti across the whole mesh.
+
+  If istgcon=1, then
+     tg = tgas*ev, where tgas is an input variable in eV, and tg has this
+     same constant value across the mesh.
+
+
+   -- INCLUSION OF FLUID MOLECULES --
+
+A fluid component can be used to represent the molecules which evolve from
+the wall to describe the thermal desorption phase of recycling; this is
+usually the dominant recycling channel.  
+
+To include hydrogen neutrals, you should set the following input parameters:
+
+	ngsp = 2	# if no impurities are present
+	nhgsp = 2	# tells code that two hydrogen gas species are present
+	ishymol = 1	# switch to turn on hydrogen molecules
+	recycp(1)= -0.5	# neg. recycp(1) acts like -albedo for atomic gas
+	recycp(2)= 0.98	# recycling into molecular channel for ions + atoms 
+	recycw(1)= -0.5	# neg. recycw(1) acts like -albedo for atomic gas
+	recycw(2)= 0.98	# recycling into molecular channel for ions + atoms 
+	cdifg(2) = 0.05 # reduces mol gas diff coeff to sim wall temp
+
+Note that recycp applies to the divertor plates and recycw applies to the side
+walls when matwalli,o > 0.  The second gas species then corresponds to the
+molecules while the first is the atomic species.  The atomic species can be
+either diffusive neutrals or 1-D Navier-Stokes as described just above.  The
+diffusion coefficient for the molecular gas is D_g=cdifg(2)*Tg/(mg*nuix),
+where nuix is now given by
+
+     nuix = nu_diss + massfac*(kelighi*ni_h + kelighg*ng_h)
+
+where nu_diss is the dissociation rate calculated using a polynomial fit
+obtained from the EIRENE neutral Monte Carlo code and massfac is defined
+in the previous section.
+
+
+   -- COUPLING TO A MONTE CARLO NEUTRALS CODE --
+
+The hydrogenic fluid neutrals model can be turned off and replaced by
+a Monte Carlo neutrals model.  In the simplest scheme, one uses a
+numerically explicit time-dependent coupling of plasma and neutrals
+models, with the models communicating via disk files.  The UEDGE
+plasma mesh information is written to a disk file, fort.30, with the
+command:
+	call write30("fort.30", runid) 
+The UEDGE plasma background information, i.e., density, temperatures
+and flow velocity, is written to a disk file, fort.31, with the
+command:
+	call write31("fort.31", runid)
+where runid is some header text to identify the run.
+
+The hydrogenic fluid neutrals model is turned off via the switches:
+	nhsp=1
+	isupgon(1)=0
+	isngon(1)=0
+In addition, one must set the switch:
+	ismcnon=1
+which turns off the hydrogenic fluid neutrals contributions to the
+plasma source terms for ion density, ion parallel momentum, electron
+temperature and ion temperature.  The user must replace these sources
+with corresponding sources from the Monte Carlo neutrals model at
+each time step before executing the plasma model with exmain.  
+For the EIRENE Monte Carlo code, the procedure is as follows:
+	1) call read32("fort.32"); this reads a data file, fort.32,
+           which contains normalized plasma source terms due to each
+           'stratum' in EIRENE; the data arrays are sni, smo, see, sei
+           and the normalization constant(s) wsor.
+	2) convert from normalized source terms to physical source terms,
+           e.g., mcnsor_ni = -wsor*sni
+	3) convert the source for total ion energy to a source for thermal
+           ion energy only, i.e., mcnsor_ti = mcnsor_ti - up*mcnsor_up +
+           (.5*mi*up**2)*mcnsor_ni
+	4) compute total plasma sources by summing over all 'strata', e.g.,
+           uesor_ni(ix,iy,ifld) = sum on istra {mcnsor_ni(ix,iy,ifld,istra)}
+
+After executing the plasma model, one writes the plasma background
+data for the next Monte Carlo neutrals calculation with a call to
+subroutine write31 as noted above.  
+
+The Monte Carlo code can be executed from within UEDGE via the parser
+command:
+	basisexe("eirobjx < input.dat > eir.log")
+where eirobjx is the name of the executable and input.dat and eir.log
+are standard input and output files for the EIRENE code.  Some
+diagnostic output from the EIRENE code is accessible within UEDGE with
+the parser command:
+	call read44("fort.44")
+In particular, the atomic neutral density in the array naf(1:nx,1:ny,1)
+may be compared with the fluid model result in ng(1:nx,1:ny,1).
+
+**** ATOMIC PHYSICS MODELS FOR IONIZATION, RADIATION AND RECOMBINATION ****
+
+The calculation of the ionization, radiation, and recombination terms in
+the ion and gas continuity equations is taken either from an analytic model
+or linear interpolation of data from table look-up. For most of the
+options, recombination is switched on by isrecmon=1. The model used is
+controlled by the variable istabon and has the following options:
+
+   istabon=0  :Analytic model for ionization (from Braams in B2) and
+              :charge-exchange; no recombination
+   istabon=1  :Tables from ADPAK by Hulse via Braams; not recommended
+              :by Doug Post for the low temperature (< 50 eV) regime
+   istabon=2  :Tables from STAHL by Behringer at Garching via Braams
+   istabon=3  :Tables used in DEGAS from Janev, Post, et al., 1984
+   istabon=4  :Extended-DEGAS tables from Doug Post '93 for temperatures
+	      :down to .063 eV and densities up to 1.0e+23 /m**3;
+              :linear interpolation is done for rsa vs log Te and log ne;
+	      :analytic model for charge-exchange.
+   istabon=5  :Same extended-DEGAS tables as option 4, but with spline
+              :interpolation for log10(rsa) vs log(te) and log10(ne)
+   istabon=6  :Same extended-DEGAS tables as option 4, but with spline
+              :interpolation for rsa vs log(te) and log10(ne)
+   istabon=7  :Campbell's polynomial fit for rsa vs log10(te) and log10(ne)
+   istabon=8  :New DEGAS tables from D. Stotler ~ Oct '93; separate electron 
+              :radiation loss rates due to ionization and recombination;
+              :linear interpolation as in option 4; radiative loss rates
+              :more accurate than option 4 for low Te and/or large ne. 
+
+One can find the value of various rate parameters by calling the appropriate
+function from the Basis parser with specific arguments (not arrays). These
+are functions for <sigma*v> and are as follows:
+
+   rsa(te(ix,iy),ne(ix,iy),0)   : <sigma*v>_ionization [m**3/s]
+   rcx(ti(ix,iy),ni(ix,iy),1)   : <sigma*v>_charge_exchange [m**3/s]
+   rra(te(ix,iy),ne(ix,iy),1)   : <sigma*v>_recombination [m**3/s]
+
+The radiative loss rates associated with ionization and recombination can
+be obtained by calling the following functions: 
+   erl1(te(ix,iy),ne(ix,iy))    : ne*<sigma*v*E_rad>_ioniz [J/s]
+   erl2(te(ix,iy),ne(ix,iy))    : ne*<sigma*v*E_rad>_recom [J/s]
+
+The calculated collision frequencies on the 2-D mesh are stored and can
+be viewed in the following variables:
+   
+   nuiz(ix,iy)   :ionization frequency [1/s]
+   nucx(ix,iy)   :charge-exchange frequency [1/s]
+   nurc(ix,iy)   :recombination frequency [1/s]; need isrecmon=1
+
+The total (radiation + 13.6*ev) electron energy loss per ionization on the
+2-d mesh is stored and can be viewed in the following variable:
+
+   eeli(ix,iy)   :energy loss per ionization [Joules]
+
+
+**** MODEL FOR IMPURITY RADIATION AND TRANSPORT ****
+
+   -- FIXED-FRACTION MODEL --
+
+The impurity radiation model uses a look-up table based on non-equilibrium
+coronal results from the MIST code (by R. Hulse and D.  Post) for a given
+impurity.  The impurity emissivity depends on electron temperature,
+charge-exchange recombination on neutral hydrogen and impurity lifetime due to
+convection.  The impurity charge-exchange rate is evaluated using the neutral
+hydrogen density calculated by UEDGE, whereas the impurity lifetime is
+presently specified by the user in the 2-D array atau(ix,iy) [sec]. The
+impurity density is determined as a fraction of ne(ix,iy) by the
+user-specified array afrac(ix,iy), i.e., the impurity density = ne * afrac.
+
+The impurity radiation is removed from the electron energy equation by setting
+the switch isimpon > 0.  For isimpon=1, you must explicitly read a set of
+impurity radiation data files with the command 'read setup.nitrogen', for
+example.  For isimpon=2, impurity radiation data files are automatically read
+when the code is executed with the exmain command; in this case the code looks
+for a file in your working directory with the default name 'mist.dat'.  You
+can retrieve these files for the isimpon=2 option from cfs directory
+/030137/uedge/rates.pppl for various impurities.
+
+One typically specifies a constant fraction of impurities by typing
+afrac(,)=0.01 for 1%; the impurity lifetime atau(,) is defaulted to 1 second,
+so it does not affect the calculation significantly unless the user sets a
+lower value. We are working to improve the impurity model so that the fraction
+and lifetime are calculated self-consistently from transport.
+
+   -- MULTI-SPECIES MODELS --
+
+One can also treat the impurities by following the individual densities of
+the charge states.  This is done by setting isimpon=5 where the FMOMBAL 
+package by Steve Hirshman is used to calculate the friction forces between
+species and a mass-averaged momentum equation is solved for all the species.
+Another option is to set isimpon=6 where the friction forces are determined
+from analytic formulae and the individual impurity parallel velocities come
+from the force balance equation that results when impurity inertia and
+viscosity are ignored.  The radial transport of the impurity species is
+determined by the diffusion coefficients, difni, which may be set differently
+for each charge state followed (see the section on anomalous transport).
+
+Multiple isotopes can be followed simultaneously.  Here the impurity gas is
+modeled using an diffusion equation.  The relevant parameters for a typical
+input file with helium and neon are as follows (this cases assumes the first
+two "ion" species are hydrogen ions and hydrogen neutrals using the inertial
+neutral model; the impurities thus start with ion species 3, but gas species
+2):
+
+# Impurities
+	isimpon =6		#Use force balance equation
+# Impurity gas
+        ngsp = 3                #total number of gas species (hydrogen+impur)
+        isngon(2:3) = 1         #turn on impurity gas equations
+        recycp(2:3) = 1.0       #plate recycling coeff of helium and neon
+# Helium species
+        nzsp(1) = 2             #number of helium charge states used
+        minu(3:4) = 4.		#helium mass in AMU
+        ziin(3:4) = iota(1:2)	#charge for each state used
+        znuclin(3:4) = 2	#nuclear charge for helium
+        isnicore(4)= 1 	        # =1 for fixed core density of He++
+        ncore(4)=2.e18 	        #density of He++ at core boundary
+# Neon species
+        nzsp(2) = 8             #number of neon charge states used
+        minu(5:12) = 20.	#neon mass in AMU
+        ziin(5:12) = iota(1:8)	#charge for each state used
+        znuclin(5:12) = 10	#nuclear charge
+        isnicore(12)= 1 	# =1 for fixed core density of Ne+8
+        ncore(12)=4.e17 	#density of Ne+8 at core boundary
+# Specify impurity data files
+	nzdf = 2		#number of impurity data files to be read
+	mcfilename = ["He_rates.strahl","Ne_rates.strahl"] #data file names
+
+
+
+**** SPECIFYING ANOMALOUS RADIAL TRANSPORT COEFFICIENTS (INCLUDING BOHM) ****
+
+The simplest description of radial transport is a set of spatially constant 
+diffusion coefficients for density, parallel momentum, electron energy,
+and ion energy. All are in units of m**2/s, and the density and momentum
+rates allow 12 (expandable) locations for 12 species. The rates are as follows:
+
+	difni(i)	# radial (or y-direction) density diffusion
+	vcony(i)	# radial convective pinch velocity
+	difni2(i)	# perpendicular density diffusion in "2" direction in 
+			# flux surface (perp. to y and || directions)
+	travis(i)	# radial parallel momentum diffusion
+	difutm(i)	# radial toroidal momentum diffusion (for potential eqn)
+	kye		# radial electron energy diffusion
+	kyi		# radial ion energy diffusion
+
+In addition, one can introduce user-specified, spatially-dependent diffusion
+coefficients, or let the code calculate Bohm-like diffusion coefficient which
+are added to the ones above.  The switch isbohmcalc determines which of these
+two options is active:
+
+	isbohmcalc = 1	=> code fills 2-D arrays kxbohm and kybohm = Te/(16eB)
+                           (default=1) (kx,ybohm are calc. on x,y-mesh-faces)
+	isbohmcalc = 0  => code uses whatever user initially sets for arrays
+			   kybohm and kxbohm, and does NOT reset to Te/(16eB)
+                           In addition, vybohm may to set to a user-specified
+			   array as the pinch velocity
+
+The net diffusion is defined by using scale factors of the density, electron
+energy, and ion energy separately.  The net diffusion coefficients are thus
+
+	difni	-->  difni  + facbni *kybohm(ix,iy)
+	difni2	-->  difni2 + facbni2*kxbohm(ix,iy)
+	kye	-->  kye    + facbee *kybohm(ix,iy)
+	kyi	-->  kyi    + facbei *kybohm(ix,iy)
+        vy      -->  vy     +         vybohm(ix,iy)   Only if isbohmcalc=0
+
+Note that difni2 and kxbohm typically add small contributions to the poloidal
+transport that is dominated by the projection of the parallel transport; we
+thus usually leave difni2 = facbni2 = kxbohm = 0.  The Bohm rates have not yet
+been added to the momentum equations, and facbni etc. are only scalars, thus
+applying equally to all ion species.  If one wishes to use only user-specified
+ktbohm diffusion coefficients, be sure to set difni, difni2, kye, and kyi to
+zero as all but difni2 are defaulted to unity if they are not set in the input
+file.  Also, if the mesh size changes, the arrays kx,ymesh must be refilled
+after an allocate for the new mesh size is done.
+
+
+**** GRID GENERATION ****
+
+
+The grid generated from UEDGE uses routines that are an extension and
+modification of a grid generator developed by M. Petravic at
+PPPL. Data on the location of poloidal magnetic flux surfaces are
+generated by one of various MHD equilibrium codes (TEQ, EFIT), and
+then read into UEDGE via two files. These files must be named aeqdsk
+and neqdsk, and the switches mhdgeo=1 and gengrid=1 must be set. If
+gengrid=0, UEDGE reads in a file with the grid information already in
+it called gridue. The gridue can be generated by a previous UEDGE
+run. For large problems, precomputing the file gridue and using
+gengrid=0 can save considerable storage. One can generate the grid in
+UEDGE without running a complete problem; just type
+
+      call flxrun
+      call grdrun
+
+and the file gridue with be generated. This call sequence is done
+automatically if you execute a full problem by typing exmain. 
+
+There are a number of options available for the grid generation; we
+mention a few here. For single-null configurations, set geometry="snull";
+for double null we simulate the lower half and set geometry="dnbot". It is also
+possible to simulate the outer half of a single null or the lower, outer
+quadrant of a double null where reflection boundary conditions are used
+at the left boundary and no flux is allowed through the outer (ix=ixpt2)
+cut at the x-point. To do this latter type of geometry, set these variables:
+
+     nxomit       # Number of poloidal grid points to omit before setting
+                  # reflection boundary condition. Files double, etc.
+                  # automatically change nxomit to correct value
+     isfixlb = 2  # Sets reflection bc at ix = nxomit and no-flux bc at
+                  # ix = ixpt2 (outer x-point cut)
+
+The radial distribution of the mesh is controlled by the following
+input parameters.  The poloidal flux, psi, is normalized to be unity
+on the separatrix and the radial boundaries of the mesh are specified by:
+
+     psi0min1	:flux at the inner core boundary, 0.98 is typical
+     psi0min2   :flux at the private-flux region boundary, 0.98 is typical
+     psi0sep    :flux very near the separatrix, use 1.00005
+     psi0max    :flux at the outer wall boundary, 1.07 is typical
+
+The number of radial cells in various regions is:
+
+     nycore(1)	:number of radial cells in core (and private-flux) region
+     nysol(1)	:number of radial cells in scrape-off layer
+
+The input variable alfcy provides some additional control over the
+radial distribution of mesh points.  One can cause the flux surfaces
+to cluster near the separatrix by making the variable alfcy somewhat
+larger than unity (2-3 is typical); if alfcy = 0, the radial mesh in
+the SOL is almost uniform except near the x-point.
+
+For double-null configurations the radial distribution of flux
+surfaces can be different for the inboard and outboard legs of the
+plasma. In this case psi0max and alfcy refer to the outboard leg and
+one must supply additional input for
+
+     psi0max_inner	:flux at 'outer' wall boundary on inboard leg
+     alfcy_inner	:cluster factor for flux surfaces  on inboard leg
+
+The radial distribution of flux surfaces can be manually manipulated
+by setting the option flag kymesh=0.  In this case the user must
+supply the arrays psitop(0:npsi) and psibot(0:npsi) where
+npsi=2*(nycore+nysol+1). These arrays contain un-normalized psi values
+along a cut through inboard and outboard midplanes (psitop) and along
+both divertor plates (psibot).  The recommended way to create these is
+to run the grid generator with kymesh=1 (default) and then edit these
+default arrays for use with kymesh=0.  It is important to note that
+flux values must be modified in pairs to assure that inboard and
+outboard flux surfaces are continuous in the core and private flux
+regions.  There is a "dummy" flux value representing the "magnetic
+axis" at the center of both the psitop and psibot arrays.
+
+The poloidal distribution of the mesh is controlled by the following
+input parameters.  The mesh ends at the divertor plates which are
+defined in the input file aeqdsk.  The mesh is divided into various
+regions, and one can specify the number of cells in each as follows:
+
+     nxleg(1,1)   :number of poloidal cells in inboard leg between divertor
+		  :plate and x-point
+     nxcore(1,1)  :number of poloidal cells in inboard region of core
+		  :between x-point and top (or midplane for double-null)
+     nxcore(1,2)  :number of poloidal cells in outboard region of core
+		  :between x-point and top (or midplane for double-null)
+     nxleg(1,2)   :number of poloidal cells in outboard leg between divertor
+		  :plate and x-point
+
+Additional control over the distribution of the mesh along the
+separatrix in the poloidal or x-direction is provided by a function
+x(t) where t is the indexing parameter that labels the cells; the grid
+points are spaced uniform in t for a given region (leg, or core), and
+the actual spacing in x is determined by x(t). There are a number of
+options for x(t) controlled by the switch kxmesh:
+
+     kxmesh=0    :manual definition of seed points
+     kxmesh=1    :use linear*rational form for x(t) in divertor
+     kxmesh=2    :use linear*exponential form for x(t) in divertor
+     kxmesh=3    :use spline form for x(t) everywhere
+     kxmesh=4    :use exponential+spline form for x(t) in divertor
+
+For kxmesh=0, one must fill the arrays seedxp and seedxpxl. These arrays give
+the location on the separatrix of the mesh points in percentage of the
+distance from the x-point to plate or x-point to top of machine, etc; thus,
+all values must lie between 0-100 and be monotonic.  A standard procedure for
+setting the arrays seedxp and seedxpxl is to generate an approximate mesh
+with a kxmesh.ne.0 option, and then read the files rdgen.seedxp in directory
+uedge/in.  This fills the arrays with the current mesh values, and one can
+then edit these arrays by inserting or moving points.  The resulting arrays
+should be saved into a pfb file which can then be read in using the restore
+command for generating the desired mesh with kxmesh=0.
+
+For kxmesh=1 or kxmesh=2 the poloidal spacing of the cells between the
+x-points is nearly constant unless one makes the variable slpxt larger
+than unity (1.2 to 1.3 is typical); having slpxt > 1 causes the cells
+to cluster near the x-point on both sides, and thus often match more
+smoothly with the cells in the divertor leg regions.
+
+For kxmesh=4 the user specifies sub-regions in front of each
+divertor plate: the variables nxgas(1:2) specify the number of cells
+in the region, the variables dxgas(1:2) specify the size of the first
+cell at the divertor plate, and the variables alfx(1:2) specify the
+exponential factor for the cell-to-cell variation in the region.  The
+relation between dxgas and the total length of the exponential region, L,
+is given by L = dxgas*[exp(alfx*nxgas)-1]/[exp(alfx)-1].
+
+   -- NON-ORTHOGONAL GRIDS --
+
+Non-orthogonal grids can be generated by setting the switch ismmon:
+
+     ismmon=0     :strictly orthogonal mesh (default)
+     ismmon=1     :poloidal mesh is compressed/expanded w.r.t. orthogonal
+     ismmon=2     :poloidal mesh varies smoothly on each flux surface
+     ismmon=3     :combination of ismmon=0,1,2
+
+This switch affects the distribution of meshpoints on each flux surface,
+but does not alter the the number or spacing of the flux surfaces.
+
+For ismmon=1 the mesh is generated by deforming a previously generated
+orthogonal grid along flux surfaces that intersect the divertor
+plates.  The original mesh is uniformly compressed or expanded in the
+poloidal direction until the end of the mesh just coincides with the
+divertor plate.  The compression or expansion occurs along each flux
+surface between some upstream reference surface (such as the midplane)
+and the divertor plate.  A smoothing procedure may subsequently be applied
+to remove irregularities in the "radial" surfaces of the mesh.
+
+Options under the ismmon=1 setting are:
+     istream	:definition of the upstream reference surface
+		:=0 (default) --> midplane in SOL, cut in p.f. region
+		:=1 user-defined
+     iplate	:definition of the divertor plate surface
+		:=0 (default) --> orthogonal plate
+		:=1 user-defined
+     nsmooth	:number of smoothing passes applied to each "radial" surface
+		:=0 --> no additional mesh modification
+		:=2 (default) recommended
+
+The user defines the divertor plates via the arrays
+ 	rplate1(1:nplate1)
+	zplate1(1:nplate1)
+for the inboard leg of the divertor, and
+	rplate2(1:nplate2)
+	zplate2(1:nplate2)
+for the outboard leg of the divertor.  Usually, one would read this
+information from a text file prepared specifically for the device
+being modelled.  Examples of such files for DIII-D, CMOD, TPX, and
+ITER are available in cfs directory /030137/uedge/mesh.  NOTE: For
+complicated divertor geometries it may be necessary to simplify the
+divertor plate definition to avoid intersecting any flux surface more
+than once.  The current version assumes there is only one intersection.
+
+The user defines the fixed upstream reference surface via the arrays
+	rupstream1(1:nupstream1)
+	zupstream1(1:nupstream1)
+for the inboard half of the mesh, and
+	rupstream2(1:nupstream2)
+	zupstream2(1:nupstream2)
+for the outboard half of the mesh.  Usually, one would read this
+information from a previously prepared text file.  For example, on
+open SOL flux surfaces one might choose to modify the mesh only downstream
+from the midplane and on private flux surfaces only downstream from
+the "cut" under the x-point.  The file that does this is 'upstream.mpc'
+in cfs directory /030137/uedge/mesh.  The mesh in the core region would
+not be modified.
+
+EXAMPLE:
+In addition to parameters for an orthogonal mesh, set the following:
+  ismmon=1		# switch on mesh modification
+  istream=0		# use default upstream reference surface
+  iplate=1		# flag indicates user will supply plate definition
+  read plate._device_	# define divertor plate surfaces
+  nsmooth=2		# use default smoothing of "radial" surfaces
+
+For ismmon=2 the normalized poloidal distribution of mesh points is
+the same on each flux surface.  The distribution on the separatrix
+flux surface is defined according to the input parameter 'kxmesh'
+described earlier in this writeup.  This poloidal distribution is then
+normalized in terms of the total poloidal connection length from the
+divertor plate surface to the top of the mesh (for open SOL flux
+surfaces) or the cut under the x-point (for private flux surfaces).
+Then, on each flux surface the poloidal distribution of mesh points is
+obtained by scaling the normalized separatrix distribution with the
+poloidal connection length for that surface.  The resultant mesh is
+non-orthogonal even for orthogonal divertor plates.  
+
+Options under the ismmon=2 setting are:
+     istream	:definition of the upstream reference surface
+		:=0 (default) --> top of the mesh in SOL, cut in p.f. region
+		:=1 user-defined
+     iplate	:definition of the divertor plate surface
+		:=0 (default) --> orthogonal plate
+		:=1 user-defined
+     nsmooth	:number of smoothing passes applied to each "radial" surface
+		:=0 --> no additional mesh modification
+		:=2 (default) recommended
+
+EXAMPLE:
+In addition to parameters for an orthogonal mesh, set the following:
+  ismmon=1		# switch on mesh modification
+  istream=0		# use default upstream reference surface
+  iplate=1		# flag indicates user will supply plate definition
+  read plate._device_	# define divertor plate surfaces
+  nsmooth=2		# use default smoothing of "radial" surfaces
+
+
+   -- ADAPTIVE MESH CAPABILITY --
+
+The mesh can be modified in response to the plasma state so as to
+obtain better resolution in spatial regions where physics variables
+are changing most rapidly.  At present, this capability is limited to
+a poloidal re-distribution of mesh points along each flux surface.
+The number and position of the flux surfaces is not changed, i.e. the
+"radial" resolution is fixed.  The basic idea is to poloidally refine
+the mesh near a "flamefront" surface between the x-point and the
+divertor plate(s).  This process is not yet automated so the user
+must manually perform certain steps to change the mesh and then obtain
+a plasma solution on the modified mesh.
+
+The user-callable subroutine meshff(region) modifies a reference mesh
+stored in arrays (cmeshx3,cmeshy3) and writes the modified mesh into
+the arrays (cmeshx,cmeshy).  Here, region=1 for the inboard leg and
+region=2 for the outboard leg.  The mesh is modified only between the
+x-point and the divertor plate(s); the core and adjacent SOL regions
+of the mesh are unchanged.  It is the user's responsibility to store
+the appropriate data in (cmeshx3,cmeshy3) before calling meshff.  
+After meshff completes, it is necessary to call subroutine writeue
+which converts the (cmeshx,cmeshy) data into (rm,zm) data and writes
+the file 'gridue' that is read by the plasma package when gengrid=0.
+
+The flamefront surface is defined by the user via the arrays
+rff1(1:nff1) and zff1(1:nff1) where (rff1,zff1) are the (R,Z)
+coordinates [m] of the nff1 data points.  The '1' here refers to the
+inboard divertor leg; there are corresponding variables with '1'-->'2'
+for the outboard divertor leg.  Storage for the arrays rff1 and zff1
+is dynamically allocated by setting nff1 and then calling 
+gchange("grd.Mmod",0) from the parser.
+
+Input data for the flamefront (FF) mesh modification includes -
+	isxtform	--> a flag for choosing one of three possible
+			    forms for the distribution of mesh points
+			    along a flux surface.
+	iswtform	--> a flag for combining the original and FF
+			    meshes with constant weight factor (iswtform=0)
+			    or index-dependent weight factor (iswtform=1)
+	cwtff		--> shape factor for the iswtform=1 option
+			    on combining original and FF meshes.
+For the inboard leg:
+	nff1,rff1(),zff1()		--> number of data points and
+					    (R,Z) coordinates of FF.
+	slpxff1				--> slope reduction factor for
+					    x(ix) at FF position on each
+					    flux surface.
+	slpxffu1			--> slope reduction factor for
+					    x(ix) at position upstream
+					    of FF on each flux surface.
+	slpxffd1			--> slope reduction factor for
+					    x(ix) at position downstream
+					    of FF on each flux surface.
+	nxdff1				--> number of cells between
+					    FF and divertor plate on
+					    each flux surface.
+	wtff1				--> maximum weight factor for 
+					    combining original and FF
+					    meshes.
+For the outboard leg: replace 1 by 2 in the variable names above.
+
+The input data controls the form of the meshpoint distribution along
+each flux surface by specifying various shape factors for an analytic
+function x(t) that gives the poloidal distance from the x-point as a
+function of the poloidal meshpoint index. Let (t1,x1) represent the
+x-point, (t2,x2) the flamefront, and (t3,x3) the divertor plate.
+
+For isxtform=1 we use a piece-wise functional form; on t1 < t < t2 use
+the rational function:
+            x(t) = x1 + (x2-x1)*(t-t1)/((t2-t1)+alpha*(t2-t)
+and on t2 < t < t3 use the rational function:
+            x(t) = x2 + (x3-x2)*(t-t2)/((t3-t2)+beta*(t3-t))
+where alpha and beta are chosen to give a specified slope at t2.  The
+slope is expressed as the product of the average slope and a slope
+reduction factor slpxff, x'(t2) = slpxff * (x3-x1) / (t3-t1)
+where a '1' or '2' should be appended to 'slpxff' for the appropriate
+divertor leg.
+
+The isxtform=2 option uses a slightly more general form for x(t) which
+allows the user to also specify the slope at the upstream point
+(t1,x1) in the form x'(t1) = slpxffu * (x3-x1) / (t3-t1) where a '1'
+or '2' should be appended to 'slpxffu' for the appropriate divertor
+leg.
+
+The isxtform=3 option uses a similar form for x(t) which
+allows the user to specify the slope at all three data points via the
+slope factors slpxff,slpxffu and slpxffd:
+      x'(t1) = slpxffu * (x3-x1) / (t3-t1) 
+      x'(t2) = slpxff  * (x3-x1) / (t3-t1) 
+      x'(t3) = slpxffd * (x3-x1) / (t3-t1) 
+where a '1' or '2' should be appended to 'slpxffu','slpxff' and
+'slpxffd' for the appropriate divertor leg.
+
+To facilitate a gradual transition from the original mesh to a
+flamefront modified mesh, the two meshes are combined via a weight
+function, wt(t), to produce the final form of the meshpoint
+distribution x(t):
+      x(t) = wt(t) * xFF(t) + (1-wt(t)) * x0(t)
+where x0(t) represents the original mesh and xFF(t) represents the
+flamefront mesh defined by the isxtform options above.  The form of
+the weight factor is controlled by the flag iswtform: iswtform=0 ->
+constant wt(t)=wtff and iswtform=1 -> smooth increase from 0 at
+x-point to wtff at flamefront, where '1' or '2' should be appended to
+the 'wtff' for inboard or outboard regions.
+
+The input parameter nxdff controls the number of cells downstream from
+the flamefront on each flux surface.  At present, this number is the
+same for all flux surfaces.  If nxdff=0, the number of downstream
+cells for the flamefront mesh is set equal to the number of downstream
+cells on the separatrix flux surface of the original mesh; otherwise,
+the user-specified value of nxdff sets the number of downstream cells
+on the flamefront mesh.
+
+
+In summary, the steps necessary to use the adaptive mesh facility are:
+1) define the reference mesh via the grd package arrays (cmeshx3,cmeshy3).
+2) define the flamefront surface for each divertor leg.
+3) set various flamefront mesh control parameters.
+4) call subroutine meshff(region) 
+5) call writeue to convert the (cmeshx,cmeshy) data to (rm,zm).
+6) set gengrid=0 (or mhdgeo=-2 for cartesian configurations) and isnonog=1 
+before executing with exmain.
+
+   -- ADDING POLOIDAL CELLS NEAR THE X-POINT --
+
+The user may add extra poloidal cells near the x-point by setting the
+variables nxxpt and nxmod.  Here nxxpt is the number of extra cells added
+between the x-point and the poloidal face nxmod indices away from the x-point
+for each of the four quadrants of a single-null divertor.  This then results
+in a total of 4*nxxpt extra poloidal cells given by
+ 
+  total poloidal cells =nxleg(1,1)+nxleg(1,2)+nxcore(1,1)+nxcore(1,2)+4*nxxpt
+
+nxmod should be 1 or greater, with nxmod=2 recommended; if nxmod=2, the two
+cells poloidally adjacent to the x-point are recalculated including the number
+of extra mesh points, nxxpt.  Note that these cells are not strictly
+orthogonal, so it is safest to use the nonorthogonal difference stencil
+(isnonog=1), but the error in not doing so may be small and is limited to the
+modified x-point region.
+
+There is some control over the spacing of these extra cells through the
+variabled alfxpt and alfxpt2; alfxpt controls the nonuiformity of the poloidal
+mesh in the modified region, and alfxpt2 controls how rapidly the poloidal
+face shape returns to a smooth arc as one moves away from the x-point.  The
+practical range of alfxpt is roughly 0.25 < alfxpt < 1, where alfxpt=1 gives
+uniform spacing (the default) and alfxpt=0.5 gives the cell faces closer to
+the x-point by roughly 0.707. The range of alfxpt2 is 1 < alfxpt2 < 2, where
+higher values force the mesh to return to a smooth arc faster. If is best to
+try a few values and then look at the result by plotting the mesh with the
+plotmesh script.
+
+   -- TOP-OF-MESH/LIMITER OPTION --
+
+By default, the spatial extent of the "inboard" and "outboard" regions
+of the core/SOL are delimited by a vertical line from the magnetic
+axis upward through the separatrix.  This top-of-mesh/limiter position
+can be changed by setting the switch islimon=1 and defining the
+poloidal angle of the new top-of-mesh/limiter position, theta_lim.
+Theta_lim should lie with the limits -pi < theta_lim < pi and should
+not be too close to the x-point position.  The outboard midplane
+position corresponds to theta_lim=0 and the default is theta_lim=pi/2.
+The islimon=1 option automatically turns on a procedure for checking
+the angular position of every data point on every flux surface, so the
+flx package may run slower.
+ 
+
+**** CONVERTING FROM FULL-SPACE TO HALF-SPACE SOLUTIONS & VICE VERSA ****
+
+It is convenient to use the ability of Basis to manipulate arrays to convert a
+full-space solution to a half-space solution.  Here we show how to do this for
+a single-null solution and for a lower double-null solution.  Below this is a
+Basis script that does the reverse, i.e., takes a half-space solution and
+symmetrizes it as the initial guess of a full-space solution.  Here a
+full-space problem is one with two divertor plates, one at each end of the x
+(poloidal) domain, and a half-space problem is one where on end of the x
+domain is a symmetry plane.  Generally, the symmetry plane is at the left
+boundary (isfixlb=2), but can also be at the right boundary (isfixrb=2).  
+
+Note that such conversions take place most straightforwardly is one uses fixed
+temperature core boundary conditions as the input power does not then need to
+be adjusted. If you are running with power boundary conditions (iflcore=1),
+first determine the core temperatures, set tcoree and tcorei to these and
+change to iflcore=0, and then do the conversion to a different sized space.
+
+First, the bottom double-null case:
+     ###############################################################
+
+(Lines beginning with # are comments and may be omitted.  Also, the $letter
+variables are chameleon variables in Basis that take on the properties of the
+variable to which they are set)
+
+# save original solution in temporary storage:
+	$n=nis;$u=ups;$e=tes;$i=tis;$g=ngs;$p=phis
+
+# set switches to do outer quadrant only:
+	isfixlb=2
+
+# for a single-null case, set
+	nxomit=nxleg(1,1)+nxcore(1,1)
+
+# or, for a lower double-null case, set
+	nxomit=nxleg(1,1)+nxcore(1,1)+1
+
+# get very crude index-interpolated solution for outer quadrant only
+# NOTE: do not try to converge from this state:
+	real oldftol=ftol;ftol=1e10;exmain;ftol=oldftol
+
+# copy original solution to restart arrays:
+	nis=$n(nxomit:nxm+1,,)
+	ups=$u(nxomit:nxm+1,,)
+	tes=$e(nxomit:nxm+1,)
+	tis=$i(nxomit:nxm+1,)
+	ngs=$g(nxomit:nxm+1,,)
+	phis=$p(nxomit:nxm+1,)
+
+# for a single-null case, also set the left-hand symm. boundary conditions:
+	nis(nxomit,,) = nis(nxomit+1,,)
+	ups(nxomit,,) = 0.
+	tes(nxomit,) = tes(nxomit+1,)
+	tis(nxomit,) = tis(nxomit+1,)
+	ngs(nxomit,,) = ngs(nxomit+1,,)
+	phis(nxomit,) = phis(nxomit+1,)
+
+	exmain		# outer-quadrant-only solution, on original mesh;
+			# should converge easily
+
+	read doublep
+	exmain		# converge on doubled poloidal mesh ??? Good Luck!!!
+
+    #################################################################
+
+Now, for converting from a half-space solution to a full-space solution. we
+have a different script:
+
+# Converts a half-space solution to a full-space solution with the 
+# assumption that nxleg(1,1)=nxleg(1,2) and nxcore(1,1)=nxcore(1,2)
+# Unlike the previous example, this does not use chameleon variables, but could
+
+real8 niss(0:2*nx+1,0:ny+1,1:nisp); real8 upss(0:2*nx+1,0:ny+1,1:nusp)
+real8 tess(0:2*nx+1,0:ny+1); real8 tiss(0:2*nx+1,0:ny+1)
+real8 ngss(0:2*nx+1,0:ny+1,1:ngsp); real8 phiss(0:2*nx+1,0:ny+1)
+
+do ix = 0, nx
+   niss(ix,,1:nisp) = nis(nx+1-ix,,1:nisp)
+   upss(ix,,1:nusp) = -ups(nx-ix,,1:nusp)
+   tess(ix,) = tes(nx+1-ix,)
+   tiss(ix,) = tis(nx+1-ix,)
+   ngss(ix,,1:ngsp) = ngs(nx+1-ix,,1:ngsp)
+   phiss(ix,) = phis(nx+1-ix,)
+enddo
+do ix = nx+1, 2*nx+1
+   niss(ix,,1:nisp) = nis(ix-nx,,1:nisp)
+   upss(ix,,1:nusp) = ups(ix-nx,,1:nusp)
+   tess(ix,) = tes(ix-nx,)
+   tiss(ix,) = tis(ix-nx,)
+   ngss(ix,,1:ngsp) = ngs(ix-nx,,1:ngsp)
+   phiss(ix,) = phis(ix-nx,)
+enddo
+
+nxomit = 0
+isfixlb = 0             # left boundary is no longer a symmetry plane (was=2)
+allocate
+   nis = niss
+   ups = upss
+   tes = tess
+   tis = tiss
+   ngs = ngss
+   phis = phiss
+
+At this point, you may begin the run with an exmain, or save the "s"
+variables for a restart by creating a pfb save-file, e.g.,
+
+create pf_somename;write nis,ups,tes,tis,ngs,phis;close
+
+
+**** USING THE DCE (DISTRIBUTED COMPUTING ENVIRONMENT) GRAPHICS PACKAGE****
+
+
+The DCE package and this portion of the manual were written by Bill Meyer
+(wm@moonshine.llnl.gov) and is used to obtained color graphics on your
+workstation of UEDGE results from the CRAY. This output can be manipulated
+by NCSA tools. A very useful feature is that any number of users at remote
+sites can login to the the session, see the same graphics on their
+workstation, and manipulate the data for the other participants to see. In
+addition to the NCSA tools for plotting the data, one can also use XGRAPH
+for simple plots of the data.  Below is Bill's description of this package.
+
+The DCE package contains routines that run as distributed processes via an
+rpc server. Currently the server is running on an HP750 (sas-hp.nersc.gov).
+The package includes an interface to XGRAPH, an XWindows application for
+plotting 1d data. For 2d arrays the package supports the Data Transfer
+Mechanism (DTM) from NCSA. This is to be used in conjunction with the
+programs from NCSA that support DTM, such as XImage and Collage for UNIX
+machines, and Collage for Apple Macintosh computers.  The NCSA programs have
+already been downloaded to numerous machines within MFE at LLNL. If unable
+to obtain local copies they are all available, via anonymous ftp, on host
+zaphod.ncsa.uiuc.edu.
+
+The package is made up of low-level routines that must be linked into a
+BASIS executable, and a set of high level routines written as BASIS user
+functions.  The UNIX utility "what" is used to determine if the low-level
+object library was linked by the BASIS developer. This low-level part is
+available for the public version of uedge. To determine if the low-level
+part of the package is available in some personal version of UEDGE linked as
+xuedge:
+	$ what xuedge | grep DCE
+	               c_dce.c 1.1    12/21/92 Basis package DCE linked
+                                                            or
+	               c_dce.c 1.7     1/14/93 Basis package DCE linked
+
+Note that using "what" on the public version does not seem to give the above
+information.  While developed for use within UEDGE, with the possible exception
+of senddtm_rzxform and rzxform, these routines are generally applicable to any
+code that runs within BASIS. The following session demonstrates the major
+features:
+	$uedge
+	  UEDGE> package dce
+	  UEDGE> read dce.bas
+	  UEDGE> exmain
+	  UEDGE> integer port
+	  UEDGE> port = init_dtm("alvin.llnl.gov:7777")
+          UEDGE> senddtm(port,"Te r-p",te/ev)
+ 	  UEDGE> senddtm_rzxform(port,"Te r-z",te/ev,rm,zm,200,400,1,2.5,0,3)
+	  UEDGE> real x(18),y(18)
+	  UEDGE> x = rm(0,,0)
+	  UEDGE> y = te(0,)
+	  UEDGE> xgraph("alvin:0","Te - Vert Slice",x,"Meters",y,"Ev",
+                        "-bb -tk")
+
+This memo documents the high level interface available as BASIS user
+functions.
+
+	function init_dce()          (version < 1.7)
+	function init_dce(server)    (version >= 1.7)
+	string server
+
+Communication is established with the rpc server when the package is 
+initialized; however, if an rpc error is detected the connection is aborted. 
+This routine can be called to re-establish the connection to the server. This 
+function has no return value. For versions that require a server argument, 
+there is a package group variable that contains the default server name. The 
+variable name is dce_server.  This can be used to restart the default server 
+without having to actually know the hostname.
+	init_dce(dce_server)
+An alternate server can be used by using a different hostname as an argument:
+	init_dce("alvin.llnl.gov")
+
+	function dce_timeout(seconds)
+	integer seconds
+
+Some routines in this package need several seconds to run. If the user finds 
+that they are experiencing frequent rpc time-outs, this routine can be used 
+to change the time-out. A default value of 60 seconds is set when the package 
+is initialized. A status is returned, 1 is success,
+0 indicates an error has occurred. To set a 5 minute time-out:
+	integer status
+	status = dce_timeout(300)
+	
+	function init_dtm(server)
+	string server
+
+NCSA tools that support DTM listen on a TCP/IP port specified by the user.
+This routine establishes a connection to the listening DTM program and
+returns the port number for use with other routines in this package.  If the
+server was running on moonshine.llnl.gov and listening on port 7777, the
+correct string would be "moonshine.llnl.gov:7777".  The corresponding use of
+this routine within BASIS is then:
+	integer port
+	port = init_dtm("moonshine.llnl.gov:7777") If the returned port
+number is 0 an error has occurred.  Typically, if the listen port is
+specified as a run-string parameter, the standard syntax is "-DTMIN <port
+number>". For XImage the port is specified as a run-string parameter:
+"ximage -DTMIN :7777". If the collage server if started interactively, the
+run-string is "collage_server -DTMIN :7777". For Collage there are various
+menus for starting a DTM server.
+
+
+	function close_dtm(port)
+	integer port
+
+This function terminates a connection to a DTM server, and frees any
+resources used. Exiting out of BASIS causes all RPC and DTM connections to
+be terminated; therefore, it is not expected that users will need to use
+this function. A status is returned, 1 is success, 0 indicates an error has
+occurred.
+	
+	function senddtm(port,title,variable)
+	integer port
+	string title	
+	real variable(m,n)
+
+This routine sends the variable data and the title string to the specified
+DTM port.  The rpc server flips the image before sending it to the DTM port;
+the origin is in the lower left-hand corner of the displayed image. The
+action taken by the receiving NCSA is application dependent. A status is
+returned, 1 is success,0 indicates an error has occurred.
+	status = senddtm(port,"Te",te/ev)
+
+	function senddtm_rzxform(port,title,variable,rvert,zvert,
+				xpixels,ypixels,rmin,rmax,zmin,zmax)
+	integer port
+	string title	
+	real variable(m,n),rvert(m,n,0:4),zvert(m,n,0:4)
+	integer xpixels,ypixels
+	real rmin,rmax,zmin,zmax
+
+This routine sends the UEDGE r and z values of polygon vertices, that are
+filed with the variable data, to the rpc server. The rpc server then does a
+polygon fill into an array of dimensions xpixelsXypixels covering a physical
+space defined by rmin, rmax, zmin, and zmax. The rpc server then sends the
+filled array to the DTM port under the specified title. The rpc server flips
+the image before sending it to the DTM port; the origin is in the lower
+left-hand corner of the displayed image. The action taken by the receiving
+NCSA is application dependent. A status is returned, 1 is success, 0
+indicates an error has occurred.
+
+
+	function rzxform(variable,rvert,zvert,xpixels,
+	                 ypixels,rmin,rmax,zmin,zmax)   (ver. >= 1.7)
+	real variable(m,n),rvert(m,n,0:4),zvert(m,n,0:4)
+	integer xpixels,ypixels
+	real rmin,rmax,zmin,zmax
+
+This routine sends the UEDGE r and z values of polygon vertices, that are
+filed with the variable data, to the rpc server. The rpc server then does a
+polygon fill into an array of dimensions xpixelsXypixels covering a physical
+space defined by rmin, rmax, zmin, and zmax.  The rpc server then returns
+the 2-d rz array to the user.
+	real te_rz(200,400)
+	te_rz = rzxform(te/ev,rm,zm,200,400,1,2.5,0,3)
+
+	function xgraph(display,title,x_axis_var,x_label,y_axis_var,
+	                y_label,xparameters)
+	string display,title,x_label,y_label,xparameters
+	real x_axis_var(m),y_axis_var(m)
+
+This routine builds an xgraph run string from the parameters, title , and
+axis labels, sends this along with the x and y axis data to the rpc which
+then runs xgraph. The xparameters are passed transparently to the run-string
+of xgraph. A status is returned, 1 is success,0 indicates an error has
+occurred. The following BASIS code:
+
+	real y(100),x(100)
+	x = iota(100)
+	y = sin(x/10)
+	xgraph("alvin.llnl.gov:0","Basis Xgraph Test",x,"seconds",y,"volts",
+               "=600x400 ")
+
+causes the rpc server to run xgraph with the following run-string:
+
+	xgraph -display alvin.llnl.gov:0 -t "Basis Xgraph Test" \
+                 -x "seconds" -y "volts" =600x400
+
+
+In addition to the -t , -x, and -y parameters, which are automatically set,   
+the following parameters are available via the xparameters argument:
+
+      -b   Force xgraph to output the graph in black and white (even if the
+	   display is color).  This is useful for those using xwd(1) to
+	   produce hardcopies of the graph.
+
+      -bar Specifies that vertical bars should be drawn from the data points
+	   to a base point which can be specified with -brb.  Usually, the
+	   -nl flag is used with this option.  The point itself is located
+	   at the center of the bar.
+
+      -bb (BoundBox)
+	   Draw a bounding box around the data region. This is very useful
+	   if you prefer to see tick marks rather than grid lines (see -tk).
+
+      -bd  (Border)
+	   This specifies the border color of the xgraph window.
+
+      -bg  (Background)
+	   Background color of the xgraph window.
+
+      -brb 
+	   This specifies the base for a bar graph.  By default,  the base
+	   is zero.
+
+      -brw 
+	   This specifies the width of bars in a bar graph.  The amount is
+	   specified in the user's units.  By default,	a bar one pixel wide
+	   is drawn.
+
+      -bw  (BorderSize)
+	   Border width (in pixels) of the xgraph window.
+
+      -fg  (Foreground)
+	   Foreground color.  This color is used to draw all text and the
+	   normal grid lines in the window.
+
+      -lf  (LabelFont)
+	   Label font.	All axis labels and grid labels are drawn using this
+	   font.  It must be a fixed-width font.
+
+      -lnx Specifies a logarithmic X axis.  Grid labels represent powers of
+	   ten.
+
+      -lny Specifies a logarithmic Y axis.  Grid labels represent powers of
+	   ten.
+
+      -lw width
+	   Specifies the width of the data lines in pixels.  The default is
+	   one.
+
+      -lx 
+	   This option limits the range of the X axis to the specified
+	   interval.  This (along with -ly) can be used to "zoom in" on a
+	   particularly interesting portion of a larger graph.
+
+      -ly 
+	   This option limits the range of the Y axis to the specified
+	   interval.
+
+      -m (Markers)
+	   Mark each data point with a distinctive marker.  There are eight
+	   distinctive markers used by xgraph.	These markers are assigned
+	   uniquely to each different line style on black and white machines
+	   and varies with each color on color machines.
+
+      -M (StyleMarkers)
+	   Similar to -m but markers are assigned uniquely to each eight
+	   consecutive data sets (this corresponds to each different line
+	   style on color machines).
+
+      -nl (NoLines)
+	   Turn off drawing lines.  When used with -m, this can be used to
+	   produce scatter plots.  When used with -bar,  it can be used to
+	   produce standard bar graphs.
+
+      -p (PixelMarkers, SmallPixels)
+	   Marks each data point with a small marker (pixel sized).  This is
+	   usually used with the -nl option for scatter plots.
+
+      -P (LargePixels)
+	   Similar to -p but marks each pixel with a large dot.
+
+      -rv (ReverseVideo)
+	   Reverse video.  On black and white displays,  this will invert
+	   the foreground and background colors.  It does nothing on color
+	   displays.
+
+      -s (Spline)
+	   This option specifies the lines should be drawn as spline curves.
+	   Currently,  this is implemented using the X spline option which
+	   fits only three points at a time.  Thus,  the effect is not what
+	   you might expect.
+
+      -t 
+	   Title of the plot.  This string is centered at the top of the
+	   graph.
+
+      -tf  (TitleFont)
+	   Title font.	This is the name of the font to use for the graph
+	   title.  It defaults to 9x15.
+
+      -tk (Ticks)
+	   This option causes xgraph to draw tick marks rather than full
+	   grid lines.	The -bb option is also useful when viewing graphs
+	   with tick marks only.
+
+      -x 
+	   This is the unit name for the X axis.  Its default is "X".
+
+      -y 
+	   This is the unit name for the Y axis.  Its default is "Y".
+
+      -zg  (ZeroColor)
+	   This is the color used to draw the zero grid line.
+
+Only if selecting XGRAPH hard-copy is it necessary to know where the rpc 
+server is running.
+
+For LLNL users:
+When doing a hard copy, the only printers available are those configured on 
+the server machine. On alvin, select Postscript printer, then enter one of 
+the following devices:
+		Device	 	Location	
+		mfe_lw1	     	llnl b543 rm2018
+		mfe_lw2	 	llnl b543 rm2032
+		qmsps	 	llnl usc qms printer
+		theory_lw1	llnl b543 theory 
+
+LaserWriters can be added at will; alvin.llnl.gov can print on any appletalk 
+LaserWriter.

@@ -1,0 +1,115 @@
+############################################################################
+##
+## Instructions for building a uedge shared-object python module
+##
+##   $Id: README_Pyuedge,v 7.0 2018/02/28 18:32:42 meyer8 Exp $
+##
+###########################################################################
+
+#### --- Read the Uedge README.disclaimer file in directory uedge. --- ####
+
+
+I. Checking out and building the needed modules:
+
+ 1) If you have access to the LLNL/FEP cvs archives, then
+
+   setenv CVS_RSH=ssh
+   setenv CVSROOT :ext:<login-name>@hrothgar.llnl.gov:/usr/local/cvsroot
+
+     a) If BASIS is installed on the target computer, then
+      cvs co [-P] pyUtils uedge # -P empty dirs not checked out
+
+     b) or, if BASIS is not installed, add Mac_scripts to cvs co, i.e.,
+      cvs co [-P] pyUtils uedge Mac_scripts # -P empty dirs not checked out
+
+
+ 2) or, if you get your copy of UEDGE from a tar file
+  
+   - Set up a UEDGE directory and untar the file that should include the
+     directories pyUtils, uedge, and Mac_scripts(if BASIS is not on system)
+
+ 3) Then, for either (1) or (2):
+
+   a) If BASIS is installed on your system (likely at LLNL, PPPL) then
+   
+     - Check that compiler paths, etc. are valid on your machine in the file
+         uedge/Pyuedge/config/*.config : Defaults are in config/ALL.config.
+     - Users must explicitly set the path variable TOPALL in the file
+         uedge/Python/Makefile to the parent directory of uedge and pyUtils
+         directories
+     - Then
+        cd uedge/Pyuedge
+        gmake make.all  # builds pyUtils and Pyuedge
+     - A shared object file is produced as uedge/Pyuedge/yoursys/uedge.so,
+         where yoursys is the architecture variable ARCH, e.g., Linux
+     - To load uedge.so into a python session, startup python using the same
+         version as defined in uedge/Pyuedge/config/$(ARCH).config and read 
+         in the uedge startup script uedge/Pyuedge/uedge_startup.py, i.e.
+         python
+         >>> execfile('uedge_startup.py')
+
+   b) If BASIS is not installed on your system
+
+     - MPPL must be installed first. MPPL can be downloaded from
+         http://w3.pppl.gov/rib/repositories/NTCC/catalog
+     - Check the directory structure from (1) or (2) above; must include 3
+         directories: pyUtils, uedge, and Mac_scripts
+     - Check that compiler paths, etc. are valid on your machine in the file
+         uedge/Pyuedge/config/*.config : Defaults are in config/ALL.config.
+     - Users must explicitly set the path variable TOPALL in the file
+         uedge/Python/Makefile to the parent directory of uedge and pyUtils
+         directories
+     - Then
+        cd uedge/Pyuedge
+        gmake make.all  # builds pyUtils and Pyuedge
+     - A shared object file is produced as uedge/Pyuedge/yoursys/uedge.so,
+         where yoursys is the architecture variable ARCH, e.g., Linux
+     - To load uedge.so into a python session, startup python using the same
+         version as defined in uedge/Pyuedge/config/$(ARCH).config and read
+         in the uedge startup script uedge/Pyuedge/uedge_startup.py, i.e.
+         python
+         >>> execfile('uedge_startup.py')
+
+ 4) Additional useful commands/information
+
+Other gmake commands:
+      gmake           # builds only Pyuedge
+      gmake clean     # cleans only Pyuedge
+      gmake clean.all # cleans both pyUtils and Pyuedge
+
+Key make-variables for customizing directory locations:
+
+   CONFIG   - path to the config directory. It is set in Pyuedge/Makefile.
+   PYUTILS  - path to the pyUtils directory. It is set Pyuedge/Makefile
+              (overrides the default, which is set in config/ALL.config).
+   HasBASIS - determines which mac and mppl are used;
+              defaulted in config/ALL.config.
+
+              If HasBASIS is defined, the following must be set:
+   BASIS_ROOT  - path to basis; mac and mppl from basis are used.
+
+              If HasBASIS is undefined, the following are needed:
+   MAC         - The mac utility executable; defaulted in config/ALL.config.
+   MPPL_ROOT   - path to MPPL. There is no platform-independent default
+                 set up (gmake will crash if MPPL_ROOT is not found).
+   PYTHON_ROOT, PYVERS - path and python version
+
+Compiler, etc., paths and options are defaulted in config/ALL.config. The
+platform-dependent settings are in the appropriate config/*.config file.
+
+II. To run a simple test case, which automatically reads in 
+    uedge/Pyuedge/uedge_startup.py, do the following in uedge/Pyuedge
+
+      python
+      >>>execfile('rdtest_linux.py')
+
+Again be sure that the python version you run here is the same version as
+was used in the build ( $(PYTHON_ROOT)/bin/python$(PYVERS) ), where 
+PYTHON_ROOT and PYVERS are as defined in your 
+uedge/Pyuedge/config/*.config file.
+
+III. Modify uedge and recompile.
+
+There is no uedge source-code under uedge/Pyuedge except for the
+file Pyuedge/Fsor/ex_das_isa.f. Make changes in the uedge source-code
+directories parallel to Pyuedge; then return to Pyuedge and type gmake.

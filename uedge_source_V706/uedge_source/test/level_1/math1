@@ -1,0 +1,518 @@
+errortrp("off")
+echo = no
+
+<< "If all is well, this test will compute quietly for a while and"
+<< "terminate normally.  ERROR messages signal trouble."
+
+integer imat(3, 3), jmat(3, 3), iv(2), iv2(2), j, k, n=10, nff=16
+real a(n), b(n-2), eps, rv(10), rv2(10), var, var2, x=1.3, y=.6
+double deps
+
+function tryspanl
+  chameleon rresult = [2.0e-2, 4.0e-1, 8.0e0, 1.6e2]
+  chameleon dresult = [2.0d-2, 4.0d-1, 8.0d0, 1.6d2]
+  if (lor((spanl(2.e-2, 1.6e2, 4) - rresult) > eps)) remark ("ERROR 144")
+  if (lor((spanl(2.d-2, 1.6d2, 4) - dresult) > deps)) remark ("ERROR 145")
+endf
+
+function trychange(one)
+  real x(24)=iota(24), y(30)=x
+  call change("x", 30)
+  if (~land(x=y)) remark "change ERROR 1"
+  call change("x", 20)
+  if (~land(x=y(1:20))) remark "change ERROR 2"
+  call change("x", 0)
+  if (~land(x=y(1:20)//[0, 0, 0, 0])) remark "change ERROR 3"
+  chameleon x = iota(24)*one, y=x
+  integer n=6, m=4
+  call setshape("x", "(n, m)")
+  call setshape("y", "(n, m)")
+  call change("x", 5)
+  if (~land(x=[y, [0, 0, 0, 0, 0, 0]])) remark "change ERROR 4"
+  m=6
+  y=[y, ones(6)*0, ones(6)*0]
+  call change("x", 0)
+  if (~land(x=y)) remark "change ERROR 5"
+  n=3
+  m=2
+  call change("x", 0)
+  if (~land(x=[[1, 2, 3], [7, 8, 9]])) remark "change ERROR 6"
+endf
+
+function fminarg(x, n)
+endf
+
+function fracdiff(a, b, epsilon, msg)
+   chameleon num, den
+   integer n, m
+
+   n = length(a)
+   m = length(b)
+   if (n .ne. m) then
+      remark("Objects of different size")
+      remark(msg)
+
+   else
+      num = abs(a - b) ! ones(n)
+      den = 0.5*(abs(a) + abs(b)) ! ones(n)
+      if (num .gt. epsilon*den) then
+         remark(msg)
+      endif
+   endif
+endf
+
+function mathfn
+
+double dvar, dvar2
+real ab(2*n-2), onemat(3, 3), yv(nff), yv2(nff), rmat(3, 3), xv(9), xvo(9)
+real v1(3), v2(3), v3(3), ww(3), wwck(3)
+complex c, cv(n), cv2(nff/2+1), cmat(3, 3), cmat2(3, 3)
+double complex dc, dcv(n), dcv2(nff/2+1), dcmat(3, 3), dcmat2(3, 3)
+logical lv(2), lm2(2, 2), lmat(3, 3)
+integer qq(4, 3, 2), pp(4, 2);real rr(4, 2);integer zz(4, 3, 2)
+double dpp(4, 2), dqq(4, 3, 2), dv(9), dvo(9), dx=1.3, dy=.6, dv1(3), dv2(3), dv3(3)
+double vd(10), vd2(10), dpart, dzz(4, 3, 2), dimat(3, 3), djmat(3, 3)
+
+# Set up a real matrix, 6 real vectors, a complex and 2 real variables.
+v1  = [2.0, 3.0, 6.0]
+v2  = [4.0, 5.0, 7.0]
+v3  = [1.0, 4.0, 7.0]
+dv1 = [2.0, 3.0, 6.0]
+dv2 = [4.0, 5.0, 7.0]
+dv3 = [1.0, 4.0, 7.0]
+
+onemat = shape(ones(9), 3, 3)
+
+dv = pi*(5-iota(9))/dble(4)
+do j=1, 9
+     xv(j) = dv(j)
+enddo
+
+a     = iota(2, n+1)
+b     = n - iota(n-2)
+c     = cmplx(2.2, 3.0)
+cv    = cmplx(iota(n), iota(n))
+dc    = dcmplx(2.2, 3.0)
+dcv   = dcmplx(iota(n), iota(n))
+var   = float(c)
+var2  = aimag(c)
+dvar  = float(dc)
+dvar2 = aimag(dc)
+
+eps   = max(r1mach(4), 1.0e-10)
+deps  = max(d1mach(4), 1.0e-10)
+
+# Check dot and cross products.
+fracdiff(v1!cross(v2, v3),    cross(v1, v2)!v3,     eps, "ERROR 1")
+fracdiff(dv1!cross(dv2, dv3), cross(dv1, dv2)!dv3, deps, "ERROR 2")
+fracdiff(a!ones(n),          n*(a(1)+a(n))/2,       eps, "ERROR 3")
+
+# GOTCHA: here is a pleasant little anomaly
+#a
+#n
+# a!a = 505.0
+#a!a
+#(n+1)*(n+2)*(2*n+3)/6-1 = 505
+#(n+1)*(n+2)*(2*n+3)/6-1
+#a!a-(n+1)*(n+2)*(2*n+3)/6-1 = -2.0  ???????????????
+#a!a-(n+1)*(n+2)*(2*n+3)/6-1
+
+fracdiff(a!a, (n+1)*(n+2)*(2*n+3)/6-1,  eps, "ERROR 4")
+
+# Check 'log' and 'exp' functions for real, complex, and vector arguments.
+fracdiff(alog(x)/log(10.0),  log10(x),   eps, "ERROR 5")
+fracdiff(alog(dx)/log(10.0), log10(dx), deps, "ERROR 6")
+fracdiff(exp(log(cv)),       cv,         eps, "ERROR 7")
+fracdiff(exp(log(dcv)),      dcv,       deps, "ERROR 7.1")
+fracdiff(log(exp(xv)),       xv,         eps, "ERROR 8")
+fracdiff(log(exp(dv)),       dv,        deps, "ERROR 9")
+
+# Check 'sin', 'cos', and 'sqrt' for vector, double, and complex arguments.
+fracdiff(abs(cos(xv)), sqrt(1.0-sin(xv)**2),       eps, "ERROR 10")
+fracdiff(abs(cos(dv)), sqrt(1.0-sin(dv)**2),      deps, "ERROR 11")
+fracdiff(abs(cos(c)),  abs(sqrt(1.0-sin(c)**2)),   eps, "ERROR 12")
+fracdiff(abs(cos(dc)), abs(sqrt(1.0-sin(dc)**2)), deps, "ERROR 12.1")
+
+# Check various trig functions for real and double arguments.
+fracdiff(tan(x+y),   (tan(x)+tan(y))/(1.0-tan(x)*tan(y)),      eps, "ERROR 13")
+fracdiff(tan(dx+dy), (tan(dx)+tan(dy))/(1.0-tan(dx)*tan(dy)), deps, "ERROR 14")
+
+fracdiff(cot(x+y),   (cot(x)*cot(y)-1.0)/(cot(x)+cot(y)),      eps, "ERROR 15")
+fracdiff(cot(dx+dy), (cot(dx)*cot(dy)-1.0)/(cot(dx)+cot(dy)), deps, "ERROR 16")
+
+fracdiff(asin(sin(x)),  x,                                   eps, "ERROR 17")
+fracdiff(asin(sin(dx)), dx,                                 deps, "ERROR 18")
+
+fracdiff(acos(cos(x)),  x,                                   eps, "ERROR 19")
+fracdiff(acos(cos(dx)), dx,                                 deps, "ERROR 20")
+
+fracdiff(atan(tan(x)),  x,                                   eps, "ERROR 21")
+fracdiff(atan(tan(dx)), dx,                                 deps, "ERROR 22")
+
+fracdiff(atan2(x, y),    atan(x/y),                          eps, "ERROR 23")
+fracdiff(atan2(dx, dy),  atan(dx/dy),                       deps, "ERROR 24")
+fracdiff(atan2(dy, dx),  atan(dy/dx),                       deps, "ERROR 24.1")
+fracdiff(atan2(v1, v2),  atan(v1/v2),                        eps, "ERROR 24a")
+fracdiff(atan2(x, v2),   atan(x/v2),                         eps, "ERROR 24b")
+fracdiff(atan2(v1, x),   atan(v1/x),                         eps, "ERROR 24c")
+
+# Check 'tan' and 'cot' for complex argument.
+fracdiff(tan(c),  sin(c)/cos(c),    eps, "ERROR 25")
+fracdiff(tan(dc), sin(dc)/cos(dc), deps, "ERROR 25.1")
+fracdiff(cot(c),  cos(c)/sin(c),    eps, "ERROR 26")
+fracdiff(cot(dc), cos(dc)/sin(dc), deps, "ERROR 26.1")
+
+# Check hyperbolic trig functions for double, complex and vector arguments.
+fracdiff(sinh(xv),  0.5*(exp(xv)-exp(-xv)),                  eps, "ERROR 27")
+fracdiff(sinh(dv),  0.5*(exp(dv)-exp(-dv)),                 deps, "ERROR 28")
+fracdiff(sinh(cv),  0.5*(exp(cv)-exp(-cv)),                  eps, "ERROR 29")
+fracdiff(sinh(dcv), 0.5*(exp(dcv)-exp(-dcv)),               deps, "ERROR 29.1")
+
+fracdiff(cosh(xv),  0.5*(exp(xv)+exp(-xv)),                  eps, "ERROR 30")
+fracdiff(cosh(dv),  0.5*(exp(dv)+exp(-dv)),                 deps, "ERROR 31")
+fracdiff(cosh(cv),  0.5*(exp(cv)+exp(-cv)),                  eps, "ERROR 32")
+fracdiff(cosh(dcv), 0.5*(exp(dcv)+exp(-dcv)),               deps, "ERROR 32.1")
+
+fracdiff(tanh(xv), (exp(xv)-exp(-xv))/(exp(xv)+exp(-xv)),      eps, "ERROR 33")
+fracdiff(tanh(dv), (exp(dv)-exp(-dv))/(exp(dv)+exp(-dv)),     deps, "ERROR 34")
+fracdiff(tanh(cv), (exp(cv)-exp(-cv))/(exp(cv)+exp(-cv)),      eps, "ERROR 35")
+fracdiff(tanh(dcv),(exp(dcv)-exp(-dcv))/(exp(dcv)+exp(-dcv)), deps, "ERROR 35.1")
+
+xvo = xv + 0.1*iota(9)
+dvo = dv + 0.1*iota(9)
+fracdiff(coth(xvo), (exp(xvo)+exp(-xvo))/(exp(xvo)-exp(-xvo)),  eps, "ERROR 33a")
+fracdiff(coth(dvo), (exp(dvo)+exp(-dvo))/(exp(dvo)-exp(-dvo)), deps, "ERROR 34a")
+fracdiff(coth(cv),  (exp(cv)+exp(-cv))/(exp(cv)-exp(-cv)),      eps, "ERROR 35a")
+fracdiff(coth(dcv), (exp(dcv)+exp(-dcv))/(exp(dcv)-exp(-dcv)), deps, "ERROR 35a.1")
+
+# Check 'cmplx', 'conjg', and 'length'.
+fracdiff(c**2,         cmplx(var, var2)**2,     eps, "ERROR 36")
+fracdiff(dc**2,        dcmplx(dvar, dvar2)**2, deps, "ERROR 36.1")
+fracdiff(conjg(c)**2,  (var-(0+1i)*var2)**2,    eps, "ERROR 37")
+fracdiff(conjg(dc)**2, (dvar-(0+1i)*dvar2)**2, deps, "ERROR 37.1")
+fracdiff(abs(c),       sqrt(var**2+var2**2),    eps, "ERROR 38")
+fracdiff(abs(dc),      sqrt(dvar**2+dvar2**2), deps, "ERROR 38.1")
+
+if (length(ab) <> length(a)+length(b)) remark("ERROR 39")
+
+# Check 'aint', 'anint', 'int', and 'nint'.
+if (aint(x) <> anint(x)) remark("ERROR 40")
+if (aint(dx) <> anint(dx)) remark("ERROR 41")
+if (int(x) <> nint(x)) remark("ERROR 42")
+if (int(dx) <> nint(dx)) remark("ERROR 43")
+if (aint(y) <> nint(y)-1) remark("ERROR 44")
+if (aint(dy) <> nint(dy)-1) remark("ERROR 45")
+if (int(y) <> nint(y)-1) remark("ERROR 46")
+if (int(dy) <> nint(dy)-1) remark("ERROR 47")
+
+# Check array concatenation and 'inf', 'max', 'min', and 'sup'.
+ab = a//b
+if (float(min(4, 2, 10, 3)) <> inf(ab)) remark("ERROR 48")
+if (min(4, 2, dble(10), 3) <> inf(dble(ab))) remark("ERROR 49")
+if (max(4.0, 1.0, 11.0, 3.0) <> sup(ab)) remark("ERROR 50")
+if (max(4.0, 1.0, dble(11.0), 3.0) <> sup(dble(ab))) remark("ERROR 51")
+
+if (max([1, 2]) <> 2) remark("ERROR 50a")
+if (min([1, 2]) <> 1) remark("ERROR 50b")
+if (vmax([1, 2]) <> 2) remark("ERROR 51a")
+if (vmin([1, 2]) <> 1) remark("ERROR 51b")
+
+fracdiff(aint(x)+mod(x, 1.0),   x,   eps, "ERROR 52")
+fracdiff(aint(dx)+mod(dx, 1.0), dx, deps, "ERROR 53")
+
+# Check 'ones' and 'sign'.
+if (sign(x, -4.3)  <> -x)  remark("ERROR 54")
+if (sign(dx, -4.3)  <> -dx)  remark("ERROR 55")
+lmat = (ones(3, 3) == diag(ones(3)))
+ if (~land(lmat)) remark("ERROR 56")
+
+# Check 'iota'.
+if (~land( iota(4) = [1,2,3,4] ))  remark ("iota ERROR 1")
+if (~land( iota(1,4) = [1,2,3,4] ))  remark ("iota ERROR 2")
+if (~land( iota(2,4) = [2,3,4] ))  remark ("iota ERROR 3a")
+if (~land( iota(4,2) = [4,3,2] ))  remark ("iota ERROR 3b")
+if (~land( iota(-1,1) = [-1,0,1] ))  remark ("iota ERROR 4a")
+if (~land( iota(1,-1) = [1,0,-1] ))  remark ("iota ERROR 4b")
+if (~land( iota(2,7,1) = [2,3,4,5,6,7] ))  remark ("iota ERROR 5")
+if (~land( iota(2,7,2) = [2,4,6] ))  remark ("iota ERROR 6a")
+if (~land( iota(7,2,2) = [7,5,3] ))  remark ("iota ERROR 6b")
+
+# Check 'conjg' and 'diag'.
+imat = diag([2, 4, 6], 0)+diag([3, 5], 1)+diag(4, 2)+diag([3, 5], -1)+diag(4, -2)
+cmat = diag([1.0, 2.0, 3.0], 0) + diag([2.0+.3i, 4.0+5.0i], 1) + diag(6.0-.7i, 2)
+dcmat = diag([1.0, 2.0, 3.0], 0) + diag([2.0+.3i, 4.0+5.0i], 1) + diag(6.0-.7i, 2)
+cmat = cmat + transpose(conjg(cmat))
+dcmat = dcmat + transpose(conjg(dcmat))
+cmat2 = transpose(conjg(cmat))
+dcmat2 = transpose(conjg(dcmat))
+do k=1, 3
+   do j=1, 3
+      if (imat(j, k) <> j+k) remark("ERROR 57")
+   enddo
+enddo
+
+# Check transpose operator and logical and and or functions.
+jmat = transpose(transpose(imat))
+ lmat = (imat==jmat)
+if (~land(lmat)) remark("ERROR 58")
+dimat = imat
+djmat = transpose(transpose(dimat))
+ lmat = (dimat==djmat)
+if (~land(lmat)) remark("ERROR 59")
+if (~lor(lmat)) remark("ERROR 60")
+if (lor((a==float(iota(n))))) remark("ERROR 61")
+if (lor((cmat==cmat/2.0))) remark( "ERROR 62")
+if (lor((dcmat==dcmat/2.0))) remark( "ERROR 62.1")
+jmat = outer(iota(3), iota(3))
+djmat = outer(dble(iota(3)), dble(iota(3)))
+lmat = (abs(cmat-cmat2) < eps) 
+ if (~land(lmat)) remark("ERROR 63")
+lmat = (abs(dcmat-dcmat2) < eps) 
+ if (~land(lmat)) remark("ERROR 63.1")
+
+# check 'dble' and 'sngl'.
+real sing1
+double doub1
+sing1=dx
+doub1=sing1
+if (dble(sngl(dx)) <> doub1) remark("ERROR 66")
+if (sngl(dble(x)) <> x) remark("ERROR 67")
+
+# Check 'rangex' and 'shape', 'squeeze'.
+iv = shape(jmat)
+ lv = (iv == 3*ones(2))
+ if (~land(lv)) remark("ERROR 68")
+iv = shape(djmat)
+ lv = (iv == 3*ones(2))
+ if (~land(lv)) remark("ERROR 69")
+integer yyy(3, 1, 3)=shape(iota(9, [3, 3]))
+logical lyyy(3, 3)
+lyyy = (yyy == squeeze(yyy)) 
+if (~land(lyyy)) remark "ERROR 69.01"
+iv = shape(squeeze(yyy))
+if (iv(1) <> 3 | iv(2)<>3) remark "ERROR 69.02"
+$h = outer(iota(4), iota(4))
+ $i = shape($h, 2, 2, 2, 2)
+ $j = $i(1, , 1, )
+$k=outer(3*iota(2)/2, 3*iota(2)/2)
+ lm2=($j==$k)
+ if (~land(lm2)) remark("ERROR 70")
+iv = rangex(iv2)
+ lv = (iv == iota(2))
+ if (~land(lv)) remark("ERROR 71")
+
+#Check 'rngbeg', 'rngend', 'rnginc', and 'rngsetdf'
+if (rngbeg(:8, 2) <> 2) remark("ERROR 72")
+if (rngbeg(1:4, 3) <> 1) remark("ERROR 73")
+$a = rngbeg([:8, 1:4, :7], 3)
+if ($a(1)<> 3 | $a(2)<>1 | $a(3)<>3) remark("ERROR 74")
+$a = rngbeg([:8, 1:4, :7], [1, 2, 3])
+if ($a(1)<>1 | $a(2)<>1 | $a(3)<>3) remark("ERROR 75")
+if (rngend(8:, 15) <> 15) remark("ERROR 76")
+if (rngend(1:4, 3) <> 4) remark("ERROR 77")
+$a = rngend([8: , 1:4, 7:], 3)
+if ($a(1)<>3 | $a(2)<>4 | $a(3)<>3) remark("ERROR 78")
+$a = rngend([8: , 1:4, 7:], [11, 12, 13])
+if ($a(1)<>11 | $a(2)<>4 | $a(3)<>13) remark("ERROR 79")
+if (rnginc(1:8, 2) <> 1) remark("ERROR 80")
+if (rnginc(1:8) <> 1) remark("ERROR 81")
+$a = rnginc([1:8, 10:4:-1, 1:7:2])
+if ($a(1)<>1 | $a(2)<>-1 | $a(3)<>2) remark("ERROR 82")
+if (rngsetdf(:8, 2:10) <> 2:8) remark("ERROR 83")
+if (rngsetdf(2:, 1:22) <> 2:22) remark("ERROR 84")
+if (rngsetdf(::3, 1:15) <> 1:15:3) remark("ERROR 85")
+$a = rngsetdf([:8, 1:4, 7:], 2:15)
+if ($a(1)<>2:8 | $a(2)<>1:4 | $a(3)<>7:15) remark("ERROR 86")
+$a = rngsetdf([:8, 1:4, 7:], [-1:5, 2:3, 3:9])
+if ($a(1)<>-1:8 | $a(2)<>1:4 | $a(3)<>7:9) remark("ERROR 87")
+
+# Check that ranf produces numbers on the unit circle for complex arguments.
+$h = ranf(cmat)
+if (abs(abs($h)-onemat)!onemat > eps) remark("ERROR 89")
+
+#$h = ranf(dcmat)
+if (abs(abs($h)-onemat)!onemat > eps) remark("ERROR 89.1")
+
+# Check character concatenation.
+if ("abc"//"de" <> "abcde") remark("ERROR 90")
+
+# Check 'format'.
+if (format(12, 3) <> " 12") remark("ERROR 91")
+if (format(34.21, 6, 2, 1) <> " 34.21") remark("ERROR 92")
+if (format(dble(34.21), 6, 2, 1) <> " 34.21") remark("ERROR 93")
+real tfp1=34.21
+if (format(tfp1, 10, 3, 0) <> " 3.421e+01" & format(tfp1, 10, 3, 0) <> " 3.421E+01") remark("ERROR 94")
+
+# the following test was commented out because SCF unicos does *not* return d 
+# format
+#if (format(dble(34.21), 10, 3, 0) <> " 3.421d+01" & format(dble(34.21), 10, 3, 0) <> " 3.421D+01") remark("ERROR 95")
+
+# Check scalar broadcast to arrays
+integer ar1(5)
+ ar1 = 5
+if ((ar1(1)~=5)|(ar1(2)~=5)|(ar1(3)~=5)|(ar1(4)~=5)|(ar1(5)~=5)) remark("ERROR 106")
+integer ar2(3, 3)
+ ar2 = 0
+ar2(2, 1:3) = 61 # noncontiguous elements should be set
+logical error107
+error107 = (ar2(1, 1)~=0)|(ar2(1, 2)~=0)|(ar2(1, 3)~=0)
+error107 = error107 | (ar2(3, 1)~=0)|(ar2(3, 2)~=0)|(ar2(3, 3)~=0)
+error107 = error107 | (ar2(2, 1)~=61)|(ar2(2, 2)~=61)|(ar2(2, 3)~=61)
+if (error107) remark("ERROR 107")
+
+# Check character functions
+character*7 cha = "  "//substr(itostr(234), 1, 3)//"  "
+if (trim(cha) <> trimr(triml(cha))) remark("ERROR 113")
+if (trim(cha) <> substr(cha, 3, 3)) remark("ERROR 114")
+if (strlen(cha) <> 7) remark("ERROR 115")
+
+# Check ptp, sum, ave, mnx, mxx, psum, and rsum
+qq(1, 1, 1)=1
+qq(1, 2, 1)=8
+qq(1, 3, 1)=3
+pp=ptp(qq, 2)
+if (pp(1, 1)<>(8-1)) remark ("ERROR 116")
+
+dqq(1, 1, 1)=1
+dqq(1, 2, 1)=8
+dqq(1, 3, 1)=3
+dpp=ptp(dqq, 2)
+if (dpp(1, 1)<>(8.0-1)) remark ("ERROR 117")
+
+pp=sum(qq, 2)
+if (pp(1, 1)<>(1+8+3)) remark ("ERROR 118")
+
+dpp=sum(dqq, 2)
+if (dpp(1, 1)<>(1+8.0+3)) remark ("ERROR 119")
+
+rr=ave(qq, 2)
+if (rr(1, 1)<>((1+8+3)/3.0)) remark ("ERROR 120")
+
+dpp=ave(dqq, 2)
+fracdiff(dpp(1, 1), (1+8+3)/3.0, deps, "ERROR 121")
+
+pp=mnx(qq, 2)
+if (pp(1, 1)<>1) remark ("ERROR 122")
+
+dpp=mnx(dqq, 2)
+if (dpp(1, 1)<>1) remark ("ERROR 123")
+
+pp=mxx(qq, 2)
+if (pp(1, 1)<>2) remark ("ERROR 124")
+
+dpp=mxx(dqq, 2)
+if (dpp(1, 1)<>2) remark ("ERROR 125")
+
+zz=psum(qq, 2)
+if (zz(1, 1, 1)<>1 | zz(1, 2, 1)<>(1+8) | zz(1, 3, 1)<>(1+8+3)) remark ("ERROR 126")
+
+dzz=psum(dqq, 2)
+if (dzz(1, 1, 1)<>1.0 | dzz(1, 2, 1)<>(1+8.0) | dzz(1, 3, 1)<>(1+8.0+3)) remark ("ERROR 127")
+
+zz=rsum(qq, 2)
+if (zz(1, 1, 1)<>(1+3+8.0) | zz(1, 2, 1)<>(3+8.0) | zz(1, 3, 1)<>3.0) remark ("ERROR 128")
+
+dzz=rsum(dqq, 2)
+if (dzz(1, 1, 1)<>(1+3+8) | dzz(1, 2, 1)<>(3+8) | dzz(1, 3, 1)<>3) remark ("ERROR 129")
+
+# Check where
+wwck=[1.0, 0.0, 3.0]
+ww=where ([true, false, true], [1, 2, 3], 0.0)
+do j=1, 3
+   fracdiff(ww(j), wwck(j),   eps, "ERROR 130")
+enddo
+forget wwck, ww
+
+# Check tolower and toupper
+if (tolower("HELLO WORLD") <> "hello world") remark ("ERROR 131")
+if (toupper("hello world") <> "HELLO WORLD") remark ("ERROR 132")
+
+# Check gather
+real bb(-10:10)=iota(-10, 10)*5
+integer index(10)=[-10, -7, -5, -2, 0, 1, 3, 6, 8, 9]
+real aa(10)=[-50.0, -35.0, -25.0, -10.0, 0.0, 5.0, 15.0, 30.0, 40.0, 45.0]
+chameleon cc=gather(bb, index)
+do j=1, 10
+   if (cc(j)-aa(j) > eps) remark ("ERROR 133")
+enddo
+forget aa, bb, cc
+
+# Check zcen
+real zc1(5)=[1.0, 2.0, 4.0, 7.0, 11.0], zc2(5)
+zc2 = zcen(zc1)
+double dzc1(5)=[1.0, 2.0, 4.0, 7.0, 11.0], dzc2(5)
+dzc2 = zcen(dzc1)
+do j=2, 5
+   fracdiff(0.5*(zc1(j)+zc1(j-1)), zc2(j),  eps, "ERROR 134")
+   fracdiff(0.5*(dzc1(j)+dzc1(j-1)), dzc2(j), deps, "ERROR 135")
+enddo
+
+djmat = zcen(dimat)
+do k=2, 3
+   do j=2, 3
+      dpart =(dimat(j-1, k-1)+dimat(j-1, k)+dimat(j, k-1)+dimat(j, k))/4.0
+      fracdiff(djmat(j, k), dpart, deps, "ERROR 136")
+   enddo
+enddo
+
+# Check setmnarg
+if (setmnarg("fminarg", 1) <> 0) remark ("ERROR 137")
+
+integer i
+ real r
+ complex c
+ double d
+ logical l
+ character * 20 s
+double complex dc
+sibasis("i", 1)
+srbasis("r", 2.0)
+scbasis("c", 3.0+4.0i)
+sdcbasis("dc", 3.0+4.0i)
+sdbasis("d", 1.333444555d22)
+slbasis("l", false)
+ssbasis("s", "This is a test.")
+if (ibasis("i") ~= 1) remark("ERROR 138")
+if (rbasis("r") ~= 2.0) remark("ERROR 139")
+if (cbasis("c") ~= 3.0+4.0i) remark("ERROR 140")
+if (dcbasis("dc") ~= 3.0+4.0i) remark("ERROR 140.1")
+if (dbasis("d") ~= 1.333444555d22) remark("ERROR 141")
+if (lbasis("l")) remark("ERROR 142")
+if (trim(sbasis("s")) ~= "This is a test.") remark("ERROR 143")
+
+tryspanl 
+
+# Test change
+integer one=1
+trychange(one)
+real one=one
+ trychange(one)
+double one=one
+trychange(one)
+complex one=one
+trychange(one)
+double complex one=one
+trychange(one)
+forget one
+
+
+integer sortary(10)=[5, 2, 7, 9, 10, 1, 3, 6, 8, 4], sortidx(10)
+call sorti(&sortary, &sortidx, 10)
+if (~land(sortary=iota(10))) remark "sorti ERROR 1"
+if (~land(sortidx=[6, 2, 7, 10, 1, 8, 3, 9, 4, 5])) remark "sorti ERROR 2"
+
+# test vmax and vmin
+real x(3, 4)=[[7, 9, 3], [1, 10, 2], [4, 8, 6], [11, 12, 5]]
+logical lmat(4) = (vmin(x, 1) == [3.0, 1.0, 4.0, 5.0])
+if (~land(lmat)) remark("vmax ERROR 1")
+lmat = (vmax(x, 1) == [9.0, 10.0, 8.0, 12.0])
+if (~land(lmat)) remark("vmax ERROR 2")
+logical lmat(3) = (vmin(x, 2) == [1.0, 8.0, 2.0])
+if (~land(lmat)) remark("vmax ERROR 3")
+lmat = (vmax(x, 2) == [11.0, 12.0, 6.0])
+if (~land(lmat)) remark("vmax ERROR 4")
+endf
+
+call mathfn
+
+read testltab

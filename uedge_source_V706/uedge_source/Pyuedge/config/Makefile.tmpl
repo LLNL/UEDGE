@@ -1,0 +1,61 @@
+##########################################################################
+#
+# Top-level template Makefile
+#   $Id: Makefile.tmpl,v 7.0 2018/02/28 18:32:43 meyer8 Exp $
+#
+##########################################################################
+
+
+# TOP is the directory which issues the top-level make (assumed to be relative).
+# TOP_X1 is TOP when referred to from one sub-dir down
+#TOP_X1 = ../'$$(TOP)'
+
+ifndef ARCH_INC
+  # ARCH_INC --
+  #   names the make include file, $(ARCH_INC).config
+  #   and is used to name the created work directories 
+
+  ifndef CPUhide
+    # might want to replace uname with a script such as cpu_id
+    CPU = $(shell uname -s)
+    # still to do AIX, OSF1, SunOS , AIX Linux OSF1 SunOS),)
+    ifeq ($(filter $(CPU), Linux),)
+      ERR_CPU  = 2
+    endif
+  else
+    # use user's name for CPU
+    #  ...in prog ifeq ($(filter $(CPU), LINUX AIX SOL),)
+    ifeq ($(filter $(CPU), LINUX),)
+      #  ALPHA IBM SGI DEC HP HP700),)
+      ERR_CPU  = 2
+    endif
+  endif
+
+  ARCH_INC   = $(CPU)
+
+  # CPUNAME - careful: uname -n varies within a cluster; domainname
+  #           is unique within a cluster, but doesn't always exist.
+  # Also possible: HOSTTYPE, HOST, HOST_GRP.
+  CPUNAME   = $(shell uname -a | awk '{print substr($$2,1,3)}')
+endif
+
+include $(CONFIG)/ALL.config
+
+all:: cputst
+
+clean:: cputst
+
+clean.pyUtils.rt::
+	rm -rf $(PYUTILS)/*/*.pyc
+
+clean.distutils::
+	rm -rf build/*
+
+cputst::
+  ifeq ($(ERR_CPU),2)
+	@echo CPU=$(CPU)" -- make not yet implemented for this architecture"
+	@exit 2
+  endif
+	-@if [ ! -d $(ARCH) ]; then mkdir $(ARCH); fi
+
+.PHONY:: clean cputst

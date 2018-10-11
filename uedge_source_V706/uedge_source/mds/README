@@ -1,0 +1,15 @@
+Initial commit of mds package for accessing data stored in MDSPlus.
+This package is configured "off" in this commit since it requires
+the MDSPlus libraries to be installed to successfully load caltrans.
+I've built this using the client/server mode of MDSPlus. I do not
+know if it will work with local mode, I'll have to build the package
+on a platform with a local MDSPlus to test this. For the client/server
+mode the MDSPlus libraries required are MdsIpUtil and MdsIpShr. In order
+to build these I found I had to "make" in the MDSPlus src tree 
+subdirectories tdishr, mdsshr, mdslibidl, mdstcpip, and mdslib. I've 
+included an example basis script in the package directory that shows
+access to time series data stored in ptdata, accessing inter-shot
+efit results, and the beginnings of accessing Thomson data. The
+arguments to mdsvalue have a rather picky syntax so follow the example
+closely. 
+
