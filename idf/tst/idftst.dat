@@ -1,0 +1,26 @@
+/* this is a test for FTX */
+local int oct=8; /* this is a C-style comment*/
+static double seven=7.7e7;
+static float complex a = (1,3);
+static float cf=9.9;
+// aaaaa: this is not a name, but a C++ stile comment
+
+
+ 
+
+  a___b___c: 137.00005  ;      
+int iabc           =  {156   }  ;
+
+/*Sabc="\'vasya\'+""\'lena\'=lubov";*/Tabc=#qwertyu123456789#;
+Sabc  = "zxcvbnhjgkggg";
+D_arr = 7, 77., 77.7, 77.7e7,+77.7e-77  ;
+static             int iu=123;
+static  float fu=$126$          ;
+static double   du= $pow(2.0,3.0)$;
+static     double        asdfghjkl      =126e-10;
+static float d1=12345.6789e+012;
+Stru = '@',8, "vu", $1/sqrt(IDF_PI)$;
+Stra = '!',7, 5.0, 5.5, "vu", $IDF_PI$ $1/sqrt(IDF_PI)$;
+
+CCC=(1.,1)(111,1111.), (0,0);
+

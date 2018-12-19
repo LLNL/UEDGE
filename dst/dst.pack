@@ -1,0 +1,5 @@
+package dst = "DUSTT code package"
+firstpkg = dst
+
+# if you want to read a Basis Language startup file put in a line that says
+# macfile = filename

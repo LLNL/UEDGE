@@ -1,0 +1,65 @@
+DEBUG = -g #--fargs "-C=array" #--fargs "-CB -traceback"
+
+SO = so
+PUBLICHOME = 
+BUILDDIR = ../build
+DIRLIST = com aph api bbb flx grd svr wdf
+MYPYTHON = python
+##MYPYTHON = /home1/rognlien/Python2/Python-2.4.2/python
+
+# Following 2 variables set in Makefile.PETSc, if used (if unset, ignored)
+# SETUPOPTS =
+# PETSC-UEDGE =
+# PETSC-COM =
+
+all: mppl2f90 compy.$(SO) aphpy.$(SO) apipy.$(SO) bbbpy.$(SO) flxpy.$(SO) grdpy.$(SO) svrpy.$(SO) wdfpy.$(SO)
+	rm -f uedgeC.so
+
+mppl2f90:
+	(export PYTHONPATH=./pyscripts; $(MYPYTHON) convertor)
+
+compy.$(SO): com/blasext.F com/brent.F com/comutil.F com/misc.F com/mnbrak.F com/dsum.f com/dummy_py.f com/error.f com/getmsg.f com/ssum.f com/dmath.f com/$(PETSC-COM) com/com.v
+	(cd com;Forthon --builddir $(BUILDDIR) -a $(FCOMP) $(DEBUG) -f blasext.F com brent.F comutil.F misc.F mnbrak.F dsum.f dummy_py.f error.f getmsg.f ssum.f dmath.f $(PETSC-COM))
+
+aphpy.$(SO): compy.$(SO) aph/aphrates.F aph/aphread.F aph/aph.v
+	(cd aph;Forthon --builddir $(BUILDDIR)  -a $(FCOMP) $(DEBUG) -f aphrates.F aph aphread.F)
+
+apipy.$(SO): compy.$(SO) api/apifcn.F api/apip93.F api/apisorc.F api/fimp.F api/fmombal.F api/inelrates.F api/sputt.F api/api.v com/com.v
+	(cd api;Forthon --builddir $(BUILDDIR)  -a $(FCOMP) $(DEBUG) -d com -f apifcn.F api apip93.F apisorc.F fimp.F fmombal.F inelrates.F sputt.F)
+
+bbbpy.$(SO): compy.$(SO) bbb/boundary.F bbb/convert.F bbb/geometry.F bbb/griddubl.F bbb/oderhs.F bbb/odesetup.F bbb/odesolve.F bbb/potencur.F bbb/turbulence.F bbb/ext_neutrals.F bbb/bbb.v com/com.v
+	(cd bbb;Forthon --builddir $(BUILDDIR)  -a $(FCOMP) $(DEBUG) --macros ../com/com.v -d com -f boundary.F bbb convert.F geometry.F griddubl.F oderhs.F odesetup.F odesolve.F potencur.F turbulence.F ext_neutrals.F)
+
+flxpy.$(SO): compy.$(SO) flx/flxcomp.F flx/flxdriv.F flx/flxread.F flx/flxwrit.F flx/flx.v com/com.v
+	(cd flx;Forthon --builddir $(BUILDDIR)  -a $(FCOMP) $(DEBUG) -d com -f flxcomp.F flx flxdriv.F flxread.F flxwrit.F)
+
+grdpy.$(SO): compy.$(SO) grd/grdcomp.F grd/grddriv.F grd/grdinit.F grd/grdread.F grd/grdwrit.F grd/grd.v com/com.v
+	(cd grd;Forthon --builddir $(BUILDDIR)  -a $(FCOMP) $(DEBUG) -d com -f grdcomp.F grd grddriv.F grdinit.F grdread.F grdwrit.F)
+
+svrpy.$(SO): svr/daspk.F svr/nksol.F svr/svrut1.F svr/svrut2.F svr/svrut3.F svr/svrut4.F svr/vodpk.F svr/uoa.F svr/daux1.f svr/$(PETSC-UEDGE) svr/svr.v
+	(cd svr;Forthon --builddir $(BUILDDIR)  -a $(FCOMP) $(DEBUG) -f daspk.F svr nksol.F svrut1.F svrut2.F svrut3.F svrut4.F vodpk.F uoa.F daux1.f $(PETSC-UEDGE))
+
+wdfpy.$(SO): wdf/wdf.F wdf/wdf.v
+	(cd wdf;Forthon --builddir $(BUILDDIR)  -a $(FCOMP) $(DEBUG) wdf)
+
+public: all
+	publishpyuedge90.py $(PUBLICHOME)
+
+update:
+	for dir in $(PUBLICHOME); do \
+	  cd $$dir; \
+	  cvs update; \
+	done
+
+clean:
+	rm -rf build *.so
+
+#----------------------------------------------------------------------------
+#--- Build command for opendx wrapper.
+DX: pyDXObject.c
+	$(MYPYTHON) DXsetup.py build --build-platlib .
+	#cp pyDXObject.so /home/dave/scriptsnew
+
+#----------------------------------------------------------------------------
+
+

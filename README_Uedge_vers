@@ -1,0 +1,729 @@
+
+
+                            LEGAL NOTICES
+
+This work was performed at the University of California, Lawrence Livermore
+National Laboratory (UC LLNL) under contract no.  W-7405-ENG-48 (Contract 48)
+between the U.S. Department of Energy (DOE) and The Regents of the University
+of California (the University) for the operation of UC LLNL.  The rights of
+the Federal Government are reserved under Contract 48 subject to the
+restrictions agreed upon by the DOE and University as allowed under DOE
+Acquisition Letter 97-1.
+
+UEDGE is released for DOE-related work, and recipients are required to contact
+the author before further dissemination of the package or any of its
+components.
+
+This work was prepared as an account of work sponsored by an agency of the
+United States Government.  Neither the United States Government nor the
+University of California nor any of their employees makes any warranty,
+express or implied, or assumes any liability or responsibility for the
+accuracy, completeness, or usefulness of any information, apparatus, product,
+or process disclosed, or represents that its use would not infringe privately
+owned rights.  Reference herein to any specific commercial products, process,
+or service by trade name, trademark, manufacturer, or otherwise, does not
+necessarily constitute or imply its endorsement, recommendation, or favoring
+by the United States Government or the University of California.  The views
+and opinions of authors expressed herein do not necessarily state or reflect
+those of the United States Government or the University of California, and
+shall not be used for advertising or product endorsement purposes.
+
+*****************************************************************************
+This file was committed $Date: 2018/02/28 18:32:42 $ and tagged $Name: V7_07 $
+
+Version 3.0	Corresponds to CVS archives as of 12/14/99
+
+Version 3.1	Corresponds to CVS archives as of 01/13/00
+
+Version 3.2	Corresponds to CVS archives as of 02/20/00
+		- Fixes bug in visx flux-limit term msh
+		- Allows boundary conditions to be properly relaxed with
+		  stiff rate equations for svrpkg=nksol and isbcwdt=1
+
+Version 3.3	Corresponds to CVS archives as of 08/07/00
+		- Substantial changes to the parallel current at the plate
+		  boundaries (including kappar,l) giving better ExB behavior
+		- Force feex to always be into divertor plates
+		- Remove guard-cell values of Te on plates for determining
+		  parallel electron heat conductivity there
+		- Include momentum sources from ionization, recomb., & cx
+		  for multispecies equations if full momentum eqns. solved
+		- Added option to use lgmax for flux limiting gas diffusion
+		  using this scale-length - more robust
+		- Change radial convective flux for ion momentum eqn to use
+		  the harmonic average of two pairs of densities; can be
+		  important for neutral momentum near ionization front
+		- Added coeff. cfloye,i to change radial convective heat flux
+		  from 5/2 to 3/2 for modeling ExB turbulence; default=5/2
+		- Allow simultaneous albedo, chem sputtering, and recycling
+		  for gas side-wall boundary conditions
+		- Added model for wall impurity evaporation based on the input
+		  temperature profile tvapo.
+		- Allow gas outflow measured on inner wall to be injected on
+		  outer wall, and vice versa
+		- Fixed potential bug defining ixc=max(0,ixpt1+1) in bouncon
+		- Fixed bug in definition of xcwi,o used in determining wall
+		  source location; also in geometry.m, gradb2 had incorrect
+		  cos(angfx) factor.
+
+Version 3.4     Corresponds to CVS archives as of 11/28/00
+                - changed the interpolation (for isgindx=1 default) to be 
+                  independent in poloidal segments of leg, core, and then leg
+                - changed variable for radial pressure-gradient velocity from
+                  vycd to vycp
+                - enabled the use of ADAS ionization and recombination rates
+                  that can now depend on electron density even for impurities
+                - corrected sign on nurlxe,i for iste,ipfc=0 boundary
+                  condition - only affectd svrpkg="vodpk"
+                - corrected iv indexing problem for isutcore B.C. for
+                  isphibcc.ne.1
+                - added time-dependent inertial radial-ion-current called
+                  fqydt; comes from m*dv/dt term in perp. ion momentum eq.
+
+(Below t_Ver... means a temporary version which is not saved on all platforms)
+t_Version 3.41	Corresponds to minor modification to Version 3.4 where a call
+		to the allocate routine is force on the first call to exmain
+		- added variable icallall to indicate when allocate called once
+		- initialize ifexmain to zero (previously unset)
+
+t_Version 3.42	Only one change from V3.41; the default value of fvapi is
+		changes from 1 to 0.  This can affect chemical sputtering on
+		the inner (private-flux) wall and fvapi=0 should be used.
+		V3.41 can still be used if one explicitly sets fvapi=0 before
+		executing a run.
+
+t_Version 3.43	Only changes from V3.42 are that chemical sputtering is now
+		included on the wall regions even when matwallo,i=1, just as
+		as the albedo is always included independent of matwallo,i;
+		and the use of energy-transmission boundary conditions on the
+		inner wall is not automatic for matwalli=1, but must be set
+		by iste,ipfc = 3, if desired.
+
+Version 3.44	May be the same as V3.43, but dervived from the CVS achieve
+		dated 05/06/01, rather than the working files from Rognlien.
+
+Version 3.45    From cvs archive on 06/08/01.  Corrects a bug when running on
+                LINUX machines by placing the definition of ix_fl_bc to before
+                the first do-loop in subroutine bouncon.  Also adds the outer
+                midplane poloidal index, ixmp, to be available from the
+                parser, and improves the accuracy of the ixmp calculation.
+                Finally, replaces the default for the potential boundary
+                condition on the core to be iphibcc=0.
+
+Version 3.46    From CVS archive of 07/31/01.
+		Only one change for V_3.45, where Takenaga's bug in jac_calc
+                is corrected, i.e., ix and iy are now defined just before
+                idxphi(ix,iy) if-test.  Probably has no impact, but
+                possibly it does (read out-of-bounds problem)
+
+Version 3.47	From CVS archive of 10/09/01.
+		Corrected core boundary conditions to include the fact the
+		diamagnetic surface fluxes can exits.  UEDGE only uses
+		the grad_B portion of the diamagnetic drift velocity
+		in the "body" of the computational region since the
+		divergence of the other portion is identically zero.
+		However, on the boundary surfaces, one must resort to
+		the full diamagnetic expression for obtain particle
+		and power fluxes.  The correction for the radial
+		current is available in older UEDGE version, but
+		requires proper setting of switches.  For cross-field drifts
+		on, the recommended settings of the switches are:
+		cfniybbo=0., cfniydbo=1., cfeeybbo=0., cfeeydbo=1.,
+		cfqybbo=0.  cfqydbo=1. Also changed scale length B.C. for
+		lyni (isnwconi,o = 2) to apply to niy0 and niy1 variables
+		instead of ni(,ny) and ni(,ny+1); this is consistent with
+		definition of fniy for nonorthogonal mesh.
+
+
+Version 3.48	From CVS archive of 10/22/01.
+		Corrected a bug in the grad_B velocity for bphi>0 (the
+		standard DIII-D case has bphi<0).  Also corrected a bug
+		in the nonorthogonal-mesh representation of the cross-field
+		v2 velocities [mistakenly divided v2's by cos(angfx)].  Set
+		the default of del2nksol=1e-14 (instead of zero, which then
+		used machine-calculated round-off - sometime too small on 
+		LINUX). Corrected classical parallel viscosity coefficient
+		from 1.92 to 0.92, as given by Braginskii.
+
+Version 4.0	Corresponds to CVS archive on 01/23/02.  This is a major
+		upgrade that includes the capability of unbalanced double 
+		nulls developed by M. Rensink.  A number of other improvements 
+		have also been made; these are as follows:
+		- refinement of the multispecies capability where one can
+		  now have the impurity species be dominant over hydrogen
+		- tritium can now run run as an impurity species
+		- generalized boundary conditions allowing separate inner (pf)
+		  and outer wall scale lengths; lyup added
+		- allow fixed gas density at plate boundaries for BORIS comp.
+		- corrected problems associated with using f90 on the SUNs;
+                  must now use SUNWspro 5.0 compiler or higher.  Thus, BASIS12
+		  and f90 is now be used on all platforms (SUN, LINUX, DEC).
+		- Added background source to erliz ionization energy loss
+		  using ngbackg; this changes vsoree and electron eng. eqn.
+
+		Below is a compilation by Rensink of changes to variables
+		in moving from Ver_3.48 to Ver_4.0:
+	Input/output variables with changed names (and dimensions):
+
+   		csin(nispmx)  -> csfaclb(nispmx,1)
+   		csout(nispmx) -> csfacrb(nispmx,1)
+
+   		fchemypi -> fchemylb(1)
+   		fchemypo -> fchemyrb(1)
+
+   		fphysypi -> fphysylb(1)
+   		fphysypo -> fphysyrb(1)
+
+   		recypi(0:ny+1,ngspmx) -> recylb(0:ny+1,ngspmx,1)
+   		recypo(0:ny+1,ngspmx) -> recyrb(0:ny+1,ngspmx,1)
+
+   		recycfi -> recycflb(1)
+   		recycfo -> recycfrb(1)
+
+   		ndati(ngspmx) -> ndatlb(ngspmx,1)
+   		ndato(ngspmx) -> ndatrb(ngspmx,1)
+
+   		ydati(ngspmx,50) -> ydatlb(ngspmx,50,1)
+   		ydato(ngspmx,50) -> ydatrb(ngspmx,50,1)
+
+  		rdati(ngspmx,50) -> rdatlb(ngspmx,50,1)
+  		rdato(ngspmx,50) -> rdatrb(ngspmx,50,1)
+
+  		albpi(0:ny+1,ngspmx) -> alblb(0:ny+1,ngspmx,1)
+  		albpo(0:ny+1,ngspmx) -> albrb(0:ny+1,ngspmx,1)
+
+ 		fngxsi(0:ny+1,ngspmx) -> fngxslb(0:ny+1,ngspmx,1)
+ 		fngxso(0:ny+1,ngspmx) -> fngxsrb(0:ny+1,ngspmx,1)
+
+ 		adati(ngspmx,50) -> adatlb(ngspmx,50,1)
+ 		adato(ngspmx,50) -> adatrb(ngspmx,50,1)
+
+ 		ngplati(ngspmx) -> ngplatlb(ngspmx,1)
+ 		ngplato(ngspmx) -> ngplatrb(ngspmx,1)
+
+  		sputti(0:ny+1,ngspmx) -> sputtlb(0:ny+1,ngspmx,1)
+ 		sputto(0:ny+1,ngspmx) -> sputtrb(0:ny+1,ngspmx,1)
+
+ 		albedopi(ngspmx) -> albedolb(ngspmx,1)
+ 		albedopo(ngspmx) -> albedorb(ngspmx,1)
+
+
+	Input/Output variables with changed dimensions only:
+
+   		newbcl -> newbcl(1)
+   		newbcr -> newbcr(1)
+
+   		phi0l(0:ny+1) -> phi0l(0:ny+1,1)
+   		phi0r(0:ny+1) -> phi0r(0:ny+1,1)
+
+   		yylb(0:ny+1) -> yylb(0:ny+1,1)
+   		yyrb(0:ny+1) -> yyrb(0:ny+1,1)
+
+   		upxpt(1:nusp)   -> upxpt(1:nusp,1)
+  		nixpt(1:nusp)   -> nixpt(1:nusp,1)
+  		visyxpt(1:nusp) -> visyxpt(1:nusp,1)
+  		vyhxpt(1:nusp)  -> vyhxpt(1:nusp,1)
+  		vyvxpt(1:nusp)  -> vyvxpt(1:nusp,1)
+  		fmihxpt(1:nusp) -> fmihxpt(1:nusp,1)
+  		fmivxpt(1:nusp) -> fmivxpt(1:nusp,1)
+
+   		fdiaxlb(0:ny+1) -> fdiaxlb(0:ny+1,1)
+   		fdiaxrb(0:ny+1) -> fdiaxrb(0:ny+1,1)
+
+   		bcel(0:ny+1) -> bcel(0:ny+1,1)
+  		bcer(0:ny+1) -> bcer(0:ny+1,1)
+  		bcil(0:ny+1) -> bcil(0:ny+1,1)
+   		bcir(0:ny+1) -> bcir(0:ny+1,1)
+  		kappal(0:ny+1) -> kappal(0:ny+1,1)
+   		kappar(0:ny+1) -> kappar(0:ny+1,1)
+
+   		fqpsatlb(0:ny+1) -> fqpsatlb(0:ny+1,1)
+   		fqpsatrb(0:ny+1) -> fqpsatrb(0:ny+1,1)
+
+	NOTE on option isnfmiy=1:
+
+	In previous versions of UEDGE, isnfmiy=1 had the effect of setting
+	fmiy=0 for velocity cells straddling the x-point because the spatial
+	factors gyhxpt,gyvxpt,sxyxpt were not calculated.  Now, these spatial
+	factors are finite for all EFIT-based configurations, so in order to
+	recover previous results you must set the new coefficient cfnfmiy=0
+	when isnfmiy=1; the preferred (default) setting is cfnfmiy=1.
+
+Version 4.1	Corresponds to CVS archive on 02/16/02. 
+		- Added the additional flux limit for the neutral thermal
+		  conductivity and viscosity via the input scale lengths 
+		  lgtmax and lgvmax.
+		- Slight change to pscx0 for first impurity charge state to
+		  include niz_floor for consistency with Ver_3.48.
+		- Corrected bug in Ver_4.0 only relating to the sign of
+		  the albedo pumping (albrb) on the right plate.
+		- Changed the radial gas scale length for isngcore=2 from
+		  v_t**2/(nucx*nuiz) to v_t**2/(nuix*nuiz).
+		- Corrected Ver_4.0 only bug in calculation of sygytotc in 
+		  geometry.m; ixpt1,2(2) was referenced even if nxpt=1.
+		- Corrected Ver_4.0 only bug in first definition of argo in
+		  subroutine walsor; changed xnoti --> xnoto
+
+Version 4.12	Corresponds to CVS archive of dce package on 05/08/02. 
+                - Dce cvs -r1 - all routines are rpc. Connection established
+                  via well know port (12100) first then portmapper second.
+                - Dce cvs -r2 - routine rzxform, and supporting modules, linked
+                  directly into Uedge instead of the client rpc stubb. 
+
+Version 4.12_mds  Identical to Version 4.12 above but has package mds added.
+                  This provides access to MDSPlus through which users may
+                  access DIII-D equilibria, time series data, and profile
+                  data to name but a few. (LINUX version only for now)
+
+Version 4.13	Corresponds to CVS archieve of 05/08/02, except the dce file
+		c_dce.c has be corrected (08/15/02) by Meyer and the routines
+		wmodi and wmodo in boundary.m have corrected signs in the
+		definition of fngysi,o used when gas is removed in one
+		source region and injected in another (08/15/02).
+
+Version 4.2	Corresponds to CVS archive of 08/26/02.  Changes include:
+		- Add the ExB boundary velocity for plate flux which got lost
+		  after Ver_3.48.
+		- Now two options for phi on side walls; if iphibcwi,o=0, then
+		  d(phi)/dy=0, or if iphibcwi,o=1, then phi=phintew,o*te/ev.
+		- Allow diamagnetic and B x gradT heat flows for the plate
+		  B.C. if cfeixdbo & cfeexdbo = 1.
+		- Allow the density radial scale length to be poloidally
+		  dependent by setting isulynix=1 & filling lynix(ix,2).
+		- Corrected an error in the sign of re-injected gas on the
+		  outer wall in routine wsmodo.
+		- Corrected impurity isotope counter, nzsp_rt, so that it works
+		  when turning off 1 of 2 or more isotopes through isnion=0.
+		- New core density boundary condition isnicore=5 for dni/dy=0.
+		- Allow modification of total convective gas flux at guard-cell
+		  interface through gcfacgx,y; added (1-rrv**2) factor; similar
+		  factor gcfacgtx,y only effects gradT convective gas flux.
+		  New default has gcfacgx,y=1, but gcfacgtx,y=0 for robustness.
+		- New callable subroutine pradpltwl calculates radiation power
+		  flux on plates and wall; pwr_plth,z and pwr_wallh,z arrays.
+		- Extend zero fluxes for geometry="dnbot" to ix=nxc+-1.
+		- Change difpr meaning and add difp_use to give density diff
+		  velocity prop_to (difpr+difp_use)(1/P)(dP/dr - 1.5ndTe/dr).
+		- Generalized vy_use(ix,iy,ifld) to be species dependent.
+	 	- New option for isbohmcalc=3 gives anomalous diffusion scaling
+		  as (1/B)**inbdif with input coeff. difniv(iy), kyev(iy),etc.
+		- Add array wjdote to hold the J_dot_E electron heating term.
+		- Add routines write_profs_boris & read_profs_boris to exchange
+		  profile data with the BORIS code.
+		- Allow inclusion of only a radial portion of the inner core
+		  region by setting nyomitmx > nysol.
+		- Add a factor cffqpsat that scales the allowable saturation
+		  current in the sheath-potential calculation.
+                - Allow DCE package operation on all platforms.
+		- Include kinetic Pastukhov correction to elec. particle loss
+		  for sheath potential calc; set cfkincor=0 to omit.
+		- Include flux limiting of parallel thermal force through
+		  flalftf; default (1e20) is off, best guess is flalftf=1.
+
+Version 4.21	Corresponds to CVS archive of 09/16/02.  Changes include:
+		- Allow poloidal distribution of extra cells around x-point
+		  (via non-zero nxxpt) to be manipulated independent above (u)
+		  and below (l) the x-point via the parameters alfxptu,l and
+		  alfxpt2u,l that replace alfxpt and alfxpt2.  Here alfxptu,l
+		  controls the spacing of the nxxpt cells relative to each 
+		  other, and alfxpt2u,l adjusts the spacing of the newly
+		  refined region and the one adjacent poloidal cell.
+		- The second "localized" boundary condition for phi on core 
+		  boundary is now applied at the outer midplane rather than 
+		  ixpt2; also, isutcore=2 now gives d^2(ey)/dy^2 = 0 at outer
+		  midplane.
+		- Allow the core boundary condition d^2(up)/dy^2=0 if
+		  isupcore=2.
+	 	- Add option to turn off radial cross-field drifts only at the
+		  private flux and outer wall by setting isybdrywd=1.  This
+		  gives only diffusive flux, for regions where matwallo,i=1, 
+		  that is everwhere outward if a gradient scale-length option
+		  is specified (isnwcono,i=3).
+		- Set default for gas flux-limit flalfgy=1e10, which gives no
+		  flux limit unless reduced by user; defaults for flalfgx,xy
+		  are also 1e10.  All three should be set equal.
+ 
+Version 4.22  Corresponds to CVS archive of 12/10/02.  Changes include:
+                - Changed the defaults for background neutral and impurity
+                  sources with the exponents now ingb=inzb=2 and
+                  ngbackg(ngspmx)=1e14; these changes can have big impact
+		  on previous converged solutions.
+                - Changed the evaluation of the fqy current to include the
+                  points iy=0 and ny; previously omitted because of 2 BC at
+                  each wall. Some effect on the potential.
+                - Added an option to set a constant value of zeff.  Use
+                  iszeffcon as switch and value is zeffcon.
+                - Added separate energy transmission factors for the walls,
+                  called bceew & bceiw; used if iste,ipfc=4 or iste,iwc=4.
+                - Generalized spatially dependent radial diffusion if 
+                  isbohmcalc=3 to give, for example,
+                  dif_use=(Btmid/Bt)**inbtdif*(Bpmid/Bp)**inbpdif. Also include
+                  vy_use=vyconv(iy)*(Btmid/Bt)**inbtdif*(Bpmid/Bp)**inbpdif.
+                - Changed the form of the E-dot-J heating term to use E & J
+                  explicitly, instead of div(J*phi) form based on div(J)=0.
+                  At ix=0 and nx, ex does not include bias-voltage effect.
+                - Special case for recycrb,lb < -1 now gives plate neutral BC
+                  with ng=nglfix or ngrfix.
+ 
+Version 4.3  Corresponds to CVS archive of 06/30/03.  Changes include:
+		- Added a CVS branch for making a PYTHON version of UEDGE;
+		  contact authors.
+		- Added the capability of making UEDGE with the BASIS MIO
+		  software, instead of MMM
+                - Joule heating can now be calculated two ways: jhswitch=1
+		  gives old method where J.E=-div(J*phi) since div(J)=0; and
+		  jhswitch=2 uses J.E directly, with correct BC for biasing.
+                - Changed material-wall boundary conditions to apply for
+		  matwalli,o > 0, rather than previous matwalli,o = 1.
+		- Made electron velocity vey purely diffusive if isybdrywd=1,
+		  just as the ion velocity vy has been.
+		- Corrected array initialization of pwr_wallz,h with
+		  ny+2 --> nx+2 (in pradpltwl)
+		- Corrected ixv viewing index in subroutine pradpltwl to work
+		  properly for full double nulls with 2 x-points.
+		- Corrected re-injected neutral flux to be consistent with
+		  pumped flux at iy=0 and iy=ny+1 (iy=0 & 1 inconsistency).
+		- Corrected minor bug for kfeix at right boundary - only
+		  affects isimpon=5 (Hirshman's reduced-ion impurities).
+		- Removed INEL average-ion impurity model (isimpon=3,4).
+		- Removed the svrpkg="lsode" solver option; use "vodpk"
+		- Corrected flxlimf flux-limiting factor so that ltmax does
+		  not appear in denominator, which can lead to divide by 0.
+		- Omitted initialization of some arrays (te,iwalli,o; bctype;
+		  capx; dphi_iy1; and cfvli) due to IBM SP problem
+		- Added variable yloext and switch isyloext for external dyl/dt
+		  to test coupling to turbulence
+		- Added two user-specified radial velocities, vyte,i_use, 
+		  which yield radial energy fluxes vyte,i_use*te,i*ni; used
+		  for coupling external energy fluxes (e.g., from BOUT).
+		- Moved some calculations from readefit to procefit to support
+		  reading MHD data from files other than aeqdsk & neqdsk; 
+		  target is MDSPLUS.
+		- Removed all calls to allot and instead use gchange; 
+		  facilitates PYTHON version
+		- Added kypton to the ionization energy tables in fimp.m, so
+		  multi-specie kyrpton calculations are possible.
+		- Added two routines to calculate the line emissivities of
+		  hydrogen and impurities based on scripts from Gary Porter.
+		  Uses Isler data.  Subroutine readrates(apidir,fname) reads
+		  data in path apidir having name fname.  Subroutine
+		  calcrates(a,b,c) calculates emissivity c for density a and
+		  electron temperature b.
+		- Added a compiled function to calculate line integrals, called
+		  lineintegral(arg_rz,rvertex,zvertex), which calculates the
+		  integral of the pixel array arg_rz along a path given by the
+		  vector (rvertex(1:2),zvertex(1:2)).  Similar in functionality
+		  to Gary Porter's script lineintegral, but much faster.  Can
+		  now be used in scripts such as write_fslw_H for hydrogen 
+		  lines.
+		- Changed names of startup files defining various paths and
+		  initializations from aph_dir, uedge_path, init.bas to	
+		  .aph_dir, .uedge_path, and .init.bas.  Now if absent, UEDGE
+		  ignores them and proceeds.  Store in uedge/scripts.
+		
+Version 4.31  Temporary version with no public release, approximately 
+		corresponds to CVS archive of 12/02/03.  Changes include:
+		- Physical and chemical sputtering from hydrogen ions incident
+ 		  on the walls included.
+		- The low-energy reduction factor in the Haas chemical
+		  sputtering for isch_sput=7 is now an input variable called
+		  redf_haas.
+		New input variables for wall sputtering:
+		  isi_sputw(igsp) # Determines the outer wall sputtering for
+		  		  # ions for gas species igsp 
+		  isi_sputpf(igsp) # Determines the private flux wall
+		  		   # sputtering for ions for gas species igsp
+		Options:
+		  isi_sputw(igsp) = 0 # No ion sputtering (old case)
+		  isi_sputw(igsp) = 1 # Includes physical sputtering from ions
+  		  isi_sputw(igsp) = 2 # Adds chemical sputtering from ions
+		  		      # using model isch_sput(igsp);  must set
+				      # isch_sput to nonzero value (e.g., 7)
+		  Normally, igsp=2 for the switches above to simulate carbon
+		  in a hydrogen plasma.
+		- Setting isch_sput=7 also turns on the chemical sputtering
+		  from neutral gas as before; this can be scaled by the factor
+		  fchemywo (outer wall) or fchemywi (for private flux region).
+		  However the ion-induced chemical sputtering (from
+		  isi_sputw=2) does not have a scaling factor.
+		- The new sputtering fluxes, multiplied by the cell area, from
+		  the ions are stored in the output arrays:
+		  sputflxw(ix,igsp) # units of particles/sec (positive) 
+		  sputflxpf(ix,igsp) # units of particles/sec (negative)
+			where ix is the usual poloidal index.  These
+			fluxes are added to the impurity gas flux at the wall,
+			in addition to any recycling or pumping specified.
+			Note that impurity sputtering is not included yet.
+		- Also, the reduction factor in the Haas chemical sputtering
+		  model for isch_sput=7 is now a parameter called redf_haas
+		  that can be changed from the UEDGE prompt or in an input
+		  file.  The default is the previous value of 0.2.
+
+Version 4.32  Corresponds to CVS archive of 12/19/03.  Changes include:
+		- All changes noted above in temporary version 4.31
+		- A new LINUX branch for the PYTHON version is added, which
+		  is accessible in uedge/Pyuedge/LINUX.  Requires MPPL and
+		  MAC, but not BASIS; MMM or MIO BASIS builds also work
+		- For istabon=3 (DEGAS tables), charge-exchange rate rcx
+		  now assumes neutral temp = ion temp (before T_n=const)
+		- Corrections, additions to the mesh generating routines:
+		  > for inflx & inflx1, replace redundant nyflx, npsi with
+		    nym, jdim
+		  > other modifications to inflx1 to improve mesh generation
+		  > modified grd/grdwrit & grdcomp.m to work for ishalfm=1, 
+		    corresponding to a half-mesh
+		  > other details from cvs log files flx/flx.v flxread.m 
+		    flxwrit.m flxcomp.m and grd/grd.v grdread.m grdwrit.m
+		    grdcomp.m
+		  > different end-of-mesh test allowed for each plate
+		  > made istcvon flag for controlling search directions in
+		    mesh construction obsolete; use altsearch flag instead
+
+Version 4.33  Corresponds to CVS archive of 02/20/04.  Changes include:
+		- Pyuedge branch has been modified to include MAC (called mac2
+		  to avoid confusion) in uedge/Pyuedge/Mac_scripts and
+		  the pybasis source in uedge/Pyuedge/Pymac_scripts
+		- Pyuedge Makefile cleaned up for LINUX
+		- Updated pybasis with new scripts from Dave Grote, including
+		  his more extensive pyBasis
+		- Removed prefixes flx. from a couple of gallot calls, so
+		  that EFIT files can be used with pyuedge
+		- Change maximum scale lengths for flux limiting gas density
+		  and temp fluxes, lgmax and lgtmax, to be vectors (igsp)
+
+Version 4.34  Corresponds to CVS archive of 07/02/04.  Changes include:
+		- Added user-input fluxes fniyos_use, feeyosn_use, and
+		  feiyosn_use; to fix the fluxes fniy etc to these values,
+		  added evolving vy_cft etc; for BOUT coupling
+		- Added fixed convective components for feey and feiy called
+		  vyte_use and vyti_use, added to kye,i_use for BOUT coupling
+		- Added impurity-impurity collisions (CX & elastic) for large
+		  impurity fractions.  New cross-section sigcxms and elastic
+		  rate keligii; impact neutral diffusion & ion up and ti.
+		  New collision frequencies nucxi, nueli, and nuelg.
+		- New impurity-impurity friction turned on with cfupimpg and
+		  ion temp (ti) cooling turned on with cftiimpg.
+		- Modified subroutines writing DEGAS namelist input files to
+		  account for extra poloidal x-point cells via nxxpt>0 and
+		  different nxcore inside and outside.
+		- Mapping of mesh from UEDGE to DEGAS now utilizes (rm,zm), 
+		  not (cmeshx,cmeshy). Also, wall DEGAS construction now done
+		  in subroutine degasgrid.
+
+Version 4.35  Corresponds to CVS archive of 09/14/04.  Changes include:
+		- Included three more options for hydrogen atomic rates from
+		  D. Stotler (Aug. 2004):
+		    -- istabon=11 for optically thin - same as istabon=10
+		    -- istabon=12 for optically thick Lyman_Alpha
+		    -- istabon=13 for optically thick to all lines
+		- The new hydrogen rates also include diagnostic data for
+		  coupling coefficients of n=4-9 hydrogen lines to the ground
+		  state (called pneX1, where X=n) and to the continuum (pneX2).
+		  Previous only n=2-3 line data was available.
+		- Provided an option to make the toroidal magnetic field a 
+		  constant at bcentrg; set isbphicon=1; used for approximating
+		  stellartors.
+
+Version 4.36  Corresponds to CVS archive of 10/11/04.  Changes include:
+		- Included the escape-factor radiation transport model for
+		  hydrogen Lyman-alpha radiation developed by H. Scott and M.
+		  Adams for UEDGE.  Hydrogen ionization/recombination rates 
+		  and energy loss are now a function of the minimum local 
+		  optical depth for Lyman-alpha  to a boundary surface
+		  [calculated as rtau(ix,iy)].  These use a new hydrogen table
+		  from H. Scott called ehrtau.dat with rates a function of te, 
+		  ne, and rtau. To access the model, set
+		    -- rtauxfac=1 (or positive), and either:
+		    -- istabon=14 gives linear intepolation in rtau, or
+		    -- istabon=15 gives log interpolation in rtau
+		  Note that these models may cause convergence problems
+		  since they give nonlocal dependences for rtau, and no attempt
+		  has yet been made to provide a "good" Jacobian for the 
+  		  preconditioner.
+		- A user-specified radial convective velocity, vyup_use(ix,iy)
+		  has been included to convect parallel momentum energy density
+		  radially.  In anology with vyte_use for Te, values can come
+		  from BOUT in the UEDGE/BOUT coupling.
+
+Version 4.37  Corresponds to CVS archive of 04/03/05.  Changes include:
+		- Changed flags controlling plate temperature BC; ifluxl,r is
+		  now replaced by ibctepl,r and ibctipl,r for electrons and 
+ 		  ions, with l,r denoting left and right plates; =0 for fixed
+		  te=tepltl,r; =1 for sheath trans; =2 for dte,i/dx=0.
+		- Added core density BC that allows user to specify radial
+		  gradients if isnicore=5; lynicore is scale length and
+		  ncoremin is minimum allowed density
+		- For the core density BC isnicore = 3, added the neutral 
+		  current through the core bdry to curcore, i.e., the net ion
+		  current is now curcore-recycc*sum(fngy) over the bdry; 
+		  NOTE: presently, this just applies to hydrogen (species 1).
+		- Added variable core recycling coeff. recycc (=1 default)
+		- NOTE: with Ver_4.34, small added cx scattering included for
+		  impurity ions through sigcxms, but not initialized until 
+		  Ver_4.35-6; thus, may need to set sigcxms=0. to agree with
+		  older cases.
+
+Version 4.38  Corresponds to CVS archive of 05/24/05.  Changes include:
+		- Corrected a bug for reinjecting wall fluxes at remote
+		  locations when iscpli,o = 1 (default=0); previously albedo 
+		  sources were double-counted when remote reinjection used.
+		- Generalized lynix from a 2D array to 3D with the third
+		  index being for density species; used if isulynix=1
+		  (default=0).
+		- Added a third dimension to arrays (wsveh, wsveh0, welms1,
+		  welms2) in subroutine readeh2 of aphread.m. For this routine,
+		  the third index does not vary from unity, but now corrects 
+		  some compiler complaints.
+		- Update the dce/Package file to avoid "for" loops with	
+		  RPC_GENERATED, which can cause compiler problems
+		- Corrected a possible overflow problem on some machines
+		  introduced by changes to bbb/boundary.m, Version 4.37,
+                  concerning recoding the plate temperature boundary 
+		  conditions.
+ 		- The pyuedge make system has been improved by L. LoDestro 
+		  and is included here.  Only of interest for PYTHON users
+		  going down the uedge/Pyuedge branch in the uedge tree; see
+		  uedge/README_Pyuedge for details of how to use.
+		- Added a volume source for diffusive neutrals.  Current is
+		  ivolcurg(igsp); shape uses r,z0ng positions & r,zwng widths.
+
+Version 4.39  Corresponds to CVS archive of 03/17/06.  Changes include:
+		- Corrected a bug in the reinjection of neutral gas from one
+		  "source/pumping" wall region to another.
+		- Added a diagnostic section to jac_calc to stop UEDGE at
+                  a specific Jacobian elements & compare yldot_pert and
+		  yldot_unpt.
+		- Included collisionality factors coll_fe,i for grad_B
+		  drifts, reducing them by 
+		  cfnus_e,i*nu_star_e,i/(1 + cfnus_e,i*nu_star_e,i).
+		- Generalized connection length variable, lcon, to be 2D and
+		  changed name to lconi,e; near separatrix, limit by banana
+		  width defined through temperatures tibsep and tebsep.
+		- Added option to use the neutral pressure, pg=ng*tg, as the
+		  differenced variable for the neutral continuity equation.
+		  This option turned on by ineudif=2 (the option to use 
+		  log(ng) as the variable is now moved to ineudif=3.
+		- Implemented substantial improvements to the Jacobian 
+		  calculation that now captures all elements for orthogonal
+		  meshes and most elements for nonorthogonal; set yinc=2 
+		  as default "box" y-range for the Jacobian calculation. 
+		- Changed to use tg instead of ti in the calculation
+		  of one component of the nonothogonal gas flux (fngxy);
+		  if istgcon=0 (default), tg=ti, and it makes no difference,
+		  but otherwise it will.
+		- Corrected upstream boundary condition to include iy=iysptrx
+		  for the seldom-used isfixlb=1 case that forces the ix=0 BC
+		  to be defined by nibprof, etc. profiles.
+  		- Included potential boundary conditions for the guard cells
+		  that along the limiter with islbcp if islimon=1.
+		- Implemented neutral gas albedo on the core boundary; 
+		  activated for isngcore=0 and pumped flux is
+		  0.25*vtg_bar*ng*(1-albedoc), with albedoc user input.
+		- Implemented a neutral "recycling" model at the core boundary
+		  to account for the fraction of neutral flux into the core
+		  that comes back as ions (should be unity).  This neutral
+		  recycling coefficient, recycc, is activated if isnicore=3.
+		  Note that all other recycling coefficients describe the
+		  opposite process where an ion flux at the wall is returned
+		  as an inward neutral flux.
+		- Added an mhdgeo=2 option for the circular annulus geometry 
+		  that is used for efficient BOUT/UEDGE coupling runs; these 
+		  core-only cases treat ix=0 and ix=nx+1 cells as dummies and 
+		  do not make the usual assignment of ex(0,)=ex(1,) nor 
+		  ex(nx,)=ex(nx-1,).
+		- Added two new variables to control reading the atomic physics
+		  data for hydrogen (newaph=1 is the default) and newapi for 
+		  impurities; prevents problem of too many files open for
+		  time-dependent runs under PYTHON.
+		- Added a switch (itrap_negni) to trap negative ni condition
+		  with an error message rather the "yuck".
+		- Added a coefficient (alftng) to turn on the neutral thermal-
+		  force coefficient (Helander's value is 0.24, but default=0).
+		- Added user-specified volume gas source, psgov_use [1/m**3 s].
+		- Modified the BASIS-replacement routine basfilex in 
+		  com/dummy_py.f to return the input argument instead of 
+		  nothing, which fixes a problem with reading atomic physics 
+		  data in PYTHON version.
+		- For the PYTHON version, users must specify the directory name
+		  aphdir in their input file with its full path.
+		- Added variables rs_com and zs_com to flx.v to pass output of
+		  subr. findstrike via common for python (argument list also
+		  works for BASIS version).
+
+Version 4.40  Corresponds to CVS archive of 08/05/06.  Changes include:
+		- Removed remanent test xlinc<20 and yinc<4  for Jacobian
+		  calculation; can interfere with Jacobian testing, but
+		  had no effect on normal running.
+		- Include the effect of neutral-neutral collisions in the 
+		  definition of the neutral particle diffusivity by using 
+		  rnn2cx in the definition of nucx (previously, rnn2cx term 
+		  only included in thermal and viscous coeff).
+		- Include exponential power factors flgamtg and flgamvg in 
+		  the flux limit expression for the thermal and viscous 
+		  diffusion coefficients.
+		- Added the scaling factor cfloxiplt that multiples the 
+  		  neutral convective energy component at the divertor plates 
+		  through floxi.  Since neutrals move away from the plate, 
+		  the energy contribution from them into the plasma should
+		  be zero, and cfloxiplt=0 produces this effect (but initial 
+		  default=1 for backward compatibility).
+		- Added two indice arrays iym1a and iyp1a to carry the 
+		  (trivial) values of iy-1 and iy+1 over the 2D domain.  
+		  Used as a variable for the MDSPlus data-tree only.
+		- Added a floor-density of 0.1*ngbackg for the isngcore=2 
+		  option, which sets the neutral density on the core 
+		  boundary using the sqrt(l_ioniz*l_cx) criterion.  The 
+		  addition prevents negative boundary neutral densities.
+		- Include the factor csfacti as a multiplier of ti in the 
+		  definition of the plate Bohm speed, cs.
+		- Changed the if-test on isphion to a test on  
+		  isphion+isphiofft so as to calculate the poloidal 
+		  electric field when the potential is temporarily off.  
+		  This fixes a problem with the Jaacobian when trying to 
+		  run with fixed potential.
+		- Included MDSPlus configuration file linux_mds for MIO 
+		  in directory uedge/builder/std; also copy packages_mds
+		  to packages file to include MDSPlus in UEDGE build.
+		- Introduced the spatially-dependent eqn-on-off arrays 
+		  isnionxy(ix,iy,ifld), isuponxy, isteonxy, istionxy, 
+		  isphionxy, and isngonxy. This has resulted in many small 
+		  changes to if-tests for switching equations on and off.
+		  User-specified arrays isnioffxy(ix,iy,ifld), isupoffxy,
+		  isteoffxy, istioffxy, isphioffxy, and isngoffx together 
+		  with the original eqn-on-off arrays isnion, etc. to set 
+		  isnionxy, etc.  That is, isnion still functions as before, 
+		  and the user can set isnioffxy(ix,iy,ifld) to unity to
+		  turn of ni in specific spatial regions.
+
+Version 4.41  Corresponds to CVS archive of 10/18/06.  Changes include:
+		- Corrected some read out-of-bounds problems with help of
+		  M. Rensink associated with the 4.40 version (isnioffxy) 
+		  and more long-standing, e.g., the spline routine for the 
+		  mesh generator.
+                - Corrected another potential read out-of-bounds in 
+		  subroutines nphygeo and nonorthg reported by UCSD where 
+ 	 	  ixlb(2) was used in an if-test if(nxpt=2 .and. ixlb(2)); 
+		  the INTEL compiled code searches for ixlb(2) even when 
+		  nxpt=1 whereas Portland compiled code tests the first 
+		  condition (false) and doesn't cause a problem; use 
+		  ixlb(nxpt) fixes this INTEL problem.
+		- Documented more fully that the parameter MXMISO that sets
+		  the maximum number of impurity isotopes must be set 
+		  consistently in BOTH uedge/api/api.v AND uedge/com/com.v.
+		  Presently, the default is MXMISO=5.
+		- Added MIO configure files to uedge/builder/std provided and
+		  used by UCSD for their Intel compiler.
+		- Made adjustment relative to diffusive neutral model for
+		  hydrogen (rarely used); corrected dimension of cngmom & 
+		  cmwall from ngspmx to nispmx, and use cmwall(ifld) instead 
+		  of cmwall(1) for loss term of radial momentum, but only for 
+		  diffusive hydrogen neutrals; only cngmom(1) and cmwall(1)
+		  should ever be non-zero.
+		- For spatial variation of diffusion coefficients using
+		  isbohmcalc=3, change exponent inbtdif (D,chi~1/Bt**inbtdif)
+		  from an integer to a real, allowing incremental variation.
+		- Added the factor cftaud for scaling the hydrogen-impurity
+		  drag time for the impurity force-balance equation.
+
+
+Version 4.41_mds_shl  Identical to Version 4.41 above but has packages mds  and shl added.

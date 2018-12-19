@@ -1,0 +1,48 @@
+/*
+
+=======================================================
+       Plasma Surface Interaction (PSI) package
+  for simulation of plasma-wall sputtering processes.
+
+                 PSI Version 1.2   
+              Date: March 6, 2007
+
+
+ Copyright 2007 by A.Yu. Pigarov and R.D. Smirnov
+
+
+                   Developers:
+          A.Yu. Pigarov and R.D. Smirnov
+
+
+         E-mails: apigarov@ucsd.edu
+                  rsmirnov@ucsd.edu
+
+    PSI package has been developed as part of
+   the Dust Transport in Tokamaks (DUSTT) code:
+         
+ [1] A.Yu.Pigarov, S.I. Krasheninnikov, T.K. Soboleva,
+     and T.D. Rognlien "Dust-particle transport in
+     tokamak edge plasmas", Phys. Plasmas 12 (2005), 122508.
+ [2] R.D. Smirnov, A.Yu. Pigarov, M. Rosenberg,
+     S.I. Krasheninnikov, and D.A. Mendis "Modelling of
+     dynamics and transport of carbon dust particles in 
+     tokamaks", Plasma Phys. Control. Fusion 49 (2007), 347-371.
+
+
+    The PSI package is distributed in the hope 
+that it will be useful to computational scientists in field
+of fusion plasma and other plasma related studies.
+
+    The PSI package is FREE SOFTWARE. 
+You can use, copy, and modify this software for any purpose
+and without fee provided that the above copyright
+notice appear in all copies.
+
+    The PSI package is distributed "AS IS", 
+i.e. without any warranty including all implied warranties
+of merchantability and fitness.
+   
+=======================================================
+
+*/

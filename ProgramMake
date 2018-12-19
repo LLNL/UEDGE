@@ -1,0 +1,56 @@
+SOURCE LEVEL # otherwise both, & code:: Configure glbtmdat.o fails in ./$(ARCH)
+
+PACKFILES = uedge.pack com/com.pack aph/aph.pack api/api.pack bbb/bbb.pack \
+            dce/dce.pack flx/flx.pack grd/grd.pack wdf/wdf.pack ncl/ncl.pack \
+            idf/idf.pack psi/psi.pack std/std.pack dst/dst.pack
+
+       #  $(ARCH)/Configure in case cvs Configure is later than constituents
+code:: $(ARCH)/Configure glbtmdat.o
+
+xuedge: code
+	/bin/mv $(ARCH)/code $(ARCH)/xuedge
+	chmod 755 $(ARCH)/xuedge
+	/bin/rm -f $(ARCH)/*.cmt
+	/bin/cp */$(ARCH)/*.cmt $(ARCH)
+
+$(ARCH)/Configure: $(PACKFILES) Configure.sys
+	/bin/cat $(PACKFILES) Configure.sys > $(ARCH)/Configure
+	cp -p $(ARCH)/Configure Configure
+
+glbtmdat.o: glbtmdat.f
+	$(FORT) -c $(FF) $(OPT) glbtmdat.f 1>glbtmdat.err 2>&1
+	mv glbtmdat* $(ARCH)
+
+glbtmdat.f:
+	@rm -f glbtmdat.f
+	@echo "      subroutine glbtmdat(time,date)" > glbtmdat.f
+	@echo "      character*(*) time,date" >> glbtmdat.f
+	@echo "      time = '"`date +"%T"`"'" >> glbtmdat.f
+	@echo "      date = '"`date +"%m/%d/%y"`"'" >> glbtmdat.f
+	@echo "      return" >> glbtmdat.f
+	@echo "      end" >> glbtmdat.f
+
+.PHONY: glbtmdat.f
+
+ARCHITECTURE LEVEL
+
+# LOADcpu's and SYSTEM directives making use of $()'s go here.
+
+# Note libs= etc. are config var's only; LOADcpu's are mmm only;
+# $()'s don't work in config's output files /CPU/Objs etc.
+# Following stuff is at bottom of file so don't have to restore general
+# processing if SYSTEM is used.
+
+##
+## VVV alternate method for load-option flags, left here for record:
+
+## SEARCH is added to loadline by mmm for all SYSTEM's
+# SEARCH = /usr/apps/lib_2.0   # SUN4 only; now taken care of using libs.
+
+# LOAD = -lblas      # automatic, at least on SOL
+
+# Switches on the LOADCPU lines below could instead appear in environment
+# variable OPT.  E.g., setenv OPT "-cg92 -O2"
+# -cg92 forces ld to use libraries that contain the symbol cg92_used
+# LOADSUN4 = -cg92   # has already been taken care of in libs
+# LOADSOL = -xcg92     # unneeded, doesn't work with f90

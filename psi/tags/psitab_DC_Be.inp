@@ -1,0 +1,14 @@
+create PSI data file for uedge
+number of wall materials (i3):
+  1
+file names with output PSI data for (one line of FORMAT(A24) for each material)
+DC_Beryllium            
+number of projectiles (i3):
+  2
+array of atomic numbers for wall matterials (10I3):
+  4
+array of atomic numbers for projectiles (10I3):
+  1  6
+array of mass (in amu) for projectiles (10F8.2):
+    2.00   12.00
+1234567:1234567:1234567:

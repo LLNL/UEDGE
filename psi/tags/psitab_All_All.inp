@@ -1,0 +1,20 @@
+create PSI data file for uedge
+number of wall materials (i3):
+  7
+file names with output PSI data for (one line of FORMAT(A24) for each material)
+DLiBeBCFeMoW_Lithium    
+DLiBeBCFeMoW_Beryllium  
+DLiBeBCFeMoW_Boron      
+DLiBeBCFeMoW_Carbon     
+DLiBeBCFeMoW_Iron       
+DLiBeBCFeMoW_Molybdenum 
+DLiBeBCFeMoW_Tungsten   
+number of projectiles (i3):
+  8
+array of atomic numbers for wall matterials (10I3):
+  3  4  5  6 26 42 74
+array of atomic numbers for projectiles (10I3):
+  1  3  4  5  6 26 42 74  
+array of mass (in amu) for projectiles (10F8.2):
+    2.00    7.00    9.00   11.00   12.00   56.00   96.00  184.00
+1234567:1234567:1234567:1234567:1234567:1234567:1234567:1234567:

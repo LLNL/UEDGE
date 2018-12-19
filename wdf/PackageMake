@@ -1,0 +1,7 @@
+SYSTEM HP700
+Macros = ../../sptodp
+
+SYSTEM J90
+FORT         = f90
+FF           = -G1 -v -V
+MPPL_DEFINES = -DCOMPILER=F90   # don't think this matters, but...

@@ -1,0 +1,30 @@
+PKG   = ver
+POINTER = cray
+ROOT  = ver xuedge
+NeedPACK = use
+
+SF = glbtmdat.f
+
+RULE
+
+##PACKFILES = ../uedge.pack ../com/com.pack ../aph/aph.pack \
+##            ../api/api.pack ../bbb/bbb.pack ../dce/dce.pack \
+##            ../flx/flx.pack ../grd/grd.pack ../wdf/wdf.pack
+
+##../Configure: $(PACKFILES) ../Configure.sys
+##	/bin/cat $(PACKFILES) ../Configure.sys > $@
+
+glbtmdat.f:
+	@rm -f glbtmdat.f
+	@echo "      subroutine glbtmdat(time,date)" > glbtmdat.f
+	@echo "      character*(*) time,date" >> glbtmdat.f
+	@a=`date +"%T"` && echo "      time = '$$a'" >> glbtmdat.f
+	@a=`date +"%m/%d/%y"` && echo "      date = '$$a'" >> glbtmdat.f
+	@echo "      return" >> glbtmdat.f
+	@echo "      end" >> glbtmdat.f
+
+.PHONY: glbtmdat.f
+
+ENDRULE
+
+ONEXIT = system("./builder/dcefixup")

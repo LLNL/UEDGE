@@ -1,0 +1,13 @@
+include *
+recursive-include  pyscripts *
+recursive-include  aph *
+recursive-include  api *
+recursive-include  bbb *
+recursive-include  com *
+recursive-include  dst *
+recursive-include  flx *
+recursive-include  grd *
+recursive-include  idf *
+recursive-include  psi *
+recursive-include  svr *
+recursive-include  wdf *

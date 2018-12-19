@@ -1,0 +1,918 @@
+rm -rf build *.so
+/mfe/local/anaconda2/bin/python convertor
+directory list = ['com', 'aph', 'api', 'bbb', 'dce', 'flx', 'grd', 'svr', 'wdf', 'pfb', 'idf', 'psi', 'std', 'dst']
+Output directory already exists; proceeding
+Entering directory com
+processing for file type  M2F
+processing directory com to directory ./com
+Entering directory aph
+processing for file type  M2F
+processing directory aph to directory ./aph
+Entering directory api
+processing for file type  M2F
+processing directory api to directory ./api
+Entering directory bbb
+processing for file type  M2F
+processing directory bbb to directory ./bbb
+Entering directory dce
+processing for file type  M2F
+processing directory dce to directory ./dce
+Entering directory flx
+processing for file type  M2F
+processing directory flx to directory ./flx
+Entering directory grd
+processing for file type  M2F
+processing directory grd to directory ./grd
+Entering directory svr
+processing for file type  M2F
+processing directory svr to directory ./svr
+Entering directory wdf
+processing for file type  M2F
+processing directory wdf to directory ./wdf
+Entering directory pfb
+processing for file type  M2F
+processing directory pfb to directory ./pfb
+Entering directory idf
+processing for file type  M2F
+processing directory idf to directory ./idf
+Entering directory psi
+processing for file type  M2F
+processing directory psi to directory ./psi
+Entering directory std
+processing for file type  M2F
+processing directory std to directory ./std
+Entering directory dst
+processing for file type  M2F
+processing directory dst to directory ./dst
+(cd com;Forthon --builddir ../build -a  -g  -f blasext.F com brent.F comutil.F misc.F mnbrak.F dsum.f dummy_py.f error.f getmsg.f ssum.f dmath.f)
+/home/meyer8/ws/cvsstuff/pyUedge/uedge/com
+  Forthon com.v
+  F90Free com_p.F90
+  F90Fixed blasext.F
+  Preprocess Forthon.h
+  Preprocess Forthon.c
+  F90Fixed brent.F
+  F90Fixed comutil.F
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/com/comutil.F:9927.15:
+
+      GO TO IGO,(120,150,180,210)                                              
+               1
+Warning: Deleted feature: Assigned GOTO statement at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/com/comutil.F:9933.132:
+
+                                                                           
+                                                                           1
+Warning: Deleted feature: ASSIGN statement at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/com/comutil.F:9945.132:
+
+                                                                           
+                                                                           1
+Warning: Deleted feature: ASSIGN statement at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/com/comutil.F:9958.132:
+
+                                                                           
+                                                                           1
+Warning: Deleted feature: ASSIGN statement at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/com/comutil.F:9969.132:
+
+                                                                           
+                                                                           1
+Warning: Deleted feature: ASSIGN statement at (1)
+  F90Fixed misc.F
+  F90Fixed mnbrak.F
+  F90Fixed dsum.f
+  F90Fixed dummy_py.f
+  F90Fixed error.f
+  F90Fixed getmsg.f
+  F90Fixed ssum.f
+  F90Fixed dmath.f
+In file included from ../build/compymodule.c:1:0:
+../build/Forthon.h:59:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*setaction)();
+   ^
+../build/Forthon.h:60:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*getaction)();
+   ^
+../build/Forthon.h:73:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*setaction)();
+   ^
+../build/Forthon.h:74:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*getaction)();
+   ^
+Building package com
+  Setup com
+(cd aph;Forthon --builddir ../build  -a  -g  -f aphrates.F aph aphread.F)
+/home/meyer8/ws/cvsstuff/pyUedge/uedge/aph
+  Forthon aph.v
+  F90Free aph_p.F90
+  F90Fixed aphrates.F
+  F90Fixed aphread.F
+In file included from ../build/aphpymodule.c:1:0:
+../build/Forthon.h:59:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*setaction)();
+   ^
+../build/Forthon.h:60:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*getaction)();
+   ^
+../build/Forthon.h:73:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*setaction)();
+   ^
+../build/Forthon.h:74:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*getaction)();
+   ^
+Building package aph
+  Setup aph
+(cd api;Forthon --builddir ../build  -a  -g  -d com -f apifcn.F api apip93.F apisorc.F fimp.F fmombal.F inelrates.F sputt.F)
+/home/meyer8/ws/cvsstuff/pyUedge/uedge/api
+  Forthon api.v
+  F90Free api_p.F90
+  F90Fixed apifcn.F
+  F90Fixed apip93.F
+  F90Fixed apisorc.F
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/api/apisorc.F:73.37:
+
+         call imp_sorc (nxd, nzsptd, iszsorlb(1,isor),                         
+                                     1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'iszsorlb' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/api/apisorc.F:77.37:
+
+         call imp_sorc (nxd, nzsptd, iszsorlb(1,isor),                         
+                                     1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'iszsorlb' at (1)
+  F90Fixed fimp.F
+  F90Fixed fmombal.F
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/api/fmombal.F:691.7:
+
+     > ' |QBAR/P| < VTHERM')                                                   
+       1
+Warning: Extension: Tab character in format at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/api/fmombal.F:735.7:
+
+     > ' (m/sec)','  LAMBDA =',1pe10.3)                                        
+       1
+Warning: Extension: Tab character in format at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/api/fmombal.F:737.7:
+
+     > ' (m/sec)')                                                             
+       1
+Warning: Extension: Tab character in format at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/api/fmombal.F:740.7:
+
+     > '       DEN         ZI     NU-ION     NU-REC')                          
+       1
+Warning: Extension: Tab character in format at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/api/fmombal.F:744.7:
+
+     > '   GRAD||P   N*GRAD||T')                                               
+       1
+Warning: Extension: Tab character in format at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/api/fmombal.F:752.7:
+
+     > ' E||     = ',1pe11.3/)                                                 
+       1
+Warning: Extension: Tab character in format at (1)
+  F90Fixed inelrates.F
+  F90Fixed sputt.F
+In file included from ../build/apipymodule.c:1:0:
+../build/Forthon.h:59:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*setaction)();
+   ^
+../build/Forthon.h:60:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*getaction)();
+   ^
+../build/Forthon.h:73:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*setaction)();
+   ^
+../build/Forthon.h:74:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*getaction)();
+   ^
+Building package api
+  Setup api
+(cd bbb;Forthon --builddir ../build  -a  -g  --macros ../com/com.v -d com -f boundary.F bbb convert.F geometry.F griddubl.F oderhs.F odesetup.F odesolve.F potencur.F turbulence.F ext_neutrals.F)
+/home/meyer8/ws/cvsstuff/pyUedge/uedge/bbb
+  Forthon bbb.v
+  F90Free bbb_p.F90
+bbb_p.F90:2102.20:
+
+  data uedgescript/"setup_neutrals.bas"/
+                    1
+Warning: Initialization string starting at (1) was truncated to fit the variable (16/18)
+  F90Fixed boundary.F
+  F90Fixed convert.F
+  F90Fixed geometry.F
+  F90Fixed griddubl.F
+  F90Fixed oderhs.F
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:2323.52:
+
+                call volave(nx, ny, j2, j5, i2, i5, ixp1(0,0), ixm1(0,0),      
+                                                    1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'ixp' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:2325.52:
+
+                call volave(nx, ny, j2, j5, i2, i5, ixp1(0,0), ixm1(0,0),      
+                                                    1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'ixp' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:2331.52:
+
+                call volave(nx, ny, j2, j5, i2, i5, ixp1(0,0), ixm1(0,0),      
+                                                    1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'ixp' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:2333.52:
+
+                call volave(nx, ny, j2, j5, i2, i5, ixp1(0,0), ixm1(0,0),      
+                                                    1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'ixp' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:2335.52:
+
+                call volave(nx, ny, j2, j5, i2, i5, ixp1(0,0), ixm1(0,0),      
+                                                    1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'ixp' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:5783.19:
+
+     .             ng(0,0,igsp),fngx(0,0,igsp),fngy(0,0,igsp),0,methg)         
+                   1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'phi' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:6319.19:
+
+     .             pg(0,0,igsp),fngx(0,0,igsp),fngy(0,0,igsp),0,methg)         
+                   1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'phi' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:6885.19:
+
+     .             lng(0,0,igsp),flngx(0,0,igsp),flngy(0,0,igsp),0,methg)      
+                   1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'phi' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:7310.19:
+
+     .             ng(0,0,igsp),fngx(0,0,igsp),fngy(0,0,igsp),0,methg)         
+                   1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'phi' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:7653.29:
+
+          call fd2tra (nx,ny,floxge(0,0,igsp),floyge(0,0,igsp),                
+                             1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'flox' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:3405.22:
+
+     .                up(0,0,ifld),fmix(0,0,ifld),                             
+                      1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'phi' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:10146.45:
+
+         call volavenv(nx, ny, 1, ny, 1, nx, ixp1(0,0), ixm1(0,0),             
+                                             1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'ixp' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:10151.49:
+
+             call volavenv(nx, ny, 1, ny, 1, nx, ixp1(0,0), ixm1(0,0),         
+                                                 1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'ixp' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:11064.47:
+
+     .      call gfsub3 (nunit,nx,ny,nxd,nyd,1,ni(0,0,ifld))                   
+                                               1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'dummy' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:11068.47:
+
+     .      call gfsub3 (nunit,nx,ny,nxd,nyd,1,uu(0,0,ifld))                   
+                                               1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'dummy' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:11072.47:
+
+     .      call gfsub3 (nunit,nx,ny,nxd,nyd,1,vy(0,0,ifld))                   
+                                               1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'dummy' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:11074.41:
+
+      call gfsub3 (nunit,nx,ny,nxd,nyd,1,te(0,0))                              
+                                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'dummy' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:11075.41:
+
+      call gfsub3 (nunit,nx,ny,nxd,nyd,1,ti(0,0))                              
+                                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'dummy' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:11076.41:
+
+      call gfsub3 (nunit,nx,ny,nxd,nyd,1,pr(0,0))                              
+                                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'dummy' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:11079.47:
+
+     .      call gfsub3 (nunit,nx,ny,nxd,nyd,1,upi(0,0,ifld))                  
+                                               1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'dummy' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:11081.41:
+
+      call gfsub3 (nunit,nx,ny,nxd,nyd,1,rr(0,0))                              
+                                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'dummy' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:11084.47:
+
+     .      call gfsub3 (nunit,nx,ny,nxd,nyd,1,fnix(0,0,ifld))                 
+                                               1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'dummy' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:11088.47:
+
+     .      call gfsub3 (nunit,nx,ny,nxd,nyd,1,fniy(0,0,ifld))                 
+                                               1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'dummy' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:11090.41:
+
+      call gfsub3 (nunit,nx,ny,nxd,nyd,1,feix(0,0))                            
+                                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'dummy' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:11091.41:
+
+      call gfsub3 (nunit,nx,ny,nxd,nyd,1,feiy(0,0))                            
+                                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'dummy' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:11092.41:
+
+      call gfsub3 (nunit,nx,ny,nxd,nyd,1,feex(0,0))                            
+                                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'dummy' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:11093.41:
+
+      call gfsub3 (nunit,nx,ny,nxd,nyd,1,feey(0,0))                            
+                                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'dummy' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:11094.41:
+
+      call gfsub3 (nunit,nx,ny,nxd,nyd,1,vol(0,0))                             
+                                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'dummy' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/bbb/oderhs.F:11097.41:
+
+      call gfsub3 (nunit,nx,ny,nxd,nyd,1,b(0,0,0))                             
+                                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'dummy' at (1)
+  F90Fixed odesetup.F
+  F90Fixed odesolve.F
+  F90Fixed potencur.F
+  F90Fixed turbulence.F
+  F90Fixed ext_neutrals.F
+In file included from ../build/bbbpymodule.c:1:0:
+../build/Forthon.h:59:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*setaction)();
+   ^
+../build/Forthon.h:60:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*getaction)();
+   ^
+../build/Forthon.h:73:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*setaction)();
+   ^
+../build/Forthon.h:74:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*getaction)();
+   ^
+Building package bbb
+  Setup bbb
+(cd flx;Forthon --builddir ../build  -a  -g  -d com -f flxcomp.F flx flxdriv.F flxread.F flxwrit.F)
+/home/meyer8/ws/cvsstuff/pyUedge/uedge/flx
+  Forthon flx.v
+  F90Free flx_p.F90
+  F90Fixed flxcomp.F
+  F90Fixed flxdriv.F
+  F90Fixed flxread.F
+  F90Fixed flxwrit.F
+In file included from ../build/flxpymodule.c:1:0:
+../build/Forthon.h:59:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*setaction)();
+   ^
+../build/Forthon.h:60:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*getaction)();
+   ^
+../build/Forthon.h:73:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*setaction)();
+   ^
+../build/Forthon.h:74:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*getaction)();
+   ^
+Building package flx
+  Setup flx
+(cd grd;Forthon --builddir ../build  -a  -g  -d com -f grdcomp.F grd grddriv.F grdinit.F grdread.F grdwrit.F)
+/home/meyer8/ws/cvsstuff/pyUedge/uedge/grd
+  Forthon grd.v
+  F90Free grd_p.F90
+  F90Fixed grdcomp.F
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:3316.25:
+
+     &                   xcurveg(lim1,j),ycurveg(lim1,j),lim1,lim2,            
+                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:1638.25:
+
+     &                   xmsh(i1msh),ymsh(i1msh),i1msh,i2msh,                  
+                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:1676.25:
+
+     &                   xcrv(i1crv),ycrv(i1crv),i1crv,i2crv,                  
+                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:1700.26:
+
+     &                    xcrv(i1crv),ycrv(i1crv),i1crv,i2crv,                 
+                          1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:2495.25:
+
+     &                   xcrv(i1crv),ycrv(i1crv),i1crv,i2crv,                  
+                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:2516.25:
+
+     &                   xcrv(i1crv),ycrv(i1crv),i1crv,i2crv,                  
+                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:1837.25:
+
+     &                   xcrv(i1crv),ycrv(i1crv),i1crv,i2crv,                  
+                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:1853.26:
+
+     &                    xcrv(i1crv),ycrv(i1crv),i1crv,i2crv,                 
+                          1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:2152.25:
+
+     &                   xmsh(i1msh),ymsh(i1msh),i1msh,i2msh,                  
+                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:2189.25:
+
+     &                   xcrv(i1crv),ycrv(i1crv),i1crv,i2crv,                  
+                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:2205.25:
+
+     &                   xcrv(i1crv),ycrv(i1crv),i1crv,i2crv,                  
+                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:2222.25:
+
+     &                   xcrv(i1crv),ycrv(i1crv),i1crv,i2crv,                  
+                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:2241.26:
+
+     &                    xcrv(ict),ycrv(ict),ict,i2crv,                       
+                          1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:2254.26:
+
+     &                    xcrv(i1crv),ycrv(i1crv),i1crv,i2crv,                 
+                          1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:2354.26:
+
+     &                    xcrv(i1crv),ycrv(i1crv),i1crv,i2crv,                 
+                          1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:5822.25:
+
+     &                   xcrv(i1crv),ycrv(i1crv),i1crv,i2crv,                  
+                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:5833.25:
+
+     &                   xcrv(i1crv),ycrv(i1crv),i1crv,i2crv,                  
+                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:5844.25:
+
+     &                   xcrv(i1crv),ycrv(i1crv),i1crv,i2crv,                  
+                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:5897.26:
+
+     &                    xcrv(i1crv),ycrv(i1crv),i1crv,i2crv,                 
+                          1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:5162.22:
+
+     &                xmsh(i1msh),ymsh(i1msh),i1msh,i2msh,                     
+                      1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:5217.25:
+
+     &                   xcrv(i1crv),ycrv(i1crv),i1crv,i2crv,                  
+                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:5233.25:
+
+     &                   xcrv(i1crv),ycrv(i1crv),i1crv,i2crv,                  
+                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:5250.25:
+
+     &                   xcrv(i1crv),ycrv(i1crv),i1crv,i2crv,                  
+                         1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:5269.26:
+
+     &                    xcrv(ict),ycrv(ict),ict,i2crv,                       
+                          1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdcomp.F:5331.26:
+
+     &                    xcrv(i1crv),ycrv(i1crv),i1crv,i2crv,                 
+                          1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'x2' at (1)
+  F90Fixed grddriv.F
+  F90Fixed grdinit.F
+  F90Fixed grdread.F
+  F90Fixed grdwrit.F
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/grd/grdwrit.F:1558.28:
+
+               call smoothx(rmm(0,ii),zmm(0,ii),0,nym,0,nym,quadrant)          
+                            1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'rmm' at (1)
+In file included from ../build/grdpymodule.c:1:0:
+../build/Forthon.h:59:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*setaction)();
+   ^
+../build/Forthon.h:60:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*getaction)();
+   ^
+../build/Forthon.h:73:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*setaction)();
+   ^
+../build/Forthon.h:74:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*getaction)();
+   ^
+Building package grd
+  Setup grd
+(cd svr;Forthon --builddir ../build  -a  -g  -f daspk.F svr nksol.F svrut1.F svrut2.F svrut3.F svrut4.F vodpk.F uoa.F daux1.f )
+/home/meyer8/ws/cvsstuff/pyUedge/uedge/svr
+  Forthon svr.v
+  F90Free svr_p.F90
+  F90Fixed daspk.F
+  F90Fixed nksol.F
+  F90Fixed svrut1.F
+  F90Fixed svrut2.F
+  F90Fixed svrut3.F
+  F90Fixed svrut4.F
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/svr/svrut4.F:2176.132:
+
+                                                                           
+                                                                           1
+Warning: Deleted feature: ASSIGN statement at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/svr/svrut4.F:2178.132:
+
+                                                                           
+                                                                           1
+Warning: Deleted feature: ASSIGN statement at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/svr/svrut4.F:2205.132:
+
+                                                                           
+                                                                           1
+Warning: Deleted feature: ASSIGN statement at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/svr/svrut4.F:2207.132:
+
+                                                                           
+                                                                           1
+Warning: Deleted feature: ASSIGN statement at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/svr/svrut4.F:2209.132:
+
+                                                                           
+                                                                           1
+Warning: Deleted feature: ASSIGN statement at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/svr/svrut4.F:2223.132:
+
+                                                                           
+                                                                           1
+Warning: Deleted feature: ASSIGN statement at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/svr/svrut4.F:2225.132:
+
+                                                                           
+                                                                           1
+Warning: Deleted feature: ASSIGN statement at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/svr/svrut4.F:2227.132:
+
+                                                                           
+                                                                           1
+Warning: Deleted feature: ASSIGN statement at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/svr/svrut4.F:2231.132:
+
+                                                                           
+                                                                           1
+Warning: Deleted feature: ASSIGN statement at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/svr/svrut4.F:2233.132:
+
+                                                                           
+                                                                           1
+Warning: Deleted feature: ASSIGN statement at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/svr/svrut4.F:2235.132:
+
+                                                                           
+                                                                           1
+Warning: Deleted feature: ASSIGN statement at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/svr/svrut4.F:2180.20:
+
+      write (ptrfmt,ix) nperli,len                                             
+                    1
+Warning: Deleted feature: ASSIGNED variable in FORMAT tag at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/svr/svrut4.F:2212.22:
+
+         write(valfmt,ix) nperli,len,ifmt                                      
+                      1
+Warning: Deleted feature: ASSIGNED variable in FORMAT tag at (1)
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/svr/svrut4.F:2239.22:
+
+         write(valfmt,ix) nperli,len,ifmt                                      
+                      1
+Warning: Deleted feature: ASSIGNED variable in FORMAT tag at (1)
+  F90Fixed vodpk.F
+  F90Fixed uoa.F
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/svr/uoa.F:68.18:
+
+     .            w_uoa(ixb), w_uoa(ixo), w_uoa(ixn), w_uoa(ixp),              
+                  1
+Warning: Element of assumed-shaped or pointer array passed to array dummy argument 'xbase' at (1)
+  F90Fixed daux1.f
+/mfe/workspace/meyer8/cvsstuff/pyUedge/uedge/svr/daux1.f:800.21:
+
+      call dgbfa(abd,lda,n,ml,mu,ipvt,info)                                    
+                     1
+Warning: Type mismatch in argument 'lda' at (1); passed INTEGER(4) to INTEGER(8)
+In file included from ../build/svrpymodule.c:1:0:
+../build/Forthon.h:59:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*setaction)();
+   ^
+../build/Forthon.h:60:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*getaction)();
+   ^
+../build/Forthon.h:73:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*setaction)();
+   ^
+../build/Forthon.h:74:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*getaction)();
+   ^
+Building package svr
+  Setup svr
+(cd wdf;Forthon --builddir ../build  -a  -g  wdf)
+/home/meyer8/ws/cvsstuff/pyUedge/uedge/wdf
+  Forthon wdf.v
+  F90Free wdf_p.F90
+  F90Fixed wdf.F
+In file included from ../build/wdfpymodule.c:1:0:
+../build/Forthon.h:59:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*setaction)();
+   ^
+../build/Forthon.h:60:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*getaction)();
+   ^
+../build/Forthon.h:73:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*setaction)();
+   ^
+../build/Forthon.h:74:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*getaction)();
+   ^
+../build/Forthon.h:140:12: warning: ‘Forthon_checksubroutineargtype’ defined but not used [-Wunused-function]
+ static int Forthon_checksubroutineargtype(PyObject *pyobj,int type_num)
+            ^
+../build/Forthon.h:173:13: warning: ‘Forthon_restoresubroutineargs’ defined but not used [-Wunused-function]
+ static void Forthon_restoresubroutineargs(int n,PyObject **pyobj,
+             ^
+Building package wdf
+  Setup wdf
+rm -f uedgeC.so
+/mfe/local/anaconda2/bin/python setup.py  build --build-platlib .
+running build
+running build_ext
+building 'uedgeC' extension
+creating build/temp.linux-x86_64-2.7
+creating build/temp.linux-x86_64-2.7/build
+creating build/temp.linux-x86_64-2.7/com
+gcc -pthread -B /mfe/local/anaconda2_5.0.1/compiler_compat -Wl,--sysroot=/ -fno-strict-aliasing -g -O2 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -DWITH_NUMERIC=0 -DFORTHON_PKGNAME="uedgeC" -Ibuild -I/mfe/local/anaconda2/include/python2.7 -c uedgeC_Forthon.c -o build/temp.linux-x86_64-2.7/uedgeC_Forthon.o
+In file included from uedgeC_Forthon.c:7:0:
+build/Forthon.h:59:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*setaction)();
+   ^
+build/Forthon.h:60:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*getaction)();
+   ^
+build/Forthon.h:73:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*setaction)();
+   ^
+build/Forthon.h:74:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*getaction)();
+   ^
+uedgeC_Forthon.c: In function ‘inituedgeC’:
+uedgeC_Forthon.c:32:3: warning: implicit declaration of function ‘initcompy’ [-Wimplicit-function-declaration]
+   initcompy();
+   ^
+uedgeC_Forthon.c:33:3: warning: implicit declaration of function ‘initaphpy’ [-Wimplicit-function-declaration]
+   initaphpy();
+   ^
+uedgeC_Forthon.c:34:3: warning: implicit declaration of function ‘initapipy’ [-Wimplicit-function-declaration]
+   initapipy();
+   ^
+uedgeC_Forthon.c:35:3: warning: implicit declaration of function ‘initbbbpy’ [-Wimplicit-function-declaration]
+   initbbbpy();
+   ^
+uedgeC_Forthon.c:36:3: warning: implicit declaration of function ‘initflxpy’ [-Wimplicit-function-declaration]
+   initflxpy();
+   ^
+uedgeC_Forthon.c:37:3: warning: implicit declaration of function ‘initgrdpy’ [-Wimplicit-function-declaration]
+   initgrdpy();
+   ^
+uedgeC_Forthon.c:38:3: warning: implicit declaration of function ‘initsvrpy’ [-Wimplicit-function-declaration]
+   initsvrpy();
+   ^
+uedgeC_Forthon.c:39:3: warning: implicit declaration of function ‘initwdfpy’ [-Wimplicit-function-declaration]
+   initwdfpy();
+   ^
+In file included from uedgeC_Forthon.c:7:0:
+uedgeC_Forthon.c: At top level:
+build/Forthon.h:2469:21: warning: ‘ForthonType’ defined but not used [-Wunused-variable]
+ static PyTypeObject ForthonType = {
+                     ^
+In file included from uedgeC_Forthon.c:7:0:
+build/Forthon.h:140:12: warning: ‘Forthon_checksubroutineargtype’ defined but not used [-Wunused-function]
+ static int Forthon_checksubroutineargtype(PyObject *pyobj,int type_num)
+            ^
+build/Forthon.h:173:13: warning: ‘Forthon_restoresubroutineargs’ defined but not used [-Wunused-function]
+ static void Forthon_restoresubroutineargs(int n,PyObject **pyobj,
+             ^
+In file included from uedgeC_Forthon.c:7:0:
+build/Forthon.h:209:13: warning: ‘Forthon_BuildDicts’ defined but not used [-Wunused-function]
+ static void Forthon_BuildDicts(ForthonObject *self)
+             ^
+build/Forthon.h:343:13: warning: ‘ForthonPackage_allotdims’ defined but not used [-Wunused-function]
+ static void ForthonPackage_allotdims(ForthonObject *self)
+             ^
+build/Forthon.h:361:13: warning: ‘ForthonPackage_staticarrays’ defined but not used [-Wunused-function]
+ static void ForthonPackage_staticarrays(ForthonObject *self)
+             ^
+gcc -pthread -B /mfe/local/anaconda2_5.0.1/compiler_compat -Wl,--sysroot=/ -fno-strict-aliasing -g -O2 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -DWITH_NUMERIC=0 -DFORTHON_PKGNAME="uedgeC" -Ibuild -I/mfe/local/anaconda2/include/python2.7 -c build/Forthon.c -o build/temp.linux-x86_64-2.7/build/Forthon.o
+gcc -pthread -B /mfe/local/anaconda2_5.0.1/compiler_compat -Wl,--sysroot=/ -fno-strict-aliasing -g -O2 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -DWITH_NUMERIC=0 -DFORTHON_PKGNAME="uedgeC" -Ibuild -I/mfe/local/anaconda2/include/python2.7 -c com/handlers.c -o build/temp.linux-x86_64-2.7/com/handlers.o
+com/handlers.c:17:1: warning: return type defaults to ‘int’ [-Wreturn-type]
+ fcntl_(int *fildes, int *cmd, int *args) {
+ ^
+com/handlers.c: In function ‘fcntl_’:
+com/handlers.c:20:3: warning: implicit declaration of function ‘fcntl’ [-Wimplicit-function-declaration]
+   i = fcntl(*fildes, *cmd, *args);
+   ^
+com/handlers.c: At top level:
+com/handlers.c:27:1: warning: return type defaults to ‘int’ [-Wreturn-type]
+ rdfile_(int *fildes, char *buf, int *nbyte) {
+ ^
+com/handlers.c: In function ‘rdfile_’:
+com/handlers.c:30:3: warning: implicit declaration of function ‘read’ [-Wimplicit-function-declaration]
+   i = read(*fildes, buf, *nbyte);
+   ^
+gcc -pthread -B /mfe/local/anaconda2_5.0.1/compiler_compat -Wl,--sysroot=/ -fno-strict-aliasing -g -O2 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -DWITH_NUMERIC=0 -DFORTHON_PKGNAME="uedgeC" -Ibuild -I/mfe/local/anaconda2/include/python2.7 -c com/vector.c -o build/temp.linux-x86_64-2.7/com/vector.o
+com/vector.c: In function ‘nvnewr_’:
+com/vector.c:89:3: warning: implicit declaration of function ‘malloc’ [-Wimplicit-function-declaration]
+   vr = (real *) malloc(N * sizeof(real));
+   ^
+com/vector.c:89:17: warning: incompatible implicit declaration of built-in function ‘malloc’ [enabled by default]
+   vr = (real *) malloc(N * sizeof(real));
+                 ^
+com/vector.c:91:5: warning: implicit declaration of function ‘free’ [-Wimplicit-function-declaration]
+     free(vr);
+     ^
+com/vector.c:91:5: warning: incompatible implicit declaration of built-in function ‘free’ [enabled by default]
+com/vector.c: In function ‘nvnewi_’:
+com/vector.c:116:20: warning: incompatible implicit declaration of built-in function ‘malloc’ [enabled by default]
+   vr = (integer *) malloc(N * sizeof(integer));
+                    ^
+com/vector.c:118:5: warning: incompatible implicit declaration of built-in function ‘free’ [enabled by default]
+     free(vr);
+     ^
+com/vector.c: In function ‘nvfreei_’:
+com/vector.c:131:3: warning: incompatible implicit declaration of built-in function ‘free’ [enabled by default]
+   free(x);
+   ^
+com/vector.c:131:3: warning: passing argument 1 of ‘free’ makes pointer from integer without a cast [enabled by default]
+com/vector.c:131:3: note: expected ‘void *’ but argument is of type ‘integer’
+gcc -pthread -shared -B /mfe/local/anaconda2_5.0.1/compiler_compat -L/mfe/local/anaconda2_5.0.1/lib -Wl,-rpath=/mfe/local/anaconda2_5.0.1/lib -Wl,--no-as-needed -Wl,--sysroot=/ build/temp.linux-x86_64-2.7/uedgeC_Forthon.o build/temp.linux-x86_64-2.7/build/Forthon.o build/temp.linux-x86_64-2.7/com/handlers.o build/temp.linux-x86_64-2.7/com/vector.o build/aph_p.o build/aphpymodule.o build/api_p.o build/apipymodule.o build/bbb_p.o build/bbbpymodule.o build/com_p.o build/compymodule.o build/flx_p.o build/flxpymodule.o build/grd_p.o build/grdpymodule.o build/svr_p.o build/svrpymodule.o build/wdf_p.o build/wdfpymodule.o build/aphrates.o build/aphread.o build/apifcn.o build/apip93.o build/apisorc.o build/fimp.o build/fmombal.o build/inelrates.o build/sputt.o build/boundary.o build/convert.o build/geometry.o build/griddubl.o build/oderhs.o build/odesetup.o build/odesolve.o build/potencur.o build/ext_neutrals.o build/turbulence.o build/blasext.o build/brent.o build/comutil.o build/misc.o build/mnbrak.o build/flxcomp.o build/flxdriv.o build/flxread.o build/flxwrit.o build/grdcomp.o build/grddriv.o build/grdinit.o build/grdread.o build/grdwrit.o build/daspk.o build/nksol.o build/svrut1.o build/svrut2.o build/svrut3.o build/svrut4.o build/vodpk.o build/uoa.o build/dsum.o build/dummy_py.o build/error.o build/getmsg.o build/dmath.o build/ssum.o build/daux1.o build/wdf.o -L/mfe/local/lib -L/usr/local/pact/pact10_08_25/lib -L/usr/local/basis/vbasis/lib -L/mfe/local/anaconda2_5.0.1/lib -lpdb -lpml -lscore -llapack -lblas -lm -lgfortran -lpython2.7 -o ./uedgeC.so -g -Wl,--trace-symbol=dasum_
+build/blasext.o: reference to dasum_
+build/comutil.o: reference to dasum_
+build/dmath.o: definition of dasum_
+build/daux1.o: reference to dasum_
+/mfe/local/lib/libblas.so: reference to dasum_
+/mfe/local/anaconda2/bin/python setup.py  install
+running install
+running build
+running build_ext
+building 'uedgeC' extension
+gcc -pthread -B /mfe/local/anaconda2_5.0.1/compiler_compat -Wl,--sysroot=/ -fno-strict-aliasing -g -O2 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -DWITH_NUMERIC=0 -DFORTHON_PKGNAME="uedgeC" -Ibuild -I/mfe/local/anaconda2/include/python2.7 -c uedgeC_Forthon.c -o build/temp.linux-x86_64-2.7/uedgeC_Forthon.o
+In file included from uedgeC_Forthon.c:7:0:
+build/Forthon.h:59:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*setaction)();
+   ^
+build/Forthon.h:60:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*getaction)();
+   ^
+build/Forthon.h:73:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*setaction)();
+   ^
+build/Forthon.h:74:3: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+   void (*getaction)();
+   ^
+uedgeC_Forthon.c: In function ‘inituedgeC’:
+uedgeC_Forthon.c:32:3: warning: implicit declaration of function ‘initcompy’ [-Wimplicit-function-declaration]
+   initcompy();
+   ^
+uedgeC_Forthon.c:33:3: warning: implicit declaration of function ‘initaphpy’ [-Wimplicit-function-declaration]
+   initaphpy();
+   ^
+uedgeC_Forthon.c:34:3: warning: implicit declaration of function ‘initapipy’ [-Wimplicit-function-declaration]
+   initapipy();
+   ^
+uedgeC_Forthon.c:35:3: warning: implicit declaration of function ‘initbbbpy’ [-Wimplicit-function-declaration]
+   initbbbpy();
+   ^
+uedgeC_Forthon.c:36:3: warning: implicit declaration of function ‘initflxpy’ [-Wimplicit-function-declaration]
+   initflxpy();
+   ^
+uedgeC_Forthon.c:37:3: warning: implicit declaration of function ‘initgrdpy’ [-Wimplicit-function-declaration]
+   initgrdpy();
+   ^
+uedgeC_Forthon.c:38:3: warning: implicit declaration of function ‘initsvrpy’ [-Wimplicit-function-declaration]
+   initsvrpy();
+   ^
+uedgeC_Forthon.c:39:3: warning: implicit declaration of function ‘initwdfpy’ [-Wimplicit-function-declaration]
+   initwdfpy();
+   ^
+In file included from uedgeC_Forthon.c:7:0:
+uedgeC_Forthon.c: At top level:
+build/Forthon.h:2469:21: warning: ‘ForthonType’ defined but not used [-Wunused-variable]
+ static PyTypeObject ForthonType = {
+                     ^
+In file included from uedgeC_Forthon.c:7:0:
+build/Forthon.h:140:12: warning: ‘Forthon_checksubroutineargtype’ defined but not used [-Wunused-function]
+ static int Forthon_checksubroutineargtype(PyObject *pyobj,int type_num)
+            ^
+build/Forthon.h:173:13: warning: ‘Forthon_restoresubroutineargs’ defined but not used [-Wunused-function]
+ static void Forthon_restoresubroutineargs(int n,PyObject **pyobj,
+             ^
+In file included from uedgeC_Forthon.c:7:0:
+build/Forthon.h:209:13: warning: ‘Forthon_BuildDicts’ defined but not used [-Wunused-function]
+ static void Forthon_BuildDicts(ForthonObject *self)
+             ^
+build/Forthon.h:343:13: warning: ‘ForthonPackage_allotdims’ defined but not used [-Wunused-function]
+ static void ForthonPackage_allotdims(ForthonObject *self)
+             ^
+build/Forthon.h:361:13: warning: ‘ForthonPackage_staticarrays’ defined but not used [-Wunused-function]
+ static void ForthonPackage_staticarrays(ForthonObject *self)
+             ^
+gcc -pthread -B /mfe/local/anaconda2_5.0.1/compiler_compat -Wl,--sysroot=/ -fno-strict-aliasing -g -O2 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -DWITH_NUMERIC=0 -DFORTHON_PKGNAME="uedgeC" -Ibuild -I/mfe/local/anaconda2/include/python2.7 -c build/Forthon.c -o build/temp.linux-x86_64-2.7/build/Forthon.o
+gcc -pthread -B /mfe/local/anaconda2_5.0.1/compiler_compat -Wl,--sysroot=/ -fno-strict-aliasing -g -O2 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -DWITH_NUMERIC=0 -DFORTHON_PKGNAME="uedgeC" -Ibuild -I/mfe/local/anaconda2/include/python2.7 -c com/handlers.c -o build/temp.linux-x86_64-2.7/com/handlers.o
+com/handlers.c:17:1: warning: return type defaults to ‘int’ [-Wreturn-type]
+ fcntl_(int *fildes, int *cmd, int *args) {
+ ^
+com/handlers.c: In function ‘fcntl_’:
+com/handlers.c:20:3: warning: implicit declaration of function ‘fcntl’ [-Wimplicit-function-declaration]
+   i = fcntl(*fildes, *cmd, *args);
+   ^
+com/handlers.c: At top level:
+com/handlers.c:27:1: warning: return type defaults to ‘int’ [-Wreturn-type]
+ rdfile_(int *fildes, char *buf, int *nbyte) {
+ ^
+com/handlers.c: In function ‘rdfile_’:
+com/handlers.c:30:3: warning: implicit declaration of function ‘read’ [-Wimplicit-function-declaration]
+   i = read(*fildes, buf, *nbyte);
+   ^
+gcc -pthread -B /mfe/local/anaconda2_5.0.1/compiler_compat -Wl,--sysroot=/ -fno-strict-aliasing -g -O2 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -DWITH_NUMERIC=0 -DFORTHON_PKGNAME="uedgeC" -Ibuild -I/mfe/local/anaconda2/include/python2.7 -c com/vector.c -o build/temp.linux-x86_64-2.7/com/vector.o
+com/vector.c: In function ‘nvnewr_’:
+com/vector.c:89:3: warning: implicit declaration of function ‘malloc’ [-Wimplicit-function-declaration]
+   vr = (real *) malloc(N * sizeof(real));
+   ^
+com/vector.c:89:17: warning: incompatible implicit declaration of built-in function ‘malloc’ [enabled by default]
+   vr = (real *) malloc(N * sizeof(real));
+                 ^
+com/vector.c:91:5: warning: implicit declaration of function ‘free’ [-Wimplicit-function-declaration]
+     free(vr);
+     ^
+com/vector.c:91:5: warning: incompatible implicit declaration of built-in function ‘free’ [enabled by default]
+com/vector.c: In function ‘nvnewi_’:
+com/vector.c:116:20: warning: incompatible implicit declaration of built-in function ‘malloc’ [enabled by default]
+   vr = (integer *) malloc(N * sizeof(integer));
+                    ^
+com/vector.c:118:5: warning: incompatible implicit declaration of built-in function ‘free’ [enabled by default]
+     free(vr);
+     ^
+com/vector.c: In function ‘nvfreei_’:
+com/vector.c:131:3: warning: incompatible implicit declaration of built-in function ‘free’ [enabled by default]
+   free(x);
+   ^
+com/vector.c:131:3: warning: passing argument 1 of ‘free’ makes pointer from integer without a cast [enabled by default]
+com/vector.c:131:3: note: expected ‘void *’ but argument is of type ‘integer’
+creating build/lib.linux-x86_64-2.7
+gcc -pthread -shared -B /mfe/local/anaconda2_5.0.1/compiler_compat -L/mfe/local/anaconda2_5.0.1/lib -Wl,-rpath=/mfe/local/anaconda2_5.0.1/lib -Wl,--no-as-needed -Wl,--sysroot=/ build/temp.linux-x86_64-2.7/uedgeC_Forthon.o build/temp.linux-x86_64-2.7/build/Forthon.o build/temp.linux-x86_64-2.7/com/handlers.o build/temp.linux-x86_64-2.7/com/vector.o build/aph_p.o build/aphpymodule.o build/api_p.o build/apipymodule.o build/bbb_p.o build/bbbpymodule.o build/com_p.o build/compymodule.o build/flx_p.o build/flxpymodule.o build/grd_p.o build/grdpymodule.o build/svr_p.o build/svrpymodule.o build/wdf_p.o build/wdfpymodule.o build/aphrates.o build/aphread.o build/apifcn.o build/apip93.o build/apisorc.o build/fimp.o build/fmombal.o build/inelrates.o build/sputt.o build/boundary.o build/convert.o build/geometry.o build/griddubl.o build/oderhs.o build/odesetup.o build/odesolve.o build/potencur.o build/ext_neutrals.o build/turbulence.o build/blasext.o build/brent.o build/comutil.o build/misc.o build/mnbrak.o build/flxcomp.o build/flxdriv.o build/flxread.o build/flxwrit.o build/grdcomp.o build/grddriv.o build/grdinit.o build/grdread.o build/grdwrit.o build/daspk.o build/nksol.o build/svrut1.o build/svrut2.o build/svrut3.o build/svrut4.o build/vodpk.o build/uoa.o build/dsum.o build/dummy_py.o build/error.o build/getmsg.o build/dmath.o build/ssum.o build/daux1.o build/wdf.o -L/mfe/local/lib -L/usr/local/pact/pact10_08_25/lib -L/usr/local/basis/vbasis/lib -L/mfe/local/anaconda2_5.0.1/lib -lpdb -lpml -lscore -llapack -lblas -lm -lgfortran -lpython2.7 -o build/lib.linux-x86_64-2.7/uedgeC.so -g -Wl,--trace-symbol=dasum_
+build/blasext.o: reference to dasum_
+build/comutil.o: reference to dasum_
+build/dmath.o: definition of dasum_
+build/daux1.o: reference to dasum_
+/mfe/local/lib/libblas.so: reference to dasum_
+running install_lib
+copying build/lib.linux-x86_64-2.7/uedgeC.so -> /mfe/local/anaconda2/lib/python2.7/site-packages
+running install_egg_info
+Removing /mfe/local/anaconda2/lib/python2.7/site-packages/uedgeC-3.0-py2.7.egg-info
+Writing /mfe/local/anaconda2/lib/python2.7/site-packages/uedgeC-3.0-py2.7.egg-info
+cp  uedgeC.so /mfe/local/anaconda2/lib/python2.7/site-packages

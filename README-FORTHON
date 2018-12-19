@@ -1,0 +1,118 @@
+To build the FORTHON version of UEDGE, you need to do the following things.
+
+1. Make sure that Python is on your system, along with the site-packages
+Numeric, PyPDB, and a plotting package like PyGist or GnuPlot.  To install 
+and use PyPDB, you also need to install PACT (see 2 below). You can get 
+Numeric and PyGist links on hifweb.lbl.gov/forthon (see 3 below), and 
+PyPDB and PACT are included as part of this distribution. Since installing
+extra site-packages requires permission to write to the python directories,
+it may be easier to build your own version of python on a public system where
+you don't have root privileges.  After downloading a recent version of the
+Python source, you can follow these simple steps to build your own Python:
+
+./configure --prefix=[full path to the present directory]
+gmake
+gmake test (if you want to test things; not necessary)
+gmake install
+
+2. Installation of PACT: There is a README file that gives many details.  
+A short summary of settings that work for PyUEDGE utilization are as 
+follows (almost same as for Python above, but directory will be different):
+
+./configure --prefix=[full path to the present directory]
+gmake
+gmake check  (if you want to test things; not necessary)
+gmake install
+
+Note that after the installation of PACT, the directory named in --prefix= 
+should also be the path pacthome defined in the file PyPDB/install that
+is used in the PyPDB installation.
+
+3. Make sure you have Forthon installed on your system.  If you need
+to build/install it, you can get it from hifweb.lbl.gov/forthon.  Check
+compatibility of Fortran compilers before building (see 4).
+
+4. Make sure you have a Fortran 90/95 compiler, and that it is one of 
+the ones in Forthon/Lib/compilers.py. If you have multiple Fortran 
+compilers, FORTHON will pick one based on the first one it recognizes in
+your search path.  Presently, it is recommended that you download and use
+g95, which has shown to work on both Linux machines and a Mac; put g95 path
+first in your search path to ensure that Forthon uses it.
+(The following is experimental: If you want to specify
+a compiler you need to edit Makefile.Forthon, providing an argument for 
+FCOMP and inserting "-F [compilername]" after "python setup.py" under "all".)
+
+5. Make sure that uedge/pyscripts is in your python search path  
+(SETENV PYTHONPATH .../uedge/pyscripts)
+
+6. There are two places where presently you need to explicitly insert
+the path to your version of python; (1), the first line of the 
+Forthon/Forthon file, and (2), the variable MYPYTHON in the 
+uedge/Makefile.Forthon file. Aliases don't work in these scripts and
+makefiles.
+
+7. The selection of machine precision (32 or 64 bit) is not automated.  
+The precision is specified as WORDSIZE in mppl.h.  WORDSIZE needs to be
+edited by hand for 64 bit; you can probably ignore this item.
+
+8. You're now ready to build.  Run "make -f Makefile.Forthon" in the
+uedge top directory.  This will create .f files from the mppl files
+and compile.  On subsequent makes it will recreated .f's for any
+mppl's that have been touched since the last make. (more precisely, 
+since the last creation or touching of the .f.)
+   On Linux, you may find that you get the following error at the 
+very end of the build:
+
+gcc: build/aphpymodule.o: No such file or directory
+gcc: build/apipymodule.o: No such file or directory
+gcc: build/bbbpymodule.o: No such file or directory
+gcc: build/compymodule.o: No such file or directory
+gcc: build/flxpymodule.o: No such file or directory
+gcc: build/grdpymodule.o: No such file or directory
+gcc: build/svrpymodule.o: No such file or directory
+gcc: build/wdfpymodule.o: No such file or directory
+error: command 'gcc' failed with exit status 1
+
+If you do get this error, from the uedge directory, manually copy each 
+missing files into the build directory as follows:
+cp aph/aphpymodule.o build/.
+cp api/apipymodule.o build/.
+...
+
+Then to "make -f Makefile.Forthon" a second time.  This problem is being
+worked on and should be fixed soon (it does not occur on Macs).
+
+9. When done, make a soft link of uedgeC.so from the top uedge
+directory to the pyscripts subdirectory.
+
+10. You should now be ready to run a couple of test cases.
+
+   Go to uedge/test/Forthon_case1, startup a python session (just type
+python) and read in the input file as follows:
+
+>>> execfile("rd_forthon_case1.py")
+
+after 30-60 seconds, you should have a set a numbers printed to the screen
+that are the plasma variables; compare to the file output_case1.  You can
+see the options used from the input file, rdforthon_case1.py.  This case
+is a simple slab geometry and uses vodpk, a Newton-Krylov time integration 
+to steady state. Note that installation of PACT and PyPDB should not be
+required to run this test case.
+
+   Next, you can go to uedge/test/Forthon_case2, which uses a real tokamak
+magnetic equilibrium (contained in aeqdsk and geqdsk) and a direct Newton-
+Krylov iteration to steady state.  This test case requires that PACT and 
+PyPDB be installed for the version of Python being used. Again, start a 
+python session, and then type
+
+>>> execfile("rd_forthon_case2.py")
+
+Here you will see an output line from each linear iteration, with the L2-norm
+residual of the right-hand side decreasing to convergence of the system,
+followed by some of the plasma variables at the outer midplane (This is a 
+very easy case.) Compare with the output in the file output_forthon_case2.rtf.
+
+
+
+
+

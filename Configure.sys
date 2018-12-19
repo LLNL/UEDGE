@@ -1,0 +1,24 @@
+# SYSTEM directives must be the last things in the Configure file or else a
+# line SYSTEM ... with all cpu's listed is needed to restore general processing
+
+# Other SYSTEM stuff is at the bottom of ProgramMake so can use $()'s, which
+# are not allowed in objs=, libpaths=, or libs=.
+
+SYSTEM SUN4
+libpaths = "-L/usr/apps/lib_2.0"
+libs = "-cg92"
+
+SYSTEM SOL
+## Here libpaths and libs taken from /usr/local/vbasis/include/Configure
+libpaths = "-L/opt/lib -L/opt/SUNWspro/lib -L/lib -L/usr/openwin/lib -Bstatic -L/usr/local/lib"
+libs ="-lsocket -lnsl -Bdynamic -lF77 -lM77 -lm -Bstatic -lintl -lw -lXext -lX11 -Bdynamic -ldl -lgcc"
+
+SYSTEM SGI
+libpaths = "-L/logiciels/public/gnu/lib"   # for libreadline.a
+
+SYSTEM IRIX64
+libs = "-lfastm"
+##objs = "/usr/local/nbasis/lib/RL.o"
+
+SYSTEM AXP
+libs = "-lpthread"

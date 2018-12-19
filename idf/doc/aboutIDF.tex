@@ -1,0 +1,3502 @@
+\documentstyle[aip,12pt]{article}
+%\setlength{\textwidth}{15.8cm}
+%\setlength{\textheight}{22cm}
+%\setlength{\topmargin}{-1.3 cm}
+%\setlength{\oddsidemargin}{0.1 cm}
+%\setlength{\evensidemargin}{0.1 cm}
+%\pagestyle{empty}
+\def\DD#1#2{\frac{d #1}{d #2}}
+\def\dd#1#2{\frac{\partial #1}{\partial #2}}
+\def\pa{\parallel}
+\def\pe{\perp}
+\def\pd{\partial}
+\def\t10#1{{\fontsize{10}{3pt}\selectfont #1}}
+\def\tmedium#1{{\fontsize{8}{3pt}\selectfont #1}}
+\def\tsmall#1{{\fontsize{6}{2mm}\selectfont #1}}
+\def\ttiny#1{{\fontsize{5}{3mm}\selectfont #1}}
+\renewcommand{\baselinestretch}{1.5}
+\begin{document}
+\title{PSFC MIT Preprint}
+\author{A.Pigarov}
+\centerline {\large \bf Import Data from File (IDF) utilities}
+\centerline {\large \bf for programming data input to scientific codes}
+\vskip 0.5 cm
+\centerline{\large  A. Yu. Pigarov and I. V. Saltanova}
+
+\vskip 0.25 cm
+\centerline{\it January 2000}
+
+\vskip 0.25 cm
+\centerline{\it Plasma Science and Fusion Center, 
+Massachusetts Institute of Technology}
+\centerline{\it 167 Albany Street, Cambridge, MA 02139, U.S.A.}
+\vskip 0.5 cm
+
+\leftline{\bf Abstract}
+
+{
+\small
+
+IDF, Import Data from File, is a time-saving utilities
+for programming data input from an external text file
+into scientific codes written in C, C++, and FORTRAN languages.
+
+The IDF package offers a user access to various data sets
+stored in file by their symbolic names
+and a simple syntax for data representation in a file.
+The data can then be placed in a file in arbitrary order,
+supported with comments, and imported into the
+user program in an order specified by a user.
+IDF is able to transfer input data to the aggregate
+targets (such as a structure or common block).
+IDF supports the pointer targets 
+as well as the dynamic allocation of memory.
+
+This manual presents the complete description of: 
+the structure of the data source file required for IDF; 
+the syntax for data representation in this file; 
+the set of data types supported by IDF;
+the built-in calculator;
+the specification of targets in the user code to which
+the data should be imported from file,
+as well as the description of functions (utilities)
+to be called by a user 
+in order to handle the data import with IDF.
+}
+
+\vskip .25 cm
+\leftline{\small
+{\bf E-mails:}\ apigarov@psfc.mit.edu, 
+apigarov@pppl.gov, apigarov@rex.pfc.mit.edu
+}
+
+\newpage
+\section{Introduction}
+
+As a rule, the large scientific computer programs require
+numerous input data. It is a common approach to store
+the input data in a separate file which the user's program
+reads when it is running. This kind of input allows
+a user to change the input data and re-run his program
+without re-compiling the whole source code.
+The more sophisticated is the program input,
+the more time consuming and even the more hardworking is
+the programming of file input in  C or FORTRAN languages\footnote{
+In C language, the programming of data input from a text file
+is based on the usage of standard functions  
+(for example, the {\it fgetc} and {\it fscanf} functions)
+from  C run-time library.
+When programming the data input in FORTRAN, a user manipulates
+with the special statements which are built-in this language
+(for example, the {\it READ} statement). 
+These utilities (statements or functions)
+are the bricks from which a user can build a very
+sophisticated input for his code.
+The complex input programming requires time as well as
+the detailed knowledge of programming language
+(and, sometimes, the operational system).
+The program author must take care to read and transfer
+data in the proper order, 
+in an order as the data stored in a file.
+It is not possible for a user
+to change without modifying the source code of user program
+the location of data set stored in a file.
+}.
+In addition, the input file may contain numerous data units looking alike, 
+so that it is hard to find and correct the selected unit amongst
+the other data units stored in this file. 
+
+IDF, Import Data from File, is a time-saving utilities
+for programming data input from an external text file
+for scientific codes.
+The IDF data source file is an ordinary text file
+which contains input data in a well understandable form.
+Each item in the IDF data file
+can be easily identified, modified or corrected.
+The input data can be supplied with the user's comments
+to make the input clear to other users.
+In comments you can give instructions
+about the usage of input parameters in your program
+or any other important information concerning your code
+instead of referring  a user to the documentation (if any)
+or to the source code of your program.
+To create\footnote{
+The {\bf file name} can be represented by any combination
+of letters, digits, and underscore symbols,
+but must always begin with a letter.
+}
+and modify\footnote{
+You can use the text output from  scientific codes and
+modify it following the IDF syntax.
+}
+this file you can invoke your favorable editor.
+
+The IDF package offers user an access to various data sets
+stored in a file by their symbolic names.
+The IDF data source file is then a collection of the {\it named data sets}.
+The data sets can be written in arbitrary order.
+The location of data sets in a file does not affect
+the result of data import.
+At the same time, the data can be imported into the
+user's program in an order specified by a user.
+
+Each data set must have the {\it syntax} described in this manual.
+The syntax is very simple and resembles main features of 
+C and FORTRAN languages.
+The IDF package has its own {\it built-in calculator} that allows a user 
+to represent the `arithmetic' type data  stored in input file in terms of mathematical formula.
+IDF offers additional predefined set of {\it mathematical and 
+physical constants} which are widely used in scientific codes.
+If necessary, each data unit (or any sequence of consecutive data units)
+can be {\it implicitly repeated} by specifying the repetition number 
+instead of consequently repeating this unit many times in a file.
+
+IDF is able to transfer data to the sophisticated
+{\it aggregate targets} created by a user, such as structures or common blocks.
+IDF supports the pointer targets 
+as well as the dynamic allocation of memory.
+
+The IDF package provides a complete set of functions (utilities)
+necessary to handle the data input from a text file.
+In this sense, IDF is an alternative to the direct programming 
+of data input in C, C++, and FORTRAN languages.
+The package includes functions:
+to open, read, parse, and close
+the input text data file;
+to search for and to reference by symbolic name the data set
+given by a user in the input file; 
+to convert the text data stored in file
+into binary values of the specified data type;
+to perform the mathematical calculations; 
+to manipulate with a set of predefined physical constants;
+and to assign various targets (variables, arrays, structures,
+pointers, or common blocks) declared elsewhere in the user program,
+their values taken from the input file.
+All these functions are written in C language
+following the ANSI C standards that makes the IDF package portable
+across many computers and operational systems\footnote{
+At the same time, the IDF utilities are compatible at the source level,
+i.e they must be recompiled to run under new operational system or
+processor.
+}.
+You can use the IDF functions in your code almost
+in the same way as the functions from  C run-time library.
+
+\section{Structure of IDF data source file}
+
+The IDF data source file consists of one or more {\it data sets}.
+Each data set has its own name (i.e the set is named).
+This symbolic name is used by IDF to find the position
+of data in a file.
+
+\newpage
+
+A data set is represented in a file in the form of 
+an abstract assignment statement\footnote{
+although the name of data set does not represent directly the target, 
+this form is similar to the assignment statement
+typical for the most programming languages.
+}.
+Consider the following three examples to illustrate the
+general structure of a data set:
+
+\leftline{\it $<$keywords$>$\ data\_name\ $<$subscripts$>$\ =\ 
+$<$repetition\_number $<*>$ $>$\ data\_unit\ ;}
+
+\leftline{\it $<$keywords$>$\ data\_name\ $<$subscripts$>$\ :\ 
+$<$repetition\_number$*>$\ data\_block\ ;}
+
+\leftline{\it $<$keywords$>$\ data\_name\ $<$subscripts$>$\ :}
+ 
+\leftline{$~~~~~~~~~$
+$<$repetition\_number$<*>><$data\_unit$>$\ $<,>$\ ...}
+
+\leftline{$~~~~~~~~~$
+$<$repetition\_number $*$ $>$ $<$data\_block$>$\ $<,>$\ ...\ ;}
+
+{
+{\hskip -0.7 cm}
+Any item in these statements can be optionally omitted, 
+if it is shown within the angled bracket delimiters, $<>$.
+}
+
+The data name constitutes the left hand side of these statements,
+the {\it name field}.
+Optionally, the name can be preceded by the sequence of keywords.
+The keywords and the name must be separated by, at least, a blank space.
+The name can be followed by the subscripts.
+  
+The equals mark (=) and the colon mark (:) are used to separate the name
+from the data assigned to it. 
+
+The {\it data field} constitutes
+the right hand side of these assignment statements. 
+The data field must end with the semicolon (;) symbol.
+This field must contain at least one
+{\it data unit} or {\it data block}.
+The {\it data block} is a sequence of data units
+enclosed within curly braces.
+Each data unit or block can be implicity
+repeated by specifying its {\it repetition number}.
+If data field consists of many data units or data blocks,
+each item should be properly separated with a space or comma.
+
+There is no other restrictions on how the elements of named data set 
+can be written in a file, other than the correct syntax for this set. 
+On the one hand, each data set 
+(as well as name field, data field, data block, and even some data units)
+may ocupy one or more lines in a file,
+and several named data sets can be placed simulteneously
+in one line in the data file, on the other hand.
+However, the structure and content of data input to a scientific code
+will be more clear to the users of this code
+in the case when each input parameter is separated and supported with comments,
+as it is illustated by the following example:
+
+\vskip 0.2 cm
+{
+\footnotesize
+%\small
+\leftline{// IDF data file "couette.dat"}
+\leftline{/*}
+\leftline{-------------------------------------------------------------------}
+\leftline{This file contains input data for the XXX code.}
+\leftline{The XXX code simulates the 1D2V Couette flow problem.}
+\leftline{The input data are written in the IDF language.}
+\leftline{-------------------------------------------------------------------}
+\leftline{*/}
+\leftline{/* Physical input parameters */}
+\leftline{$Lz~~~~~ =\ 1$;\ \ \ \ // A fixed plate separation distance, in cm}
+\leftline{$Knu~ =\ 0.025$;// Knudsen number}
+\leftline{$Tw~ =\ 0.1$;\ \ \ \ // Constant plate temperature, eV}
+\leftline{$Uw~ =\ 0.01$;\ // Constant relative plate velocity, $U/Vt$}
+\leftline{$~~~~~~~~~~~~~~~~~~$// Vt is the thermal velocity, sqrt(2RTw)}
+\leftline{$Pr~~~~$ =\ \$1/3\$,\ \$2/3\$\ ,\ 1; // The set of Prandtl numbers}
+\leftline{/* Computational algorithm input parameters */}
+\leftline{$Nz$\ =\ 1000; // number of nodes in the uniform mesh in z direction}
+\leftline{$Nv$\ =\ 31,31; // number of nodes in the 2D velocity space} 
+}
+\vskip 0.3 cm
+
+{
+{\hskip -0.7 cm}
+rather than in the case: 
+}
+
+\vskip 0.3 cm
+
+{
+\footnotesize
+%\small
+\leftline{$Tw$=0.1;$Uw$=0.01;}
+\leftline{$Nz$=1000;}
+\leftline{$L$}
+\leftline{=}
+\leftline{1;}
+\leftline{$Knu$=\ \ \ \ 0.025;$Pr$=0.33333,\ \ \ 0.66667,1.0;}
+\leftline{$Nv$=31,31;}
+}
+\vskip 0.2 cm
+
+{
+{\hskip -0.7 cm}
+where the same input parameters
+are given in a structureless manner or chaotically in the data file.
+} 
+
+\section{Name of data set}
+
+The name of data set in a file may be represented by any combination
+of letters (in upper and lower cases), digits, and underscore symbols.
+But, at the same time, the name must begin with a letter.
+
+Usually the data set name corresponds to the name of a variable declared
+in the user's code, although an exact coinsidence of these names
+is not necessary.
+
+A data name itself must not be:
+
+{
+{\hskip -0.7 cm}
+1) the IDF keyword ({\it char, character, int, integer, long, float,
+double, void, text, string, complex, static, extern, local}),
+}
+
+{
+{\hskip -0.7 cm}
+2) the name of standard mathematical function used in the built-in
+calculator (see the list of names given in APPENDIX III), or 
+}
+
+{
+{\hskip -0.7 cm}
+3) the name from the IDF list of mathematical and physical constants 
+(see APPENDIX I and II, respectively).
+}
+
+The name assigned to a data set must not match these intrinsic names reserved
+for special purposes. 
+The IDF keywords can be written 
+either in the lower or in the upper case letters.
+The names of standard constants must be given in the upper case letters.
+Any letter in the name of a built-in mathematical function
+can be written in the lower as well as in the upper cases.
+
+Anonymous (`unnamed') data sets which appear without or to the left 
+of the assignment mark
+(i.e the data sets `$aaa=2;;123;$' and `$123=aaa;$' are illegal)
+as well as the `empty' names which do not followed by the data
+(i.e the following data sets `$aaa=;$' and `$aaa = /*\ aaa\_is\_a\_name\ */;$'
+are incorrect), will cause a fatal parse error.
+
+%Different variables can have the same name. In this case
+%the imported value may depend on the target type.
+%If there is no conflict in the specified types and scope,
+%one and the same name can appear many times in a file.
+%Consider the case when a user calls the IDF function to import
+%data correspondent to a given name and there are several data sets
+%with this name in a file. In this case, the IDF function will
+%import values from data sets consequently in an order as
+%these sets appear in file.
+%If the data sets have the same name but differ in name subscripts,
+%the values of various may be assigned to different target.
+%If data sets with the same name have no subscripts or have
+%an identical subscripts, then the final value assigned to target
+%will be the value of the last data set given in the file.
+
+
+\section{Scope and type of named data}
+
+The IDF language includes two special keywords: {\it static} and {\it extern},
+in order to specify the scope (and storage) class for a named data set.
+One of these keywords can be optionally added to the data name 
+at the left hand side.  
+ 
+The IDF considers all data names related to the {\it static} class as
+an internal IDF variables and allocates memory for these
+variables according to the specified data type 
+(or, by the default, according to the type of a data unit).
+The whole file is the scope for these variables. 
+The static variable exists for a time the source file is open.
+The static names cannot be referenced directly from the users code.
+At the same time, these names can be used inside the file
+to create specific data units.
+(see a description for the {\it formula data unit} 
+given further in this manual).  
+
+The data name supported with the {\it extern} keyword indicates
+that correspondent data set should be imported into the user's code
+on the user request.
+Such a name implicitly associates particular data set 
+with a target defined outside the IDF.
+In other words,
+the name classified as {\it extern} refers data
+to one or more objects declared in the user's code. 
+Using this name as an argument for the special function
+of IDF package,
+a user has an access to the data set stored in file.
+
+The default class for data set names is {\it extern}, 
+a user can always omit this keyword in writing data names
+in the source file.
+
+The IDF generates a fatal error message in the case: 
+when the static and extern keywords appear together in the name field,
+or when there are two or more data sets with the same name in file,
+but these names have different scope class.
+
+Along with keywords specifying the data scope,
+the name field can also contain keywords which specify the type
+of data stored in the given data set.
+The type specifier keywords are: 
+{\it char, string, text, int, long,
+float, double, void}, and {\it complex}.
+The following combinations of keywords are allowed: 
+{\it complex float} and {\it complex double},
+because they have a certain specific meaning.
+
+For any internal variable 
+(i.e for a variable associated with the data set of {\it static} class),
+the type specifier keyword is considered as the declaration for this variable.
+The memory allocation, the initialization, 
+and (optionally) the data type conversion 
+occur for an internal variable according to the specified type.
+The default data type is {\it void}. The void variables
+receive the type of the corresponding data unit 
+(see the section "data units" of this manual).
+The keyword {\it void} can be omitted for convenience. 
+
+For data sets specified as {\it extern}, 
+the non-conflicting type specifier keywords
+are simply ignored.
+
+\section{Subscripts for data name}
+
+The data name in a file can be expanded by using subsripts.
+These subscripts are required to specify optionally 
+either the array dimensions, or
+the particular element in an array.
+
+The array subsripts can be prescribed to the name of data set
+in two ways.
+
+{\bf First}, you can specify the array dimensions in the same way
+as they are specified in  C language.
+In the C-style case, the dataname is followed with
+a list of non-negative integer numbers 
+and each number is enclosed within the pair of square brackets,
+i.e within [ and ]. 
+
+Consider the following example of named data sets:
+ 
+\leftline{static\ double\ array1D[3]\ =\ 7,77,777;}
+
+\leftline{static\ int\ array2D[2][3]\ :\ 1,2,3,4,5,6;}
+
+Here, the first data set named `$array1D$' is declared as the double precision,
+floating point, one dimensional
+array of three elements. 
+In parsing the file,
+the corresponding static target will be
+initialized by filling the array elements consequently with  7,77, and 777.  
+The name `$array2D$' introduces the data set as the multi-dimensional array,
+declared as an "array of arrays". 
+This array consists from six integer-number elements. 
+The elements are stored in memory in the row-major order, i.e the last
+dimension index varies faster than the previest dimension index.
+That is, the first element will receive the value of the first data unit,
+$array2D[0][0]=1$, the second element will get the value of the second data unit
+$array2D[0][1]=2$, and $array2D[0][2]=3$, and $array2D[1][0]=4$, and etc.
+
+{\bf Second}, you can prescribe dimensions to the data set name
+using the FORTRAN style declaration.
+In the FORTRAN style case, the data name is followed with 
+a list of integer numbers enclosed in parentheses, i.e within `(' and `)'. 
+within the parentheses, non-negative numbers representing 
+the dimensions must be separated from each other by commas.
+
+Consider the same two data sets as discussed above
+in the case, when the FORTRAN slyle declaration is used
+for name subscripts:
+declaration:
+ 
+\leftline{static\ double\ array1D(3)\ =\ 7,77,777;}
+
+\leftline{static\ int\ array2D(2,3)\ :\ 1,2,3,4,5,6;}
+
+In this case, three data units consequently initialize all three elements
+of the one dimensional array `$array1D$', i.e $array1D(0)=7$,
+$array1D(1)=77$, $array1D(2)=777$.
+The multi-dimensional array `$array2D$' contains six integer number elements. 
+The elements are stored in memory in the colomn-major order, i.e the last
+dimension index varies slower than the previest dimension index.
+That is, the first element will receive the value of the first data unit,
+$array2D(0,0)=1$, the second element will get the value of the second data unit
+$array2D(1,0)=2$, and $array2D(0,1)=3$, and $array2D(1,1)=4$, and etc.
+
+It is not allowed to prescribe array dimensions to data names
+using both C and FORTRAN style declarations
+(for example, the following data set: 
+`$Garr$ $ [2](2)[1]$ $= 1,2,3,4;$'
+is illegal ).
+The negative or floating-point numbers in the dimension list
+will cause a fatal parse error.
+
+Note, that in the case\footnote{
+In earlier version of IDF, the assignment of array dimensions
+to the {\bf static} class names is not allowed and will result
+in a fatal error. There are also some restrictions on the type
+of data units for static variables:
+the data can be represented only by data units of an `arithmetic' type,
+i.e by the integer, floating-point, complex, and formula units,
+and not by the character, string, or text data units.
+}
+when the data set corresponds to the
+internal (i.e {\bf static}) array target,
+subscripts denote the dimensionality of this array.
+The empty pair of square bracket or empty parentheses are allowed.
+In this case, the correspondent default dimension is set to unity.
+For example, the data set `{\it static complex abra[2][\ ][5] = (2,3);}'
+is equivalent to `{\it static complex abra[2][1][5] = (2,3);}'.
+
+The maximal number of array dimensions
+which can be assigned to the data set name in a file
+is equal to 3.
+This number is introduced by means of macro-definition\footnote{
+Here and further in the text we will use the words: 
+macro-definition or macros,
+to denote the standard {\bf C} preprocessor directive:
+{\bf \#define}.
+} IDF\_FRMT\_DIM\_MAX.
+
+In the case when data set has the 
+{\bf extern} class and corresponds
+to an array declared in the user's code,
+the subscripts attached to the name in a file
+denote the element in this array
+starting with which the stored data must be imported.
+In other words, non-negative numbers given in data name subscripts
+determine the offset from the beginning of array.
+If no subscripts are specified, the data will be
+transferred to an array target assuming the zero offset.
+
+Assume that upper case letters $K$, $M$, $N$
+denote three dimensions of an array target
+in the user's program
+and that lower case letters $k$, $m$, $n$
+denote three subscripts assigned to the data set name in a file.
+In the case when the target is declared as the C-style
+three dimensional array `$[K][M][N]$',
+the FORTRAN-style subscripts `$(k,m,n)$' to the data set name
+define the offset equal to $N*(M*n+m)+k$,
+whereas the C-style subscripts `$[k][m][n]$'
+give the offset $N*(M*k+m)+n$.
+In the case when the target is declared as the FORTRAN-style
+array `$(K,M,N)$',
+the C-style subscripts `$[k][m][n]$'
+define the offset equal to $K*(M*k+m)+n$,
+whereas the FORTRAN-style subscripts `$(k,m,n)$'
+result in the offset $K*(M*n+m)+k$.
+
+If the integer number is omitted inside 
+the pair of square brackets or parentheses,
+it is assumed to be zero.
+If the number of subscripts assigned to data name in a file
+is less than the number of dimensions prescribed to the target,
+the lacking name subscripts are assumed to be equal to zero.
+ 
+
+\section{Comments}
+
+A piece of data source file boardered by the character pairs /* and */
+is considered as the C-style comment. A comment can contain any combination
+of characters including: white space, tabulation, line-feed,
+carriage-return, form-feed, horizontal and vertical tabulation,
+and new-line characters.
+As in  C language, C-style comments in IDF can not be nested.
+
+Comments can be placed in data file anywhere a white space is allowed.
+When parsing the data file, IDF replaces a comment by a single
+white space (in some cases this additional
+space symbol may affect the data import or may generate a fatal error,
+for example,
+you can not break the data name or the integer-number data unit
+with a comment).
+
+IDF also recognizes the C++ style comment: a text beginning with
+two consequtive forward slashes, //, and ending with a new-line symbol.
+The C++ style comment can be a part of the C style comment.
+
+\section {Representation of data in IDF data file}
+
+In the data source file, the numerous data are represented by means of
+elementary data units.
+Such data units express a decimal, octal, or hexadecimal integer number,
+a character, a character string, a floating-point number, or a complex number 
+in the literal form, i.e as a sequence of characters
+Hereafter this representation of data unit 
+will be referred to as {\bf S-value}.
+The legal data unit has its binary value, the {\bf R-value}. 
+The R-value can be related to one or more variables, 
+the type of which is specified in C, C++, or FORTRAN languages.
+Each data unit is evaluated, converted and imported
+(i.e assigned to targets specified in the user's program)
+by the IDF utility. 
+
+\section*{Data units}
+
+There are seven types of data units:
+{\it character, string, text, integer, floating-point, complex},
+and {\it formula}.
+This section explains how to define these data units.
+
+\vskip 0.5 cm
+\leftline{\bf Character data unit}
+\vskip 0.2 cm
+
+Usually, the character data unit is represented by any printable ASCII symbol
+(except the backslash and single quotation mark symbols)
+that is enclosed in apostrophes.
+Between the apostrophes, a printable ASCII symbol can be
+accompanied by white spaces (for example: two units, '$a$' and '~~~$a$~~~~', 
+express the same character $a$).  
+The `empty' character unit (given by the two consecutive apostrophes only)
+is not allowed.
+
+Character data unit can be also expressed by some non-printable
+and non-ASCII symbols or by an escape sequence, if they are apostrophes delimited.
+
+Character unit based on the ANSI escape sequence is one of:\hfil\break
+{ 
+'$\backslash a$', '$\backslash b$', '$\backslash f$', '$\backslash n$',
+'$\backslash r$', '$\backslash t$', '$\backslash v$', '$\backslash$'\ ',
+'$\backslash$"\ ', '$\backslash$$\backslash$', '$\backslash$?', '$\backslash$0',
+}\hfil\break
+introducing respectively the ASCII characters
+for alert, backspace, form-feed,
+new-line, carriage-return, horizontal and vertical tabulation,
+single and double quotation mark, backslash, literal question mark,
+and end-of-string (NULL) symbol.
+In other cases, when character unit body consists from the backslash
+followed by any single symbol other than a digit or 
+$a$, $b$, $f$, $n$, $r$, $t$, $v$, $x$, \ ', \ ", $\backslash$, ?, \$ ,
+the backslash is ignored (for example, the sequence '$\backslash$c' 
+produces the ordinary character 'c').
+
+\newpage
+
+IDF recognizes character units based on the octal and hexadecimal escape
+sequences. The octal escape sequence starts with a backslash symbol followed by
+one to three octal digits\footnote{
+The octal digit is one of: 0,1,2,3,4,5,6,7 .
+}.
+In the case when less than three digits form the octal escape sequence,
+the escape sequence is automatically expanded by adding zeroes 
+from the left hand side (for example, the unit '$\backslash$41' is equivalent 
+to the octal escape sequence '$\backslash$041'
+and introduces the exclamation mark symbol).
+The hexadecimal escape sequence starts with the backslash followed by
+{\it x} or {\it X}, and thereafter, 
+by one to three hexadecimal symbols\footnote{
+The hexadecimal symbol is one of: 
+0,1,2,3,4,5,6,7,8,9, a,b,c,d,e,f, A,B,C,D,E,F .
+}.
+The R-value correspondent to the octal or hex escape sequences
+must not exceed the eight bits of memory.
+
+\vskip 0.5 cm
+\leftline{\bf String data unit}
+\vskip 0.2 cm
+
+The string data unit must be delimited in data file by a double quotation mark.
+This unit can contain any combination of printable ASCII characters
+and those escape sequences which represent an ASCII characters.
+In order to place the double quotation mark
+inside a string unit, the correspondent ANSI escape sequence 
+(i.e $\backslash$") has to be used.
+
+The string unit can occupy more than one line in a data file
+using the same string concatenation rule as that adopted in C language.
+The backslash is considered as a string continuation mark,
+if newline symbol immediately follows the backslash.
+In this case the backslash is ignored and the string continues
+with the first character of the next line in data file.
+
+\vskip 0.5 cm
+\leftline{\bf Text data unit}
+\vskip 0.2 cm
+
+The text data unit is a series of characters enclosed in
+the pound sign symbols ( \# ).
+
+Within a text unit, the IDF recognizes the so-called trigraph sequences.
+As in C language, the trigraph sequence consists of three characters.
+The sequence starts with two consecutive question marks followed
+by an ASCII symbol which will be converted into the punctuation
+character. The following nine trigraphs:\hfil\break
+{ 
+\ \ \ ??= ~, ?? $($ ~, ??/ ~, ?? $)$ ~, ?? ' ~, ?? $<$ ~, ?? ! ~, ?? $>$ ~,
+and ?? $-$
+}\hfil\break
+will be replaced by the correspondent single ASCII characters:\hfil\break
+{
+\ \ \ \# ~, $[$ ~, $\backslash$ ~, $]$ ~, $\wedge$\ , \{ ~, $|$ \ , \} ~, and
+$\sim\ $.
+}\hfil\break
+So, in order to deposit the pound sign character in the text,
+the correspondent trigraph sequence `??=' must be used instead of 
+the pound sign symbol `\#'.
+
+\vskip 0.5 cm
+\leftline{\bf Integer data unit}
+\vskip 0.2 cm
+
+Integer data units can be represented as a decimal, octal,
+or hexadecimal number. IDF follows a simple rule to
+distinguish between these three types of numbers.
+By default, the integer unit is assumed decimal unless
+it starts with 0. If the integer unit begins with 0x or 0X, it is assumed
+hexadecimal, and it is octal, otherwise. 
+
+No delimiters required to introduce this unit in a data source file,
+although white space, comma, and some other symbols should be used
+in order to separate data units in a file. 
+
+\vskip 0.5 cm
+\leftline{\bf Floating-point data unit}
+\vskip 0.2 cm
+
+In general form, the floating-point unit has a sign, integral and
+fractional parts separated by decimal point, and optionally, an exponent.
+The integral or fractional part can be omitted, but the rest part
+must contain at least one digit.
+The exponent is expressed with a letter symbol (one of: e,E,d,D,g,G)
+followed by a sign symbol (optional) and at least one digit.
+
+For example, the following data units:\hfil\break
+{
+\ \ \ $777$, $777.$, $+777.0e+0$, $7.77d+2$, $77.7D+01$, $.777g+3$, $77700G-2$,
+}\hfil\break
+introduce the same floating-point value which is equal to 777.
+
+No delimiters required for a single floating-point unit in the data source file,
+but blank space and comma should be used in order to separate data units
+in a file. 
+
+\vskip 0.5 cm
+\leftline{\bf Complex number data unit}
+\vskip 0.2 cm
+
+The complex number is an ordered pair of floating-point values.
+The complex data unit is represented by two floating-point units
+which express respectively the real and imaginary parts:
+$re$ and $im$, separated with a comma symbol. 
+The complex unit must be enclosed in parentheses,
+i.e $( re , im )$, and $re$ and $im$ must contain
+at least one digit.
+White space, tabulation, and new-line symbols
+are allowed inside the parentheses.
+
+\vskip 0.5 cm
+\leftline{\bf Formular data unit}
+\vskip 0.2 cm
+
+The formula data unit can be represented by:
+(i) any executable mathematical expression (a formula),
+(ii) the name of mathematical or physical constant
+from the standard IDF list, and
+(iii) the name of any {\it static} data set
+declared in the same data source file.
+
+The content of a formula data unit must be enclosed within the dollar signs
+(by analogy with the \TeX\  mathematics mode).
+Formular units cannot be nested, but subjected to concatenation
+in the case when two or more units are not properly separated.
+
+\section{Concatenation of delimited data units}
+
+In general case, 
+if you are placing several data units on a line in the data source file,
+you must separate these units with blank space or comma symbols.
+At the same time, if two or more consequtive data units have
+different type of delimiters, 
+it is not necessarily to separate these units
+with space or comma.
+
+Concatenation rule is applied to data units delimited with
+\ ",\ ',\ \#, and \$ symbols in the case when the identical type units
+are not separated with  white space, comma, or new-line symbols,
+or with a comment.
+For example,
+the translation of string type union: "The"" Bea""tle""s",
+is equivalent to the single string unit "The Beatles".
+The series of character units '$\backslash$ '\ 'x'\ '26' is equivalent to 
+the hexadecimal escape sequence '$\backslash$x26'
+which in turn represents the single ampersand symbol.
+The concatenation of two formula units \$ sqrt(2) \$\$ ** 2 \$
+will result in the floating-point constant equal to 2.
+
+\section{Implicit repetition of data units}
+
+A union of data units enclosed within curly braces (i.e \{ and \} )
+is called {\bf data block}. Data units in a block can have different types
+and must be properly separated by spaces or commas from each other.
+A block must contain at least one data unit, 
+the 'empty' block is not allowed.
+Data blocks can be nested, i.e any block may appear within other blocks.
+
+\vskip 0.3 cm
+\leftline{Consider the following example:}
+\vskip 0.3 cm
+\leftline{
+abc\ =\ \{\ /*\ this data set introduces an alphabet. */
+}
+
+\leftline{
+\ \ \ \ \ \ \ \ \{\ 'a', 'b',"cdef"\},\ 
+\{"ghij","klmn",\ "oprq"\}\ "rst",
+}
+
+\leftline{
+\ \ \ \ \ \ \ \  'u'\{"vw"\ "xyz"\}
+}
+
+\leftline{
+\ \ \ \ \ \ \ \ \};
+}
+\vskip 0.3 cm
+
+{
+{\hskip -0.7 cm} Here the name `$abc$' 
+is assigned to a data superblock.
+Superblock includes a C-style comment and 
+consists of three data blocks
+and a single string-type data unit "$rst$".
+Each block contains three data units.
+}
+
+Data blocks in a series of blocks can be separated by a space or comma
+separators, although it is not necessarily. 
+Use comments inside and outside a block
+where a space is lexically allowed. 
+The appearence of:
+(i) consecutive commas inside or outside the block,
+(ii) the semicolon inside the data block,
+(iii) the openning brace followed by the comma,
+and 
+(iv) the comma followed by either the semicolon or by the closing brace,
+causes a fatal error 
+(even in the case when there are multiple spaces, comments, and tabulators
+between these pairs of symbols).
+
+Important feature of data block is that each block can be implicitly
+repeated. To repeat the block, you should use an expression
+in which data block is multiplied at the left hand side 
+by the repetition number. So, the expression of the form:
+$$XXX\ * \ data\_block ~~~,$$ will be translated by IDF as
+"repeat $XXX$ times the $data\_block$". The repetition
+number $XXX$ must be represented here by any positive integer number
+(in decimal, octal, or hexadecimal notation).
+Multiple repetitions of a block (for example: $1*2*3*4* data\_block$)
+are not allowed.
+Instead, you can use the nested superblocks.
+For example, in the following expression: $1*\{2*\{3*\{4* data\_block\}\}\}$,
+the $data\_block$ will be repeated 24 times.
+If no repetition number followed by asterisk is given, the
+block appears only once, unless this block is a part of the super-block
+subjected to be repeated.
+The zero repetition number makes the IDF utility
+to ignore the content of correspondent data block
+(i.e in treating the data field, the zero times repeated block will be
+simply skipped).
+
+In the same way you can implicitly repeat any single data unit
+in a file.
+
+In order to demonstrate 
+the implicit repetition of data unit and block, consider respectively
+the following examples:
+
+\vskip 0.1 cm
+\leftline{
+$complexseven\_times\_seven$\ :\  7*$(7,0)$; // complex unit repeated 7 times
+}
+\vskip 0.3 cm
+\leftline{
+$onetwo\_times\_three$\ =\  3*\{1,2\}; //repetition number is 3 for a block
+}
+\vskip 0.3 cm
+
+{
+{\hskip -0.7 cm} Here,
+the data set named $complexseven\_times\_seven$
+contains seven identical complex numbers.
+In the data set $onetwo\_times\_twelve$, the sequence $\{1,2\}$
+is repeated 3 times, i.e the resulting data input is as follows:
+1,2,1,2,1,2.
+}
+
+\section{Built-in mathematical and physical constants}
+
+IDF reserves special names for symbolic representation
+of  widely-used mathematical and physical constants. 
+These names must be written with the upper case letters.
+All built-in names start with a sequence 'IDF\_' in order to avoid
+their coincidence with  data names given by a user.
+The list of mathematical constants is given in APPENDIX I.
+The physical constants are listed in APPENDIX II.
+
+Being enclosed within dollar sign symbols, any special name
+constitutes a data unit of the formula type.
+For example, the formula data unit \$ IDF\_PI \$ based on
+built-in name IDF\_PI is equivalent to the
+floating-point data unit expressing the $\pi$ number with a computer accuracy.
+ 
+The special name can appear without delimiters inside the formula unit as
+a member of mathematical expression. In this case, the special name
+replaces the correspondent mathematical or physical constant
+in an expression.
+
+\section{Built-in calculator}
+
+In general case the formula data unit is given by 
+the mathematical expression including:
+
+1) constants that represent the integer and floating-point number
+by their S-values;
+
+2) algebraic operators;
+
+3) references by name to the standard mathematical and physical
+constants specified in IDF, i.e the constants given by their R-value;
+
+4) references by name to the R-values of {\it static} data sets defined
+by a user elsewhere in the given data source file;
+
+5) names of built-in mathematical functions;
+
+6) parentheses that delimit the list of function arguments,
+change the precedence of enclosed operators, or
+delimit the S-value constants;
+
+7) commas that separate the function arguments from each other.
+
+The expression in formula unit does not contain an assignment operator.
+The expression must be {\it executable}, its calculation must yield
+a single numeric value.
+
+In order to introduce
+the complex number constants by their S-value in a formula,
+you must use the built-in functions:
+{\it complex, cmplx}, and {\it polar}
+(see APPENDIX III). 
+For example, the resultant R-value of the following formula unit:
+\${\it complex (1,2)}\$, is the complex number $(1,2)$,
+whereas the formula expression \${\it (1,2)}\$
+is illegal.
+
+The following operators are used in
+algebraic expressions:
+'$+$' for addition,
+'$-$' for subtraction,
+'$*$' for multiplication,
+'$/$' for division,
+and '$\wedge$' or '$**$' for exponentiation.
+All employed operators are binary operators, i.e they operate on the pair
+of operands. Except the exponentiation, all other operators associate
+from left to right. 
+The computation of a binary expression results in the R-value.
+
+Two algebraic operators must nowhere appear together in a formula.
+Most frequently, operators tend to appear together in the case 
+when the algebraic operator is followed by a negative valued constant
+expression. To avoid fatal error, use parentheses to separate the negative constant in this case. Unlike to C or FORTRAN, each S-value constant
+or a reference by name can be enclosed in the single or multiple
+parentheses, for example: 
+{
+\ \$ $(0) + ((10))*(2)$ \$, \ \$ $(-2)\wedge((-1))$ \$,
+\ \$ (IDF\_PI)$**(3)$ \$, and \$ $(1 + (sqrt((2))))$ \$,
+}.
+Nonessential parentheses do not affect the result and 
+will be simply ignored by the calculator. 
+
+In evaluation of mathematical expression, 
+algebraic operators range in their precedence.
+Plus and minus operators have the lowest precedence.
+If the expression contains  operators other than '$+$' or '$-$',
+the addition and subtraction will be performed the last.
+Multiplication and division operators have the higher precedence than
+'$+$' and '$-$' operators. The precedence of the exponentiation operator
+is the highest.
+If a series of operators have an equal precedence,
+they are evaluated according to their associativity.
+The parenthesis may change the order of precedence for any operator.
+
+All S-value constants entering the expression are converted 
+either to the {\it long} integer
+or to the double precision floating-point (type {\it double}) constant.
+All mathematical computations are performed in double precision.
+
+The type conversion of operands may occur
+even if both operands in a binary expression
+have the same data type.
+For example, to compute the function argument 
+in the following expression: 
+{
+\$sqrt(1 + 5000000000)\$
+},
+the addition of integers will be replaced by the addition of floating-point
+numbers by conversion of each integer to the double precision
+floating-point value. 
+In this case, the direct addition of integer numbers 
+will cause an overflow in the resulting integer value.
+
+If operands entering the binary expression
+have different data types, the type conversion
+occurs before this expression will be evaluated.
+In the case when one of operands is a complex number, the other
+operand will be converted to the complex number
+(the converted complex number consists of the real number
+and the zero imaginary part).
+The execution of complex binary expression results in the
+complex number value.
+If integer and floating-point numbers
+constitute the binary expression,
+the integer number will be converted to the floating-point number.
+This binary expression results in the double precision
+floating-point number.
+
+
+The built-in functions enter the expression in the same way
+as in C or FORTRAN languages. The name of function is followed by the
+parenthesized list of expressions correspondent to actual arguments
+of a function. A comma is used to separate the adjacent argument
+expressions of a function. The actual argument can be
+represented by any executable expression including those expressions
+which use the called function again.
+
+Functions can be nested, i.e any function may serve as an argument
+of another function (for example:
+{
+\$ $real (sqrt (exp (complex( 1.0+pow(2,3),$ IDF\_PI $))$ \$
+}).
+The call of a function without arguments or with
+a variable list of arguments is not allowed.
+
+The full list and the description of built-in mathematical functions
+is given in APPENDIX III.
+
+On using the function in mathematical expression, 
+the type conversions may occur when: 
+(i) the built-in function is directly responsible for the type conversion,
+such as {\it int, long, double, complex}, and {\it cmplx} functions;
+(ii) the unlike type value is passed as an argument
+to a function; 
+and
+(iii) the value returning by any other built-in function
+is subjected to further conversion according to the expression syntax.
+
+In computing complicated expressions, the type of the resultant R-value
+is given by the last executable binary expression (for example, the result of
+\$ $1+int(cmplx(1))$ \$ is an integer number,
+whereas the result of \$ $1+cmplx(1)$ \$ is a complex number),
+or by the last function call (for example, the last function
+that will be called in the expression:
+{
+\$ $real(sqrt(complex(1,$IDF\_PI$)))$ \$
+},
+is $real(\ )$ and hence the resulting value has a storage type {\it double}).
+
+The IDF calculator analyses the expression given in data file in the order,
+from left to right, searching for tokens 
+(operands, constants, opening and closing parentheses, commas, and functions).
+Tokens are coded and stored until the accumulated expression can be
+completely executed or simplified by an execution of any its part.
+The maximal number of thus accumulated tokens is set to 100
+by the macro-definition IDF\_FORM\_ELM\_MAX.
+
+Performing algebraic calculations, the IDF takes precautions against
+the overflow of floating-point number, 
+the improper values of function arguments, and etc. 
+IDF generates the correspondent 
+error message before these errors occur.
+
+\section{Parse of IDF data file}
+
+As soon as a user calls the special IDF function to open
+the data source file, IDF runs through this file
+searching for the data sets.
+
+\newpage
+
+Insodoing, the IDF utility:
+
+{
+{\hskip -0.7 cm}
+1) scans characters in the name field up to
+the first appearance of the assignment mark ('=' or ':');
+}
+
+{
+{\hskip -0.7 cm}
+2) skips comments and insignificant characters
+which may appear in the name field 
+(such as the newline or carriage-return symbols, 
+the nonessential consequent blank spaces and tabulators
+which may surround a name, etc);
+}
+
+{
+{\hskip -0.7 cm}
+3) splits the name field into three parts:
+the keywords, the data name, and the subscripts;
+}
+
+{
+{\hskip -0.7 cm}
+4) determines the scope class (static or extern)
+for a current data set;
+}
+
+{
+{\hskip -0.7 cm}
+5) determines the type of data set and its
+dimensionality;
+}
+
+{
+{\hskip -0.7 cm}
+6) stores (in the catalog) the name and some other information 
+about the current data set;
+}
+
+{
+{\hskip -0.7 cm}
+7) if data set has {\it extern} class, 
+skips the data field corresponding to the current data name
+up to the first appearance of semicolon (;) symbol;
+}
+
+{
+{\hskip -0.7 cm}
+8) if data set is {\it static},
+parses the data field, evaluates, and stores the values
+of each data unit in the field;
+}
+
+{ 
+{\hskip -0.7 cm}
+9) continues with the next data set until
+the end of file will be reached.
+}
+
+As a result, the IDF utility creates two catalogs
+for the given input file.
+
+The first catalog contains  names and data R-values for
+all data sets specified in file as {\it static}\footnote{
+The total number of static variables given in file
+must not exceed 50, as specified by the macro-definition
+IDF\_NAME\_LISTL\_N.
+}.
+The second catalog contains information
+about all data sets specified as {\it extern}.
+This information includes the data set name, the
+offset prescribed by data name subscripts,
+and the starting position of corresponding data field 
+in the file\footnote{
+The total number of external data sets given in file
+must not exceed 50, as specified by the macro-definition
+IDF\_NAME\_LIST\_N.
+In the excess, IDF stops execution and generates
+the error message.
+}.
+
+On the user request, IDF imports data from the named data set.
+A user calls the special IDF function using the data set name
+as an argument of this function.
+The IDF function, first of all, searches this name in the catalog.
+If the name is found in the catalog, this utility positions the input file
+at the beginning of data field associated with a given name.
+After that, the function parsing the data field iteratively, 
+from data unit to unit.
+
+When parsing the data field assigned to the data name,
+the IDF utility:
+
+1) scans characters in the data file
+starting with assignment mark ('=' or ':') 
+until the end-of-field mark (i.e semicolon, ';');
+
+2) searches for data units returning
+at the beginning of the data unit block,
+if the end of the block (i.e. right brace, '\}') is reached
+and  data units should be repeated;
+
+3) removes comments and insignificant characters
+which may appear in the data field;
+
+4) performs concatenation of data units, if it is required by a syntax;
+
+5) if data unit is found, determines the type of data unit;
+
+6) analyses the content of data unit,
+removes delimiters and any insignificant
+characters (for example:  string continuation marks, 
+newline or carriage-return symbols, 
+consequent blank spaces and tabulators which may surround a number,
+and etc).
+In treating  integer, floating-point, complex, and formula units,
+IDF removes any kind of comment and replaces the comment
+with a single blank space.
+At the same time, IDF does not recognize comments placed inside the character,
+string, and text data units, i.e in between the ', ", and \# delimiters
+(for example, in treating a character type data unit:
+'$\backslash$ t/*this is an improper place for comment*/',
+IDF will generate an error instead of importing the single tabulation symbol);
+
+7) stores in memory significant characters
+of data unit (except for the formula unit) 
+for a time of further analysis and conversion;
+
+8) converts the sequence of significant characters into
+a character, another character sequence, or a binary value
+according to the type of data unit;
+
+9) performs  mathematical calculations, if the data unit
+has a formula type, hence, converting the formula into
+the single binary value; 
+
+10) stores the obtained temporary  R-value in the
+appropriate type variables (that provide the nominal accuracy
+for data representation) 
+until this R-value will be transferred to the user's target.
+
+In parsing the character unit, IDF searches for the significant character
+(white spaces are ignored in the case when the character unit contains
+any other ASCII symbol) or for the escape sequence. 
+Escape sequence is replaced by its character or numerical equivalent.
+The result is temporary stored as an {\it unsigned int} variable.
+
+In treating the string type unit, all escape sequences are replaced
+by their ASCII character equivalents. If the input string explicitly
+contains horizontal tabulation, this symbol is replaced by the equivalent
+number of blank spaces. The string unit input terminates at
+the first appearance of NULL character (i.e $\backslash 0$). 
+If the input string does not contain
+the NULL character, it will be automatically added to the end of 
+the resulting string. The maximal length of the resulting string
+is limited to 328 (a number given by the macro-definition IDF\_DBUF\_LENGTH),
+and IDF will generate an error message for more lengthy string unit input
+from a file.
+ 
+Except the trigraph case,
+the IDF re-writes the content of a text unit "as is",
+i.e without any kind of conversion. The length of any text unit
+is also limited to IDF\_DBUF\_LENGTH bytes.
+
+The search algorithm for integer and floating-point units in the data file
+is more complicated than the search algorithm for a delimited data units.
+In skipping the leading spaces and tabs, the integer (or floating-point) unit
+can start either with a digit, or with the plus '$+$', minus '$-$',
+and decimal point '$.$' symbols.
+These units end properly with the first appearance of:
+(i) the semicolon (i.e ';') symbol which signals the end of data field,
+(ii) any space symbol (including the new-line and carriage-return),
+(iii) any kind of comment,
+(iv) the comma,
+(v) the curved braces, and
+(iv) optionally, the delimiter symbol which starts another data unit.
+If data unit does not contain the decimal point, the exponent part,
+and its value by modulus is less than the maximal {\it long int} number,
+the data unit content will be converted into an integer constant
+and stored temporary as {\it long int} variable.
+In any other cases, the unit will be converted into double precision
+floating-point constant and stored in a {\it double} variable.
+
+When processing the complex number unit, IDF consequently search for
+two floating point numbers that are separated by comma.
+In success, IDF stores the result of conversion in an array of
+two elements of the type {\it double}.
+
+In treating the formula unit, 
+the IDF utility 
+substitutes the constants referenced to by their symbolic names and
+evaluates the mathematical expression using the built-in calculator.
+The resultant value is case dependent,
+it can be represented by either integer, floating-point,
+or complex R-value.
+
+On the parse phase, the data unit gets its raw S-value and then
+converted into the temporary R-value.
+The further conversion and assignment of R-value to the user's target
+depend on the type of a target as will be discussed later. 
+
+The IDF utility stops executing when a fatal error occurs.
+It may be any parse, mathematical, file reading, or type conversion error.
+IDF generates an error message which usually consists of
+more than one line. Normally, the error message provides
+enough information to determine the cause of an error.
+In some cases, it contain the character which was inconsistent
+with the data representation rule, or the S-value of an improper
+data unit.
+The message also includes
+the data set name and its location in a file,
+the starting position of the data field,
+and the position current data unit.
+The position in file is given by three numbers:
+(1) the offset in bytes from the beginning of data file;
+(2) the line number, and (3) the column number.
+If an error appears in formula, IDF displays the
+list of accumulated tokens.
+The user can then invoke a text editor to correct 
+(in the data source file) the text which caused an error.
+
+\section{Targets}
+
+Target is the final destination for the data stored in file.
+The target can be a single variable, a pointer, or an array,
+anywhere declared in the users code. 
+Declared targets have different types representing the character, integer,
+or floating-point objects.
+A more complicated targets can be given by a sequence of unlike type objects
+with a known rule for positioning of objects in the common memory segment.
+Such a targets may be the structures\footnote{
+some dialects of FORTRAN language also include structures, 
+for example: the VAX FORTRAN in VMS Version 5.0 or higher and
+the FORTRAN-90, Microsoft Fortran Power Station.
+The structures declared in FORTRAN program can also serve
+as a target for the IDF package.
+} in C and C++ languages,
+or the common blocks in FORTRAN.
+
+In order to import the named data set from a file, a user
+must specify the correspondent target in symbolic form
+by means of the Target String.
+Each Target String in IDF must have the syntax
+described in this manual.
+
+The Target String is represented by ASCII character string
+and consists of the following characters:
+
+{
+{\hskip -0.7 cm}
+1) target type symbols: 'c', 's', 't', 'i', 'l', 'f',
+'d', 'z', and 'w' (these symbols can be also written
+in capital letters);
+}
+
+{
+{\hskip -0.7 cm}
+2) special symbols: \%, \#, \&, and @;
+}
+
+{
+{\hskip -0.7 cm}
+3) digits representing any positive integer number
+written in decimal form;
+}
+
+{
+{\hskip -0.7 cm}
+4) parentheses, commas, or square brackets ([ and ])
+that are used in order to specify the array subscripts;
+}
+
+{
+{\hskip -0.7 cm}
+5) curved brackets (\{ and \}) and asterisks (*) 
+that are used to express the implicit repetition 
+of target unit in a string;
+}
+
+{
+{\hskip -0.7 cm}
+6) blank spaces and tabulators;
+}
+
+{
+{\hskip -0.7 cm}
+7) commas which separate the target units;
+}
+
+{
+{\hskip -0.7 cm}
+8) semicolon (;) and NULL (`$\backslash$0') characters,
+with which the target string ends.
+}
+
+{
+{\hskip -0.7 cm}
+All other characters must not appear in the string.
+The blank spaces and tabulators are non-essential and will be ignored
+by the Target String parser.
+}
+\vskip 0.5 cm
+
+The letters ({\bf c,s,t,i,l,f,d,z,w}) are used as a keywords
+in the Target String. The stand-alone letter from this list
+denotes the single object of specific type. The same letter
+may represent an array or a pointer of the similar type,
+if it is used  with subscripts or in the combination with
+special symbols. 
+For structured targets, the Target String may contain
+a sequence of keywords. 
+
+\section*{Single object target}
+
+At present, IDF recognizes nine types of objects represented
+in the Target String
+by the following letters: 'c', 's', 't', 'i', 'l', 'f',
+'d', 'z', and 'w'. Each type from this list corresponds to the
+particular data type specified in C and FORTRAN languages.
+An important characteristic of each type is the amount of
+bytes required to represent the corresponding object in memory. 
+
+{\bf Type\ c:}\hfil\break
+This type characterized the single character object 
+which is a one byte variable.
+It corresponds to an object $X$ declared as 
+`{\it char X;}' in C language,
+as `{\it character*1 X}' in FORTRAN-77, 
+and as `{\it character(1) X}' in FORTRAN-90.
+\vskip 0.2 cm
+
+{\bf Type\ s:}\hfil\break
+This type corresponds to an object which is a string variable.
+It is declared as an array of characters.
+The total number $N$ of characters in the string
+(including the end-of-string symbol)
+must be specified.
+This type object $X$ occupies $N$ bytes of contiguous memory
+and is declared  as `{\it char X[N];}' in C language,
+as `{\it character*1 X(N)}' (or, `{\it character*N X}') in FORTRAN-77,
+and as `{\it character(N) X}' in FORTRAN-90.
+\vskip 0.2 cm
+
+{\bf Type\ t:}\hfil\break
+This type characterizes the object declared as an array of characters.
+The total number $N$ of characters must be specified.
+This type object $X$ occupies $N$ bytes of memory
+and is declared as `{\it char X[N];}' in C language,
+as `{\it character*1 X(N)}' (or, `{\it character*N X}') in FORTRAN-77,
+and as `{\it character(N) X}' in FORTRAN-90.
+\vskip 0.2 cm
+
+{\bf Type\ i:}\hfil\break
+This type represents the integer number,
+default declaration of which requires 4 bytes of memory.
+The correspondent object $X$ is declared as
+`{\it int X;}' in C language,
+as `{\it integer*4 X}' in FORTRAN-77, 
+and as `{\it integer(4) X}' in FORTRAN-90.
+\vskip 0.2 cm
+
+{\bf Type\ l:}\hfil\break
+This type represents the long integer number which
+normally requires 4 bytes of memory\footnote{
+Depending on the computer and C compiler, 
+an integer variable declared in C as {\bf long int}
+may require the 8 bytes of memory}.
+The correspondent object $X$ is declared as
+`{\it long int X;}' in C language,
+as `{\it integer*4 X}' in FORTRAN-77, 
+and as `{\it integer(4) X}' in FORTRAN-90.
+\vskip 0.2 cm
+
+{\bf Type\ f:}\hfil\break
+This type represents the single precision, floating-point number
+which occupies 4 bytes of memory.
+The correspondent object $X$ is declared as `{\it float X;}' in {\bf C},
+as `{\it real*4 X}' in FORTRAN-77, 
+and as `{\it real(4) X}' in FORTRAN-90.
+\vskip 0.2 cm
+
+{\bf Type\ d:}\hfil\break
+This type represents the double precision, floating-point number
+which requires 8 bytes of memory.
+The correspondent object $X$ is declared as `{\it double X;}' in {\bf C},
+as `{\it real*8 X}' in FORTRAN-77, 
+and as `{\it real(8) X}' in FORTRAN-90.
+\vskip 0.2 cm
+
+{\bf Type\ z:}\hfil\break
+This type represents the complex number
+given by two single precision, floating-point numbers.
+The correspondent object $X$ occupies 8 bytes of contiguous memory
+and is declared as `{\it float X[2];}' in C language,
+as `{\it complex*8 X}' in FORTRAN-77, 
+and as `{\it complex(4) X}' in FORTRAN-90.
+\vskip 0.2 cm
+
+{\bf Type\ w:}\hfil\break
+This type represents a complex number
+given by the pair of double precision, floating-point numbers.
+The correspondent object $X$ requires 16 bytes of
+contiguous memory.
+This object can be declared as `{\it double X[2];}' in {\bf C},
+as `{\it complex*16 X}' in FORTRAN-77, 
+and as `{\it complex(8) X}' in FORTRAN-90.
+\vskip 0.5 cm
+
+The stand-alone keyword: {\bf c,i,l,f,d,z}, or, {\bf w},
+in the Target String represents directly a single object of given type.
+
+\section*{Array target}
+
+Array, as the IDF target, is defined as a group of like type variables.
+The elements of an array are stored in memory contiguously
+in an increasing order, from the first element to the last.
+Array can be composed from single targets of the following type:
+{\it s, t, i, l, f, d, z}, and {\it w}. 
+Note, that `single' targets of type {\bf s} and {\bf t} 
+are the arrays by definition.
+
+One-dimensional array, as a target, can be specified
+in the following form:
+$$ \%\ \ number\_of\_elements\ \ target\_type\_symbol$$
+where $target\_type\_symbol$ is the keyword 
+(one of: {\it s, t, i, l, f, d, z, w}, written in upper and lower cases),  
+$number\_of\_elements$ is the positive number written in the decimal form,
+and the percent sign (\%) is used in this expression as the left-hand separator
+(optionally, \% can be omitted). 
+For example, Target Strings:  "\%100t" and "\%6f", characterize respectively
+the text string of 100 characters, and the one dimensional,
+single precision array consisted of six elements.
+
+You can also use either C, or FORTRAN syntax to prescribe
+dimensions to the target array (in the same manner as it has been discussed in 
+the section "Subscripts for data name").
+
+In the C-style case, the name is followed with
+a list of  non-negative integer numbers, 
+and each number is enclosed within the pair of square brackets,
+i.e within [ and ]. 
+For example,  Target Strings:
+"w[2][3]" and "s[100]", define respectively
+the two dimensional array consisted of six elements which
+are the double precision, floating-point, complex numbers;
+and the literal string of 100 characters. 
+
+In the FORTRAN style case, the name is followed with 
+a list of integer numbers enclosed in parentheses, i.e within ( and ). 
+Inside the parentheses, the non-negative numbers representing 
+the dimensions must be separated from each other by commas.
+For example,  Target Strings: "i(2000)" and "d(2,3,4)", describe
+respectively the one dimensional array of integer numbers
+and the three dimensional array of double precision floating-point numbers.
+
+You can define array targets in the generalized form:
+$$ \%\ \ number\_of\_elements\ \ target\_type\_symbol\ \ subscripts$$
+In this case, the $number\_of\_elements$ will be interpreted
+as an additional array dimension.
+For example, the real dimensionality of arrays in Target Strings:
+"\%10i[2]", "\%30s[20][10]", and "\%4z(2,3)",
+correspond to "i[10][2]", "s[30][20][10]", and "z(2,3,4)",
+respectively.
+
+\section*{Pointer target}
+
+Pointer is a variable which stores the address
+of an object to which the variable points.
+Normally, the pointer itself requires  4 bytes of memory\footnote{
+The size of memory required to represent a pointer
+may depend on the compiler,
+and the pointers to different type objects
+are not necessarily have the same size.
+}.
+
+The special symbols: ampersand (\&) and $at$ sign (@),
+are used in order to declare a pointer target in the Target String.
+
+Consider the following examples in order to illustrate
+the  specification of  pointer targets.
+
+\leftline{case 1:}
+\leftline{$ <\%>\ \&\ target\_type\_symbol $}
+\leftline{case 2:}
+\leftline{$<\%> \&\ <number\_of\_elements>\  target\_type\_symbol\ 
+<subscripts>$}
+\leftline{case 3:}
+\leftline{$ <\%>\ @\ target\_type\_symbol $}
+\leftline{case 4:}
+\leftline{$<\%> @\ <number\_of\_elements>\  target\_type\_symbol\ <subscripts>$}
+
+{
+{\hskip -0.7 cm}In all four cases considered here, 
+the angled brackets are used to show that the enclosed
+item can be optionally omitted.
+}
+
+In the first and second cases, the ampersand (\&) symbol is considered as 
+an {\it address-of} operator which takes the address of an object
+which followed this operator.
+(in analogy to the similar operator in C language).
+The target (case 1) is a pointer variable
+which stores the address of single object
+of the given type $target\_type\_symbol\ =$ {\bf c,i,l,f,d,z,w}.
+The target (case 2) is a pointer variable
+which points to an array of the $target\_type\_symbol$ type objects.
+In these two cases, the object must exist, 
+i.e the user must allocate the correspondent amount of memory
+and assign the address to the pointer variable.
+
+In cases 3 and 4, the $at$ sign (@) qualifies the target
+as a pointer.
+In these cases the object must {\it not} exist.
+The @ sign tells the IDF utility to allocate 
+the correspondent amount of memory
+and to assign the address to the pointer variable.
+
+IDF does not support the targets which are defined as the nested pointers,
+i.e Target Strings: "\&\&i", "@\&z[100]", "@@w", "\%\&\&\&\&10d",
+are illegal.
+ 
+\section{Specification of multi-object target}
+
+The multi-object target consists of one or more
+{\it target units}. Each target unit can be written
+in the Target String in the following generalized form: 
+
+\centerline{
+$<$\%$>$\ $<$\#$>$\ $<$@\ or\ \&$>$\ $<$integral\_number$>$\ \ 
+object\_type\_symbol\ \ $<$subsripts$>$
+}
+
+{
+{\hskip -0.7 cm}
+which represents the variety of targets which have been discussed
+in the previous section.
+}
+
+Comma is a valid separator for target units in the Target String.
+At the same time, two or more consequent commas appeared
+in a String cause the fatal error.
+Any number of consequent blank spaces or tabulators
+will be simply ignored.
+The usage of commas is illustrated by the following example:
+"100s,  100d(10,2), 5i[3][2]".
+
+
+\vskip 0.5 cm
+\section*{Fictitious target unit}
+\vskip 0.25 cm
+
+The pound sign (\#) is an additional symbol which may appear
+in the multi-object Target Srting. 
+This symbol qualifies the target as a 'fictitious' target. 
+Fictitious target means that the target is declared in the user's
+program, but at the same time, the corresponding named data set
+contains {\it no} data units associated with this target.
+When parsing the Target String, IDF ignores the fictitious target unit  
+only in the sence that IDF associates no data units with this target,
+but IDF takes into account the presence of a fictitious target unit 
+for calculating the address of other target units in the common memory.
+You can use the fictious target units in order to assign values to the selected
+members of multi-object target.
+
+\vskip 0.5 cm
+\section*{Repetition of target unit in the Target String}
+\vskip 0.25 cm
+
+In the case when the target unit starts with the special qualifier
+symbol (\%,@,\#, or \&), the positive decimal integer number
+preceding this unit is considered as the repetition number
+for the whole target unit.
+
+The repetition rule can be illustated by the following examples.
+According to this rule, the Target String "3\%@100s[20]%d" 
+is equivalent to the String:
+"\%@100s[20]\%@100s[20]\%@100s[20]\%d",
+where the first target unit `\%@100s[20]' is repeated three times.
+The following Target Strings: "5\&d", "10\%i", "3\%5z[10]",
+are written in the much shorter form than 
+the correspondent Target Strings:
+"\&d \&d \&d \&d \&d", "iiiiiiiiii", "\%5z[10], \%5z[10], \%5z[10]".
+
+It is important to note, that because of  {\it alignment} rules
+(see the next section), 
+the Target String
+"3\%c\%d" is not necessarily equivalent to "c[3]\%d",
+as well as the String
+"100\%i,\#d,3\%i\#d" is not the same as "i[100],\#d,i[3],\#d" or "i[103]".
+ 
+\vskip 0.5 cm
+\section*{Block of target units}
+\vskip 0.25 cm
+
+The block of target units is defined as one or more target units
+enclosed within the curly braces ( \{ and \} ). 
+
+The content of a block can be repeated in the Target String
+in the following way:
+$$XXX\ \{\ target\_unit\ <,>\ target\_unit\ <,>\ ...\ \} $$
+where $XXX$ denotes any positive integer number written in decimal form.
+
+The target blocks can be nested, i.e one block may be a member
+of another target block, for example:
+"s[100]\{6\%d[4], 10\{\&s[100]@i[3]\{\#\&z,d\}\}\&w\}".
+You can enclose any target unit within the nested braces.  
+The following Target String: "2\{3\{4\{5d\}\}\}", 
+which contains the multiple repetitions 
+of the {\bf d}-type target unit, is equivalent to String "120d".
+
+\section{Alignment rules for multi-object target}
+
+The multi-object target characterizes the aggregate,
+the group of variables, pointers, or arrays stored together in memory.
+The members of the group may be of different types
+(i.e {\bf c,s,t,i,l,f,d,z,w}). Such a target can be a structure
+or a common block declared in the user's program.
+The members of an aggregate are represented in memory
+consequently in an order as their names are given in the
+declaration list. The first member of the group
+has the lowest address and the last member has the highest address 
+in group memory. The starting position for each member in  group memory
+depends on the specific alignment rule used by a compiler to handle
+this group.  
+In general, the alignment rule may depend on the type of members
+consisting the group. In the case when the group consists of unlike
+type members,
+the group memory may contain an unnamed spaces, the holes.
+At the same time, if the group contains the array member, 
+the elements in an array immedeately follow each other 
+in  group memory.
+
+The alignment rule can be chosen by a compiler, according:
+
+{
+{\hskip -0.7 cm}
+1) to the default compiler settings taking into account
+the processor perculiarities;
+}
+
+{
+{\hskip -0.7 cm}
+2) to the command-line option of a compiler,
+for example: {\bf /Zp} option for the Microsoft C/C++;
+{\bf -member\_alignment} and {\bf /Zp} options for DEC C compilers;
+{\bf -dalign} option for SUN FORTRAN compiler; or
+{\bf -align} option for DEC UNIX FORTAN compilers;
+}
+
+{
+{\hskip -0.7 cm}
+3) to the `packing' directives defined in C or FORTRAN
+languages, which control the aligmnment of members
+of an aggregate object.
+}
+
+The alignment rule introduces the alignment boundary 
+(or, in general case, the boundaries for each particular type
+of  group members).
+Most frequently, the members (of structure or common block)
+are aligned in memory on the boundary which is the smaller 
+of their own size or the specified packing size.
+ 
+Some programming languages include the compiler directives
+which control the position of structure members
+in the computer memory.
+In C and C++ langauges such a directive is
+that given by the macros: `{\bf \# pragma pack (Npack)}'.
+In FORTRAN-90 the correspondent directive is the 
+`{\bf \$ PACK: [Npack]}' directive.
+These directives tell a compiler to use one of 
+simple packing rules\footnote{
+The directives given within the source code of a user program
+override the settings established by the command-line option.
+At the same time, the compiler's manuals give no warranty 
+that the compiler will follow the `{\it pack}' directive rule.}. 
+The `{\it pack}' type directives specify the packing size
+in terms of integer value $Npack$ that is a power of two.
+The integer value $Npack$ is passed as the macros argument
+to the compiler and characterizes the number of bytes to pad
+in order to align the data.  
+The smaller $Npack$, the more compact the members of structure
+are packed in computer memory.
+At the same time, the performance may get worser for small $Npack$ values
+(in particular, the time for accessing the members increases).
+The smallest $Npack$ is zero, this value tells compiler
+to align the data on the byte boundary, i.e without any holes in memory
+between the members of structure or common block. The biggest $Npack=9$
+offers compiler the alignment on the page boundary, 
+i.e the alignment of $2^9=512$ bytes.
+
+To specify the boundary for data alignment, you can also use
+the following terminology.
+The value $Npack=0$ corresponds to the {\it byte} boundary.
+The {\it word, longword, quadrword, octaword, hexword}, and {\it page}
+boundaries correspond, respectively, to the $Npack=1,2,3,4,5,9$ values.
+
+Since the alignment rule may depend on the particular multi-object target,
+the processor, and the compiler, 
+this part of IDF is the most intricated.
+The user must use IDF in this case with a caution.
+The data import breaks down with a fatal error,
+if the alignment rule chosen by the user for a target is incorrect.
+The IDF function responsible for the alignment control 
+is written as the well isolated function
+which can be easily modified taking into acccount
+the additional perculiarities of your processor and compiler.
+
+The variety of alignment rules the IDF utility handles by
+means of input parameter {\bf align\_mode}. 
+In order to import the data stored in a file,
+a user must specify the value of {\it align\_mode} parameter 
+along with the Target String
+for each particular multi-object target.
+The integral values of {\it align\_mode} correspond to the alignment rules 
+considered below. 
+
+\vskip 0.2 cm
+{\bf align\_mode=0:}\hfil\break
+In this case, the target members are aligned on the byte boundary, 
+i.e without any holes in memory between 
+the members of structure or common block.
+
+\vskip 0.2 cm
+{\bf align\_mode=1,2,3,4,5,6:}\hfil\break
+In these cases, the members (of structure or common block)
+are aligned in memory on the boundary which is the smaller 
+of their own size or the specified alignment boundary.
+The specified boundary is the word ( $align\_mode = 1$ ),
+longword ( $align\_mode = 2$ ), quadword ( $align\_mode = 3$ ),
+octaword ( $align\_mode = 4$ ), hexword ( $align\_mode = 5$ ), 
+or page ( $align\_mode = 6$ ) alignment boundary.
+
+\vskip 0.2 cm
+{\bf align\_mode=7:}\hfil\break
+The target members are aligned on their natural boundaries, 
+that is, on the next free boundary appropriate to the type of member.
+The character type members ({\bf c,s,t}) are alingned on the byte boundary.
+The integer type members ({\bf i,l}) are normally aligned on the 
+longword boundary as well as the floating-point type members ({\bf f,z}). 
+The quadword boundary corresponds to the double precision 
+type members ({\bf d,w}).
+
+\vskip 0.2 cm
+{\bf align\_mode=8,9,10,11,12,13:}\hfil\break
+The target members are aligned according to prescribed
+packing size, $Npack$. 
+The prescribed alignment boundary is the word ( $align\_mode = 8$ ),
+longword ( $align\_mode = 9$ ), quadword ( $align\_ mode = 10$ ),
+octaword ( $align\_mode = 11$ ), hexword ( $align\_mode = 12$ ), 
+or page ( $align\_mode = 13$ ) boundary.
+
+\section{Import of named data set}
+
+IDF utility reads an input text file and imports the named data sets,
+name by name, in an order specified by a user.
+
+In the simplest case when target is a single object,
+IDF reads the first data unit located imedeately
+after the data set name in file. The correspondent R-value
+is converted according to the target type and then
+assigned to the target.
+The rules for R-value to target type conversion are as follows:
+(i) the character R-value is equivalent to the type {\bf c} target;
+(ii) the R-values of string and text data units
+corresponds to both {\bf s}- and {\bf t}-type targets
+%\footnote{
+%The type {\bf t} target unit is designed
+%to be {\bf unsigned int},
+%whereas the type {\bf s} target corresponds to the default {\bf char}
+%type in the C language.%}
+;
+(iii) the usual conversions of types (integer to floating point,
+floating-point to integer, single to double precision)
+may occur when R-values of integer, floating-point, complex, and formula
+data units are assigned to `arithmetic' type target ({\bf i,l,f,d,z,w}).
+Any attempt to assign the character R-value to `arithmetic' type target
+or the 'arithmetic' type R-value to character type target
+({\bf c,s,t}), will cause the fatal error.
+
+When string or text R-values are delivered to the {\bf s} and {\bf t}
+targets, the import of characters finishes if
+either the data unit content is exhausted or the last element
+of this target unit is imported.
+
+If the set of R-values is assigned to an array target,
+the first R-value in the set is assigned to the first element
+of array, the second R-value is assigned to the second element
+of array, and so on, until either the set of data units
+is exhausted or the end of array is reached. 
+If the set does not use all the values given in data file,
+the remainder data units are ignored.
+
+When  subscripts are added to the data name in a file,
+they specify the element in an array target starting with
+which  R-values should be imported from a given data set.
+In this case, IDF calculates the offset
+from the beginning of array
+(for the multi-dimensional arrays, a user must specify the Target String
+in order to introduce the dimensions of an array)
+and the correspondent number of elements will be left in the target
+before parsing the data set.
+ 
+The IDF utility transfers data to the multi-object targets consequently,
+on the one-to-one basis, that is the value of each data unit
+will be assigned to the correspondent target unit
+in an order as the data units followed the data name in a file 
+and as the target units are specified in the Target String.
+The R-value of each data unit will be converted (according to the
+target type given in the Target String) 
+and assigned to the current target
+(the position of target in memory is calculated
+according to the specified alignment rule, i.e {\it align\_mode}).
+The import of data finishes if either the list of target units 
+or the sequence of data units in file get exhausted,
+whichever happens first (but, at least one value must be imported).
+
+\section{IDF functions to be used in the C program}
+
+The names of all IDF functions to be called in a user's C program
+start with the sequence of four characters `{\it idf\_}'.
+The prototypes of these functions are given in the
+header file "{\bf idfusr.h}". 
+
+The IDF functions must be called in the proper order.
+The function {\it idf\_init} is called the first,
+in order to activate the IDF package.
+The {\it idf\_open} function should be called the next
+to open the IDF data source file for input\footnote{
+Only one IDF source file can be opened at once.
+If you want to import data from another file,
+you should close the previously onepened file and
+continue the IDF input with the {\it idf\_open} function 
+for the next input file. 
+}.
+In success, you can use a variety of IDF functions
+to transfer the data stored in the current file
+to different targets declared in your program.
+Any attempt to import data from the unopened file
+will result in a fatal error.
+The function {\it idf\_close} closes the current data file.
+The last function to be called is the {\it idf\_finish}\footnote{
+If it is necessary to continue the IDF input after the {\it idf\_finish}
+was called,
+you must start IDF again by calling the {\it idf\_init} function.
+}.
+
+At an error, the IDF functions {\it idf\_init, idf\_finish,
+idf\_open}, and {\it idf\_close}
+automatically  generate the  error message,
+if the macros IDF\_MISTAKE  is set non-zero.
+If IDF\_MISTAKE  is defined as zero,
+you should call the {\it idf\_err\_prn} function
+to obtain the correspondent error message.
+If any kind of error occurs,
+all other functions responsible for data transfer from file to targets
+display the error message automatically.
+
+
+{
+{\bf idf\_init}\hfil\break
+This function initializes some global IDF variables
+and allocates memory used by other functions of IDF package.
+Synopsis:\hfil\break
+{\it int idf\_init();}\hfil\break
+The {\it idf\_init} function receives no arguments. 
+It returns zero in success
+and the positive integer number in the case of an error.
+}
+\vskip 0.3 cm
+
+{
+{\bf idf\_finish}\hfil\break
+The {\it idf\_finish} function sets to zero all global IDF variables and
+de-allocates the memory which has been previously reserved for IDF
+with the help of {\it idf\_init} function.
+Synopsis:\hfil\break
+{\it void idf\_finish();}\hfil\break
+This function receives no arguments and returns no value. 
+}
+\vskip 0.3 cm
+
+{
+{\bf idf\_open}\hfil\break
+This function openes the specified IDF data source file for input.
+It also parsing the file and creates two catalogs (for static
+and external scope data) of data names given in this file.
+Synopsis:\hfil\break
+{\it int idf\_open(char *Fname);}\hfil\break
+This function has one argument, {\it Fname}, which is a string
+containing the name of the input data file to be opened. 
+It returns zero in success
+and the positive integer number at an error.
+}
+\vskip 0.3 cm
+
+{
+{\bf idf\_close}\hfil\break
+This function closes the IDF data source file (if any file
+has been opened with {\it idf\_open} function).
+Synopsis:\hfil\break
+{\it void idf\_close();}\hfil\break
+This function receives no arguments and returns no value. 
+}
+\vskip 0.3 cm
+
+{
+{\bf idf\_err\_prn}\hfil\break
+This function prints the error message for any error
+associated with the memory allocation,
+with the opening, reading, and parsing the IDF data source file,
+and with the creation of catalogs for data names.
+Synopsis:\hfil\break
+{\it void idf\_err\_prn();}\hfil\break
+This function receives no arguments and returns no value. 
+}
+\vskip 0.5 cm
+
+{
+{\bf idf\_c, idf\_uc, idf\_u }\hfil\break
+These functions import the named data set from a file 
+for the single character target declared in the user's program
+as {\bf char}, {\bf unsigned char}, and {\bf unsigned int},
+respectively.
+Synopsis:\hfil\break
+{\it int idf\_c(char *name, char *Pobj);}\hfil\break
+{\it int idf\_uc(char *name, unsigned char *Pobj);}\hfil\break
+{\it int idf\_c(char *name, unsigned int *Pobj);}\hfil\break
+The first argument of the function, {\it name}, is the string containing 
+the name of data set to be imported. The second argument, $Pobj$,
+is the address of an object. Each function returns zero in success.
+At an error, the function returns a positive integer number (the error code).
+It also displays an error message in the case of error. 
+}
+\vskip 0.3 cm
+
+{
+{\bf idf\_i , idf\_l , idf\_f , idf\_d , idf\_z , idf\_w}\hfil\break
+These functions import the named data set from a file 
+for the single object target 
+corresponding to the type {\bf i,l,f,d,z,} and {\bf w}, respectively. 
+Synopsis:\hfil\break
+{\it int idf\_i(char *name , int *Pobj);}\hfil\break
+{\it int idf\_l(char *name , long *Pobj);}\hfil\break
+{\it int idf\_f(char *name , float *Pobj);}\hfil\break
+{\it int idf\_d(char *name , double *Pobj);}\hfil\break
+{\it int idf\_z(char *name , float *Pobj);}\hfil\break
+{\it int idf\_w(char *name , double *Pobj);}\hfil\break
+The first argument of a function, {\it name}, is the string containing 
+the name of data set to be imported. The second argument, {\it Pobj},
+is the address of an object of the given type for {\bf i,l,f,d} targets
+and the address of the first element of an array 
+for the {\bf z}- and {\bf w}-type targets.
+Each function returns zero in success.
+In the case of error, the fuction returns a positive integer number
+and displays the corresponding error message. 
+}
+\vskip 0.3 cm
+
+{
+{\bf idf\_s , idf\_t}\hfil\break
+These functions import the named data set from a file 
+for the character string ({\bf s}) and text ({\bf t}) type targets, 
+respectively. 
+Synopsis:\hfil\break
+{\it int idf\_s(char *name , char *Str , int nelem);}\hfil\break
+{\it int idf\_t(char *name , char *Str , int nelem);}\hfil\break
+The arguments of these functions are: 
+{\it name} is the string containing the name of data set to be imported;
+{\it Str} is the address of the first element in the character string;
+{\it nelem} is the maximal number of characters in the string.
+Each function returns zero in success
+and the positive integer number in the case of error.
+At an error the function displays the error message. 
+}
+\vskip 0.3 cm
+
+{
+{\bf idf\_iarr , idf\_larr , idf\_farr , idf\_darr , idf\_zarr ,
+idf\_warr}\hfil\break
+These functions import a named data set from the current data file 
+for the one-dimensional array target 
+corresponding to the type {\bf i,l,f,d,z,} and {\bf w}, respectively. 
+Synopsis:\hfil\break
+{\it int idf\_iarr(char *name , int *Arr , int nelem);}\hfil\break
+{\it int idf\_larr(char *name , long *Arr , int nelem);}\hfil\break
+{\it int idf\_farr(char *name , float *Arr , int nelem);}\hfil\break
+{\it int idf\_darr(char *name , double *Arr , int nelem);}\hfil\break
+{\it int idf\_zarr(char *name , float *Arr , int nelem);}\hfil\break
+{\it int idf\_warr(char *name , double *Arr , int nelem);}\hfil\break
+Each function from this list receives three arguments:
+{\it name} is the string containing the name of data set to be imported;
+{\it Arr} is the address of the first element of an array; 
+{\it nelem} is the maximal number of elements in an array 
+(for complex number targets, {\bf z} and {\bf w}, each
+element in an array consists of two numbers).
+The function returns the number of imported elements in success.
+It returns the negative number at an error
+and displays the correspondent error message.
+}
+\vskip 0.3 cm
+
+
+{
+{\bf idf\_get\_array}\hfil\break
+This function imports a named data set from the current file 
+for the multi-dimensional array target.
+Synopsis:\hfil\break
+{\it int idf\_get\_array(char *name, char *TS, void *Ptarget);}\hfil\break
+The arguments are as follows: {\it name} is the string containing 
+the name of data set to be imported;
+{\it TS} is the Target String;
+{\it Ptarget} is the address of to the array target.
+The dimensionality of an array must be specified 
+using subscripts to the target type specifier in the Target String. 
+The subscripts can be also added (within a file) to the name 
+of corresponding data set. In this case, the data set name
+subscripts denote the offset from the beginning of an array target
+(i.e the particular element in an array target starting with which
+the stored data should be imported).
+The function returns the number of imported elements in success.
+At an error, the function returns the negative number 
+and displays the correspondent error message.
+}
+\vskip 0.3 cm
+
+\newpage
+
+{
+{\bf idf\_get}\hfil\break
+This function imports a named data set from the current file 
+and transfers data to the arbitrary target.
+Synopsis:\hfil\break
+{\it int idf\_get(name , TS , align\_mode , Ptarget);}\hfil\break
+{\it char *name, char *TS, int align\_mode, void *Ptarget;}\hfil\break
+The function arguments have the following meanings:
+{\it name} is the string containing the name of data set to be imported;
+{\it TS} is the Taget String;
+{\it align\_mode} is the parameter defining the alignment rule;
+{\it Ptarget} is the address of the target.
+In success, the function returns the number of imported elements.
+In the case of error, it returns the negative number
+and displays the correspondent error message.
+}
+
+\section*{Examples of IDF usage in the C program}
+
+The following sample program written in C language demonstrates the data
+import from external file with the IDF package.
+In this program, all targets are the single variables and arrays.
+For each target, IDF imports the corresponding data set
+according to its symbolic name.
+
+\vskip 0.2 cm
+{
+\footnotesize
+%\small
+\leftline{\#include\ $<$stdio.h$>$}
+\leftline{\#include\ "idfuser.h"}
+\vskip 0.2 cm
+\leftline{int main()}
+\leftline{/* The first sample program in C */}
+\leftline{\{}
+\leftline{/*initialization of input IDF data file String*/}
+\leftline{static char Fname[\ ] = "couette.dat";}
+\leftline{/* declaration of input parameters */}
+\leftline{double Lz,Pr[3];}
+\leftline{float Knu,Uw,Tw;}
+\leftline{int Nz,Nv[2];}
+\leftline{int ier;}
+\leftline{/* start the IDF package */}
+\leftline{ier=idf\_init();\ \ if(ier) goto er;}
+\leftline{/* open the data file */}
+\leftline{ier=idf\_open(Fname);\ \ if(ier) goto err;}
+\leftline{/* reading the data from file */}
+\leftline{ier=idf\_d("Lz", \&Lz);\ \ if(ier) goto err;}
+\leftline{ier=idf\_f("Knu", \&Knu);\ \ if(ier) goto err;}
+\leftline{ier=idf\_f("Uw",  \&Uw);\ \ if(ier) goto err;}
+\leftline{ier=idf\_f("Tw",  \&Tw);\ \  if(ier) goto err;}
+\leftline{ier=idf\_darr("Pr", Pr , 3);\ \ if(ier!=3) goto err;\ \ ier=0;}
+\leftline{ier=idf\_i("Nz", \&Nz);\ \ if(ier) goto err;}
+\leftline{ier=idf\_iarr("Nv", Nv , 2);\ \ if(ier!=2) goto err;\ \ ier=0;}
+\leftline{/* print the imported data sets*/}
+\leftline{printf("Lz=\%12.3e Knu=\%12.3e$\backslash$n",Lz,Knu);}
+\leftline{printf("Uw=\%12.3e  Tw=\%12.3e$\backslash$n",Uw,Tw);}
+\leftline{printf("Pr=\%12.3e, \%12.3e, \%12.3e$\backslash$n",Pr[0],Pr[1],Pr[2]);}
+\leftline{printf("Nz=\%5d Nv=\%5d, \%5d$\backslash$n",Nz,Nv[0],Nv[1]);}
+\leftline{/* close the data file */}
+\leftline{err:\ idf\_close();}
+\leftline{/* finish the IDF */}
+\leftline{er:\ idf\_finish();}
+\leftline{return ier;}
+\leftline{\}}
+}
+\vskip 0.3 cm
+
+The above program imports data from file "couette.dat".
+Assume that this file contains the scientific data\footnote{ 
+As an example, we consider a data related to the so-called Couette problem, 
+the classical problem of rarefied gas dynamics.
+}
+and these data are stored in file in the same form as they have been
+given in Section II.
+Then, the following four strings will be displayed as a result of
+execution of this program:
+
+\vskip 0.2 cm 
+{
+\footnotesize
+%\small
+\leftline{Lz=\ 1.000e+00\ Knu=\ 2.500e-02}
+\leftline{Uw=\ 1.000e-02\ \ Tw=\ 1.000e-01}
+\leftline{Pr=\ 3.333e-01,\ 6.667e-01,\ 1.000e+00}
+\leftline{Nz=\ \ 1000\ Nv=\ \ \ 31,\ \ 31}
+}
+\vskip 0.3 cm 
+
+Consider the next sample program to illustrate the data input
+from a file for the aggregate target with the IDF package.
+In this case, the input parameters are incorporated
+within a {\it structure} and are initialized all together
+using the symbolic name of the structure.
+
+The C source file for the second sample program
+consists of:
+
+the header file references
+
+\vskip 0.2 cm 
+{
+\footnotesize
+%\small
+\leftline{\#include\ $<$stdio.h$>$}
+\leftline{\#include\ "idfuser.h"}
+}
+\vskip 0.2 cm
+
+the {\it COUETTE} structure type definition
+ 
+\vskip 0.2 cm 
+{
+\footnotesize
+%\small
+\leftline{\#typedef struct \{}
+\leftline{\ \ \ \  double Lz;}
+\leftline{\ \ \ \ float Knu,Uw,Tw;}
+\leftline{\ \ \ \  double Pr[3];}
+\leftline{\ \ \ \ int Nz,Nv[2];}
+\leftline{$~~~~~~~~~~~~~~~~~~~~~~$\}\ COUETTE;}
+}
+\vskip 0.2 cm
+
+\newpage
+
+the C function {\it Couette\_input}
+
+\vskip 0.2 cm 
+{
+\footnotesize
+%\small
+\leftline{int Couette\_input(Cinp)}
+\leftline{COUETTE *Cinp;}
+\leftline{/*this function returns zero in success*/}
+\leftline{\{}
+\leftline{/*initialization of input IDF data file String*/}
+\leftline{char Fname[\ ] = "couetteS.dat";}
+\leftline{/* initialization of structure data name */}
+\leftline{char StructName[\ ] = "COUETTE";}
+\leftline{/*initialization of alignment mode */}
+\leftline{int amode = 7;\ /*assume the `natural boundary' rule*/}
+\leftline{/*initialization of Target String */}
+\leftline{char Target\_String[\ ] = "dfffd[3]ii[2]";}
+\leftline{int ier;}
+\leftline{/* start the IDF package */}
+\leftline{ier=idf\_init();\ \ if(ier) goto er;}
+\leftline{/* open the data file */}
+\leftline{ier=idf\_open(Fname);\ \ if(ier) goto err;}
+\leftline{/* reading the data from file to the Cinp structure*/}
+\leftline{ier = idf\_get(StructName, Target\_String, amode, Cinp);}
+\leftline{if(ier$>$0) ier=0;}
+\leftline{/* close the data file */}
+\leftline{err:\ idf\_close();}
+\leftline{/* finish the IDF */}
+\leftline{er:\ idf\_finish();}
+\leftline{return ier;}
+\leftline{\}}
+}
+\vskip 0.2 cm
+
+and the program {\it main}
+
+\vskip 0.2 cm
+{
+\footnotesize
+%\small
+\leftline{int main()}
+\leftline{/* The second sample program in C */}
+\leftline{\{}
+\leftline{/* declaration of input structure */}
+\leftline{COUETTE Cinput;}
+\leftline{int ier=0;}
+\leftline{/* import data from file */}
+\leftline{ier=Couette\_input(\&Cinput);\ \ if(ier) goto err;}
+\leftline{/* print the imported data sets*/}
+\leftline{printf("Lz=\%12.3e Knu=\%12.3e$\backslash$n",Cinput.Lz,Cinput.Knu);}
+\leftline{printf("Uw=\%12.3e  Tw=\%12.3e$\backslash$n",Cinput.Uw,Cinput.Tw);}
+\leftline{printf("Pr=\%12.3e, \%12.3e, \%12.3e$\backslash$n",}
+\leftline{Cinput.Pr[0],Cinput.Pr[1],Cinput.Pr[2]);}
+\leftline{printf("Nz=\%5d Nv=\%5d, \%5d$\backslash$n",}
+\leftline{Cinput.Nz,Cinput.Nv[0],Cinput.Nv[1]);}
+\leftline{err:\ return ier;}
+\leftline{\}}
+}
+\vskip 0.2 cm
+
+In this program, the input parameters,
+namely: {\it Lz, Knu, Uw, Tw, Pr, Nz}, and {\it Nv},
+are the members of a structure,
+the type of which is declared as {\it COUETTE}.
+All IDF functions required to import data from  "couetteS.dat" file
+are well isolated within the user's function {\it Couette\_input}.
+The function {\it Couette\_input} initializes in whole the input structure,
+{\it Cinput}, declared as {\it COUETTE} type in the {\it main} program.
+The program then prints the values of imported parameters.
+For this program, the correspondent IDF data source file "couetteS.dat"
+can be written as follows:
+
+\vskip 0.3 cm
+{
+\footnotesize
+%\small
+\leftline{// IDF data file "couetteS.dat"}
+\leftline{/* COUETTE, this structure contains input parameters
+for Couette problem */}
+\leftline{COUETTE = \{}
+\leftline{/* Physical input parameters */}
+\leftline{$1.0$\ \ //Lz, A fixed plate separation distance, in cm}
+\leftline{$0.025$\ // Knu, Knudsen number}
+\leftline{$0.1$\ \ \ \ // Tw, Constant plate temperature, eV}
+\leftline{$0.01$\ \ // Uw, Constant relative plate velocity, $U/Vt$}
+\leftline{$~~~~~~$// Vt is the thermal velocity, sqrt(2RTw)}
+\leftline{\$1/3\$,\ \$2/3\$\ ,\ \ $1$\ \ // Pr, The set of Prandtl numbers}
+\leftline{/* Computational algorithm input parameters */}
+\leftline{$1000$\ \ //Nz, number of nodes in the uniform mesh in z direction}
+\leftline{$31,31$\ \  //Nv, number of nodes in the 2D velocity space} 
+\leftline{\};}
+}
+\vskip 0.3 cm
+
+The execution of this program results
+in displaying the same four strings as the output strings
+from the first sample program.
+
+\section*{Usage of IDF functions in C++}
+
+For object-oriented programming the C++ language
+introduces an aggregate data type {\it class}
+which is the extension of {\it structure} data type
+in the C language. In this section we will consider
+an example of C++ program\footnote{
+We re-write the second sample program considered in the preceeding section
+from C to C++ language using the class {\it COUET} instead of
+structure {\it COUETTE}.
+}
+which handles the data input
+with IDF package using the {\it class} mechanism.
+The C++ source file for the sample program
+consists of:
+
+the header file references
+
+\vskip 0.2 cm
+{
+\footnotesize
+%\small
+\leftline{\#include\ $<$stream.h$>$}
+\leftline{\#define\ IDF\_CPP\ 1}
+\leftline{\#define\ IDF\_CPP\_STYLE\ 1}
+\leftline{\#include\ "idfuser.h"}
+}
+\vskip 0.2 cm
+
+the {\it COUET} class definition
+
+\vskip 0.2 cm
+{
+\footnotesize
+%\small
+\leftline{class\ COUET \{}
+\leftline{\ \ \ \ int ierror;}
+\leftline{\ \ public:}
+\leftline{\ \ \ \  double Lz;}
+\leftline{\ \ \ \ float Knu,Uw,Tw;}
+\leftline{\ \ \ \  double Pr[3];}
+\leftline{\ \ \ \ int Nz,Nv[2];}
+\vskip 0.1 cm
+\leftline{\ \ \ \ \ \ \ COUET(char*,char*);}
+\leftline{\ \ void\ COUETprn();}
+\leftline{\ \ int\ \ COUETerr();}
+\leftline{$~~~~~~~~~~~~~~~~~~~~~~$\};}
+}
+\vskip 0.2 cm
+
+the class constructor
+
+\vskip 0.2 cm 
+{
+\footnotesize
+%\small
+\leftline{COUET :: COUET(char *Fname, char *Sname)}
+\leftline{\{}
+\leftline{int amode = 7;\ // assume the `natural boundary' rule}
+\leftline{char Target\_String[\ ] = "dfffd[3]ii[2]";\ \ 
+//initialization of Target String}
+\leftline{ierror=idf\_init();\ \ if(ierror) goto er;\ \ 
+// start the IDF package}
+\leftline{ierror=idf\_open(Fname);\ \ if(ierror) goto err;\ \ 
+// open the data file}
+\leftline{// reading the data from file to the Cinp structure}
+\leftline{ierror = idf\_get(Sname, Target\_String, amode, \&Lz);}
+\leftline{if(ierror$>$0) ierror=0;}
+\leftline{err:\ idf\_close();\ \ // close the data file }
+\leftline{er:\ idf\_finish();\ \ // finish the IDF }
+\leftline{\}}
+}
+\vskip 0.2 cm 
+
+two class member functions, {\it COUETerr} and {\it COUETprn},
+
+\vskip 0.2 cm 
+{
+\footnotesize
+%\small
+\leftline{int COUET :: COUETerr()}
+\leftline{\{}
+\leftline{\ return ierror; // transfer the error flag}
+\leftline{\}}
+\leftline{void COUET :: COUETprn()}
+\leftline{\{}
+\leftline{/* function prints the imported data sets*/}
+\leftline{\{}
+\leftline{cout $<<$ form("Lz=\%12.3e Knu=\%12.3e$\backslash$n",Lz,Knu);}
+\leftline{cout $<<$ form("Uw=\%12.3e  Tw=\%12.3e$\backslash$n",Uw,Tw);}
+\leftline{("Pr=\%12.3e, \%12.3e, \%12.3e$\backslash$n",
+Pr[0],Pr[1],Pr[2]);}
+\leftline{cout $<<$ form("Nz=\%5d Nv=\%5d, \%5d$\backslash$n",
+Nz,Nv[0],Nv[1]);}
+\leftline{\}}
+}
+\vskip 0.2 cm
+
+and the program {\it main}
+
+\vskip 0.2 cm 
+{
+\footnotesize
+%\small
+\leftline{int main()}
+\leftline{\{}
+\leftline{char File\_Name[\ ] = "couetteS.dat";\ \ 
+//initialization of input IDF data file String}
+\leftline{char Class\_Name[\ ] = "COUETTE";\ \ 
+// initialization of structure data name}
+\leftline{int ier;}
+\leftline{// create the class object with the IDF based constructor}
+\leftline{COUET\ Cinp(File\_Name , Class\_Name);}
+\leftline{ier = Cinp.COUETerr();}
+\leftline{if(!ier)\ Cinp.COUETprn();\ \ // if no errors print input data}
+\leftline{return ier;}
+\leftline{\}}
+}
+\vskip 0.2 cm 
+
+In this C++ program, the constructor creates the object {\it Cinp}
+of the {\it COUET} class. The scientific parameters are the data members
+of this class. The constructor receives the IDF input file name
+"{\it couetteS.dat}"
+and the data set name
+"{\it COUETTE}"
+as the arguments. It uses then the IDF
+functions to initialize the data members of {\it COUET} class.
+
+\section{IDF functions for the FORTRAN program}
+
+{
+{\bf idfinit}\hfil\break
+This function initializes some global IDF variables
+and allocates memory used by other functions of IDF package.
+Usage in FORTRAN:\hfil\break
+{\it ierr = idfinit(0)}\hfil\break
+The function receives an integer type argument which has no meaning. 
+It returns zero in success
+and the positive integer number $ierr$ in the case of error.
+}
+\vskip 0.3 cm
+
+{
+{\bf idfinish}\hfil\break
+The {\it idfinish} subroutine sets to zero all global IDF variables and
+de-allocates the memory which has been previously reserved for IDF
+with the help of {\it idfinit} function.
+Usage in FORTRAN:\hfil\break
+{\it call idfinish}\hfil\break
+This subroutine is called without arguments. 
+}
+\vskip 0.3 cm
+
+{
+{\bf idfopen}\hfil\break
+This function openes the specified IDF data source file for input.
+It also parsing the file and creates two catalogs (for static
+and external scope data) of data names given in this file.
+Example of usage in FORTRAN:\hfil\break
+{\it character*(*) Fname}\hfil\break
+{\it integer*4\ nlen, ierr}\hfil\break
+{\it parameter\ (len = 10 , Fname = 'file\_name')}\hfil\break
+{\it ierr = idfopen(Fname, len)}\hfil\break
+This function receives two arguments. 
+The first argument, {\it Fname}, is the character string
+containing the name of the file to be opened.
+The second argument, {\it len}, is the number of characters in the file name. 
+In success, the function returns zero, and
+the positive integer number $ierr$ in the case of an error.
+}
+\vskip 0.3 cm
+
+{
+{\bf idfclose}\hfil\break
+The {\it idfclose} subroutine closes the IDF data source file 
+(if any file has been opened with {\it idfopen} function).
+Usage in FORTRAN:\hfil\break
+{\it call\ idfclose}\hfil\break 
+This subroutine is called without arguments. 
+}
+\vskip 0.3 cm
+
+{
+{\bf idferprn}\hfil\break
+This subroutine prints the error message for any error
+associated with the memory allocation,
+with the opening, reading, and parsing the IDF data source file,
+and with the creation of catalogs for data names.\hfil\break
+Usage in FORTRAN:\hfil\break
+{\it call\ idferrprn}\hfil\break 
+This subroutine is called without arguments. 
+}
+\newpage
+
+{
+{\bf idfc}\hfil\break
+This function imports the named data set from a file 
+for the single character target declared in the user-written program
+as {\bf character}.
+Example of usage in FORTRAN:\hfil\break
+{\it character*(*) name;\ character*1\ Char}\hfil\break
+{\it integer*4\ nlen, ierr}\hfil\break
+{\it parameter\ (nlen = 10 , name = 'data\_name')}\hfil\break
+{\it ierr = idfc(name , nlen , Char)}\hfil\break
+The first argument of the function, {\it name} is the string containing 
+the name of data set to be imported. 
+The second argument, {\it nlen}, is the number of characters 
+in the data set name. 
+The third argument, {\it Char},
+is the name of character variable declared in the user's code. 
+The function returns zero in success
+and the positive integer number (i.e the error code $ierr$) 
+in the case of error.
+If any error occurs, the function displays the error message. 
+}
+\vskip 0.3 cm
+
+{
+{\bf idfi , idff , idfd , idfz , idfw}\hfil\break
+These functions import the named data set from a file 
+for the single object target 
+corresponding to the `arithmetic' type {\bf i,f,d,z,} and {\bf w}, 
+respectively. 
+Example of usage in FORTRAN:\hfil\break
+{\it character*(*)\ name}\hfil\break
+{\it integer*4\ nlen, ierr}\hfil\break
+{\it parameter\ (nlen = 10 , name = 'data\_name')}\hfil\break
+{\it integer*4\ ObjI;\ real*4\ ObjF;\ real*8\ ObjD;
+complex*8\ ObjZ;\ complex*16\ ObjW}\hfil\break
+{\it ierr = idfi(name , nlen , ObjI)}\hfil\break
+{\it ierr = idff(name , nlen , ObjF)}\hfil\break
+{\it ierr = idfd(name , nlen , ObjD)}\hfil\break
+{\it ierr = idfz(name , nlen , ObjZ)}\hfil\break
+{\it ierr = idfw(name , nlen , ObjW)}\hfil\break
+The first argument of a function, {\it name}, is the string containing 
+the name of data set to be imported.
+The second argument, {\it nlen}, is the number of characters 
+in the data set name.
+The third argument, {\it Obj\_},
+is the symbolic name of a target given in the user's code.
+Each function returns zero in success
+and the positive integer number $ierr$ in the case of error.
+At an error,  the function displays the corresponding error message.
+}
+\vskip 0.3 cm
+
+{
+{\bf idfs , idft}\hfil\break
+These functions import a named data set from the current file 
+for the character string ({\bf s}) and text ({\bf t}) type targets, 
+respectively. 
+Example of usage in FORTRAN:\hfil\break
+{\it character*(*)\ name}\hfil\break
+{\it integer*4\ nlen, ierr}\hfil\break
+{\it parameter\ (nlen = 10 , name = 'data\_name')}\hfil\break
+{\it character*100 Str;\ integer*4 nelem=100;}\hfil\break
+{\it ierr = idfs(name , nlen , Str , nelem)}\hfil\break
+{\it ierr = idft(name , nlen , Str , nelem)}\hfil\break
+The arguments of these functions are as follows: 
+{\it name} is the string containing the name of data set to be imported;
+{\it nlen} is the number of characters in the data set name;
+{\it Str} is the symbolic name of a target declared as a character string
+in the user-written program;
+{\it nelem} is the maximal number of characters in the character string target
+{\it Str}.
+Each function returns zero in success.
+In the case of error, the function returns a positive integer number $ierr$
+and displays the error message. 
+}
+\vskip 0.3 cm
+
+{
+{\bf idfiarr , idffarr , idfdarr , idfzarr ,
+idfwarr}\hfil\break
+These functions import the named data set from a file 
+for the one dimensional array target 
+corresponding to the type {\bf i,f,d,z,} and {\bf w}, respectively. 
+Example of usage in FORTRAN:\hfil\break
+{\it character*(*)\ name}\hfil\break
+{\it integer*4\ nlen, ierr}\hfil\break
+{\it parameter\ (nlen = 12 , name = 'array1D\_name')}\hfil\break
+{\it integer*4\ ArrI(3);\ real*4\ ArrF(4);\ real*8\ ArrD(2,3)}\hfil\break
+{\it complex*8\ ArrZ(5);\ complex*16\ ArrW(7)}\hfil\break
+{\it ierr = idfiarr(name , nlen , ArrI , 3)}\hfil\break
+{\it ierr = idffarr(name , nlen , ArrF , 4)}\hfil\break
+{\it ierr = idfdarr(name , nlen , ArrD , 6)}\hfil\break
+{\it ierr = idfzarr(name , nlen , ArrZ , 5)}\hfil\break
+{\it ierr = idfwarr(name , nlen , ArrW , 7)}\hfil\break
+Each function receives four arguments, namely:
+{\it name} is the string containing the name of data set to be imported;
+{\it nlen} is the number of characters in the data set name;
+{\it Arr\_} is the symbolic name of an array in the user-written program.
+The last argument is the smaller of the maximal number of elements in array
+or the number of array elements to be imported.
+The function returns the number $ierr$ of imported elements in success.
+At an error, the function returns a negative number
+and displays the correspondent error message.
+}
+\newpage
+
+{
+{\bf idfarray}\hfil\break
+This function imports a named data set from the current file 
+for the multi-dimensional array target.
+Example of usage in FORTRAN:\hfil\break
+{\it character*(*)\ name, TS}\hfil\break
+{\it integer*4 nlen, nts, ierr}\hfil\break
+{\it parameter\ (nlen = 10 , name = 'array\_name')}\hfil\break
+{\it parameter\ (nts = 8 , TS = 'd(3,4,5)')}\hfil\break
+{\it real*8\ Arr(3,4,5)}\hfil\break
+{\it ierr = idfarray(name, nlen , TS, nts , Arr)}\hfil\break
+The arguments are as follows: 
+{\it name} is the string containing 
+the name of data set to be imported;
+{\it nlen} is the number of characters in the data set name;
+{\it TS} is the Target String;
+{\it nts} is the number of characters in the Target String;
+{\it Arr} is the symbolic name of an array 
+declared in the user-written program.
+The dimensionality of array must be specified 
+using the target subscripts in the Target String. 
+The subscripts can be also added (within a file) to the name 
+of corresponding data set. In this case, the data set name
+subscripts denote the offset from the beginning
+of an array target
+(i.e the particular element in an array target starting with which
+the stored data should be imported).
+The function returns the number of imported elements in success.
+At an error, the function returns the negative number 
+and displays the correspondent error message.
+}
+\newpage
+
+{
+{\bf idfget}\hfil\break
+This function imports a named data set from the current file 
+and transfer data to the arbitrary target.
+Example of usage in FORTRAN:\hfil\break
+{\it character*(*)\ name, TS}\hfil\break
+{\it integer*4 nlen, nts, align\_mode}\hfil\break
+{\it parameter\ (nlen=12 , name = 'dataset\_name')}\hfil\break
+{\it parameter\ (nts=18 , TS = 'd(3,4,5)i(2)z(6,7)' , align\_mode=0)}\hfil\break
+{\it common/input/ Arr,Iarr,Carr}\hfil\break
+{\it integer*4 ierr, Iarr(2)}\hfil\break
+{\it real*8\ Arr(3,4,5);\ complex*8\ Carr(6,7)}\hfil\break
+{\it ierr = idfget(name, nlen , TS, nts , align\_mode, Atarget)}\hfil\break
+The function arguments have the following meanings:
+{\it name} is the string containing the name of data set to be imported;
+{\it nlen} is the number of characters in the data set name;
+{\it TS} is the Taget String;
+{\it nts} is the number of characters in the Target String;
+{\it align\_mode} is the integer parameter (or variable)
+specifying the alignment rule;
+{\it Atarget} is either the symbolic name of the target
+(if target is the single variable or array),
+or the name of the first member in an aggregate target 
+declared in the user-written program.
+In success the function returns the number of imported elements.
+In the case of error, it returns the negative number
+and displays the correspondent error message.
+}
+
+\section*{Example of IDF usage in FORTRAN program}
+
+This section illustrates the usage of IDF package
+for programming data input in FORTRAN language.
+Two simple sample programs written in FORTRAN-77
+are considered below.
+
+The first program {\it couette} imports data
+from the file "couette.dat". This program is the FORTRAN-77 analog
+to the first {\bf C} sample program considered in the previous
+section.
+
+\vskip 0.2 cm
+{
+\footnotesize
+%\small
+\leftline{\ \ \ \ program couette}
+\leftline{c\ \ \ The first sample program in FORTRAN}
+\leftline{c\ \ \ initialization of input IDF data file String}
+\leftline{\ \ \ \ character*(*)\ Fname}
+\leftline{\ \ \ \ integer*4\ Flen, ier}
+\leftline{\ \ \ \ parameter\ (Flen = 11 , Fname = 'couette.dat')}
+\leftline{c\ \ \ declaration of input parameters}
+\leftline{\ \ \ \ real*8\ Lz,Pr(3)}
+\leftline{\ \ \ \ real*4\ Knu,Uw,Tw}
+\leftline{\ \ \ \ integer*4\ Nz,Nv(2)}
+\leftline{c\ \ \ start the IDF package}
+\leftline{\ \ \ \ ier=idfinit(0)}
+\leftline{\ \ \ \ if(ier.ne.0)\ go\ to\ 1}
+\leftline{c\ \ \ open the data file}
+\leftline{\ \ \ \ ier=idfopen(Fname,Flen)}
+\leftline{\ \ \ \ if(ier.ne.0)\ go\ to\ 2}
+\leftline{c\ \ \ reading the data from file}
+\leftline{\ \ \ \ ier=idfd('Lz', 2, Lz)}
+\leftline{\ \ \ \ if(ier.ne.0)\ go\ to\ 2}
+\leftline{\ \ \ \ ier=idff('Knu', 3, Knu)}
+\leftline{\ \ \ \ if(ier.ne.0)\ go\ to\ 2}
+\leftline{\ \ \ \ ier=idff('Uw', 2, Uw)}
+\leftline{\ \ \ \ if(ier.ne.0)\ go\ to\ 2}
+\leftline{\ \ \ \ ier=idff('Tw', 2,  Tw)}
+\leftline{\ \ \ \ if(ier.ne.0)\ go\ to\ 2}
+\leftline{\ \ \ \ ier=idfdarr('Pr', 2, Pr, 3)}
+\leftline{\ \ \ \ if(ier.ne.3)\ go\ to\ 2}
+\leftline{\ \ \ \ ier=idfi('Nz', 2, Nz)}
+\leftline{\ \ \ \ if(ier.ne.0)\ go\ to\ 2}
+\leftline{\ \ \ \ ier=idfiarr('Nv', 2, Nv, 2)}
+\leftline{\ \ \ \ if(ier.ne.2)\ go\ to\ 2}
+\leftline{c\ \ \ print the imported data sets}
+\leftline{\ \ \ \ print\ 10,Lz,Knu}
+\leftline{10\ \ format('Lz='E12.3 'Knu='E12.3)}
+\leftline{\ \ \ \ print\ 20,Uw,Tw}
+\leftline{20 \ \ format('Uw='E12.3 '\ Tw='E12.3)}
+\leftline{\ \ \ \ print\ 30,Pr(1),Pr(2),Pr(3)}
+\leftline{30 \ \ format ('Pr='E12.3 ',' E12.3 ',' E12.3)}
+\leftline{\ \ \ \ print\ 40,Nz,Nv(1),Nv(2)}
+\leftline{40 \ \ format('Nz='I5 'Nv='I5',' I5)}
+\leftline{c\ \ \ close the data file}
+\leftline{2\ \ \ call\ idfclose}
+\leftline{c\ \ \ finish the IDF}
+\leftline{1\ \ \ call\ idfinish}
+\leftline{\ \ \ \ stop}
+\leftline{\ \ \ \ end}
+}
+\vskip 0.3 cm
+
+The second FORTRAN program {\it couettes} transferes data
+from the file "couetteS.dat" to common block {\it COUETTE},
+and all input parameters are the members of this block. 
+The IDF input is performed within the user's function {\it couetinp}. 
+
+\vskip 0.2 cm
+{
+\footnotesize
+%\small
+\leftline{\ \ \ \ program couettes}
+\leftline{c\ \ \ The second sample program in FORTRAN}
+\leftline{c\ \ \ initialization of input IDF data file String}
+\leftline{\ \ \ \ character*(*)\ Fname}
+\leftline{\ \ \ \ integer*4\ Flen, ier, couetinp}
+\leftline{\ \ \ \ parameter\ (Flen = 12 , Fname='couetteS.dat')}
+\leftline{c\ \ \ declaration of input parameters within a common block}
+\leftline{\ \ \ \ common/COUETTE/Lz,Knu,Uw,Tw,Pr,Nz,Nv}
+\leftline{\ \ \ \ real*8\ Lz,Pr(3)}
+\leftline{\ \ \ \ real*4\ Knu,Uw,Tw}
+\leftline{\ \ \ \ integer*4\ Nz,Nv(2)}
+\leftline{c\ \ \ import data with IDF package}
+\leftline{\ \ \ \ ier = couetinp(Fname,Flen)}
+\leftline{\ \ \ \ if(ier.eq.0)\ then}
+\leftline{c\ \ \ print the imported data sets}
+\leftline{\ \ \ \ print\ 10,Lz,Knu}
+\leftline{10\ \ format('Lz='E12.3 'Knu='E12.3)}
+\leftline{\ \ \ \ print\ 20,Uw,Tw}
+\leftline{20 \ \ format('Uw='E12.3 '\ Tw='E12.3)}
+\leftline{\ \ \ \ print\ 30,Pr(1),Pr(2),Pr(3)}
+\leftline{30 \ \ format ('Pr='E12.3 ',' E12.3 ',' E12.3)}
+\leftline{\ \ \ \ print\ 40,Nz,Nv(1),Nv(2)}
+\leftline{40 \ \ format('Nz='I5 'Nv='I5',' I5)}
+\leftline{\ \ \ \ end\ if}
+\leftline{\ \ \ \ stop}
+\leftline{\ \ \ \ end}
+\vskip 0.2 cm
+\leftline{\ \ \ \ integer function couetinp(namef,lenf)}
+\leftline{\ \ \ \ character*(*)\ namef}
+\leftline{\ \ \ \ integer*4\ lenf}
+\leftline{c\ \ \ function returns zero in success}
+\leftline{\ \ \ \ common/COUETTE/Lz,Knu,Uw,Tw,Pr,Nz,Nv}
+\leftline{\ \ \ \ real*8\ Lz,Pr(3)}
+\leftline{\ \ \ \ real*4\ Knu,Uw,Tw}
+\leftline{\ \ \ \ integer*4\ Nz,Nv(2)}
+\leftline{\ \ \ \ integer*4 idfinit,idfopen,idfget}
+\leftline{\ \ \ \ integer*4\ amode, lSN, lTS}
+\leftline{c\ \ \ initialization of Align Mode for F77 option '-align\ dcommon'}
+\leftline{\ \ \ \ parameter (amode=7)}
+\leftline{c\ \ \ initialization of Target String and Data Set Name}
+\leftline{\ \ \ \ parameter (lSN=7 , lTS=13)}
+\leftline{\ \ \ \ character*13 TS /'dfffd[3]ii[2]'/}
+\leftline{\ \ \ \ character*7 SN /'COUETTE'/}
+\leftline{c\ \ \ start the IDF package}
+\leftline{\ \ \ \ couetinp=idfinit(0)}
+\leftline{\ \ \ \ if(couetinp.ne.0)\ go\ to\ 1}
+\leftline{c\ \ \ open the data file}
+\leftline{\ \ \ \ couetinp=idfopen(namef,lenf)}
+\leftline{\ \ \ \ if(couetinp.ne.0)\ go\ to\ 2}
+\leftline{c\ \ \ transfer the data from file to common block}
+\leftline{\ \ \ \ couetinp = idfget(SN, lSN, TS, lTS, amode, Lz)}
+\leftline{\ \ \ \ if(couetinp)\ 2,3,3}
+\leftline{3\ \ \ couetinp=0}
+\leftline{c\ \ \ close the data file}
+\leftline{2\ \ \ call\ idfclose}
+\leftline{c\ \ \ finish the IDF}
+\leftline{1\ \ \ call\ idfinish}
+\leftline{\ \ \ \ return}
+\leftline{\ \ \ \ end}
+}
+\vskip 0.3 cm
+
+The {\it couettes} program imports the single named data set
+{\it 'COUETTE'} from the "couetteS.dat" file
+(see the previous section)
+and prints the values of input parameters.
+
+\section{Installing the IDF package}
+
+To install the IDF package on your computer
+you need, first of all, 
+to create the object module file for each C source file
+of IDF package by invoking a C compiler. 
+These modules should then be stored in an object module library.
+This library can then be linked to the user's code.
+
+For UNIX platform, you may use the make file {\bf idf.make}.
+This makefile contains additional comments which will help 
+you to adjust commands to your operational system.
+
+IDF package includes four header files, namely:
+"{\bf idflib.h}", "{\bf idf.i}", "{\bf idf.h}", 
+and "{\bf idfusr.h}" \footnote{
+The header file "{\bf idfuser.h}" is created in running {\it idf.make}.
+This header file is a copy of "{\it idfusr.h}" file.
+}. 
+In some cases, it is necessary to change macro-definition settings
+in  "{\it idflib.h}", "{\it idf.i}" header files 
+in order to adjust the IDF package 
+to your computer, compiler, and program.
+
+The IDF header file "{\bf idflib.h}" contains
+a list of standard C header files\footnote{
+In the case when the standard header files from this list
+does not exists (for example, "{\it float.h}" header file),
+follow instructions given in "{\it idflib.h}"
+in order to define standard macros required for IDF.
+} used in IDF.
+The {\it idflib.h} file also defines the macro IDF\_CPP\_STYLE
+which controls the declaration of C function prototypes\footnote{
+Set IDF\_CPP\_STYLE to zero if you want to use 
+Pre-Standard C declarations.
+}. The macro IDF\_IEEE must be defined as unity, if your
+software implements the IEEE standard for binary floating-point arithmeic. 
+You should also specify the proper type of naming convention for
+C functions to be called from FORTRAN
+in terms of macro IDF\_FORTRAN.
+
+The IDF header file "{\bf idf.i}" contains
+several macros important for IDF package performance.
+If you want to change the settings of these macros,
+follow comments given in this file.
+
+\newpage
+\section*{APPENDIX I:}
+\section*{The List of IDF mathematical constants}
+
+\vskip 0.25 cm
+
+Here is the list of names used by IDF for symbolic representation
+of several mathematical constants. 
+
+\vskip 1 cm
+
+\leftline{\bf Name ~~~~~~~~~~~~~~~ Value}
+\vskip 0.6 cm
+
+\leftline{IDF\_RAD ~~~~~~~~~~~~~~ 1 radian in degrees}
+
+\leftline{IDF\_DEG ~~~~~~~~~~~~~~ 1 degrees in radians}
+
+\leftline{IDF\_EU ~~~~~~~~~~~~~~~~ Eu, Euler number}
+
+\leftline{IDF\_PI ~~~~~~~~~~~~~~~~~~ $\pi$ number}
+
+\leftline{IDF\_2PI ~~~~~~~~~~~~~~~~~ $2*\pi$}
+
+\leftline{IDF\_PIPI ~~~~~~~~~~~~~~~ $\pi^2$}
+
+\leftline{IDF\_PIOVER2 ~~~~~~~~ $\pi/2$}
+
+\leftline{IDF\_PIOVER3 ~~~~~~~~ $\pi/3$}
+
+\leftline{IDF\_PIOVER4 ~~~~~~~~ $\pi/4$}
+
+\leftline{IDF\_1\_PI ~~~~~~~~~~~~~~~~ $1/\pi$}
+
+\leftline{IDF\_2\_PI ~~~~~~~~~~~~~~~~ $2/\pi$}
+
+\leftline{IDF\_EXP ~~~~~~~~~~~~~~~~ exp(1)}
+
+\leftline{IDF\_EXP2 ~~~~~~~~~~~~~~ exp(2)}
+
+\leftline{IDF\_EXPI ~~~~~~~~~~~~~~~ exp($\pi$)}
+
+\leftline{IDF\_EXPU ~~~~~~~~~~~~~~ exp(Eu)}
+
+\leftline{IDF\_EXPE ~~~~~~~~~~~~~~ exp(exp(1))}
+
+\leftline{IDF\_SEXP ~~~~~~~~~~~~~~ sqrt(exp(1))}
+
+\leftline{IDF\_SQRT2 ~~~~~~~~~~~~~ sqrt(2)}
+
+\leftline{IDF\_SQRT3 ~~~~~~~~~~~~~ sqrt(3)}
+
+\leftline{IDF\_SQRT5 ~~~~~~~~~~~~~ sqrt(5)}
+
+\leftline{IDF\_SPI ~~~~~~~~~~~~~~~~~ sqrt($\pi$)}
+
+\leftline{IDF\_S2PI ~~~~~~~~~~~~~~~~ sqrt($2*\pi$)}
+
+\leftline{IDF\_LN2 ~~~~~~~~~~~~~~~~~ ln(2)}
+
+\leftline{IDF\_LN3 ~~~~~~~~~~~~~~~~~ ln(3)}
+
+\leftline{IDF\_LN10 ~~~~~~~~~~~~~~~ ln(10)}
+
+\leftline{IDF\_LNPI ~~~~~~~~~~~~~~~ ln($\pi$)}
+
+\leftline{IDF\_LNU ~~~~~~~~~~~~~~~~ ln(Eu)}
+
+\vskip 0.25 cm
+
+
+\newpage
+\section*{APPENDIX II}
+\section*{The List of IDF physical constants}
+
+\vskip 0.25 cm
+
+The following Table contains the list of names 
+used by IDF for symbolic representation
+of several physical constants. The values of constants
+are given in Centimeter-Gram-Second (CGS) units system. 
+
+\vskip 1 cm
+
+\leftline{\bf Name ~~~~ Symbol ~~~~~~~ Meaning ~~~~~~~~~~~~~~~
+Value}
+\vskip 0.6 cm
+
+\leftline{IDF\_C ~~~~~~~ $c$ ~~~~~~~ Speed of light in vacuum ~~~~~~ 
+2.99792458e10\ $cm/sec$
+}
+
+\leftline{IDF\_H ~~~~~~~ $h$ ~~~~~~ Planck constant ~~~~~~~~~~~~~~~~~
+6.6260196e-27\ $erg$\ $sec$
+}
+
+\leftline{IDF\_HB ~~~ $\hbar=h/2\pi$ ~~~~ Planck constant ~~~~~~~~~~~~
+1.054592e-27\ $erg$\ $sec$
+}
+
+\leftline{IDF\_K ~~~~~~~ $k$ ~~~~~~ Boltzmann constant ~~~~~~~~~~~~
+1.380658e-16\  $erg/K$
+}
+
+\leftline{IDF\_K\_EV ~~ $k$ ~~~~~~ Boltzmann constant in $eV$ ~~~~
+8.617385e-5\ $k/e$\ $eV/K $
+}
+
+\leftline{IDF\_E ~~~~~~~ $e$ ~~~~~~~ Elementary charge ~~~~~~~~~~~~~
+4.806532e-10\ $statcoul$
+}
+
+\leftline{IDF\_ME ~~~~~ $m_e$ ~~~~ Electron mass ~~~~~~~~~~~~~~~~~~~
+9.1093897e-28\ $g$
+}
+
+\leftline{IDF\_MP ~~~~~ $m_p$ ~~~~ Proton mass ~~~~~~~~~~~~~~~~~~~~~  
+1.6726231e-24\ $g$
+}
+
+\leftline{IDF\_MPME ~~ $m_p/m_e$ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1836.152755
+}
+
+\leftline{IDF\_MEMP ~~ $m_e/m_p$ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5.446169971e-4
+}
+
+\leftline{IDF\_G ~~~~~~~ $g$ ~~~~~~~~ Gravitational constant ~~~~~~~~
+6.6732e-8\ dyne\ $cm^2/g^2$
+}
+
+\leftline{IDF\_RY ~~~~~ $R_y$ ~~~~~~ Rydberg constant ~~~~~~~~~~~~~~
+109737.31534\ $cm^{-1}$
+}
+
+\leftline{IDF\_RY\_EV ~ $R_y$ ~~~~~ Rydberg constant in $eV$ ~~~~~~
+13.6056981\ $eV$
+}
+
+\leftline{IDF\_RB ~~~~~~ $r_B$ ~~~~~~ Bohr radius ~~~~~~~~~~~~~~~~~~~~~~
+0.529177249e-8\ $cm$
+}
+
+\leftline{IDF\_CS ~~~~~~~ $\pi r_B^2$ ~~~~ Atomic cross section ~~~~~~~~~~~
+0.8797356696e-16\ $cm^2$
+}
+
+\leftline{IDF\_RE ~~~~~~ $r_E$ ~~~~~~ Classical electron radius ~~~~~~~~
+2.8179e-13\ $cm$
+}
+
+\leftline{IDF\_ALP ~~~~~ $\alpha$ ~~~~~~ Fine-structure constant ~~~~~~~~~~
+7.297351e-3
+}
+
+\leftline{IDF\_IALP ~~~~ $1/\alpha$ ~~~~ 
+Inverse Fine-structure constant ~~~~~~~ 137.0360
+}
+
+\leftline{IDF\_MUB ~~~~~ $\mu_B$ ~~~~~ Bohr magneton ~~~~~~~~~~~~~~~~~~
+5.78838263e-5\ eV/$Tesla$
+}
+
+\leftline{IDF\_FA ~~ $F=e N_A$ ~~~ Faraday constant ~~~~~~~~~~~~~~~~
+2.892599e14\ $statcoul/mol$
+}
+
+\leftline{IDF\_CW ~~~ $\hbar /{m_e}c$ ~~~
+Compton electron wavelength ~~ 3.861592e-11\ $cm$
+}
+
+\leftline{IDF\_CR1 ~~~~ $8 \pi h c$ ~~~
+First radiation constant ~~~~~~~~~ 4.992579e-15\ $erg$\ $cm$
+}
+
+\leftline{IDF\_CR2 ~~~~ $h c/k$ ~~~
+Second radiation constant ~~~~~~~ 1.438833\ $cm$\ $K$
+}
+
+\leftline{IDF\_S ~~~~~~~~ $\sigma$ ~~~~~~
+Stefan-Boltzmann constant ~~~~~ 5.66961e-5\ $erg/cm^{2}/sec/K^4$
+}
+
+\leftline{IDF\_NA ~~~~~ $N_A$ ~~~~~~~ Avogadro number ~~~~~~~~~~~~~~
+6.022169e23\ $mol^{-1}$
+}
+
+\leftline{IDF\_R ~~~ $R=k N_A$ ~~~~~ Gas constant ~~~~~~~~~~~~~~~~~~~
+8.31434e7\ $erg/deg/mol$
+}
+
+\leftline{IDF\_TO ~~~~~~ $T_o$ ~~~~~~~~~ Standard temperature ~~~~~~~~~~
+273.15\ $K$
+}
+
+\leftline{IDF\_PO ~~ $P_o=Lo k T_o$ ~~~ Atmospheric pressure ~~~~~~~~
+1.0133e6\ $dyne/cm^2$
+}
+
+\leftline{IDF\_LO ~~~~~~ $Lo$ ~~~~~~~~~ Loschmidt's number ~~~~~~~~~~~
+2.6868e19\ $cm^{-3}$
+}
+
+\leftline{IDF\_VO ~~ $V_o=R T_o/P_o$ ~~ 
+Normal volume perfect gas ~~~ 2.24136e4\ $cm^{3}/mol$
+}
+
+\newpage
+\section*{APPENDIX III}
+\section*{Mathematical functions of IDF calculator}
+
+\vskip 0.25 cm
+The following mathematical functions are used $~~$ in
+the IDF built-in $~$ calculator\footnote{
+The names of some functions listed in this APPENDIX
+match the names of standard functions specified
+in  C and FORTRAN languages. At this point,
+the IDF mathematical functions are not the same functions 
+as in C or FORTRAN, 
+although their execution require  standard mathematical functions 
+from the C run-time library, namely:
+{\it sqrt, exp, log, pow, cos, sin, tan,
+acos, asin}, and {\it atan}.
+}.
+The names of these functions are the {\it generic} names,
+that is a user refers by common name to the number of functions.
+For each particular function call, the IDF calculator
+dynamically selects the function, the type of dummy arguments of which
+matches the type of actual arguments.
+In this case, not only the returning value but also the data type returning by the function depends on the type of an actual arguments 
+passed to this function.
+
+\vskip 0.5 cm
+{\bf cmplx($re$)}\hfil\break
+This function creates a complex number $a$, whose
+real part is equal to $re$ and whose imaginary part
+is set to zero, i.e $a=(re,0)$.
+The function argument is a real number, whereas the returning
+value is aways a complex number.
+
+\vskip 0.2 cm
+
+{\bf complex($re$,$im$)}\hfil\break
+The function creates a complex number $a$ specified by its
+real, $re$, and imaginary, $im$, parts.
+The numbers, $re$ and $im$ can be associated with
+coordinates of a point at complex plane. That is why,
+the following form of complex number representation:
+$a\ =\ re\ +\ i\ im\ =\ (re,im)\ $, 
+where $i$ is the imaginary unit ($i^2=-1$), 
+is frequently referred to as the Cartesian form.
+The function returns the complex number composed from real
+numbers, $re$ and $im$.
+
+\vskip 0.2 cm
+
+{\bf real($a$)}\hfil\break
+If the argument $a$ is the real number,
+the function returns the value of argument (converting an
+integer to the floating-point number, if necessary).
+If the argument $a$ is the complex number, $a=x+iy$,
+the function returns the real part, i.e $real(a)=x$.
+
+\vskip 0.2 cm
+
+{\bf double($a$)}\hfil\break
+If the argument $a$ is the real number,
+the function returns the value of argument converting an
+integer to the floating-point number (type double), if necessary.
+If the argument $a$ is the complex number, $a=x+iy$,
+the function returns the real part, i.e $double(a)=x$.
+
+\vskip 0.2 cm
+
+{\bf imag($a$)}\hfil\break
+If the argument $a$ is the real number,
+the function returns zero.
+If the argument $a=x+iy$ is the complex number,
+the function returns the imaginary part, i.e $imag(a)=y$.
+
+\vskip 0.2 cm
+
+{\bf conj($a$)}\hfil\break
+If the argument $a$ is the real number,
+the function returns the value of its argument, 
+but with opposite sign, i.e $(-a)$.
+If the argument $a$ is the complex number, $a=x+iy$,
+the function returns the complex conjugate, 
+i.e $complex(x,-y)$.
+\newpage
+
+{\bf abs($a$)}\hfil\break
+If the argument $a$ is the real number,
+the function calculates the absolute value of $a$. 
+In the case when the argument is the complex number $a=x+iy$,
+the function computes the modulus or radius of a complex number,
+i.e $\rho = sqrt(x^2+y^2)$.
+The function returns then the value of $\rho$
+which is always the real number.
+
+\vskip 0.25 cm
+
+{\bf arg($a$)}\hfil\break
+The argument of this function must be the complex number
+represented in Cartesian form: $a=x+iy$.
+Any complex number can be re-written in the polar form:
+$a=\rho * [cos(\phi)\ +\ i\ sin(\phi)]$, 
+where $\rho$ is the radius and $\phi$ is the angle or argument
+of complex number at the complex plane.
+Since the trigonometric functions are periodic functions,
+only the principle value $arg$ of an argument $\phi$, 
+$0 \le arg < 2\pi$, is usually used.
+In the special case when $a=(0,0)$, $arg(a)=0$, otherwise
+the principle value is calculated as: $arg(a) = acos(x/\rho)$ if $y \ge 0$,
+and $arg(a) = -acos(x/\rho)$ if $y<0$.
+The $arg$ function returns the principle argument
+correspondent to complex number $a$.
+The returning value is always the real number.
+
+\vskip 0.25 cm
+
+{\bf polar($\rho$,$Arg$)}\hfil\break
+The function creates the complex number $a$ specified by its
+modulus $\rho$ and principle argument $Arg$, i.e
+$a=\rho*cos(Arg)\ +\ i\ \rho*sin(Arg)]$, 
+The arguments of this function are real numbers,
+whereas the returning value is always a complex number.
+\newpage
+
+{\bf int($re$)}\hfil\break
+This function convert the argument to the integer number
+by truncation the floating-point number towards zero.
+The argument must have integer or floating-point type,
+whereas the returning value is always the integer number.
+The complex argument is not allowed in this function. 
+
+\vskip 0.2 cm
+
+{\bf sqrt($a$)}\hfil\break
+For any real argument $a$, 
+the $sqrt$ function returns the square root of $a$.
+The complex square root of complex argument $a=x+iy$
+is defined as follows: 
+$$\sqrt{a}\ =\ sqrt(abs(a))\ *\ [ cos(arg(a)/2) \ +\ i\ sin(arg(a)/2) ] .$$
+For the branching point, i.e when $a=(0,0)$, the function
+returns complex zero.
+In all other complex cases, the function returns the complex number:
+$$\sqrt{a} = complex(g, { {y} \over {2g} }) ,$$
+where  $\rho = abs(a) = sqrt(x^2 + y^2)$ is the modulus of $a$ and
+the parameter is calculated in the following way: 
+$g=sqrt[(\rho + x)/2]$ if only $x \ge 0$, otherwise
+$g=sqrt[(\rho-x)/2]$ for $y \ge 0$
+and $g=-sqrt[(\rho-x)/2]$ for $y<0$.
+
+\vskip 0.3 cm
+
+{\bf sqrt1pz2($a$)}\hfil\break
+This function evaluates the expression $sqrt(1+a^2)$ for any real
+argument $a$.
+When applied to complex numbers $a=x+iy$, this expression
+results in:
+$sqrt(\ complex(\ 1+x^2-y^2\ ,\ 2xy\ )\ )$.
+
+\newpage
+
+{\bf sqrt1mz2($a$)}\hfil\break
+This function evaluates the expression $sqrt(1-a^2)$ for the real
+argument $a \le 1$.
+When applied to complex numbers $a=x+iy$, this expression
+results in:
+$sqrt(\ complex(\ 1-x^2+y^2\ ,\ -2xy\ )\ )$.
+
+\vskip 0.2 cm
+
+{\bf max($a$,$b$)}\hfil\break
+This function returns the maximum of two real numbers $a$ and $b$.
+If only one of the arguments is the complex number, the other
+argument will be converted to the complex number with
+the zero imaginary part.
+In comparison of complex numbers $a$ and $b$,
+the function chooses the number amongst them, whose
+modulus is the biggest. If $abs(a)=abs(b)$,
+the function returns the number whose principle argument
+is the biggest.
+
+\vskip 0.2 cm
+
+{\bf min(x,y)}\hfil\break
+This function returns the minimum of two real numbers $a$ and $b$.
+If only one of the arguments is the complex number, the other
+argument will be converted to the complex number with
+the zero imaginary part.
+In comparison of complex numbers $a$ and $b$,
+the function chooses the number with the smallest modulus.
+If $abs(a)=abs(b)$,
+the function returns the number whose principle argument
+has the smallest value.
+
+\vskip 0.2 cm
+
+{\bf pow($a$,$b$)}\hfil\break
+This is the generalized power function.
+For real arguments, the function raises $a$ to the $b$ power.
+According to C language standards, the $pow$ function returns:
+the zero value, if $a=0$ and $b$ is a positive number;
+the unity value, if $a=b=0$;
+the unity value, if $a$ is positive and $b=0$;
+the $a^b$ value for arbitrary $b$, only if $a$ is positive;
+the $a^b$ value, if $a$ is the negative number and $b$ is the integer number.  
+It is not allowed to exponentiate the negative base $a$
+to the non-integer power,
+or the zero base to the negative power.
+When applied to the complex numbers,
+the function returns the complex number
+which is defined and computed as:
+$$pow(a,b)\ =\ exp(\ b*log(a)\ ) .$$
+
+\vskip 0.2 cm
+
+{\bf exp($a$)}\hfil\break
+This is the natural exponential function which for real numbers
+raises $e$ to the $a$ power. In the case when function argument
+is the complex number $a=x+iy$, the function
+returns the complex number defined as: 
+$$exp(a)\ =\ exp(x)\ *\ [cos(y)\ +\ i\ sin(y)] .$$
+
+\vskip 0.25 cm
+
+{\bf pow10($a$)}\hfil\break
+This function raises the base 10 to the $a$ power 
+for any real or complex argument.
+The function calculates $10^a$ as follows:
+$10^{a}\ =\ exp(\ a * log(10)\ ) $,
+using the natural exponential function $exp(a)$
+and the constant value $log(10)$.
+
+\vskip 0.3 cm
+
+{\bf log($a$)}\hfil\break
+This is the natural logarithm function.
+For a real argument, it returns the natural logarithm of $a$.
+The complex natural logarithm of the complex argument $a=x+iy$
+is evaluated as follows:
+$$log(a)\ =\ log[abs(a)]\ +\ i\ arg(a) .$$
+
+\newpage
+
+{\bf log10($a$)}\hfil\break
+This is the common logarithm function.
+The function calculates logarithm to the base 10 of its argument $a$
+as: 
+$log10(a)\ =\ log(a)/log(10)$,
+using the natural logarithm function $log(a)$ and 
+the constant value $log(10)$.
+
+\vskip 0.2 cm
+
+{\bf cos($a$)}\hfil\break
+For real numbers, this is the standard trigonometric function.
+The function calculates the cosine of its argument.
+The real number argument is expressed in radians.
+When applied to complex numbers, 
+the cosine function is defined as follows: 
+$$cos(a)\ =\ [exp(ia)\ +\ exp(-ia)]/2 .$$
+The complex cosine is calculated for $a=x+iy$ as:
+$$complex(\
+cos(x)*cosh(y)\ ,\ -sin(x)*sinh(y)\
+) .$$
+
+\vskip 0.2 cm
+
+{\bf sin($a$)}\hfil\break
+For real numbers, this is the standard trigonometric function.
+The function calculates the sine of angle $a$ specified in radians.
+The complex sine function is introduced as:
+$$sin(a)\ = \ i\ [exp(-ia)\ -\ exp(ia)]/2 .$$
+For $a=x+iy$, the complex sine is calculated as follows:
+$$complex(\
+sin(x)*cosh(y)\ ,\ cos(x)*sinh(y)\
+) .$$
+
+\newpage
+
+{\bf tan($a$)}\hfil\break
+For real numbers, this is the standard trigonometric function.
+It calculates the tangent of angle $a$ specified in radians.
+The complex tangent function is defined as follows: 
+$$tan(a)\ = \ i\ [exp(-i2a)-1]\ /\ [exp(-i2a)+1] .$$
+For the argument given in Cartesian form, $a=x+iy$, 
+the complex tangent is calculated as follows:
+$$complex(\ sin(2x)/g ,\ sinh(2y)/g\ ) ,$$
+where $g=cos(2x)+cosh(2y)$.
+
+\vskip 0.25 cm
+
+{\bf acos($a$)}\hfil\break
+When the argument is real,
+the $acos$ function returns the angle, expressed in radians,
+whose cosine is equal to $a$, $-1 \le a \le 1$.
+When applied to complex numbers, the arc cosine function
+is introduced as:
+$$acos(a)\ =\ -i\ log[a\ +\ i\ sqrt(1-a^2)] .$$
+
+\vskip 0.25 cm
+
+{\bf asin($a$)}\hfil\break
+The $asin$ function calculates the inverse sine of argument $a$.
+For real argument $-1 \le a \le 1$,
+the arc sine function returns the correspondent angle in radians.
+The complex arc sine function is defined as:
+$$asin(a)\ = \ -i\ log[ia\ +\ sqrt(1-a^2)] .$$
+
+\newpage
+
+{\bf atan($a$)}\hfil\break
+The $atan$ function calculates the inverse tangent of argument $a$.
+For any real argument,
+the arc tangent function returns the correspondent angle in radians.
+The complex inverse tangent function is defined as:
+$$atan(a)\ =\ -0.5\ i\ log ( { {1+ia}\ \over\ {1-ia} }) .$$
+For $a=x+iy$, the expression under logarithm results in
+the complex number:
+$$complex(\ [1-x^2-y^2]/g\ ,\ 2x/g\ ) ~~,$$
+where $g = x^2 + (1+y)^2$.
+
+\vskip 0.2 cm
+
+{\bf cosh($a$)}\hfil\break
+This is the hyperbolic cosine function:
+$$cosh(a)\ =\ [exp(a)\ +\ exp(-a)]/2 ,$$
+and for real argument $a$, the function returns the value
+given by this expression.
+The complex hyperbolic cosine of argument $a=x+iy$
+is calculated as follows:
+$$complex(\
+cosh(x)*cos(y)\ ,\ sinh(x)*sin(y)\
+) .$$
+
+\vskip 0.2 cm
+
+{\bf sinh($a$)}\hfil\break
+The hyperbolic sine function $sinh$ is defined as:
+$$sinh(a)\ =\ [exp(a)\ -\ exp(-a)]/2 .$$
+This expression is used to evaluate $sinh$ for real argument $a$.
+When applied to complex numbers $a=x+iy$, the complex hyperbolic sine 
+is calculated as:
+$$complex(\
+sinh(x)*cos(y)\ ,\ cosh(x)*sin(y)\
+) .$$
+
+\vskip 0.2 cm
+
+{\bf tanh($a$)}\hfil\break
+This is the hyperbolic tangent function.
+For any real argument $a$:
+$$tanh(a)\ =\ \pm {{1 - exp(-2|a|) } \over {1 + exp(-2|a|)} } ,$$
+where $|a|$ is the absolute value of argument, and $\pm$ is the sign of $a$.
+For complex numbers, the hyperbolic tangent is defined as:
+$$tanh(a)\ =\ -i\ tan(ia) .$$
+For any $a=x+iy$, the $tanh$ function can be evaluated as follows:
+$$complex(\ sinh(2x)/g ,\ sin(2y)/g\ ) ,$$
+where $g=cos(2y)+cosh(2x)$.
+
+\vskip 0.25 cm
+
+{\bf acosh($a$)}\hfil\break
+This function is the inverse hyperbolic cosine
+of real argument $a>1$.
+The inverse hyperbolic cosine of complex number $a=x+iy$
+is given by the following expression:
+$$acosh(a)\ =\ log [a\ +\ sqrt(a^2 - 1)] .$$
+
+\vskip 0.25 cm
+
+{\bf asinh($a$)}\hfil\break
+This function is the inverse hyperbolic sine
+of any real argument $a$.
+The complex inverse hyperbolic sine of $a=x+iy$
+is defined by the expression:
+$$asinh(a)\ =\ log [a\ +\ sqrt(a^2 + 1)] .$$
+
+\newpage
+
+{\bf atanh($a$)}\hfil\break
+The function calculates the inverse hyperbolic tangent 
+of real argument $-1 < a < 1$.
+The complex inverse hyperbolic tangent is defined as:
+$$atanh(a)\ =\ 0.5\ log ( { {1+a} \over {1-a} }) .$$
+For $a=x+iy$, the expression under logarithm results in
+the complex number:
+$$complex(\ [1-x^2-y^2]/g\ ,\ 2y/g\ ) ~~~,$$
+where $g = (x-1)^2 + y^2$.
+
+\vskip 0.3 cm
+
+{\bf hypot($x$,$y$)}\hfil\break
+The $hypot$ function is defined only for real numbers.
+It calculates and returns the following value: $sqrt(x^2+y^2)$,
+which is, historically, the length of hypotenuse in
+rectangular triangle.
+The arguments, $x$ and $y$, as well as returning value
+are always real numbers.
+
+\end{document}
+

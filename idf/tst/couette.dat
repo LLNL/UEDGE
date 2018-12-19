@@ -1,0 +1,21 @@
+// IDF data file "couette.dat"
+/*
+-------------------------------------------------------------------
+This file contains input data for the XXX code.
+The XXX code simulates the 1D2V Couette flow problem.
+The input data are written in the IDF language.
+-------------------------------------------------------------------
+*/
+
+/* Physical input parameters */
+Lz  = 1;     // A fixed plate separation distance, in cm
+Knu = 0.025; // Knudsen number
+Tw  = 0.1;   // Constant plate temperature, eV
+Uw  = 0.01;  // Constant relative plate velocity, U/Vt
+             // Vt is the thermal velocity, sqrt(2RTw)
+Pr = $1/3$, $2/3$, 1; // The set of Prandtl numbers
+
+/* Computational algorithm input parameters */
+Nz = 1000;  // number of nodes in the uniform mesh in z direction
+Nv = 31,31; // number of nodes in the 2D velocity space 
+

@@ -1,0 +1,99 @@
+#! /usr/bin/env python
+
+import numpy as np
+import pact.pdb as pdb
+import h5py
+from uedge import bbb 
+import sys,getopt
+
+def usage(status=0):
+    print
+    print
+    print "pdb2hdf5 <-h|--help> [ infile [ outfile ]] "
+    print
+    sys.exit(status)
+
+def pdb2h5py(infile,outfile):
+    """
+        Read a pdb file previously written from Uedge and write as
+        an hdf5 file.
+    """
+    try:
+        fp = pdb.open(infile,'r')
+        hf = h5py.File(outfile,'w')
+    except:
+        print "Couldn't open pdb file ",infile
+        usage(1)
+    try:
+        din = np.array(fp.read('ngs@bbb'))
+        din = din.reshape(din.shape[::-1]).transpose()
+        hf.create_dataset('ngs@bbb',data=din)
+    except:
+        print "Couldn't read ngs from  ",infile
+    try:
+        din = np.array(fp.read('nis@bbb'))
+        din = din.reshape(din.shape[::-1]).transpose()
+        hf.create_dataset('nis@bbb',data=din)
+    except:
+        print "Couldn't read nis from  ",infile
+    try:
+        din = np.array(fp.read('phis@bbb'))
+        din = din.reshape(din.shape[::-1]).transpose()
+        hf.create_dataset('phis@bbb',data=din)
+    except:
+        print "Couldn't read phis from  ",infile
+    try:
+        din = np.array(fp.read('tes@bbb'))
+        din = din.reshape(din.shape[::-1]).transpose()
+        hf.create_dataset('tes@bbb',data=din)
+    except:
+        print "Couldn't read tes from  ",infile
+    try:
+        din  = np.array(fp.read('tis@bbb'))
+        din = din.reshape(din.shape[::-1]).transpose()
+        hf.create_dataset('tis@bbb',data=din)
+    except:
+        print "Couldn't read tis from  ",infile
+    try:
+        din = np.array(fp.read('ups@bbb'))
+        din = din.reshape(din.shape[::-1]).transpose()
+        hf.create_dataset('ups@bbb',data=din)
+    except:
+        print "Couldn't read ups from  ",infile
+
+    fp.close()
+    hf.close()
+
+options = ['help' ]
+optlist,args = getopt.getopt(sys.argv[1:],'h',options)
+optdict = {}
+for o in optlist:
+   optdict.update({o[0]:o[1]})
+if optdict.has_key('-h') or optdict.has_key('--help'):
+    usage(0)
+
+if __name__ == "__main__":
+   try:
+      from tkFileDialog import askopenfilename,asksaveasfilename
+      if len(args) < 1:
+         infile = askopenfilename(title="Select input pdb file",filetypes=[("allfiles","*"),("pdb","*.pdb"), ("pdf","*.pdf"),("sav","*.sav")])
+      else:
+         infile = args[0] 
+      if len(args) < 2:
+         outfile = asksaveasfilename(title="Select output hdf5 file",filetypes=[("allfiles","*"),("hdf5","*.hdf5"), ("h5","*.h5")])
+      else:
+         outfile = args[1] 
+   except:
+      if len(args) < 1:
+         usage(0)
+      else:
+         infile = args[0] 
+      if len(args) < 2:
+         usage(0)
+      else:
+         outfile = args[1] 
+   if len(infile) == 0 or len(outfile) == 0: usage(0)
+   pdb2h5py(infile,outfile)
+
+
+

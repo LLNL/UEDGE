@@ -1,0 +1,17 @@
+Str=[i10c, (i)l,(f f )  d3d, 1(if2d) ] 
+
+Type:
+ 0 2 -1 0 1 -1 0 0 2 -1
+ -1 0 3 -1 0 0 4 -1 0 4
+ -1 -1 0 5 -1 0 5 -1 0 0
+ 2 -1 0 4 -1 0 5 -1 -1
+Mrept:
+ 1 0 0 10 0 3 1 1 0 7
+ 6 1 0 11 1 1 0 15 1 0
+ 18 14 1 0 22 3 0 25 1 1
+ 0 29 1 0 32 2 0 35 28
+ i c c c c c c c c c
+ c i l f f d d d d i
+ f d d i c c c c c c
+ c c c c i l f f d d
+ d d i f d d i c c c
