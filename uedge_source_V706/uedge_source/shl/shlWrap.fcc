@@ -1,2 +1,0 @@
-Integer SHLbfcn(Integer, string, & Integer)
-Integer Close_library(string)

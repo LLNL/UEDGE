@@ -1,9 +1,0 @@
-VDF = shl.v
-PKG = shl
-
-
-SYSTEM LINUX
-Real4
-SC = cshl.c links.c
-SFCC = shlWrap.fcc 
-

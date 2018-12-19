@@ -1,2 +1,0 @@
-package std = "Standard functions and constants for DUSTT"
-firstpkg = std
