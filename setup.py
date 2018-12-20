@@ -124,7 +124,7 @@ if parallel:
   #uedgeobjects = uedgeobjects + ['/usr/local/mpi/ifc_farg.o']
 
 setup (name = "uedge",
-       version = '7.0.7.4',
+       version = '7.0.7.5',
        author = 'Tom Rognlien',
        author_email = "trognlien@llnl.gov",
        maintainer = 'Bill Meyer',
