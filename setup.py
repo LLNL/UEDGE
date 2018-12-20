@@ -2,11 +2,12 @@
 # To use: 
 #       python setup.py install
 #
-import sys,os,os.path,string
+import sys,os,os.path,string,site
 from Forthon.compilers import FCompiler
 import getopt
 
 try:
+    os.environ['PATH'] += os.pathsep + site.USER_BASE + '/bin'
     import distutils
     from distutils.core import setup, Extension
     from distutils.dist import Distribution
@@ -123,7 +124,7 @@ if parallel:
   #uedgeobjects = uedgeobjects + ['/usr/local/mpi/ifc_farg.o']
 
 setup (name = "uedge",
-       version = '7.0.7.1',
+       version = '7.0.7.4',
        author = 'Tom Rognlien',
        author_email = "trognlien@llnl.gov",
        maintainer = 'Bill Meyer',
@@ -149,7 +150,7 @@ setup (name = "uedge",
                                 extra_compile_args=fcompiler.extra_compile_args
                                )],
        cmdclass = { 'build':uedgeBuild },
-       install_requires=['mppl']
+       install_requires=['forthon','mppl']
        ## note that include_dirs may have to be expanded in the line above
 
        )
