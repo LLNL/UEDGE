@@ -166,8 +166,10 @@ def profile(rval,zval,title=None,style=None,linewidth=None,xlabel=None,ylabel=No
       plt.plot(rval,zval,style,linewidth=lw)
    except:
       pass
-   plt.ylabel(xlabel)
-   plt.xlabel(ylabel)
+   if ylabel != None:
+      plt.ylabel(ylabel)
+   if xlabel != None:
+      plt.xlabel(xlabel)
    #plt.axes().set_aspect('equal')
    plt.ion()
    plt.show()

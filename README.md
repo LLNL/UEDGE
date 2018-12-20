@@ -68,7 +68,7 @@ T.D. Rognlien, M.E. Rensink, and G.R. Smith, "User manual for the UEDGE edge-pla
 
 **_Forthon development_** 
 D. P. Grote, A. Friedman, I. Haber, ``Methods used in WARP3d, a Three-Dimensional PIC/Accelerator Code'', Proceedings of the 1996 Computational Accelerator Physics Conference, AIP Conference Proceedings 391, p. 51.  
-See also: http://hifweb.lbl.gov/Forthon/  ..
+See also: http://hifweb.lbl.gov/Forthon/  .
 
 **_FACETS project_**    
 J.R. Cary, J. Candy, R.H. Cohen et al., J. Phys.: Conf. Ser. 125 (2008) 012040.  
