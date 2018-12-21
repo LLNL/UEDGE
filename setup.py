@@ -8,8 +8,7 @@ import getopt
 
 try:
     os.environ['PATH'] += os.pathsep + site.USER_BASE + '/bin'
-    import distutils
-    from distutils.core import setup, Extension
+    import distutils from distutils.core import setup, Extension
     from distutils.dist import Distribution
     from distutils.command.build import build
     from subprocess import call
@@ -124,7 +123,7 @@ if parallel:
   #uedgeobjects = uedgeobjects + ['/usr/local/mpi/ifc_farg.o']
 
 setup (name = "uedge",
-       version = '7.0.7.5',
+       version = '7.0.7.6',
        author = 'Tom Rognlien',
        author_email = "trognlien@llnl.gov",
        maintainer = 'Bill Meyer',
