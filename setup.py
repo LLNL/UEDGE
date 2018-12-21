@@ -8,7 +8,8 @@ import getopt
 
 try:
     os.environ['PATH'] += os.pathsep + site.USER_BASE + '/bin'
-    import distutils from distutils.core import setup, Extension
+    import distutils 
+    from distutils.core import setup, Extension
     from distutils.dist import Distribution
     from distutils.command.build import build
     from subprocess import call
