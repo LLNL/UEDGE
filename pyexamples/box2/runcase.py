@@ -7,11 +7,11 @@ import numpy as np
 import os
 
 ##-how to do this better?
-execfile("../pylib/plotmesh.py")
-execfile("../pylib/plotvar.py")
-execfile("../pylib/plotr.py")
-execfile("../pylib/showrange.py")
-execfile("../pylib/paws.py")
+execfile("../../pylib/plotmesh.py")
+execfile("../../pylib/plotvar.py")
+execfile("../../pylib/plotr.py")
+execfile("../../pylib/showrange.py")
+execfile("../../pylib/paws.py")
 
 
 plt.ion()
