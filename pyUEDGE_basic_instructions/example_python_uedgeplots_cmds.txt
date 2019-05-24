@@ -1,0 +1,47 @@
+=======
+Plotting profiles on outer divertor plate:
+=======
+
+profile(com.yyrb,bbb.ne[com.nx,],title=“Electron density”, xlabel=“Distance along outer plate (m)”, ylabel=“ne (1/m**3)”)
+
+profile(com.yyrb,bbb.ng[com.nx,],title=“Hydrogen atom density”, xlabel=“Distance along outer plate (m)”, yfrlabel=“ng(1/m**3)”)
+
+profile(com.yyrb,bbb.te[com.nx,]/bbb.ev,title=“Electron temperature”, xlabel=“Distance along outer plate (m)”, ylable=“Te (eV)”)
+
+profile(com.yyrb,bbb.ti[com.nx,]/bbb.ev,title=“Ion temperature”, xlabel=“Distance along outer plate (m)”, ylable=“Ti (eV)”)
+
+profile(com.yyrb,bbb.feex[com.nx,],title=“Electron thermal heat flux *area”, xlabel=“Distance along outer plate (m)”, ylabel=“feex”)
+
+profile(com.yyrb,bbb.feix[com.nx,],title=“Ion thermal heat flux *area”, xlabel=“Distance along outer plate (m)”, ylabel=“feix”)
+
+
+=======
+Plotting profiles on inner divertor plate:
+=======
+
+profile(com.yylb,bbb.ne[0,],title=“Electron density”, xlabel=“Distance along inner plate (m)”, ylabel=“ne (1/m**3)”)
+
+profile(com.yylb,bbb.ng[0,],title=“Hydrogen atom density”, xlabel=“Distance along inner plate (m)”, ylabel=“ng(1/m**3)”)
+
+profile(com.yylb,bbb.te[0,]/bbb.ev,title=“Electron temperature”, xlabel=“Distance along inner plate (m)”, ylabel=“Te (eV)”)
+
+profile(com.yylb,bbb.ti[0,]/bbb.ev,title=“Ion temperature”, xlabel=“Distance along inner plate (m)”, ylabel=“Ti (eV)”)
+
+profile(com.yylb,-bbb.feex[0,],title=“Electron thermal heat flux *area”, xlabel=“Distance along inner plate (m)”, ylabel=“feex”)
+
+profile(com.yylb,-bbb.feix[0,],title=“Ion thermal heat flux *area”, xlabel=“Distance along inner plate (m)”, ylabel=“feix”)
+
+=======
+Plotting midplane profiles:
+=======
+
+profile(com.yylb,bbb.ne[bbb.ixmp,],title=“Electron density at midplane”, xlabel=“Distance from separatrix (m)”, ylabel=“ne (1/m**3)”)
+
+profile(com.yylb,bbb.ng[bbb.ixmp,],title=“Hydrogen atom density at midplane”, xlabel=“Distance from separatrix (m)”, ylabel=“ng(1/m**3)”)
+
+profile(com.yylb,bbb.te[bbb.ixmp,]/bbb.ev,title=“Electron temperature at midplane”, xlabel=“Distance from separatrix (m)”, ylabel=“Te (eV)”)
+
+profile(com.yylb,bbb.ti[bbb.ixmp,]/bbb.ev,title=“Ion temperature at midplane”, xlabel=“Distance from separatrix (m)”, ylabel=“Ti (eV)”)
+
+
+
