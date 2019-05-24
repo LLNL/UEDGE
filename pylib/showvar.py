@@ -1,6 +1,7 @@
 import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib import pyplot
+from matplotlib import cm
 import numpy as np
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
@@ -62,8 +63,8 @@ def MakePlot(data, xdata, ydata, title, xtitle, ytitle, showcanvas=True,):
     cax.clear()
     a.clear()
 
-    ncolor=150 #-number of color levels
-    CS = a.contourf(xdata, ydata, data, ncolor)
+    ncolor=20  #150 #-number of color levels
+    CS = a.contourf(xdata, ydata, data, ncolor, cmap=cm.jet)
     a.set_title(title)
     a.set_xlabel(xtitle)
     a.set_ylabel(ytitle)

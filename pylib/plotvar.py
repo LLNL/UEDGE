@@ -65,10 +65,10 @@ def plotvar(var, iso=False, title="UEDGE data"):
     plt.ylabel('Z [m]')
     plt.grid(True)
 
-    if (iso):
-        plt.axes().set_aspect('equal', 'datalim')
-    else:
-        plt.axes().set_aspect('auto', 'datalim')
+    #if (iso):
+    #    plt.axes().set_aspect('equal', 'datalim')
+    #else:
+    #    plt.axes().set_aspect('auto', 'datalim')
 
     plt.show()
 

@@ -1,17 +1,30 @@
-#import uedge as ue
+#import uedge
 from uedge import *
 
-#import uefacets
+#-import hdf5 routines
+from uedge.hdf5 import *
+
+#-import graphics, math, etc.
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import numpy as np
 import os
 
+#-import some utilities for using OS
+execfile(os.path.join(os.environ['HOME'], 'utils/python/osfun.py'))
+
+
 ##-how to do this better?
-execfile("../../pylib/plotmesh.py")
-execfile("../../pylib/plotvar.py")
-execfile("../../pylib/plotr.py")
-execfile("../../pylib/showrange.py")
-execfile("../../pylib/paws.py")
+#-in .bashrc: "export PYLIB=/home/umansky1/PyUEDGE/uedge/pylib"
+execfile(os.environ['PYLIB']+"/plotmesh.py")
+execfile(os.environ['PYLIB']+"/plotcontour.py")
+execfile(os.environ['PYLIB']+"/plotvar.py")
+execfile(os.environ['PYLIB']+"/paws.py")
+#execfile("../../plotmesh.py")
+#execfile("../../pylib/plotvar.py")
+#execfile("../../pylib/plotr.py")
+#execfile("../../pylib/showrange.py")
+#execfile("../../pylib/paws.py")
 
 
 plt.ion()
@@ -31,19 +44,19 @@ wait = raw_input("PAUSING, PRESS ENTER TO CONTINUE...")
 
 
 #-this should be done in uefacets
-ev=1.6022e-19
+#ev=1.6022e-19
 
 
 if (0):
-    ue.restore("box2.h5")
+    hdf5_restore('mycase.h5')
     bbb.dtreal = 1e20; bbb.exmain()
 else:
     #-set up some initial state
     bbb.ngs=1e14; bbb.ng=1e14
     bbb.nis=1e20; bbb.ni=1e20 
     bbb.ups=0.0;  bbb.up=0.0
-    bbb.tes=ev;   bbb.te=ev
-    bbb.tis=ev;   bbb.ti=ev
+    bbb.tes=bbb.ev;   bbb.te=bbb.ev
+    bbb.tis=bbb.ev;   bbb.ti=bbb.ev
     #
     #-Note: if you make a gap here then it will change the logic of if-else!
     #
@@ -54,9 +67,11 @@ else:
     bbb.t_stop=1e0
     bbb.rundt()
     bbb.dtreal=1e20; bbb.isbcwdt=0; bbb.exmain()
+    hdf5_save('mycase.h5')
 
 
-    execfile('plotcontour.py')
+    ###execfile('plotcontour.py')
+    plotcontour()
     paws()
 
 

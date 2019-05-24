@@ -73,12 +73,12 @@ if (0):
     bbb.dtreal = 1e20; bbb.exmain()
 else:
     #-set up some initial state
-    ev=1.6022e-19
+    ###ev=1.6022e-19
     bbb.ngs=1e14; bbb.ng=1e14
     bbb.nis=1e20; bbb.ni=1e20 
     bbb.ups=0.0;  bbb.up=0.0
-    bbb.tes=ev;   bbb.te=ev
-    bbb.tis=ev;   bbb.ti=ev
+    bbb.tes=bbb.ev;   bbb.te=bbb.ev
+    bbb.tis=bbb.ev;   bbb.ti=bbb.ev
 
 
 

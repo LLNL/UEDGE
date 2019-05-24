@@ -1,7 +1,10 @@
-#import uedge as ue
+#-import uedge
 from uedge import *
 
-#import uefacets
+#-import hdf5 routines
+from uedge.hdf5 import *
+
+#-import graphics, math, etc.
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import numpy as np
@@ -43,4 +46,24 @@ bbb.dtreal=1e20; bbb.isbcwdt=0; bbb.exmain()
 
 
 #-show some results
-plotvar(bbb.te/ev)
+plotvar(bbb.te/bbb.ev)
+
+#-export the solution in hdf5 file
+hdf5_save('mycase.h5')
+
+#-can be imported with this command
+#hdf5_restore('mycase.h5')
+
+
+###-refine the grid, interpolate to new grid, and restart:
+#com.nxleg[0,0]=20; bbb.newgeo=1; bbb.icntnunk=0
+#bbb.dtreal = 1e-14; bbb.isbcwdt=1; bbb.itermx=30; bbb.exmain()
+
+###-time advance by another second
+#bbb.t_stop=2e0; bbb.rundt()
+
+###-now to steady state (infinite time)
+#bbb.dtreal=1e20; bbb.isbcwdt=0; bbb.exmain()
+
+###-show some results
+#plotvar(bbb.te/bbb.ev)
