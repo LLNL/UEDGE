@@ -1,0 +1,3 @@
+To view this notebook start a terminal window and "cd" to the directory containing these files. Type "jupyter notebook" at the shell prompt and a browser window should appear. Click on the PyUedge notebook. You can click the first code cell and type Control-Return to run the code. Repeat for cells going down the page. You may also select "Run All" from the "Cell" menu.
+
+
