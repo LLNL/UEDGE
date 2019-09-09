@@ -97,7 +97,7 @@ C           (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  DASUM
       DOUBLE PRECISION DX(*)
-      INTEGER I, INCX, IX, M, MP1, N
+      INTEGER*4 I, INCX, IX, M, MP1, N
 C***FIRST EXECUTABLE STATEMENT  DASUM
       DASUM = 0.0D0
       IF (N .LE. 0) RETURN
@@ -131,6 +131,8 @@ C
    50 CONTINUE
       RETURN
       END
+
+
       subroutine daxpy(n,da,dx,incx,dy,incy)
 c
 c     constant times a vector plus a vector.
@@ -139,7 +141,7 @@ c     jack dongarra, linpack, 3/11/78.
 c     modified 12/3/93, array(1) declarations changed to array(*)
 c
       double precision dx(*),dy(*),da
-      integer i,incx,incy,ix,iy,m,mp1,n
+      integer*4 i,incx,incy,ix,iy,m,mp1,n
 c
       if(n.le.0)return
       if (da .eq. 0.0d0) return
@@ -383,7 +385,7 @@ C           (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  DSCAL
       DOUBLE PRECISION DA, DX(*)
-      INTEGER I, INCX, IX, M, MP1, N
+      INTEGER*4 I, INCX, IX, M, MP1, N
 C***FIRST EXECUTABLE STATEMENT  DSCAL
       IF (N .LE. 0) RETURN
       IF (INCX .EQ. 1) GOTO 20
