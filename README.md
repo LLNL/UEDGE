@@ -1,25 +1,15 @@
 # UEDGE
 A 2D time-dependent fluid simulation code of plasma and neutrals in magnetic fusion devices.
 ## Brief description 
-UEDGE is an interactive suite of physics packages using the BASIS or Python scripting systems.
-UEDGE was initiated in the early 1990's as a collaborative project between LLNL, INEL, and SNL to
-exploit implicit time-advancement methods for 2D plasma and neutral transport in the edge region of
-magnetic fusion devices [Rognlien 1992, Smith 1995].  The code is written in Fortran and has used the
-BASIS scripting system since its inception that provides a powerful interactive steering and diagnostic capability.
-As Python has developed, it provides many of the features of BASIS plus a larger set of capabilities.
-Thus, the first UEDGE Python capability was developed in 2007, which was then further developed
-under the FACETS SciDAC project [Cary 2008, McCourt 2012].  Most recently, a standalone Python UEDGE has
-been made available (see the INSTALL instructions above).
-
-The plasma is described by time-dependent 2D plasma fluid equations
-that include equations for density, velocity, ion temperature, electron temperature, electrostatic
-potential, and in the edge region of a magnetic fusion energy confinement device. Fluid equations
-are also used to describe the neutral gas components in the edge region, and coupling to Monte Carlo
-neutrals is possible, but is not the common mode of simulation.  Slab,
-cylindrical, and toroidal geometries are all options, and closed and open magnetic field-line regions
-are included. Classical transport is assumed along magnetic field lines, and anomalous transport
-is assumed across field lines.  Multi-charge state impurities can be included with the corresponding
-line-radiation energy loss.
+UEDGE is an interactive suite of physics packages using the Python or BASIS scripting systems. 
+The original (circa 2007) Python version was further developed under the FACETS SciDAC project 
+[Cary 2008, McCourt 2012]. The plasma is described by time-dependent 2D plasma fluid equations 
+that include equations for density, velocity, ion temperature, electron temperature, electrostatic 
+potential, and gas density in the edge region of a magnetic fusion energy confinement device. slab, 
+cylindrical, and toroidal geometries are allowed, and closed and open magnetic field-line regions 
+are included. Classical transport is assumed along magnetic field lines, and anomalous transport 
+is assumed across field lines.  Multi-charge state impurities can be included with the corresponding 
+line-radiation energy loss. 
 
 ## Method of solution
 A fully implicit numerical algorithm is used that allows both Newton-like iterations to steady state 
@@ -50,14 +40,8 @@ et al., Phys. Plasmas 22 (2015) 012506.
 
 ## Getting started 
 The easiest way to try out UEDGE is to download a static executable that should run on any Linux system; see
-the link to the executable [see uedge_executable file].  Generally, you will also need an input file that defines the
-geometry, mesh size, and various input parameters.  The simplest cases are 2D slab models, but there are many
-examples availabe for the poloidal cross-section of different tokamaks, both single- and double-null magnetic
-configurations.
-
-The second method, preferred if you intent to use and possibly modify UEDGE,  is to download and install the Python
-version of UEDGE.  For this method, see the INSTALL file above (amoung UEDGE github files above) for step-by-step
-instructions.  Again, there are a number of examples of input files available from the authors.
+the link to the executable [see uedge_executable file].  The second method is to download the UEDGE source files, and then build a Python
+version or a Basis version [see uedge_source directory].
 
 ## How to get involved and contribute
 Sent email to one of the developers listed below expressing your interest in modifying or developing packages 

@@ -134,7 +134,9 @@ ycurve(npts,jdim)       _real    [m]
      # vertical position of nth data point on jth contour segment
 npoint(jdim)    _integer
      # number of data points on jth contour segment
-
+geqdskfname  character*64 /'neqdsk'/ 
+     #File name for geqdsk/neqdsk EFIT file
+  
 ***** Aeqflxgrd:
      # information read from the A-file produced by the EFIT code
 vmonth	integer		# EFIT version month
@@ -192,6 +194,8 @@ nesum	integer	/2/
      # number of e-coils
 eccurt(nesum)	_real
      # data from e-coils
+aeqdskfname  character*64 /'aeqdsk'/ 
+     #File name for aeqdsk EFIT file
 
 ***** RZ_grid_info:
 # RZ grid location data and magnetic-field info at those locations
@@ -643,7 +647,7 @@ tim_chng_max      real [s] /1./ #max time assigned to d/dt for data fits
 taudndt(0:ny+1)  _real [s] /1.e50/ #calc dens rise time for data fits
 taudeedt(0:ny+1) _real [s] /1.e50/ #calc elec energy rise time for data fits
 taudeidt(0:ny+1) _real [s] /1.e50/ #calc ion energy rise time for data fits
-isprofvspsi      integer   /1/    #=0 is expt fit vs psi, =0 if fit vs r
+isprofvspsi      integer   /1/    #=1 if expt fit vs psi, =0 if fit vs r
 epsi_fit(num_elem) _real  /0./    #expt pol flux data values
 psi_s(num_elem)    _real  /0./    #value of epsi_fit shifted by psishift
 yyc_fit(num_elem)  _real  /0./    #radial distance from outermp for expt prof

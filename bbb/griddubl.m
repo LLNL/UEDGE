@@ -10,14 +10,17 @@ c-----------------------------------------------------------------------
       Use(Aux)      # igsp
       Use(Interp)   # ixlbo,ixpt1o,ixpt2o,ixrbo,iysptrxo
                     # xnrmo,xvnrmo,ynrmo,yvnrmo,
-                    # nis,tes,tis,tgs,ups,phis,ngs,isimesh,afracs
+                    # nis,tes,tis,tgs,ups,phis,ngs,isimesh,afracs,
+                    # ixst,ixend,ixsto,ixendo
       Use(Imprad)   # afrac,isimpon
       Use(Compla)   # ni,up,ng,te,ti,phi
       Use(Comgeo)   # xnrm,xvnrm,ynrm,yvnrm
       Use(Share)    # nyomitmx
       Use(Npes_mpi) # ismpion
+      Use(Cut_indices)	# ixcut1,iycut1,ixcut2,iycut2,ixcut3,iycut3
+                        # ixcut4,iycut4
 
-      integer ifld,jx
+      integer ifld,jx,ir
 
       if (ismpion == 0) isimesh = 0  #turn-off switch; at least one mesh calc
 
@@ -27,7 +30,48 @@ c-----------------------------------------------------------------------
          ixpt1o(jx) = ixpt1(jx)
          ixpt2o(jx) = ixpt2(jx)
          ixrbo(jx) = ixrb(jx)
-      enddo
+      enddo 
+
+c...  Order poloidal regions from old mesh (as new mesh in ueinit) 
+      ixsto(1) = ixlb(1)
+      ixendo(1) = ixcut1
+      if (ixlb(1) == 0 .and. ixcut1 == 0) then  # no inner leg
+        ixsto(2) = 0
+      else
+        ixsto(2) = max(ixlb(1), ixcut1+1)
+      endif
+      ixendo(2) = ixcut2
+      if (nyomitmx >= nysol(1)) then   # no inner/outer leg region
+         ixsto(2) = 0
+         ixendo(2) = nx+1
+      endif
+      if (nx == 1) then  #special case: 1D in radial direction
+         ixendo(2) = 2
+      endif
+c..   Now need to check if ixrb is > or < ixcut3
+      ixsto(3) = ixcut2+1
+      if (ixcut3 > ixrb(1) .or. nxpt==1) then  #3 regions in first domain
+        ixendo(3) = ixrb(1)+1
+      else    # 4 regions in 1st domain, end on ixcut3
+        ixendo(3) = ixcut3
+      endif
+
+c..   Continue ordering if double null or snowflake
+      if (nxpt == 2) then
+        if (ixcut3 > ixrb(1)) then  # do 3-region 2nd domain
+          ixsto(4) = ixlb(2)
+          ixendo(4) = ixcut3
+          ixsto(5) = ixcut3+1
+        else # 4 regions in 1st domain, compl & do 2-region 2nd domain
+          ixsto(4) = ixcut3+1
+          ixendo(4) = ixrb(1)+1
+          ixsto(5) = ixlb(2) 
+        endif  # remain indices are the same
+          ixendo(5) = ixcut4
+          ixsto(6) = ixcut4+1
+          ixendo(6) = ixrb(2)+1
+      endif  # if-test on nxpt
+
       call s2copy (nx+2, ny+2, xnrm, 1, nx+2, xnrmo, 1, nx+2)
       call s2copy (nx+2, ny+2, xvnrm, 1, nx+2, xvnrmo, 1, nx+2)
       call s2copy (nx+2, ny+2, ynrm, 1, nx+2, ynrmo, 1, nx+2)
@@ -900,8 +944,8 @@ c  -- Output variables - variable on new mesh
       real varn(0:nx+1,0:ny+1)
 
 c  -- Local variables
-      integer iy, ix2, ix2p, ix2m, ixst, ixsto, iyst, iysto, ixend,
-     .        ixendo, iyend, iyendo, jx
+      integer iy, ix2, ix2p, ix2m, ixxst, ixxsto, iyst, iysto, ixxend,
+     .        ixxendo, iyend, iyendo, jx, ir
 
 c...  Set double null indices
       ix2 = nxc
@@ -936,57 +980,11 @@ c...  first intermediate mesh (xnrmox,ynrmox)
 
 c...  Now do poloidal interpolation using radial result in wrkint from
 c...  first intermediate mesh to second intermediate mesh (xnrmnx,ynrmnx)
-      do jx=1,nxpt      # begin loop over poloidal mesh regions
-        if (ixpt1(jx) .gt. ixlb(jx)) then
-          call polintp (ixlb(jx),ixpt1(jx),ixlbo(jx),ixpt1o(jx),0,ny+1,
-     .                  nx,ny,nnxold,nnyold,xnrmnx,xnrmox,wrkint,wrkint2)
-        endif
-        if (ixpt2(jx) .gt. 0) then
-	  if (geometry == "isoleg") then
-            if (jx == 1) then
-              ixst = ixpt1(1)+1
-              ixsto = ixpt1o(1)+1
-              ixend = ixrb(1)+1
-              ixendo = ixrbo(1)+1
-            elseif (jx == 2) then
-              ixst = ixlb(2)
-              ixend = ixpt2(2)
-              ixendo = ixpt2o(2)
-            endif
-          else
-            ixst = max(ixlb(jx), ixpt1(jx)+1)
-            ixsto = max(ixlbo(jx), ixpt1o(jx)+1)
-            ixend = min(ixpt2(jx), ixrb(jx)+1)
-            ixendo = min(ixpt2o(jx), ixrbo(jx)+1)
-          endif
-          iyend = iysptrx
-          if (nyomitmx >= nysol(1)+nyout(1)) then   # for core-only simulation
-             ixst = 0
-             ixsto = 0
-             ixend = nx+1
-             ixendo = nnxold+1
-             iyend = iysptrx+1
-          endif
-          if (nx .eq. 1) then  #special case for 1-D in radial direction
-             ixend = 2
-             ixendo = 2
-          endif
-          call polintp (ixst,ixend,ixsto,ixendo,0,ny+1,
-     .                  nx,ny,nnxold,nnyold,xnrmnx,xnrmox,wrkint,wrkint2) 
-        endif
-        if (ixpt2(jx) .lt. ixrb(jx)) then
-          ixst = max(0, ixpt2(jx)+1)
-          ixsto = max(0, ixpt2o(jx)+1)
-          ixend = ixrb(jx)+1
-          ixendo = ixrbo(jx)+1
-cc11          if (iysptrx .gt. 0 .and. ixpt2(jx) .lt. ixrb(jx)) then
-          if (ixpt2(jx) .lt. ixrb(jx)) then
-             call polintp (ixst,ixend,ixsto,ixendo,0,ny+1,
-     .                  nx,ny,nnxold,nnyold,xnrmnx,xnrmox,wrkint,wrkint2)
-          endif 
-        endif
-      enddo      # end loop over poloidal mesh regions jx for ivel=0
-
+      do ir = 1, 3*nxpt
+         call polintp (ixst(ir),ixend(ir),ixsto(ir),ixendo(ir),0,ny+1,
+     .                 nx,ny,nnxold,nnyold,xnrmnx,xnrmox,wrkint,wrkint2)
+      enddo
+            
 c...  Next do radial interpolation using wrkint2 on second intermediate 
 c...  mesh to the final mesh (xnrm,ynrm); result is varn
          if (iysptrx .gt. 0) then
@@ -1039,56 +1037,10 @@ c...   First do the radial interpolation
          endif
 
 c...  poloidal interpolation for velocity grid
-      do jx=1,nxpt      # begin loop over poloidal mesh regions
-        if (ixpt1(jx) .gt. ixlb(jx)) then
-          call polintp (ixlb(jx),ixpt1(jx),ixlbo(jx),ixpt1o(jx),0,ny+1,
-     .                nx,ny,nnxold,nnyold,xvnrmnx,xvnrmox,wrkint,wrkint2)
-        endif
-        if (ixpt2(jx) .gt. 0) then
-	  if (geometry == "isoleg") then
-            if (jx == 1) then
-              ixst = ixpt1(1)+1
-              ixsto = ixpt1o(1)+1
-              ixend = ixrb(1)+1
-              ixendo = ixrbo(1)+1
-            elseif (jx == 2) then
-              ixst = ixlb(2)
-              ixend = ixpt2(2)
-              ixendo = ixpt2o(2)
-            endif
-          else        
-            ixst = max(ixlb(jx), ixpt1(jx)+1)
-            ixsto = max(ixlbo(jx), ixpt1o(jx)+1)
-            ixend = min(ixpt2(jx), ixrb(jx)+1)
-            ixendo = min(ixpt2o(jx), ixrbo(jx)+1)
-          endif
-          iyend = iysptrx
-          if (nyomitmx >= nysol(1)+nyout(1)) then   # for core-only simulation
-             ixst = 0
-             ixsto = 0
-             ixend = nx+1
-             ixendo = nnxold+1
-             iyend = iysptrx+1
-          endif
-          if (nx .eq. 1) then  #special case for 1-D in radial direction
-             ixend = 2
-             ixendo = 2
-          endif
-          call polintp (ixst,ixend,ixsto,ixendo,0,ny+1,
-     .                nx,ny,nnxold,nnyold,xvnrmnx,xvnrmox,wrkint,wrkint2)
-        endif
-        if (ixpt2(jx) .lt. ixrb(jx)) then
-          ixst = max(ixlb(jx), ixpt2(jx)+1)
-          ixsto = max(ixlbo(jx), ixpt2o(jx)+1)
-          ixend = ixrb(jx)+1
-          ixendo = ixrbo(jx)+1
-cc11          if (iysptrx .gt. 0 .and. ixpt2(jx) .lt. ixrb(jx)) then
-          if (ixpt2(jx) .lt. ixrb(jx)) then
-             call polintp (ixst,ixend,ixsto,ixendo,0,ny+1,
-     .                nx,ny,nnxold,nnyold,xvnrmnx,xvnrmox,wrkint,wrkint2)
-          endif
-        endif
-      enddo      # end loop over poloidal mesh regions jx for ivel=1
+      do ir = 1, 3*nxpt
+         call polintp (ixst(ir),ixend(ir),ixsto(ir),ixendo(ir),0,ny+1,
+     .               nx,ny,nnxold,nnyold,xvnrmnx,xvnrmox,wrkint,wrkint2)
+      enddo
 
 c...  Next do radial interpolation using wrkint2 on second intermediate
 c...  mesh to the final mesh (xvnrm,yvnrm); result is varn 

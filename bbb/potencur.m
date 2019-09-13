@@ -63,7 +63,7 @@ c-----------------------------------------------------------------------
                              # fqyd,fq2d,fqydt
       Use(Ynorm)             # sigbar0
       Use(Poten)             # cthe,sigma1,rsigpl,rsigplcore,cfsigm
-      Use(Bfield)            # btot,rbfbt,rbfbt2
+      Use(Bfield)            # btot,rbfbt,rbfbt2,bfacyrozh,bfacxrozh
       Use(Gradients)         # gprx,gpry,ey
       Use(RZ_grid_info)      # rm
       Use(UEpar)             # isnewpot,r0slab,isfqpave,rrmin,frfqpn
@@ -212,7 +212,7 @@ c...  in subroutine nphygeo)
             fq2d(ix,iy) = sx(ix,iy) * 0.25 * temp1 *
      .                         (rbfbt(ix1,iy) + rbfbt(ix,iy)) / 
      .                           (btot(ix,iy) + btot(ix1,iy))
-            fq2(ix,iy) = cfjp2 * fq2d(ix,iy)
+            fq2(ix,iy) = cfjp2 * bfacxrozh(ix,iy) * fq2d(ix,iy)
    36    continue
    37 continue
 
@@ -387,7 +387,7 @@ c ... Sum contributions for fqy; ave old fqyao & fqya with rnewpot
          do ix = i1, i6
             fqy(ix,iy) = (1.-rnewpot)*fqyao(ix,iy) +
      .                     rnewpot*fqya(ix,iy) + cfqybf*fqyb(ix,iy) +
-     .                     cfqym*fqym(ix,iy)+cfjpy*fqyd(ix,iy)
+     .          cfqym*fqym(ix,iy)+cfjpy*bfacyrozh(ix,iy)*fqyd(ix,iy)
             fqygp(ix,iy) = (1.-rnewpot)*fqyao(ix,iy) +
      .                     rnewpot*fqya(ix,iy) +
      .                     cfqym*fqym(ix,iy)+fqyd(ix,iy)

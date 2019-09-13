@@ -38,6 +38,10 @@ def pdb_restore(file):
         bbb.ups[...]  = np.array(fp.read('ups@bbb')).reshape(bbb.ups.shape[::-1]).transpose()
     except:
         print "Couldn't read ups from  ",file
+    try:
+        bbb.tgs[...]  = np.array(fp.read('tgs@bbb')).reshape(bbb.tgs.shape[::-1]).transpose()
+    except:
+        print "Couldn't read tgs from  ",file
 
     fp.close()
 

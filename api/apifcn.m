@@ -285,11 +285,11 @@ Use(Emissivities)
       do ii=1,ntemp
          read (impunit, '(a8)') zdum
          read (impunit, '(a8)') zdum
-         read (impunit, '(f12.2)') etemp(ii)
+         read (impunit, '(f9.2)') etemp(ii)
          read (impunit, '(a8)') zdum
          do jj=1,nden
             read (impunit, '(a8)') zdum
-            read (impunit, '(1x,e12.2,f12.2)') eden(jj),etemp(ii)
+            read (impunit, '(1x,e12.3,f8.2)') eden(jj),etemp(ii)
             read (impunit, '(6e12.3)') (rate(kk,ii,jj),kk=1,nlam)
          enddo
       enddo

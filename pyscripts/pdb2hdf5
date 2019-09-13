@@ -27,39 +27,66 @@ def pdb2h5py(infile,outfile):
     try:
         din = np.array(fp.read('ngs@bbb'))
         din = din.reshape(din.shape[::-1]).transpose()
-        hf.create_dataset('ngs@bbb',data=din)
+        try:
+           hf.create_dataset('ngs@bbb',data=din)
+        except:
+           print "Couldn't write ngs to  ",outfile
     except:
         print "Couldn't read ngs from  ",infile
     try:
         din = np.array(fp.read('nis@bbb'))
         din = din.reshape(din.shape[::-1]).transpose()
-        hf.create_dataset('nis@bbb',data=din)
+        try:
+           hf.create_dataset('nis@bbb',data=din)
+        except:
+           print "Couldn't write nis to  ",outfile
     except:
         print "Couldn't read nis from  ",infile
     try:
         din = np.array(fp.read('phis@bbb'))
         din = din.reshape(din.shape[::-1]).transpose()
-        hf.create_dataset('phis@bbb',data=din)
+        try:
+           hf.create_dataset('phis@bbb',data=din)
+        except:
+           print "Couldn't write phis to  ",outfile
     except:
         print "Couldn't read phis from  ",infile
     try:
         din = np.array(fp.read('tes@bbb'))
         din = din.reshape(din.shape[::-1]).transpose()
-        hf.create_dataset('tes@bbb',data=din)
+        try:
+           hf.create_dataset('tes@bbb',data=din)
+        except:
+           print "Couldn't write tes to  ",outfile
     except:
         print "Couldn't read tes from  ",infile
     try:
         din  = np.array(fp.read('tis@bbb'))
         din = din.reshape(din.shape[::-1]).transpose()
-        hf.create_dataset('tis@bbb',data=din)
+        try:
+           hf.create_dataset('tis@bbb',data=din)
+        except:
+           print "Couldn't write tis to  ",outfile
     except:
         print "Couldn't read tis from  ",infile
     try:
         din = np.array(fp.read('ups@bbb'))
         din = din.reshape(din.shape[::-1]).transpose()
-        hf.create_dataset('ups@bbb',data=din)
+        try:
+           hf.create_dataset('ups@bbb',data=din)
+        except:
+           print "Couldn't write ups to  ",outfile
     except:
         print "Couldn't read ups from  ",infile
+    try:
+        din = np.array(fp.read('tgs@bbb'))
+        din = din.reshape(din.shape[::-1]).transpose()
+        try:
+           hf.create_dataset('tgs@bbb',data=din)
+        except:
+           print "Couldn't write tgs to  ",outfile
+    except:
+        print "Couldn't read tgs from  ",infile
 
     fp.close()
     hf.close()

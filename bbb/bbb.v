@@ -61,6 +61,9 @@ ngbackg(ngspmx) real [1/m**3] /ngspmx*1.e14/ + restart
                                   #background gas density
 ingb      integer         /2/     #background gas source=nuiz*ngbackg*
                                   #                  (.9+.1*(ngbackg/ng)**ingb)
+inflbg    integer         /4/     #expon to force flalfg large near ng~ngback
+				  #ex:flalfgx,y*(1.+(cflgb*ngbackg/ng)**inflbg)
+cflbg     real            /10./   #scaling fac for flalfgx,y using inflbg
 facngbackg2ngs(ngspmx) real /ngspmx*1.e-8/ 
                                   #fraction of ngbackg add to initial ngs
 nzbackg(nispmx) real [1/m**3] /nispmx*1.e9/ #background impurity density
@@ -152,6 +155,8 @@ isybdryog integer  /0/ #=1 sets fx0, fmx stencil to orthog values at iy=0 & ny
 isybdrywd integer  /0/ #=1 vy diffusion-only for iy=0 & ny if matwalli,o=1
 isxmpog   integer  /0/ #=1 sets fy0, fmy stencil to orthog values at ix=nxc-1
                        # and ix=nxc+1 for geometry='dnbot'
+iexclnxc1 integer  /0/ #if=0; include nxc+1 for fee,iytotc if geometry=dnbot;
+                       #if=1; exclude nxc+1 for fee,iytotc
 ineudif   integer  /2/ #=1 gas sub. neudif uses ng, tg for gas vel & fngx->fnix
 		       #=2 gas sub. neudifgp uses pg for gas vel & fngx->fnix
 		       #=3 gas sub. neudifl use log_ng, tg for gas vel
@@ -174,7 +179,7 @@ isplflxl  integer /1/  #=0, flalfe,i not active at ix=0 & nx;=1 active all ix
 isplflxlv integer /1/  #=0, flalfv not active at ix=0 & nx;=1 active all ix
 isplflxlgx integer /1/ #=0, flalfgx not active at ix=0 & nx;=1 active all ix
 isplflxlgxy integer /1/ #=0, flalfgxy not active at ix=0 & nx;=1 active all ix
-iswflxlgy   integer /1/ #=0, flalfgy not active at iy=0 & ny;=1 active all iy
+iswflxlgy   integer /0/ #=0, flalfgy not active at iy=0 & ny;=1 active all iy
 isplflxlvgx integer /1/ #=0, flalfvgx not active at ix=0 & nx;=1 active all ix
 isplflxlvgxy integer /1/ #=0, flalfvgxy not active at ix=0 & nx;=1 active all ix
 iswflxlvgy  integer /1/ #=0, flalfvgy not active at iy=0 & ny;=1 active all iy
@@ -424,7 +429,7 @@ isupcore(nispmx) integer /nispmx*0/ #=0 sets up=upcore on core bdry
 isngcore(ngspmx) integer /ngspmx*0/ #switch for neutral-density core B.C.
 				    #=0, set loc flux= -(1-albedoc)*ng*vtg/4
 				    #=1, set uniform, fixed density, ngcore
-				    #=2, set rad. grad. to sqrt(lam_i*lam_cx)
+				    #=2, not available
 				    #=3, extrapolation, but limited
 				    #=anything else, set zero deriv which was
 				    #prev default inert hy
@@ -830,6 +835,7 @@ recywall_use(0:nx+1,ngspmx)      _real   #outer wall recycling coef; user input
 recycwit(0:nx+1,ngspmx,nxptmx)   _real    #tot recyc coeff on PF wall
 recycwot(0:nx+1,ngspmx)         _real    #tot recyc coeff on outer wall
 isrefluxclip     integer       /1/       #=1 prohib outward gas for inward ion
+gamsec           real       /0./         #secondary elec emiss coeff on plates
 sputtr           real       /0./         #sputtering coef. at plates
 sputtlb(0:ny+1,ngspmx,nxptmx)    _real   #set sputt coef. inner plate (iy,igsp)
 sputtrb(0:ny+1,ngspmx,nxptmx)    _real   #set sputt coef. outer plate (iy,igsp)
@@ -1568,7 +1574,8 @@ rtauy(0:nx+1,0:ny+1) _real [1e-16 m^-2]/0./ #Norm. radial neutral line-dens.,
 					    #norm. Ly-a opacity to radial wall
 rtau(0:nx+1,0:ny+1)  _real [1e-16 m^-2]/0./ #Min. norm neutral line-dens.,
 					    #min. Ly-a  opacity; min(rtaux,rtauy)
-betap(0:nx+1,0:ny+1) _real        /0./    #poloidal plasma beta
+betap(0:nx+1,0:ny+1) _real        /0./      #poloidal plasma beta
+fracvgpgp             real        /1./      #frac of vgp in vgradp eng terms
 
 ***** Postproc:
 #Variables used in the postprocessing of data to check energy and particle bal.
@@ -1693,6 +1700,9 @@ gradby(0:nx+1,0:ny+1)  _real [1/mT] #grad_B drift (p_perp) drift factor, y-face
 gradb2(0:nx+1,0:ny+1)  _real [1/mT] #grad_B drift (p_perp) drift factor, x-face
 dbm2dx(0:nx+1,0:ny+1) _real [1/T**2m] #pol deriv of 1/B**2 on x-face
 dbm2dy(0:nx+1,0:ny+1) _real [1/T**2m] #rad deriv of 1/B**2 on y-face
+isrozhfac            integer  /0/   #=0 sets bfacx,yrozh=1; =1 computes ave
+bfacxrozh(0:nx+1,0:ny+1) _real [ ]  #[1-B**2/B**2_ave], x-face; Rozhansky
+bfacyrozh(0:nx+1,0:ny+1) _real [ ]  #[1-B**2/B**2_ave], y-face; Rozhansky
 
 ***** Oldpla:
 #Old value of some of the plasma quantities.
@@ -2848,6 +2858,10 @@ ixpt1o(1:nxpt)               _integer  #prev. grid value for ixpt1
 ixpt2o(1:nxpt)               _integer  #prev. grid value for ixpt2
 ixrbo(1:nxpt)                _integer  #prev. grid value for ixrb
 iysptrxo                     integer   #prev. grid value for iysptrx
+ixst(1:6)                    integer   #starting ix for 6 poloid region interp
+ixsto(1:6)		     integer   #value of ixst on previous grid
+ixend(1:6)                   integer   #end ix for 6 poloid region interp
+ixendo(1:6)		     integer   #value of ixend on previous grid
 xnrmo(0:nxold+1,0:nyold+1)   _real     #norm. x-grd; old x-grid, old y-grid
 xvnrmo(0:nxold+1,0:nyold+1)  _real     #norm. xv-grd; old x-grid, old y-grid
 xnrmox(0:nxold+1,0:ny+1)     _real     #norm. x-grd;nxold grd interp. to new ny
@@ -2899,7 +2913,7 @@ cpassin(1:30)		character*8 	#character input variables to be passed
 
 ***** Npes_mpi:
 # Processor numbers for parallel version with mpi
-npes		integer	/1/	#total number of processors
+npes		integer	/0/	#total number of processors
 mype		integer	/-1/	#processor number of local processor (domain)
 ismpion	        integer /0/     #flag to indicate using MPI (if=1)
 hascomm         integer /0/     #flag indicates communicator has been set (if=1)
@@ -3416,7 +3430,7 @@ fit_neteti()                                    subroutine
      # out iownit       1 if ixg,iyg are in the local processor's space, else 0
      # out ixl          local index
      # out iyl          local index
-getbdyindexlims()                               subroutine
+###getbdyindexlims()                               subroutine
      # calculates values of running index corresponding to start and end of various
      # portions of the edge boundary
 ###getixiybdy(lindex:integer,ix:integer,iy:integer,surfacename:character)   subroutine
@@ -3561,6 +3575,12 @@ mult24(var2:real,var4:real,n3:integer,n4:integer)	function
 
 mult34(var2:real,var4:real,n3:integer,n4:integer)	function
 	# component-wise multiplication of 3d*4d variable along x, y, and third directions
+
+wallflux					subroutine
+	# diagnostic calc particle/heat flux to walls; alt. to balancee
+
+plateflux					subroutine
+	# diagnostic calc particle/heat flux to plates; alt. to balancee
 
 ***** Imprad:
 # variables associated with impurity radiation
@@ -3757,7 +3777,7 @@ yielh(imx+1)	       _real
 yielz(imx+1,lnst+1)    _real
 
 ***** Ident_vars:
-uedge_ver character*80 /'$Name:  $'/
+uedge_ver  character*80 /'$Name: V7_08_03 $'/
 uedge_date character*80 /'Version date in README_Uedge_vers in dir uedge'/
 
 ***** Last_group_ex_sav_var:
@@ -3765,19 +3785,19 @@ uedge_date character*80 /'Version date in README_Uedge_vers in dir uedge'/
 
 ***** MpiComponent:
 # Link to setting and getting communicators
-set_uedgeComm(comm:integer) integer function   # in comm the new communicator
+###set_uedgeComm(comm:integer) integer function   # in comm the new communicator
 
-uedge_mpiInit	subroutine
+###uedge_mpiInit	subroutine
      # Do mpiInit if it is not a component
-uedge_petscInit	subroutine
+###uedge_petscInit	subroutine
      # Enable the initialization of petsc from
-uedge_mpiFinal subroutine
+###uedge_mpiFinal subroutine
      # call MPI_Finalize() to exit MPI
-uedge_petscFinal subroutine
+###uedge_petscFinal subroutine
      # calls PetscFinalizeWrap() to exit petsc
-uedge_petscInsertOpts subroutine
+###uedge_petscInsertOpts subroutine
      # calls PetscInsertOpts() to set petscoptions
-uedge_reset	subroutine
+###uedge_reset	subroutine
      # Does the reset
 
 ***** Logging:

@@ -1,4 +1,4 @@
-DEBUG = -g #--fargs "-C=array" #--fargs "-CB -traceback"
+DEBUG = --fargs "-Ofast" # -g #--fargs "-C=array" #--fargs "-CB -traceback"
 
 SO = so
 PUBLICHOME = 
@@ -52,7 +52,8 @@ update:
 	done
 
 clean:
-	rm -rf build *.so
+	find . -name build -exec rm -rf {} \;
+	find . -name \*.F -exec rm {} \;
 
 #----------------------------------------------------------------------------
 #--- Build command for opendx wrapper.

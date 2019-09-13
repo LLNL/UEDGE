@@ -635,6 +635,7 @@ c-----------------------------------------------------------------------
       data nj/0/
       real dxc, dyc, dz, str, ctr, rm0, zm0, cossr, cossp, s_bphi, rmmax,
      .     lcon_wk1, lcon_wk2
+      real bsqrvoltot,voltot,bsqrave,b_yface,b_xface
       character*8 fname
       character*60 runid
 
@@ -1153,6 +1154,30 @@ ccc          endif
       enddo
       endif  #end test for mhdgeo
 
+*  -- Calc Rozhansky factor [1-B**2/(B**2_ave)] for possible use
+      bsqrvoltot = 0.
+      voltot = 0.
+      do iy = 1, iysptrx1(1)
+        do ix = ixpt1(1)+1, ixpt2(1)
+          bsqrvoltot = bsqrvoltot + btot(ix,iy)**2*vol(ix,iy)*dx(ix,iy)
+          voltot = voltot + vol(ix,iy)*dx(ix,iy)
+        enddo
+      enddo
+      if (voltot > 0.) bsqrave = bsqrvoltot/voltot
+
+      do iy = 0, ny+1
+        do ix = 0, nx+1
+          b_yface = 0.5*(b(ix,iy,3) + b(ix,iy,4))
+          b_xface = 0.5*(b(ix,iy,2) + b(ix,iy,4))
+          bfacyrozh(ix,iy) = 1.
+          bfacxrozh(ix,iy) = 1.
+          if (isrozhfac == 1) then
+            bfacyrozh(ix,iy) = (1. - b_yface**2/bsqrave)
+            bfacxrozh(ix,iy) = (1. - b_xface**2/bsqrave)
+          endif
+        enddo
+      enddo
+
 *----------------------------------------------------------------
 *  -- define some magnetic field arrays used for neoclassical calc
       do iy = 0, ny+1
@@ -1282,7 +1307,15 @@ c ... Fix the core boundary; just a convention
      .    geometry=='dnXtarget' .or. geometry=='isoleg') ixmp = ixmdp(2)
  
 *  -- redefine ixmp if it is outside ix=0,nx domain
-      if(ixmp.lt.0 .or. ixmp.gt.nx) ixmp = nx/2
+      if(ixmp.lt.0 .or. ixmp.gt.nx) then  #search for max rm
+	 rmmax = rm(nxomit,0,0)
+         do ix = nxomit, nx
+            if(rm(ix,0,0) > rmmax) then
+               rmmax = rm(ix,0,0)
+               ixmp = ix
+            endif
+         enddo
+      endif
 
 c     MER NOTE:
 c     The general case has multiple separatrices so yyf=0 is not
@@ -1324,7 +1357,7 @@ c --- Here the initial xnrm, ynrm, etc. are calculated
 
       if (isnonog .ge. 1) then
 c...  Reset fxm, fx0, fxp around the x-point - only orthogonal coupling
-c...  Also reset gyf, so we need the gy's calc. after call to nonorthg
+c...  Also reset gyf, so we need the gy calc. after call to nonorthg
        if (isfixlb(1) .eq. 0 .and. isfixrb(1) .eq. 0) then 
         do ik = 0, 1
           do ij = 0, 1
@@ -1390,7 +1423,7 @@ c...  Reset fxm, fx0, fxp at ixpt1,2 if half-space problem with no flux
         endif
 
 c...  Reset fxm, fx0, fxp at iy=ny temporarily (6/13/96) to see if it fixes
-c...  Porter's problem with low density carbon
+c...  Porter problem with low density carbon
       if (isybdryog .eq. 1) then
       do iy = 0, ny, ny
         do ik = 0, 1
@@ -2067,7 +2100,7 @@ c...  Recalculate the distance between y-points normal to y-face
  20      continue
  21   continue
 
-c...  Approx. the gyf in guard cells around boundary; these shouldn't
+c...  Approx. the gyf in guard cells around boundary; these should not
 c...  matter except possibly gyf(0,0) for half-space problem & iflcore=1
       do iy = 0, ny
          gyf(0,iy) = gyf(1,iy)
@@ -2104,7 +2137,7 @@ c...  Similarly approximate gyf for upper target plate guard cells
 c...  Calculate the fraction-stencil for variables to use at iy-1, iy, iy+1
 c...  when forming derivatives normal to the tilted x-face.
 C...  This is a somewhat complicated loop; we search for the crossing to the
-c...  top of the center point (ishy=0) and if that doesn't work, we shift
+c...  top of the center point (ishy=0) and if that does not work, we shift
 c...  to the right of the center point (ishy=1); if the intersection is
 c...  is beyond iy-1 or iy+1, we turn 90 degrees and look for intersection
 c...  with lines from [(ix,iy-1),(ixp1,iy-1)] or [(ix,iy+1),(ixp1,iy+1)].
@@ -2247,7 +2280,7 @@ c...  if isupstreamx=1, cells above x-point should be orthogonal; reset
         enddo
       endif
 
-c...  Reset guard-cell fy's to orthogonal stencil
+c...  Reset plate guard-cell fy to orthogonal stencil
       do jx = 1, nxpt
         do iy = 0, ny+1
            ix = ixlb(jx) 

@@ -232,7 +232,7 @@ Use(Aeqflxgrd)   # vmonth,vday,vyear
 
 c ***************** read the output of the EFIT code *****************
       data iunit /55/
-      open (iunit, file='aeqdsk', form='formatted', iostat=ios,
+      open (iunit, file=aeqdskfname, form='formatted', iostat=ios,
      .      status='old')
       if (ios .ne. 0) then
          call remark("**** aeqdsk file not found")
@@ -391,7 +391,7 @@ c     ------------------------------------------------------------------
       implicit none
       integer i, idum
 Use(Dimflxgrd)	#jdim,npts,nxefit,nyefit,nlim,nwork
-Use(Comflxgrd)	#
+Use(Comflxgrd)	#geqdskfname
 Use(Polflx)
       integer iunit, ios
       external gallot, kaboom, remark
@@ -399,10 +399,10 @@ Use(Polflx)
 
 c *************** read the output of the EFIT code ******************
       data iunit /55/
-      open (iunit, file='neqdsk', form='formatted', iostat=ios,
+      open (iunit, file=geqdskfname, form='formatted', iostat=ios,
      .      status='old')
       if (ios .ne. 0) then
-         call remark("**** neqdsk file not found")
+         call remark("**** geqdsk or neqdsk file not found")
          call kaboom(0)
       endif
 

@@ -1,10 +1,12 @@
-Metadata-Version: 1.0
+Metadata-Version: 1.2
 Name: uedge
-Version: 7.0.7.6
+Version: 7.0.8.3.4
 Summary: 2D Fluid simulation of plasma and neutrals in magnetic fusion devices
 Home-page: UNKNOWN
-Author: Bill Meyer
-Author-email: meyer8@llnl.gov
+Author: Tom Rognlien
+Author-email: trognlien@llnl.gov
+Maintainer: Bill Meyer
+Maintainer-email: meyer8@llnl.gov
 License: UNKNOWN
 Description: UNKNOWN
 Platform: Unix

@@ -138,6 +138,8 @@ c ---  Below, isupon(1) & ngbackg(1) used, so implies hydrogen
                    yldot(iv1) = nurlxn*(ngcore(1)-ni(ix,0,ifld))/
      .                                                     n0(ifld)
                  elseif (isngcore(1) .eq. 2) then
+                   write(*,*) "*** isngcore=2 option unvailable  ***"
+                   call kaboom(0)
                    lengg = sqrt(ti(ix,0)/
      .                              (mi(1)*nuix(ix,0,1)*nuiz(ix,0,1)))
                    yldot(iv1) = -nurlxn*( ni(ix,0,ifld) -
@@ -237,11 +239,11 @@ c
      .                               curcore(ifld))/(qe*vpnorm*n0(ifld))
                      endif
                   elseif (isnicore(ifld)==5) then # set dni/dy=-ni/lynicore
-                                                  # at midplane;pol const ni
-                     if (ix .ne. ixmp) then
+                                                  # at midpl; the pol const ni
+                     if (ix .ne. ixmp) then  #  flux func for ni
                        yldot(iv1) = -nurlxn*( ni(ix,0,ifld) -
      .                                 ni(ixp1(ix,0),0,ifld) ) / n0(ifld)
-                     else
+                     else  # close by setting midp gradient 1/lynicore
                        yldot(iv1)=-nurlxn*( ni(ix,0,ifld) - ni(ix,1,ifld)*
      .                                 (2*gyf(ixmp,0)*lynicore(ifld)+1)/
      .                                 (2*gyf(ixmp,0)*lynicore(ifld)-1)- 
@@ -491,7 +493,7 @@ c    if flux energy condition, precompute feeytotc & feiytotc for use
             do    # loop over ii as changed by ii=ixp1 statement
               ii = ixp1(ii,0)
               if ((geometry=="dnbot") .and.
-     .                  (ii==nxc .or. ii==nxc+1)) then
+     .                  (ii==nxc .or. ii==nxc+iexclnxc1)) then
                  continue  # skip m.p. guard cells
               else
                  feeytotc = feeytotc+feey(ii,0)-feeycbo(ii)
@@ -533,7 +535,7 @@ c ... Set Te and Ti BCs
                     do    # loop over ii as changed by ii=ixp1 statement
                        ii = ixp1(ii,0)
                        if ((geometry=="dnbot") .and.
-     .                                    (ii==nxc .or. ii==nxc+1)) then
+     .                          (ii==nxc .or. ii==nxc+iexclnxc1)) then
                           continue  # skip m.p. guard cells
                        else
                           feeytotc = feeytotc+feey(ii,0)-feeycbo(ii)
@@ -581,7 +583,8 @@ c ... Set Te and Ti BCs
                     feiytotc = feiy(ii,0)-feiycbo(ii)
                     do
                        ii = ixp1(ii,0)
-                       if ((geometry=="dnbot") .and. (ii==nxc .or. ii==nxc+1)) then
+                       if ((geometry=="dnbot").and.
+     .                          (ii==nxc .or. ii==nxc+iexclnxc1)) then
                           continue  # skip m.p. guard cells
                        else
                           feiytotc = feiytotc+feiy(ii,0)-feiycbo(ii)
@@ -733,11 +736,9 @@ c ... Include gas BC from sputtering by ions
                    if (igsp .gt. nhgsp) fniy_recy = zflux
                    if (ishymol.eq.1 .and. igsp.eq.2) then # 2 atoms per molecule
                      if (isupgon(1) .eq. 1) then
-		       fniy_recy = 0.5*( (1.-recycw(1))*fniy(ix,0,1) +
-     .                                                  fniy(ix,0,2) )
+		       fniy_recy = 0.5*( fniy(ix,0,1) + fniy(ix,0,2) )
                      else
-                       fniy_recy = 0.5*( (1.-recycw(1))*fniy(ix,0,1) +
-     .                                                  fngy(ix,0,1) )
+                       fniy_recy = 0.5*( fniy(ix,0,1) + fngy(ix,0,1) )
                      endif
                      if(isrefluxclip==1) fniy_recy=min(fniy_recy,0.)
                    endif
@@ -1358,11 +1359,9 @@ ccc
                 if (igsp .gt. nhgsp) fniy_recy = zflux
                 if (ishymol.eq.1 .and. igsp.eq.2) then # 2 atoms per molecule
                   if (isupgon(1) .eq. 1) then
-                    fniy_recy = 0.5*( (1.-recycw(1))*fniy(ix,ny,1) +
-     .                                               fniy(ix,ny,2) )
+                    fniy_recy = 0.5*( fniy(ix,ny,1) + fniy(ix,ny,2) )
                   else
-                    fniy_recy = 0.5*( (1.-recycw(1))*fniy(ix,ny,1) +
-     .                                               fngy(ix,ny,1) )
+                    fniy_recy = 0.5*( fniy(ix,ny,1) + fngy(ix,ny,1) )
                   endif
                   if(isrefluxclip==1) fniy_recy=max(fniy_recy,0.)
                 endif
@@ -1599,11 +1598,9 @@ c...  now do the gas and temperatures
                   flux_inc = fac2sp*fnix(0,iy,1)
                   if (ishymol.eq.1 .and. igsp.eq.2) then
                     if (isupgon(1) .eq. 1) then  # two atoms per molecule
-                      flux_inc = 0.5*( (1.-recylb(iy,1,1))*fnix(0,iy,1) + 
-     .                                                     fnix(0,iy,2) )
+                      flux_inc = 0.5*( fnix(0,iy,1) + fnix(0,iy,2) )
                     else
-                      flux_inc = 0.5*( (1.-recylb(iy,1,1))*fnix(0,iy,1) + 
-     .                                                     fngx(0,iy,1) )
+                      flux_inc = 0.5*( fnix(0,iy,1) + fngx(0,iy,1) ) 
                     endif
                   endif
                   yldot(iv) = -nurlxg * ( fngx(0,iy,igsp) -
@@ -1791,16 +1788,17 @@ cc                fqp(ixt,iy)=-( abs((fqp(ixt,iy)*fqpsatlb(iy,jx)))**exjbdry/
 cc     .                      (abs(fqp(ixt,iy))**exjbdry +
 cc     .                       abs(fqpsatlb(iy,jx))**exjbdry) )**(1/exjbdry)
 cc              endif
-              if ( fqpsatlb(iy,jx)+fqp(ixt,iy) > 0) then  # force +ve log argument
-                 arglgphi=(((fqpsatlb(iy,jx)+fqp(ixt,iy))/fqpsate)**2
-     .                       + expkmx**2)**0.5
+              if ( fqpsatlb(iy,jx)+(1.-gamsec)*fqp(ixt,iy) > 0) then  # force +ve log argument
+                 arglgphi=( ((fqpsatlb(iy,jx)+(1.-gamsec)*fqp(ixt,iy))
+     .                          /fqpsate)**2 + expkmx**2 )**0.5
               else
                  arglgphi = expkmx
               endif
               if (iskaplex .eq. 0) kappal(iy,jx) = - log(arglgphi)
               if (newbcl(jx).eq.0 .and. iskaplex.eq.0) kappal(iy,jx) = 3.0
            elseif (ikapmod==1) then
-              kappal(iy,jx) = kappa(fqpsatlb(iy,jx), fqpsate, -fqp(ixt,iy))
+              kappal(iy,jx) = kappa(fqpsatlb(iy,jx), fqpsate, 
+     .                                         -(1.-gamsec)*fqp(ixt,iy))
            endif
 
            if (isphionxy(ixt,iy) .eq. 1) then
@@ -1812,7 +1810,8 @@ cc              endif
               else
                  yldot(iv) = -nurlxp*(1.-bctype(iy)) *
      .            (phi(ixt,iy)-kappal(iy,jx)*te(ixt,iy)/ev-phi0l(iy,jx))/temp0
-     .                 -nurlxp * bctype(iy) * fqp(ixt,iy) / (fqpsatlb(iy,jx)+cutlo)
+     .                    -nurlxp * bctype(iy) * (1.-gamsec)*fqp(ixt,iy) 
+     .                                         / (fqpsatlb(iy,jx)+cutlo)
               endif
            endif
 	else    # corresponding to (isphion+isphiofft .ne. 1)
@@ -1922,11 +1921,9 @@ c       Do hydrogenic gas equations --
                flux_inc = fac2sp*fnix(ixt,iy,1)
                if (ishymol.eq.1 .and. igsp.eq.2) then
                  if (isupgon(1) .eq. 1) then  # two atoms for one molecule
-                   flux_inc = 0.5*( (1.-recylb(iy,1,jx))*fnix(ixt,iy,1) + 
-     .                                                   fnix(ixt,iy,2) )
+                   flux_inc = 0.5*( fnix(ixt,iy,1) + fnix(ixt,iy,2) ) 
                  else
-                   flux_inc = 0.5*( (1.-recylb(iy,1,jx))*fnix(ixt,iy,1) + 
-     .                                                   fngx(ixt,iy,1) )
+                   flux_inc = 0.5*( fnix(ixt,iy,1) + fngx(ixt,iy,1) ) 
                  endif
                endif
                t0 = max(tg(ixt1,iy,igsp), temin*ev)
@@ -2182,11 +2179,9 @@ c...  now do the gas and temperatures
                   flux_inc = fac2sp*fnix(nx,iy,1)
                   if (ishymol.eq.1 .and. igsp.eq.2) then
                     if (isupgon(1) .eq. 1) then  # two atoms for one molecule
-                      flux_inc = 0.5*( (1.-recyrb(iy,1,1))*fnix(nx,iy,1) + 
-     .                                                     fnix(nx,iy,2) )
+                      flux_inc = 0.5*( fnix(nx,iy,1) + fnix(nx,iy,2) ) 
                     else
-                      flux_inc = 0.5*( (1.-recyrb(iy,1,1))*fnix(nx,iy,1) + 
-     .                                                     fngx(nx,iy,1) )
+                      flux_inc = 0.5*( fnix(nx,iy,1) + fngx(nx,iy,1) ) 
                     endif
                   endif
                   yldot(iv) = -nurlxg * ( fngx(nx,iy,igsp) +
@@ -2380,16 +2375,17 @@ cc             fqp(ixt1,iy)= ( abs((fqp(ixt1,iy)*fqpsatrb(iy,jx)))**exjbdry/
 cc     .                  (abs(fqp(ixt1,iy))**exjbdry +
 cc     .                   abs(fqpsatrb(iy,jx))**exjbdry) )**(1/exjbdry)
 cc           endif
-              if ( fqpsatrb(iy,jx)-fqp(ixt1,iy) > 0) then  # force +ve log argument
-                arglgphi=(((fqpsatrb(iy,jx)-fqp(ixt1,iy))/fqpsate)**2
-     .                      + expkmx**2)**(0.5)
+              if ( fqpsatrb(iy,jx)-(1.-gamsec)*fqp(ixt1,iy) > 0) then  # force +ve log argument
+                arglgphi=(((fqpsatrb(iy,jx)-(1.-gamsec)*fqp(ixt1,iy))
+     .                             /fqpsate)**2 + expkmx**2)**(0.5)
               else
                 arglgphi = expkmx
               endif
               if (iskaprex.eq.0) kappar(iy,jx) = - log(arglgphi)
 cccTDR            if ((isnewpot==1) .and. ((iy==1) .or. (iy==ny))) then
            elseif (ikapmod==1) then
-              kappar(iy,jx) = kappa(fqpsatrb(iy,jx), fqpsate, fqp(ixt1,iy))
+              kappar(iy,jx) = kappa( fqpsatrb(iy,jx), fqpsate, 
+     .                                       (1.-gamsec)*fqp(ixt1,iy) )
            endif
            if (isphionxy(ixt,iy) .eq. 1) then
               iv = idxphi(ixt,iy)
@@ -2398,10 +2394,11 @@ cccTDR            if ((isnewpot==1) .and. ((iy==1) .or. (iy==ny))) then
               elseif (isphirbc==1)
                  yldot(iv) = - nurlxp * (phi(ixt,iy) - phi0r(iy,jx))/temp0 
               else
-                 yldot(iv) = - nurlxp*(1.-bctype(iy))*
-     .              (phi(ixt,iy)-kappar(iy,jx)*te(ixt,iy)/ev-phi0r(iy,jx))/temp0
-     .                       - nurlxp*bctype(iy)*
-     .                                    fqp(ixt1,iy) / (fqpsatrb(iy,jx)+cutlo)
+                 yldot(iv) = -nurlxp*(1.-bctype(iy))*
+     .              ( phi(ixt,iy)-kappar(iy,jx)*te(ixt,iy)/ev
+     .                                     -phi0r(iy,jx) )/temp0
+     .                       -nurlxp*bctype(iy)*(1.-gamsec)*fqp(ixt1,iy)
+     .                                 / (fqpsatrb(iy,jx)+cutlo)
               endif
            endif
 	else    # corresponding to (isphion+isphiofft .ne. 1)
@@ -2518,11 +2515,9 @@ c       Next, the hydrogenic gas equations --
                flux_inc = fac2sp*fnix(ixt1,iy,1)
                if (ishymol.eq.1 .and. igsp.eq.2) then
                  if (isupgon(1) .eq. 1) then  # two atoms for one molecule
-                   flux_inc = 0.5*( (1.-recyrb(iy,1,jx))*fnix(ixt1,iy,1) + 
-     .                                                   fnix(ixt1,iy,2) )
+                   flux_inc = 0.5*( fnix(ixt1,iy,1) + fnix(ixt1,iy,2) ) 
                  else
-                   flux_inc = 0.5*( (1.-recyrb(iy,1,jx))*fnix(ixt1,iy,1) + 
-     .                                                   fngx(ixt1,iy,1) )
+                   flux_inc = 0.5*( fnix(ixt1,iy,1) + fngx(ixt1,iy,1) ) 
                  endif
                endif
                t0 = max(tg(ixt1,iy,igsp), temin*ev)

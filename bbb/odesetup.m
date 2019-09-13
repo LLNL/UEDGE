@@ -1,5 +1,5 @@
 c-----------------------------------------------------------------------
-c $Id: odesetup.m,v 7.7 2018/12/03 19:08:25 meyer8 Exp $
+c $Id: odesetup.m,v 7.12 2019/05/29 17:54:28 meyer8 Exp $
 c
 c!include "bbb.h"
 c!include "../com/com.h"
@@ -187,6 +187,15 @@ c ... Check that number neutral gas species is not larger than ngspmx
          call kaboom(0)
       endif
 
+c ... Check that isupcore=2 is not being used
+      do igsp = 1, ngsp
+        if (isngcore(igsp) == 2) then
+          write(*,*) "*** isngcore=2 option unvailable; igsp = ",igsp
+          call kaboom(0)
+        endif
+      enddo
+
+
 c ... Check that a gas source and albedo is not assigned to nonexistent gas sp
       do isor = 1, nwsor
          if (igspsori(isor).gt. ngsp .or. igspsoro(isor).gt.ngsp) then
@@ -261,6 +270,14 @@ c ... Check if tfcx or tfcy set in input file
       if ((tfcx>1.e-10 .or. tfcy>1.e-10) .and. iprt_tfcx_warn==1) then
         call remark('*** WARNING: tfcx,y not active; see tgas instead')
         iprt_tfcx_warn = 0
+        endif
+c ... Check if isnfmiy=1 when geometry is snowflake > SF15
+      if (geometry=="snowflake45" .or. geometry=="snowflake75" .or.
+     .    geometry=="snowflake105" .or. geometry=="snowflake145") then
+         if (isnfmiy == 1) then
+            call remark('*** ERROR: isnfmiy=1 not option here; set to 0')
+            call kaboom(0)
+         endif
       endif
 
 c ... Calculate variables related to size of the problem.
@@ -709,15 +726,17 @@ c-----------------------------------------------------------------------
       Use(Rccoef)   # feixextlb,rb;feiyexti,o
       Use(Rhsides)  # psorc, psorxr, msor, msorxr
       Use(Save_terms) # psorcold, etc
+      Use(Cut_indices)	# ixcut1,iycut1,ixcut2,iycut2,ixcut3,iycut3
+                        # ixcut4,iycut4
+
 
 *  -- external routines --
       real ssmin, s2min
 
 *  -- local scalars --
-      integer i, iu
+      integer i, iu, ir
       integer ifld
-      integer impflag, ixst, ixsto, iyst, iysto, ixend, ixendo
-ccc      integer iyend, iyendo
+      integer impflag
       real crni, ctemp, cj, zn_last, proffacx, proffacy, proffacv
       integer ixmp4, jx, jy
       real diffustotal, factor
@@ -1522,216 +1541,77 @@ c...  for density, etc, and in xvnrmox for poloidal velocity
 c...  Likewise for y-interpolated yn values put in ynrmox and yvnrmox
 c...  Also, must allocate Interp arrays with current nx,ny (diff. from nxold)
 
-c...  Construct first intermediate grid, (xnrmox,ynrmox)
-         call gchange("Interp",0)
+c...  Order ixstart/end of poloidal regions from new ixcut & ixlb,rb
+c...  Previous values of ixsto and ixendo computed in subr gridseq
+      ixst(1) = ixlb(1)
+      ixend(1) = ixcut1
+      if (ixlb(1) == 0 .and. ixcut1 == 0) then  # no inner leg
+        ixst(2) = 0
+      else
+        ixst(2) = max(ixlb(1), ixcut1+1)
+      endif
+      ixend(2) = ixcut2
+      if (nyomitmx >= nysol(1)) then   # no inner/outer leg region
+         ixst(2) = 0
+         ixend(2) = nx+1
+      endif
+      if (nx == 1) then  #special case: 1D in radial direction
+         ixend(2) = 2
+      endif
+c..   Now need to check if ixrb is > or < ixcut3
+      ixst(3) = ixcut2+1
+      if (ixcut3 > ixrb(1) .or. nxpt==1) then  #3 regions in first domain
+        ixend(3) = ixrb(1)+1
+      else    # 4 regions in 1st domain, end on ixcut3
+        ixend(3) = ixcut3
+      endif
 
-      do jx = 1, nxpt
-cc11         if (ixpt1(jx) .gt. ixlb(jx) .and. iysptrx1(jx) .gt. 0) then
-         if (ixpt1(jx) .gt. ixlb(jx)) then
-           ixst = ixlb(jx)
-           ixsto = ixlbo(jx)
-           ixend = ixpt1(jx)
-           ixendo = ixpt1o(jx)
-           call grdintpy(ixst,ixend,ixsto,ixendo,0,ny+1,
-     .                 0,nyold+1,nx,ny,nxold,nyold,
-     .                 xnrm,ynrm,xnrmo,ynrmo,xnrmox,ynrmox,ixmg,iyomg)
-         endif
-cc11         if (ixpt2(jx) .gt. ixlb(jx) .and. iysptrx2(jx) .gt. 0) then
-         if (ixpt2(jx) .gt. ixlb(jx)) then
-cc           if (geometry == "isoleg") then
-cc             ixst = ixpt1(jx)
-cc            ixsto = ixpt1o(jx)
-cc             ixend = ixrb(jx)+1
-cc             ixendo = ixrbo(jx)+1
-cc           else
-             if (ixlb(jx)==0 .and. ixpt1(jx)==0) then   # no inner leg
-               ixst = 0
-               ixsto = 0
-             else
-               ixst = max(ixlb(jx), ixpt1(jx)+1)
-               ixsto = max(ixlbo(jx), ixpt1o(jx)+1)
-             endif
-             ixend = min(ixpt2(jx), ixrb(jx)+1)
-             ixendo = min(ixpt2o(jx), ixrbo(jx)+1)
-cc           endif
-           if (nyomitmx >= nysol(1)) then   # no inner/outer leg region
-              ixst = 0
-              ixsto = 0
-              ixend = nx+1
-              ixendo = nxold+1
-           endif
-           if (nx .eq. 1) then  #special case for 1-D in radial direction
-              ixend = 2
-              ixendo = 2
-           endif
-           call grdintpy(ixst,ixend,ixsto,ixendo,0,ny+1,
-     .                 0,nyold+1,nx,ny,nxold,nyold,
-     .                 xnrm,ynrm,xnrmo,ynrmo,xnrmox,ynrmox,ixmg,iyomg)
-         endif
-         ixst = max(ixlb(jx), ixpt2(jx)+1)
-         ixsto = max(ixlbo(jx), ixpt2o(jx)+1)
-         ixend = ixrb(jx)+1
-         ixendo = ixrbo(jx)+1
-cc11         if (ixpt2(jx) .lt. ixrb(jx) .and. iysptrx2(jx) .gt. 0) then
-         if (ixpt2(jx) .lt. ixrb(jx)) then
-           call grdintpy(ixst,ixend,ixsto,ixendo,0,ny+1,
-     .                 0,nyold+1,nx,ny,nxold,nyold,
-     .                 xnrm,ynrm,xnrmo,ynrmo,xnrmox,ynrmox,ixmg,iyomg)
-         endif
-      enddo   # end do-loop over jx=1:nxpt mesh regions
+c..   Continue ordering if double null or snowflake
+      if (nxpt == 2) then
+        if (ixcut3 > ixrb(1)) then  # do 3-region 2nd domain
+          ixst(4) = ixlb(2)
+          ixend(4) = ixcut3
+          ixst(5) = ixcut3+1
+        else # 4 regions in 1st domain, compl & do 2-region 2nd domain
+          ixst(4) = ixcut3+1
+          ixend(4) = ixrb(1)+1
+          ixst(5) = ixlb(2) 
+        endif  # remain indices are the same
+          ixend(5) = ixcut4
+          ixst(6) = ixcut4+1
+          ixend(6) = ixrb(2)+1
+      endif  # if-test on nxpt
 
-c...  Construct second intermediate grid, (xnrmnx,ynrmnx)
-      do jx = 1, nxpt
-cc11         if (ixpt1o(jx) .gt. ixlbo(jx) .and. iysptrx1(jx) .gt. 0) then
-         if (ixpt1o(jx) .gt. ixlbo(jx)) then
-           ixst = ixlbo(jx)
-           ixsto = ixlb(jx)
-           ixend = ixpt1o(jx)
-           ixendo = ixpt1(jx)
-           call grdintpy(ixst,ixend,ixsto,ixendo,0,ny+1,
-     .                 0,ny+1,nxold,ny,nx,ny,
-     .                 xnrmox,ynrmox,xnrm,ynrm,xnrmnx,ynrmnx,ix2g,iy2g)
-         endif
-cc11         if (ixpt2o(jx) .gt. ixlbo(jx) .and. iysptrx2(jx) .gt. 0) then
-         if (ixpt2o(jx) .gt. ixlbo(jx)) then
-            if (ixlbo(jx)==0 .and. ixpt1o(jx)==0) then   # no inner leg
-             ixst = 0
-             ixsto = 0
-           else
-             ixst = max(ixlbo(jx), ixpt1o(jx)+1)
-             ixsto = max(ixlb(jx), ixpt1(jx)+1)
-           endif
-           ixend = min(ixpt2o(jx), ixrbo(jx)+1)
-           ixendo = min(ixpt2(jx), ixrb(jx)+1)
-           if (nyomitmx >= nysol(1)) then   # no inner/outer leg region
-              ixst = 0
-              ixsto = 0
-              ixend = nxold+1
-              ixendo = nx+1
-           endif
-           if (nx .eq. 1) then  #special case for 1-D in radial direction
-              ixend = 2
-              ixendo = 2
-           endif
-           call grdintpy(ixst,ixend,ixsto,ixendo,0,ny+1,
-     .                 0,ny+1,nxold,ny,nx,ny,
-     .                 xnrmox,ynrmox,xnrm,ynrm,xnrmnx,ynrmnx,ix2g,iy2g)
-         endif
-         ixst = max(ixlbo(jx), ixpt2o(jx)+1)
-         ixsto = max(ixlb(jx), ixpt2(jx)+1)
-         ixend = ixrbo(jx)+1
-         ixendo = ixrb(jx)+1
-cc11         if (ixpt2(jx) .lt. ixrb(jx) .and. iysptrx2(jx) .gt. 0) then
-         if (ixpt2(jx) .lt. ixrb(jx)) then
-           call grdintpy(ixst,ixend,ixsto,ixendo,0,ny+1,
-     .                 0,ny+1,nxold,ny,nx,ny,
-     .                 xnrmox,ynrmox,xnrm,ynrm,xnrmnx,ynrmnx,ix2g,iy2g)
-         endif
-      enddo   # end do-loop over jx=1:nxpt mesh regions
+c...  Construct first intermediate density grid, (xnrmox,ynrmox)
+      call gchange("Interp",0)
+      do ir = 1, 3*nxpt
+        call grdintpy(ixst(ir),ixend(ir),ixsto(ir),ixendo(ir),
+     .                0,ny+1,0,nyold+1,nx,ny,nxold,nyold,
+     .                xnrm,ynrm,xnrmo,ynrmo,xnrmox,ynrmox,ixmg,iyomg)
+      enddo
+         
+c...  Construct second intermediate density grid, (xnrmnx,ynrmnx)
+      do ir = 1, 3*nxpt
+        call grdintpy(ixsto(ir),ixendo(ir),ixst(ir),ixend(ir),
+     .                0,ny+1,0,ny+1,nxold,ny,nx,ny,
+     .                xnrmox,ynrmox,xnrm,ynrm,xnrmnx,ynrmnx,ix2g,iy2g)
+      enddo
 
-c...  and now for the velocity grid; construct first intermediate mesh
-      do jx = 1, nxpt
-cc11         if (ixpt1(jx) .gt. ixlb(jx) .and. iysptrx1(jx) .gt. 0) then
-         if (ixpt1(jx) .gt. ixlb(jx)) then
-           ixst = ixlb(jx)
-           ixsto = ixlbo(jx)
-           ixend = ixpt1(jx)
-           ixendo = ixpt1o(jx)
-           call grdintpy(ixst,ixend,ixsto,ixendo,0,ny+1,
-     .                 0,nyold+1,nx,ny,nxold,nyold,
-     .                 xvnrm,yvnrm,xvnrmo,yvnrmo,xvnrmox,yvnrmox,
-     .                 ixvmg,iyvomg)
-         endif
-cc11         if (ixpt2(jx) .gt. ixlb(jx) .and. iysptrx2(jx) .gt. 0) then
-         if (ixpt2(jx) .gt. ixlb(jx)) then
-           if (ixlb(jx)==0 .and. ixpt1(jx)==0) then   # no inner leg
-             ixst = 0
-             ixsto = 0
-           else
-             ixst = max(ixlb(jx), ixpt1(jx)+1)
-             ixsto = max(ixlbo(jx), ixpt1o(jx)+1)
-           endif
-           ixend = min(ixpt2(jx), ixrb(jx)+1)
-           ixendo = min(ixpt2o(jx), ixrbo(jx)+1)
-           if (nyomitmx >= nysol(1)) then   # no inner/outer leg region
-              ixst = 0
-              ixsto = 0
-              ixend = nx+1
-              ixendo = nxold+1
-           endif
-           if (nx .eq. 1) then  #special case for 1-D in radial direction
-              ixend = 2
-              ixendo = 2
-           endif
-           call grdintpy(ixst,ixend,ixsto,ixendo,0,ny+1,
-     .                 0,nyold+1,nx,ny,nxold,nyold,
-     .                 xvnrm,yvnrm,xvnrmo,yvnrmo,xvnrmox,yvnrmox,
-     .                 ixvmg,iyvomg)
-         endif
-         ixst = max(ixlb(jx), ixpt2(jx)+1)
-         ixsto = max(ixlbo(jx), ixpt2o(jx)+1)
-         ixend = ixrb(jx)+1
-         ixendo = ixrbo(jx)+1
-cc11         if (ixpt2(jx) .lt. ixrb(jx) .and. iysptrx2(jx) .gt. 0) then
-         if (ixpt2(jx) .lt. ixrb(jx)) then
-           call grdintpy(ixst,ixend,ixsto,ixendo,0,ny+1,
-     .                 0,nyold+1,nx,ny,nxold,nyold,
-     .                 xvnrm,yvnrm,xvnrmo,yvnrmo,xvnrmox,yvnrmox,
-     .                 ixvmg,iyvomg)
-         endif
-      enddo   # end do-loop over jx=1:nxpt mesh regions
+c...  Construct first intermediate velocity grid (xvnrmox,yvnrmnox)
+      do ir = 1, 3*nxpt
+        call grdintpy(ixst(ir),ixend(ir),ixsto(ir),ixendo(ir),
+     .                0,ny+1,0,nyold+1,nx,ny,nxold,nyold,
+     .                xvnrm,yvnrm,xvnrmo,yvnrmo,xvnrmox,yvnrmox,
+     .                ixvmg,iyvomg)
+      enddo
 
-c...  Now construct second intermediate velocity mesh
-      do jx = 1, nxpt
-cc11         if (ixpt1o(jx) .gt. ixlbo(jx) .and. iysptrx1(jx) .gt. 0) then
-         if (ixpt1o(jx) .gt. ixlbo(jx)) then
-           ixst = ixlbo(jx)
-           ixsto = ixlb(jx)
-           ixend = ixpt1o(jx)
-           ixendo = ixpt1(jx)
-           call grdintpy(ixst,ixend,ixsto,ixendo,0,ny+1,
-     .                 0,ny+1,nxold,ny,nx,ny,
-     .                 xvnrmox,yvnrmox,xvnrm,yvnrm,xvnrmnx,yvnrmnx,
-     .                 ixv2g,iyv2g)
-         endif
-cc11         if (ixpt2o(jx) .gt. ixlbo(jx) .and. iysptrx1(jx) .gt. 0) then
-         if (ixpt2o(jx) .gt. ixlbo(jx)) then
-           if (ixlbo(jx)==0 .and. ixpt1o(jx)==0) then   # no inner leg
-             ixst = 0
-             ixsto = 0
-           else
-             ixst = max(ixlbo(jx), ixpt1o(jx)+1)
-             ixsto = max(ixlb(jx), ixpt1(jx)+1)
-           endif
-           ixend = min(ixpt2o(jx), ixrbo(jx)+1)
-           ixendo = min(ixpt2(jx), ixrb(jx)+1)
-           if (nyomitmx >= nysol(1)) then   # no inner/outer leg region
-              ixst = 0
-              ixsto = 0
-              ixend = nxold+1
-              ixendo = nx+1
-           endif
-           if (nx .eq. 1) then  #special case for 1-D in radial direction
-              ixend = 2
-              ixendo = 2
-           endif
-           call grdintpy(ixst,ixend,ixsto,ixendo,0,ny+1,
-     .                 0,ny+1,nxold,ny,nx,ny,
-     .                 xvnrmox,yvnrmox,xvnrm,yvnrm,xvnrmnx,yvnrmnx,
-     .                 ixv2g,iyv2g)
-         endif
-         ixst = max(ixlbo(jx), ixpt2o(jx)+1)
-         ixsto = max(ixlb(jx), ixpt2(jx)+1)
-         ixend = ixrbo(jx)+1
-         ixendo = ixrb(jx)+1
-cc11         if (ixpt2(jx) .lt. ixrb(jx) .and. iysptrx2(jx) .gt. 0) then
-         if (ixpt2(jx) .lt. ixrb(jx)) then
-           call grdintpy(ixst,ixend,ixsto,ixendo,0,ny+1,
-     .                 0,ny+1,nxold,ny,nx,ny,
-     .                 xvnrmox,yvnrmox,xvnrm,yvnrm,xvnrmnx,yvnrmnx,
-     .                 ixv2g,iyv2g)
-         endif
-      enddo   # end do-loop over jx=1:nxpt mesh regions
+c...  Construct second intermediate velocity grid (xvnrmnx,yvnrmnx)
+      do ir = 1, 3*nxpt
+        call grdintpy(ixsto(ir),ixendo(i),ixst(ir),ixend(ir),
+     .                0,ny+1,0,ny+1,nxold,ny,nx,ny,
+     .                xvnrmox,yvnrmox,xvnrm,yvnrm,xvnrmnx,yvnrmnx,
+     .                ixv2g,iyv2g)
+      enddo
 
 c...  Fix the special cell ixpt2(1)=ixrb(1) for geometry="isoleg"
       if (geometry == "isoleg") then
@@ -1788,8 +1668,21 @@ c...  Reset gas density to minimum if too small or negative
            enddo
          enddo
 
-      endif          # end new interpolator section for isnintp=1
+      endif          # end of very-large 2-branch-if: (1), same mesh size
+                     # or (2), index-based interp with isnintp=1 
 
+c...  Check if any ion density is zero
+      do ifld = 1, nisp
+        do iy = 0, ny+1
+          do ix = 0, nx+1
+            if (ni(ix,iy,ifld) <= 0) then
+              call remark('****** ERROR: ni <= 0 ******')
+              write(*,*) 'begins at ix,iy,ifld = ',ix,iy,ifld
+              call kaboom(0)
+            endif
+          enddo
+        enddo
+      enddo
 
 *  -- initialize nginit and ne to interpolated value, zero nonog-fluxes
       call s2copy (nx+2, ny+2, ng, 1, nx+2, nginit, 1, nx+2)
@@ -6459,6 +6352,7 @@ c ---------------------------------------------------------------------c
       Use(UEpar)    # cnurn,cnuru,cnure,cnuri,cnurg,cnurp,
                     # nurlxn,nurlxu,nurlxe,nurlxi,nurlxg,nurlxp,
                     # label,svrpkg
+      Use(Ident_vars)          # uedge_ver
       Use(Lsode)    # iterm
       Use(Grid)     # ngrid,inewton,imeth,nurlx,ijac,ijactot
       Use(Decomp)   # ubw,lbw
@@ -6494,8 +6388,11 @@ c_mpi         call MPI_BARRIER(uedgeComm, ierr)
            ifexmain = 1
            call allocate
            ifexmain = 0
+	   if (icall == 0) write(*,*) 'UEDGE ',uedge_ver
+           icall = 1
          elseif (ismpion.eq.1 .and. icall==0) then
            call init_pll
+	   write(*,*) 'UEDGE version ',uedge_ver
            icall = 1
          endif
 

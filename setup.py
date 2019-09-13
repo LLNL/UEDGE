@@ -6,10 +6,12 @@ import sys,os,os.path,string,site
 from Forthon.compilers import FCompiler
 import getopt
 
+
 try:
     os.environ['PATH'] += os.pathsep + site.USER_BASE + '/bin'
-    import distutils 
-    from distutils.core import setup, Extension
+    import distutils
+    from setuptools import setup
+    from distutils.core import Extension
     from distutils.dist import Distribution
     from distutils.command.build import build
     from subprocess import call
@@ -54,6 +56,13 @@ class uedgeBuild(build):
         else:
            call(['make','-f','Makefile.PETSc'])
         build.run(self)
+class uedgeClean(build):
+    def run(self):
+        if petsc == 0:
+           call(['make','-f','Makefile.Forthon','clean'])
+        else:
+           call(['make','-f','Makefile.PETSc','clean'])
+
 
 #dummydist = Distribution()
 #dummybuild = build(dummydist)
@@ -124,7 +133,7 @@ if parallel:
   #uedgeobjects = uedgeobjects + ['/usr/local/mpi/ifc_farg.o']
 
 setup (name = "uedge",
-       version = '7.0.7.6',
+       version = '7.0.8.3.4',
        author = 'Tom Rognlien',
        author_email = "trognlien@llnl.gov",
        maintainer = 'Bill Meyer',
@@ -149,7 +158,8 @@ setup (name = "uedge",
                                              fcompiler.extra_link_args,
                                 extra_compile_args=fcompiler.extra_compile_args
                                )],
-       cmdclass = { 'build':uedgeBuild },
+       cmdclass = { 'build':uedgeBuild,'clean':uedgeClean},
+       test_suite="pytests",
        install_requires=['forthon','mppl']
        ## note that include_dirs may have to be expanded in the line above
 

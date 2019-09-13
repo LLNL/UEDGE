@@ -131,8 +131,6 @@ C
    50 CONTINUE
       RETURN
       END
-
-
       subroutine daxpy(n,da,dx,incx,dy,incy)
 c
 c     constant times a vector plus a vector.

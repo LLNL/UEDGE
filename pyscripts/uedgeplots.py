@@ -26,7 +26,7 @@ from uedge import *
 
 def plotmesh(ixmin=None,ixmax=None,iymin=None,iymax=None,
           r_min=None,r_max=None,z_min=None,z_max=None,title=None,
-          block=True):
+          block=True,figsize=(4.0,8.0)):
    """
    plotmesh(ixmin=<int>,ixmax=<int>,iymin=<int>,iymax=<int>
             title=<string>,r_min=<val>,r_max=<val>,z_min=<val>,z_max=<val>,
@@ -50,7 +50,7 @@ def plotmesh(ixmin=None,ixmax=None,iymin=None,iymax=None,
    rcdefaults()
    if title == None:
     title='Uedge Grid'
-   plt.figure(title,figsize=(4.0,8.0))
+   plt.figure(title,figsize=figsize)
    plt.title(title)
 
    try:
@@ -138,16 +138,15 @@ def plotmeshval(val,ixmin=None,ixmax=None,iymin=None,iymax=None,
    plt.pause(0.001)
 
 
-def profile(rval,zval,title=None,style=None,linewidth=None,xlabel=None,ylabel=None):
+def profile(rval,zval,title=None,style=None,linewidth=None,xlabel=None,ylabel=None,figsize=(4.0,8.0)):
    """
-   profile(rval,zval,title=<None>)
+   profile(xval,yval,title=<None>,style=<None>,linewidth=<None>,xlabel=<None>,ylabel=<None>)
       title is used as both the title and the figure name. 
       Interactive is turned on so subsequent calls go to the same plot
       Style encoded color, line, and marker.  See matplotlib documention.
       examples: black solid line  - style='k-'
                 red circle marks  - style='ro'
                 green x marks and dotted line - style='gx--'
-      
    """
 
    rcdefaults()
@@ -159,7 +158,7 @@ def profile(rval,zval,title=None,style=None,linewidth=None,xlabel=None,ylabel=No
    if linewidth == None:
       lw = 1
      
-   plt.figure(title,figsize=(4.0,8.0))
+   plt.figure(title,figsize=figsize)
    plt.title(title)
 
    try:

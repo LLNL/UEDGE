@@ -18,7 +18,8 @@ def hdf5_restore(file):
 
 
     try:
-       hfg = hf.setdefault('bbb')
+       dummy = hf['bbb']   # force an exception if the group not there
+       hfg = hf.get('bbb')
        print "New style hdf5 file"
        try:
            bbb.ngs[...]  = np.array(hfg.get('ngs'))
