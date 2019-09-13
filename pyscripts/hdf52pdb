@@ -1,0 +1,188 @@
+#! /usr/bin/env python
+
+import numpy as np
+import pact.pdb as pdb
+import h5py
+from uedge import bbb 
+import sys,getopt
+
+def usage(status=0):
+    print
+    print
+    print "pdb2hdf5 <-h|--help> [ infile [ outfile ]] "
+    print
+    sys.exit(status)
+
+
+def hdf52pdb(infile,outfile):
+    """
+        Read a hdf5 file previously written from pyUedge and write as
+        an pdb file.
+    """
+    try:
+        hf = h5py.File(infile,'r')
+    except:
+        print "Couldn't open hdf5 file ",infile
+        return
+    try:
+        fp = pdb.open(outfile,'w')
+    except:
+        print "Couldn't open pdb file ",outfile
+
+
+    try:
+       hfg = hf.setdefault('bbb')
+       print "New style hdf5 file"
+       try:
+           ta  = np.array(hfg.get('ngs'))
+           try:
+              fp.write('ngs@bbb',ta.transpose().reshape(ta.shape).tolist())
+           except:
+              print "Couldn't write ngs to  ",outfile
+       except:
+           print "Couldn't read ngs from  ",infile
+       try:
+           ta  = np.array(hfg.get('nis'))
+           try:
+              fp.write('nis@bbb',ta.transpose().reshape(ta.shape).tolist())
+           except:
+              print "Couldn't write nis to  ",outfile
+       except:
+           print "Couldn't read nis from  ",infile
+       try:
+           ta  = np.array(hfg.get('phis'))
+           try:
+              fp.write('phis@bbb',ta.transpose().reshape(ta.shape).tolist())
+           except:
+              print "Couldn't write phis to  ",outfile
+       except:
+           print "Couldn't read phis from  ",infile
+       try:
+           ta  = np.array(hfg.get('tes'))
+           try:
+              fp.write('tes@bbb',ta.transpose().reshape(ta.shape).tolist())
+           except:
+              print "Couldn't write tes to  ",outfile
+       except:
+           print "Couldn't read tes from  ",infile
+       try:
+           ta  = np.array(hfg.get('tis'))
+           try:
+              fp.write('tis@bbb',ta.transpose().reshape(ta.shape).tolist())
+           except:
+              print "Couldn't write tis to  ",outfile
+       except:
+           print "Couldn't read tis from  ",infile
+       try:
+           ta  = np.array(hfg.get('ups'))
+           try:
+              fp.write('ups@bbb',ta.transpose().reshape(ta.shape).tolist())
+           except:
+              print "Couldn't write ups to  ",outfile
+       except:
+           print "Couldn't read ups from  ",infile
+       try:
+           ta  = np.array(hfg.get('tgs'))
+           try:
+              fp.write('tgs@bbb',ta.transpose().reshape(ta.shape).tolist())
+           except:
+              print "Couldn't write tgs to  ",outfile
+       except:
+           print "Couldn't read tgs from  ",infile
+
+    except:
+       print "Old style hdf5 infile"
+       try:
+           ta  = np.array(hf.get('ngs@bbb'))
+           try:
+              fp.write("ngs@bbb",ta.transpose().reshape(ta.shape).tolist())
+           except:
+              print "Couldn't write ngs to  ",outfile
+       except:
+           print "Couldn't read ngs from  ",infile
+       try:
+           ta  = np.array(hf.get('nis@bbb'))
+           try:
+              fp.write('nis@bbb',ta.transpose().reshape(ta.shape).tolist())
+           except:
+              print "Couldn't write nis to  ",outfile
+       except:
+           print "Couldn't read nis from  ",infile
+       try:
+           ta  = np.array(hf.get('phis@bbb'))
+           try:
+              fp.write('phis@bbb',ta.transpose().reshape(ta.shape).tolist())
+           except:
+              print "Couldn't write phis to  ",outfile
+       except:
+           print "Couldn't read phis from  ",infile
+       try:
+           ta  = np.array(hf.get('tes@bbb'))
+           try:
+              fp.write('tes@bbb',ta.transpose().reshape(ta.shape).tolist())
+           except:
+              print "Couldn't write tes to  ",outfile
+       except:
+           print "Couldn't read tes from  ",infile
+       try:
+           ta  = np.array(hf.get('tis@bbb'))
+           try:
+              fp.write('tis@bbb',ta.transpose().reshape(ta.shape).tolist())
+           except:
+              print "Couldn't write tis to  ",outfile
+       except:
+           print "Couldn't read tis from  ",infile
+       try:
+           ta  = np.array(hf.get('ups@bbb'))
+           try:
+              fp.write('ups@bbb',ta.transpose().reshape(ta.shape).tolist())
+           except:
+              print "Couldn't write ups to  ",outfile
+       except:
+           print "Couldn't read ups from  ",infile
+       try:
+           ta  = np.array(hf.get('tgs@bbb'))
+           try:
+              fp.write('tgs@bbb',ta.transpose().reshape(ta.shape).tolist())
+           except:
+              print "Couldn't write tgs to  ",outfile
+       except:
+           print "Couldn't read tgs from  ",infile
+
+
+    fp.close()
+    hf.close()
+
+options = ['help' ]
+optlist,args = getopt.getopt(sys.argv[1:],'h',options)
+optdict = {}
+for o in optlist:
+   optdict.update({o[0]:o[1]})
+if optdict.has_key('-h') or optdict.has_key('--help'):
+    usage(0)
+
+if __name__ == "__main__":
+   try:
+      from tkFileDialog import askopenfilename,asksaveasfilename
+      if len(args) < 1:
+         infile = asksaveasfilename(title="Select output hdf5 file",filetypes=[("allfiles","*"),("hdf5","*.hdf5"), ("h5","*.h5")])
+      else:
+         infile = args[0] 
+      if len(args) < 2:
+         outfile = askopenfilename(title="Select input pdb file",filetypes=[("allfiles","*"),("pdb","*.pdb"), ("pdf","*.pdf"),("sav","*.sav")])
+      else:
+         outfile = args[1] 
+   except:
+      if len(args) < 1:
+         usage(0)
+      else:
+         infile = args[0] 
+      if len(args) < 2:
+         usage(0)
+      else:
+         outfile = args[1] 
+   if len(infile) == 0 or len(outfile) == 0: usage(0)
+   hdf52pdb(infile,outfile)
+
+
+
