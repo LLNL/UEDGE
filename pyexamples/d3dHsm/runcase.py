@@ -11,7 +11,7 @@ import numpy as np
 import os
 
 #-import some utilities for using OS
-execfile(os.path.join(os.environ['HOME'], 'utils/python/osfun.py'))
+###execfile(os.path.join(os.environ['HOME'], 'utils/python/osfun.py'))
 
 
 #-in .bashrc: "export PYLIB=/home/umansky1/PyUEDGE/uedge/pylib"
@@ -19,6 +19,7 @@ execfile(os.environ['PYLIB']+"/plotmesh.py")
 execfile(os.environ['PYLIB']+"/plotcontour.py")
 execfile(os.environ['PYLIB']+"/plotvar.py")
 execfile(os.environ['PYLIB']+"/paws.py")
+execfile(os.environ['PYLIB']+"/osfun.py")
 
 plt.ion()
 
