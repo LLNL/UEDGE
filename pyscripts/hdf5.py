@@ -2,6 +2,7 @@
 import numpy as np
 import h5py
 from uedge import bbb
+from uedge import com
 
 
 
@@ -18,8 +19,7 @@ def hdf5_restore(file):
 
 
     try:
-       dummy = hf['bbb']   # force an exception if the group not there
-       hfg = hf.get('bbb')
+       hfg = hf.setdefault('bbb')
        print "New style hdf5 file"
        try:
            bbb.ngs[...]  = np.array(hfg.get('ngs'))
@@ -86,45 +86,67 @@ def hdf5_restore(file):
 
 
 
-
+# --------------------------------------------------------------------------------
 
 def hdf5_save(file):
     """
-        Write the 6 standard variables into an hdf5 file.
+    Save HDF5 output for restarting and plotting.
     """
+    
     try:
         hf = h5py.File(file,'w')
-        hfg = hf.create_group('bbb')
+        hfb = hf.create_group('bbb')
     except:
-        print "Couldn't open hdf5 file ",file
+        print "HDF5 file open failed to ", file
     try:
-        hfg.create_dataset('ngs',data=bbb.ngs)
+        hfb.create_dataset('ng',data=bbb.ng)
+        hfb.create_dataset('ngs',data=bbb.ngs)
     except:
-        print "Couldn't write ngs to  ",file
+        print "ng or ngs HDF5 write failed to ", file
     try:
-        hfg.create_dataset('nis',data=bbb.nis)
+        hfb.create_dataset('ni',data=bbb.ni)
+        hfb.create_dataset('nis',data=bbb.nis)
     except:
-        print "Couldn't write nis to  ",file
+        print "ni or nis HDF5 write failed to ", file
     try:
-        hfg.create_dataset('phis',data=bbb.phis)
+        hfb.create_dataset('phi',data=bbb.phi)
+        hfb.create_dataset('phis',data=bbb.phis)
     except:
-        print "Couldn't write phis to  ",file
+        print "phi or phis HDF5 write failed to ", file
     try:
-        hfg.create_dataset('tes',data=bbb.tes)
+        hfb.create_dataset('te',data=bbb.te)
+        hfb.create_dataset('tes',data=bbb.tes)
     except:
-        print "Couldn't write tes to  ",file
+        print "te or tes HDF5 write failed to ", file
     try:
-        hfg.create_dataset('tis',data=bbb.tis)
+        hfb.create_dataset('ti',data=bbb.ti)
+        hfb.create_dataset('tis',data=bbb.tis)
     except:
-        print "Couldn't write tis to  ",file
+        print "ti or tis HDF5 write failed to ", file
     try:
-        hfg.create_dataset('ups',data=bbb.ups)
+        hfb.create_dataset('up',data=bbb.up)
+        hfb.create_dataset('ups',data=bbb.ups)
     except:
-        print "Couldn't write ups to  ",file
+        print "up or ups HDF5 write failed to ", file
     try:
-        hfg.create_dataset('tgs',data=bbb.tgs)
+        hfb.create_dataset('tg',data=bbb.tg)
+        hfb.create_dataset('tgs',data=bbb.tgs)
     except:
-        print "Couldn't write ups to  ",file
+        print "tg or tgs HDF5 write failed to ", file
+
+    try:
+        hfb.create_dataset('ev',data=bbb.ev)
+    except:
+        print "bbb HDF5 write failed to ", file
+
+    try:
+        hfc = hf.create_group('com')
+        hfc.create_dataset('nx',data=com.nx)
+        hfc.create_dataset('ny',data=com.ny)
+        hfc.create_dataset('rm',data=com.rm)
+        hfc.create_dataset('zm',data=com.zm)
+    except:
+        print "com HDF5 write failed to ", file        
 
     hf.close()
 
