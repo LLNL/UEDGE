@@ -19,14 +19,14 @@ getdatafromtextfile(): Reads in table data from a text file, returning an array
                        that holds that data.
 
 """
-from __future__ import generators # needed for yield statement for P2.2
-from uedge import *
+ # needed for yield statement for P2.2
+from .uedge import *
 
-uedgeutils_version = "$Id: uedgeutils.py,v 7.0 2018/02/28 18:43:48 meyer8 Exp $"
+uedgeutils_version = "$Id: uedgeutils.py,v 7.1 2019/11/01 22:35:38 meyer8 Exp $"
 
 def uedgeutilsdoc():
-  import uedgeutils
-  print uedgeutils.__doc__
+  from . import uedgeutils
+  print(uedgeutils.__doc__)
 
 # --- Convenience function modeled after the iota of basis
 def iota(low,high=None,step=1):
@@ -43,7 +43,7 @@ def iota(low,high=None,step=1):
 
 # --- Convenience function to do printing
 def remark(s):
-  print s
+  print(s)
 
 # --- Replicate the sign function with two arguments. If only one is
 # --- given, return the value from the Numeric sign function.
@@ -72,9 +72,9 @@ Lenght of list of inputs determines number of dimensions.
   """
   nns = tuple(array(nns) + 1)
   cc = indices(nns,'d')
-  for i in xrange(len(mins)): cc[i] = mins[i] + cc[i]*dds[i]
+  for i in range(len(mins)): cc[i] = mins[i] + cc[i]*dds[i]
   clist = []
-  for i in xrange(len(mins)): clist.append(cc[i])
+  for i in range(len(mins)): clist.append(cc[i])
   return tuple(clist)
 
 def getmesh2d(xmin,dx,nx,ymin,dy,ny):
@@ -113,9 +113,9 @@ main dictionary.
  - x: Name of variable - must be a string.
   """
   import __main__
-  if x in __main__.__dict__.keys(): return true
-  if x in locals().keys(): return true
-  if x in globals().keys(): return true
+  if x in list(__main__.__dict__.keys()): return true
+  if x in list(locals().keys()): return true
+  if x in list(globals().keys()): return true
   return false
 
 # Returns the average of the input array
@@ -208,7 +208,7 @@ def uedgeprofilesample(frame,event,arg):
   try:    uedgeprofile.level
   except: uedgeprofile.level = 0
   if event == 'return': uedgeprofile.level = uedgeprofile.level - 1
-  print "%s %s %s"%(uedgeprofile.level*'  ',event,frame.f_code.co_name)
+  print("%s %s %s"%(uedgeprofile.level*'  ',event,frame.f_code.co_name))
   if event == 'call': uedgeprofile.level = uedgeprofile.level + 1
 
 # --- Create enumerate function, which is defined in python2.3 but not 2.2
@@ -257,7 +257,7 @@ logically Cartesian mesh.
   # --- float or int rather than eval.
   i = 0
   while i < ntot:
-    dataline = map(converter,string.split(ff.readline()))
+    dataline = list(map(converter,string.split(ff.readline())))
     nd = len(dataline)
     data[i:i+nd] = dataline
     i = i + nd
@@ -280,7 +280,7 @@ logically Cartesian mesh.
   if fortranordering:
     data = transpose(data)
   else:
-    data = transpose(data,[len(dims0)]+range(len(dims0)))
+    data = transpose(data,[len(dims0)]+list(range(len(dims0))))
 
   return data
 

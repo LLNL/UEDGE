@@ -90,7 +90,7 @@ c ... Save initial time and set accumulated times to zero.
       ttjstor = 0.
       ttjrnorm = 0.
       ttjreorder = 0.
-
+	  
 c ... Set switch to time other packages if this one is being timed.
       call sapitim (istimingon)
 
@@ -109,7 +109,7 @@ c...  time-dependent solvers(imeth=0) and Newton solvers(imeth=1)
       endif
       istep_nk = 0   # not inside if test for switching from nksol to daspk
       iter = 0
-
+	  
 *  -- initialize the system --
       if (ismpion.eq.0) then  # Serial version
         call ueinit
@@ -201,7 +201,7 @@ c        Note that iwork(27) & iwork(28) were set in subroutine allocate.
          endif
          if (idid.lt.0) then
             write(*,*) 'idid = ',idid
-            call kaboom(0)
+            call xerrab("")
          endif
          if (info(14).eq.1) goto 200   #init. only, jump out of time loop
 
@@ -232,7 +232,7 @@ c ... iworkin(1:10) and rworkin(1:10)
 
        elseif (svrpkg .eq. 'cvode') then
 ccc          call writeToLog('***  cvode option is not turned on ****')
-ccc          call kaboom(0)
+ccc          call xerrab("")
 c_mpicvode          CALL FCVODE (tout, ts, yl, itask, istate)
 
       else
@@ -245,9 +245,9 @@ c_mpicvode          CALL FCVODE (tout, ts, yl, itask, istate)
          write(*,*) '      nksol'
          write(*,*) '      newton'
          write(*,*)
-         call kaboom(0)
+         call xerrab("")
        endif
-
+	   
        if (svrpkg.eq.'daspk') then # gather some data
          hu(istep+1,igrid) = rwork(3)
          nst(istep+1,igrid) = iwork(11)
@@ -889,14 +889,14 @@ c     change diagnostics.
 c ... Test if too many iterations have been tried.
       if(npsn .ge. nmaxnewt .or. npsn .gt. 101) then
          call writeToLog('***** The newton iteration has not converged')
-         call kaboom(0)
+         call xerrab("")
       endif
 
 c ... Test if user wants to quit.
 ccc      ierrjm = ijmgetmr(msgjm,80,1,nrcv)
 ccc      if (ierrjm .eq. 0) then
 ccc         if(msgjm(1:nrcv) .eq. 'kaboom' .or. msgjm(1:nrcv) .eq. 'k') then
-ccc            call kaboom(0)
+ccc            call xerrab("")
 ccc         endif
 ccc      endif
 

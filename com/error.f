@@ -1,11 +1,16 @@
+
       subroutine xerrab (msg)
       character*(*) msg
 c ... Output the message in character string "msg" to standard out,
 c     and then return control to the user.
 c     Note that "remark" and "kaboom" are part of the Basis runtime
 c     library.
+#ifdef FORTHON
+      call kaboom(msg)
+#else
       call remark(msg)
       call kaboom(0)
+#endif
       return
       end
 *DECK XERMShG
@@ -65,7 +70,12 @@ C Write the message. ---------------------------------------------------
   20    CONTINUE
 C Abort the run if LEVEL = 2. ------------------------------------------
  100  IF (LEVEL .NE. 2) RETURN
+
+#ifdef FORTHON
+      call kaboom("")
+#else
       call kaboom(0)
+#endif
 C----------------------- End of Subroutine XERMShG ----------------------
       END
 *DECK XSETUNP

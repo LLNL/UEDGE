@@ -9,7 +9,7 @@ c     local variables --
       integer ios, nget
 
 c     procedures --
-      external kaboom, remark, gallot, readpost1
+      external xerrab, remark, gallot, readpost1
 
 c----------------------------------------------------------------------c
 c     Read impurity emissivity and charge state from POST93 data files
@@ -25,7 +25,7 @@ c----------------------------------------------------------------------c
          call remark("**** check uedge/in/api or contact authors")
          call remark(" ")
          call remark("**** For UEDGE, the data file must be re-named mist.dat")
-         call kaboom(0)
+         call xerrab("")
       endif
 
 c     read array dimensions

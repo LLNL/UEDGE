@@ -12,6 +12,7 @@ c-----------------------------------------------------------------------
 
       Use(Dim)      # nx,ny,nhsp,nzspt,nzsp,nisp,ngsp,nusp,nxpt
       Use(Share)    # nxpt,nxc,geometry,cutlo,islimon,ix_lim,iy_lims
+		    # isudsym
       Use(Xpoint_indices) # ixlb,ixpt1,ixpt2,ixrb,iysptrx1,iysptrx2
       Use(Math_problem_size)   # neqmx 
       Use(Phyvar)
@@ -102,7 +103,7 @@ c...  do the iy = 0 boundary
 c...  if extrapolation b.c. on p.f. region, isextrpf=1, otherwise isextrpf=0
       if (iymnbcl .eq. 0) goto 1100   # interior domain boundary; no bdry eqn
       ixc1 = max(0, ixpt1(1)+1)       # 1st  core cell;used for core flux BC
-      if (geometry=="snowflake45" .or. geometry=="snowflake75"
+      if ((geometry(1:9)=="snowflake" .and. geometry(10:11).ne."15")
      &                     .or. geometry=="dnXtarget") then
         ix_fl_bc = min(ixpt2(1), nx)
       else
@@ -138,8 +139,7 @@ c ---  Below, isupon(1) & ngbackg(1) used, so implies hydrogen
                    yldot(iv1) = nurlxn*(ngcore(1)-ni(ix,0,ifld))/
      .                                                     n0(ifld)
                  elseif (isngcore(1) .eq. 2) then
-                   write(*,*) "*** isngcore=2 option unvailable  ***"
-                   call kaboom(0)
+                   call xerrab("*** isngcore=2 option unvailable  ***")
                    lengg = sqrt(ti(ix,0)/
      .                              (mi(1)*nuix(ix,0,1)*nuiz(ix,0,1)))
                    yldot(iv1) = -nurlxn*( ni(ix,0,ifld) -
@@ -250,8 +250,7 @@ c
      .                                     ncoremin(ifld) ) / n0(ifld)
                      endif
                   else
-		    call remark ('** isnicore value not valid option **')
-                    call kaboom(0)
+		            call xerrab ('** isnicore value not valid option **')
                   endif
                elseif (isnwconi(ifld) .eq. 0) then
                # ix not on core boundary; set zero gradient (or flux)
@@ -337,8 +336,7 @@ c...  Now do the parallel velocity BC at iy = 0
                       xtotc = dx(ii,0)
                       do    # loop over ii as changed by ii=ixp1 statement
                         ii = ixp1(ii,0)
-                        if ((geometry=="dnbot") .and.
-     .                                    (ii==nxc .or. ii==nxc+1)) then
+                        if (isudsym==1 .and. (ii==nxc .or. ii==nxc+1)) then
                           continue  # skip m.p. guard cells
                         else
                           fmiytotc=fmiytotc+ rm(ii,0,0)*fmiy(ii,0,ifld)
@@ -358,8 +356,7 @@ c...  Now do the parallel velocity BC at iy = 0
                       endif
                     endif
                   else   # isupcore does not correspond to cases above
-                    call remark ("*** Illegal setting of isupcore ***")
-                    call kaboom(0)
+                    call xerrab ("*** Illegal setting of isupcore ***")
                   endif
 
                elseif (isupwi(ifld)==1) then   # isixcore if-test; PF bdry
@@ -492,8 +489,7 @@ c    if flux energy condition, precompute feeytotc & feiytotc for use
             feiytotc = feiy(ii,0)-feiycbo(ii)
             do    # loop over ii as changed by ii=ixp1 statement
               ii = ixp1(ii,0)
-              if ((geometry=="dnbot") .and.
-     .                  (ii==nxc .or. ii==nxc+iexclnxc1)) then
+              if (isudsym==1 .and.(ii==nxc .or. ii==nxc+iexclnxc1)) then
                  continue  # skip m.p. guard cells
               else
                  feeytotc = feeytotc+feey(ii,0)-feeycbo(ii)
@@ -534,8 +530,7 @@ c ... Set Te and Ti BCs
                     feeytotc = feey(ii,0)-feeycbo(ii)
                     do    # loop over ii as changed by ii=ixp1 statement
                        ii = ixp1(ii,0)
-                       if ((geometry=="dnbot") .and.
-     .                          (ii==nxc .or. ii==nxc+iexclnxc1)) then
+                       if (isudsym==1 .and. (ii==nxc .or. ii==nxc+iexclnxc1)) then
                           continue  # skip m.p. guard cells
                        else
                           feeytotc = feeytotc+feey(ii,0)-feeycbo(ii)
@@ -583,8 +578,7 @@ c ... Set Te and Ti BCs
                     feiytotc = feiy(ii,0)-feiycbo(ii)
                     do
                        ii = ixp1(ii,0)
-                       if ((geometry=="dnbot").and.
-     .                          (ii==nxc .or. ii==nxc+iexclnxc1)) then
+                       if (isudsym==1 .and. (ii==nxc .or. ii==nxc+iexclnxc1)) then
                           continue  # skip m.p. guard cells
                        else
                           feiytotc = feiytotc+feiy(ii,0)-feiycbo(ii)
@@ -768,7 +762,7 @@ c ... Include gas BC from sputtering by ions
  275     continue   # igsp loop over species
       enddo  # end of long ix-loop for diff neuts
 
-c... BC for neutral gas temperature/energy
+c... BC for neutral gas temperature/energy at iy=0
       do ix = i4+1-ixmnbcl, i8-1+ixmxbcl # ix-loop for diff neut temp 
         do igsp = 1, ngsp
           if (istgonxy(ix,0,igsp) == 1) then
@@ -784,8 +778,22 @@ c... BC for neutral gas temperature/energy
      .                                                      (temp0*ev)
               endif
             else   # PF wall
-              yldot(iv) = nurlxg*(tgwall(igsp)*ev-tg(ix,0,igsp))/
+              if (istgpfc(igsp) == 0) then   # fixed Tg
+                yldot(iv) = nurlxg*(tgwall(igsp)*ev-tg(ix,0,igsp))/
      .                                                      (temp0*ev)
+              elseif (istgpfc(igsp) == 1)    # extrapolation
+                 tbound = tg(ix,1,igsp) - gyf(ix,1)*
+     .                       (tg(ix,2,igsp)-tg(ix,1,igsp))/gyf(ix,0)
+                 tbound = max(tbound, 0.25*tbmin*ev)  #tbmin=.1 eV
+                 yldot(iv) = nurlxi *(tbound - tg(ix,0,igsp))/(temp0*ev)
+              elseif (istgpfc(igsp) == 2)    # specified gradient
+                 yldot(iv) = nurlxi*( (tg(ix,1,igsp) - tg(ix,0,igsp)) -
+     .                           0.5*(tg(ix,1,igsp) + tg(ix,0,igsp))/
+     .                           (gyf(ix,0)*lytg(1,igsp)) )/(temp0*ev)
+              elseif (istgpfc(igsp) > 2)
+                 call xerrab("***Input error: invalid istgpfc ***")
+              endif
+
             endif           
           endif
         enddo  
@@ -1288,7 +1296,7 @@ ccc  - - - - - - - - - - - - - -
          endif
        enddo   # ix-loop for Te,Ti
 
-ccc  Now do the diffusive neutral density
+ccc  Now do the diffusive neutral density (ng) and Tg equations
 ccc  - - - - - - - - - - - - - -          
       do ix = i4+1-ixmnbcl, i8-1+ixmxbcl  # ix-loop for ng & Tg
         nzsp_rt = nhsp
@@ -1388,11 +1396,24 @@ ccc
      .                                      /(vyn*sy(ix,ny)* n0g(igsp))
           endif     # end if-test on isngonxy
  
-c ... Neutral temperature - test if tg eqn is on, then set BC
+c... BC for neutral gas temperature/energy at iy=ny+1
           if (istgonxy(ix,ny+1,igsp) == 1) then
             iv = idxtg(ix,ny+1,igsp)
-            yldot(iv)= nurlxg*(tgwall(igsp)*ev -
-     .                                   tg(ix,ny+1,igsp))/(temp0*ev)
+            if (istgwc(igsp) == 0) then    # fixed Tg
+              yldot(iv) = nurlxg*(tgwall(igsp)*ev-tg(ix,ny+1,igsp))/
+     .                                                    (temp0*ev)
+            elseif (istgwc(igsp) == 1)    # extrapolation
+              tbound = tg(ix,ny,igsp) + gyf(ix,ny)*
+     .                     (tg(ix,ny,igsp)-tg(ix,ny-1,igsp))/gyf(ix,ny)
+              tbound = max(tbound, 0.25*tbmin*ev)  #tbmin=.1 eV
+              yldot(iv) = nurlxi *(tbound - tg(ix,ny+1,igsp))/(temp0*ev)
+            elseif (istgwc(igsp) == 2)    # specified gradient
+              yldot(iv) = nurlxi*( (tg(ix,ny,igsp) - tg(ix,ny+1,igsp)) -
+     .                         0.5*(tg(ix,ny,igsp) + tg(ix,ny+1,igsp))/
+     .                         (gyf(ix,ny)*lytg(2,igsp)) )/(temp0*ev)
+            elseif (istgwc(igsp) > 2)
+               call xerrab("***Input error: invalid istgwc ***")
+            endif
           endif
 
         enddo  # igsp loop over gas species
@@ -1559,7 +1580,6 @@ c********************************************************************
             endif
          enddo
 
-
 c...  now do the gas and temperatures
          if(isteonxy(0,iy) .eq. 1) then
            iv1 = idxte(0,iy)
@@ -1585,7 +1605,7 @@ c...  now do the gas and temperatures
      .                                       (vpnorm*ennorm*sx(0,iy))
             endif
          endif
-         do 175 igsp = 1, ngsp
+         do igsp = 1, ngsp
             if(isngonxy(0,iy,igsp) .eq. 1) then
                iv = idxg(0,iy,igsp)
                yldot(iv) = nurlxg * (ngbackg(igsp) - 
@@ -1612,7 +1632,23 @@ c...  now do the gas and temperatures
                if (is1D_gbx.eq.1) yldot(iv) = nurlxg*(ng(1,iy,igsp) -
      .                                    ng(0,iy,igsp))/n0g(igsp)
             endif
- 175     continue
+         enddo
+c ... Neutral temperature - test if tg eqn is on, then set BC
+	 do igsp = 1, ngsp
+           if (istgonxy(0,iy,igsp) == 1) then
+             iv = idxtg(0,iy,igsp)
+             yldot(iv) = nurlxg*(tgwall(igsp)*ev -
+     .                                    tg(0,iy,igsp))/(temp0*ev)
+             if(isfixlb(1)==2) then #just above applies if isfixlb=1
+               yldot(iv)=nurlxg*(tg(1,iy,igsp)-tg(0,iy,igsp))/(temp0*ev)
+             endif
+             if(isfixlb(1)==2 .and. yylb(iy,1) > rlimiter) then
+               yldot(iv) = nurlxg*(tgwall(igsp)*ev -
+     .                                    tg(0,iy,igsp))/(temp0*ev)
+             endif
+           endif
+         enddo
+
          if (isphionxy(0,iy) .eq. 1) then
             iv = idxphi(0,iy)
             yldot(iv) = nurlxp*(phi(1,iy) - phi(0,iy))/temp0
@@ -2037,8 +2073,17 @@ c ... Neutral temperature - test if tg eqn is on, then set BC
 	do igsp = 1, ngsp
           if (istgonxy(ixt,iy,igsp) == 1) then
             iv = idxtg(ixt,iy,igsp)
-            yldot(iv) = nurlxg*(tgwall(igsp)*ev -
+            if (istglb(igsp) == 0) then  #set tg=tgwall
+              yldot(iv) = nurlxg*(tgwall(igsp)*ev -
      .                                    tg(ixt,iy,igsp))/(temp0*ev)
+            elseif (istglb(igsp) == 1)  #extrap. tg from interior cells
+              tbound = tg(ixt1,iy,igsp) - gyf(ixt1,iy)*
+     .                   (tg(ixt2,iy,igsp)-tg(ixt1,iy,igsp))/gxf(ixt,iy)
+              tbound = max(tbound,0.5*temin*ev)
+              yldot(iv) = nurlxg*(tbound - tg(ixt,iy,igsp))/(temp0*ev)
+            else
+              call xerrab("**INPUT ERROR: istglb set to unknown option")
+            endif
           endif
         enddo
 
@@ -2192,6 +2237,23 @@ c...  now do the gas and temperatures
                endif
             endif
          enddo      # end of igsp loop over gas
+c ... Neutral temperature - test if tg eqn is on, then set BC
+	 do igsp = 1, ngsp
+           if (istgonxy(nx+1,iy,igsp) == 1) then
+             iv = idxtg(nx+1,iy,igsp)
+             yldot(iv) = nurlxg*(tgwall(igsp)*ev -
+     .                                    tg(nx+1,iy,igsp))/(temp0*ev)
+             if(isfixrb(1)==2) then #just above applies if isfixrb=1
+               yldot(iv)=nurlxg*(tg(nx,iy,igsp)-tg(nx+1,iy,igsp))/
+     .                                                      (temp0*ev)
+             endif
+             if(isfixrb(1)==2 .and. yyrb(iy,1) > rlimiter) then
+               yldot(iv) = nurlxg*(tgwall(igsp)*ev -
+     .                                    tg(nx+1,iy,igsp))/(temp0*ev)
+             endif
+           endif
+         enddo
+
          if (isphionxy(nx+1,iy) .eq. 1) then
             iv = idxphi(nx+1,iy)
             yldot(iv) = nurlxp*(phi(nx,iy) - phi(nx+1,iy))/temp0
@@ -2300,17 +2362,18 @@ c     Now do the parallel velocity and other variables --
 c       Next, the momentum equations --
         do ifld = 1, nusp
           if (isuponxy(ixt,iy,ifld)==1) then
-            iv2 = idxu(ixt,iy,ifld)
+            iv2 = idxu(ixt1,iy,ifld)  #ixt1 ~ nx
+	    iv = idxu(ixt,iy,ifld)    #ixt ~ nx+1
             cs = csfacrb(ifld,jx)*sqrt( (te(ixt,iy)+
      .                                  csfacti*ti(ixt,iy))/mi(ifld) )
             if (isupgon(1)==1 .and. zi(ifld)==0.0) then  ## neutrals
               if (recycmrb(iy,1,jx) > -9.9) then  # backscatter with recycm
-                yldot(iv2) = -nurlxu*(recycmrb(iy,1,jx)*up(ixt,iy,1) + 
-     .                                       up(ixt,iy,ifld))/vpnorm
+                yldot(iv2) = -nurlxu*(recycmrb(iy,1,jx)*up(ixt1,iy,1) + 
+     .                                       up(ixt1,iy,ifld))/vpnorm
               elseif (recycmrb(iy,1,jx) <= -9.9 .and. 
      .                      recycmrb(iy,1,jx) > -10.1) then # zero x-gradient
                 yldot(iv2) = nurlxu*(up(ixt2,iy,ifld) -
-     .                                          up(ixt,iy,ifld))/vpnorm
+     .                                          up(ixt1,iy,ifld))/vpnorm
               else  #neutral thermal flux to wall if recycm < -10.1
                 t0 = max(tg(ixt,iy,1),temin*ev)
                 vxn = cgmompl*0.25*sqrt( 8*t0/(pi*mi(ifld))) 
@@ -2323,33 +2386,38 @@ cc     .                             exp(-up(ixt,iy,ifld)/vgmomp)) )
      .                                              sx(ixt1,iy) ) /
      .                               (vpnorm*fnorm(ifld)*sx(ixt1,iy))
               endif
+              yldot(iv) =nurlxu*(up(ixt1,iy,ifld)-up(ixt,iy,ifld))/vpnorm
             else                                         ## ions
               ueb = cfueb*( cf2ef*v2ce(ixt1,iy,ifld)*rbfbt(ixt,iy) -
      .                vytan(ixt1,iy,ifld) ) / rrv(ixt1,iy) 
               yldot(iv2) = -nurlxu*(sumb - 1.)  # multispecies Bohm
               if (isbohmms==0) then          # simple Bohm condition
-                yldot(iv2) = nurlxu * (cs-ueb-up(ixt,iy,ifld))/vpnorm
+                yldot(iv2) = nurlxu * (cs-ueb-up(ixt1,iy,ifld))/vpnorm
               endif
               if(isupss(ifld)==1 .and. up(ixt2,iy,ifld)+ueb .gt. cs)
                                              # dup/dx=0 if supersonic
-     .          yldot(iv2) = nurlxu*(up(ixt2,iy,ifld)-up(ixt,iy,ifld))/
+     .          yldot(iv2) = nurlxu*(up(ixt2,iy,ifld)-up(ixt1,iy,ifld))/
      .                                                           vpnorm
               if (isupss(ifld)==-1) then     # slip boundary conditions
-                yldot(iv2) = nurlxu*(up(ixt2,iy,ifld)-up(ixt,iy,ifld))/
+                yldot(iv2) = nurlxu*(up(ixt2,iy,ifld)-up(ixt1,iy,ifld))/
      .                                                           vpnorm
               elseif (isupss(ifld)==-2) then # extrap. + no pos. uu
                 vbound = up(ixt2,iy,ifld) - gx(ixt2,iy)*
      .                   (up(ixt3,iy,ifld)-up(ixt2,iy,ifld))/gx(ixt1,iy) 
                 vbound = max(vbound, -ueb)   # forces uu & fnix >= 0
-                yldot(iv2) = nurlxu*(vbound - up(ixt,iy,ifld))/vpnorm
+                yldot(iv2) = nurlxu*(vbound - up(ixt1,iy,ifld))/vpnorm
               elseif (isupss(ifld)==-3) then # modified Bohm condition
                 vbound = -ueb +2*cs*uu(ixt2,iy,ifld)/
      .                             (uu(ixt2,iy,ifld)+rrv(ixt,iy)*cs)
                 vbound = max(vbound, -ueb)   # forces uu & fnix >= 0
-                yldot(iv2) = nurlxu * (vbound-up(ixt,iy,ifld))/vpnorm
+                yldot(iv2) = nurlxu * (vbound-up(ixt1,iy,ifld))/vpnorm
               endif # end if-test on isupss
+
+c Finally set unused up(ixt,,) = up(ixt1,,); note ixt~nx+1
+              yldot(iv) =nurlxu*(up(ixt1,iy,ifld)-up(ixt,iy,ifld))/vpnorm
             endif # end if-test on isupgon
           endif # end if-test on isupon
+
           kfeix = kfeix - cfvcsx(ifld)*0.5*sx(ixt1,iy)
      .                     *visx(ixt1,iy,ifld)*gx(ixt1,iy)
      .           *( up(ixt1,iy,ifld)**2 - up(ixt2,iy,ifld)**2 ) 
@@ -2631,8 +2699,17 @@ c ... Neutral temperature - test if tg eqn is on, then set BC
 	do igsp = 1, ngsp
           if (istgonxy(ixt,iy,igsp) == 1) then
             iv = idxtg(ixt,iy,igsp)
-            yldot(iv) = nurlxg*(tgwall(igsp)*ev -
+            if (istgrb(igsp) == 0) then  #set tg=tgwall
+              yldot(iv) = nurlxg*(tgwall(igsp)*ev -
      .                                 tg(ixt,iy,igsp))/(temp0*ev)
+            elseif (istgrb(igsp) == 1) then  #extrapolate tg from interior
+              tbound = tg(ixt1,iy,igsp) + gxf(ixt2,iy)*
+     .               (tg(ixt1,iy,igsp)-tg(ixt2,iy,igsp))/gxf(ixt1,iy)
+              tbound = max(tbound,0.5*temin*ev)
+              yldot(iv) = nurlxg*(tbound - tg(ixt,iy,igsp))/(temp0*ev)
+            else
+              call xerrab("**INPUT ERROR: istgrb set to unknown option")
+            endif
           endif
         enddo
 
@@ -2702,7 +2779,8 @@ c ... End special coding for no divertor leg at ix = nx
 c************************************************************************
 c...  do ix = nxc (normally nx/2) boundary if geometry=dnbot (double null)
 c************************************************************************
-      if(((geometry .eq. 'dnbot').or.(geometry .eq. "dnXtarget"))
+
+      if((isudsym==1.or.(geometry .eq. "dnXtarget"))
      &                                     .and. isfixlb(1).eq.0) then
          if (i2.le.nxc+1 .and. i5.ge.nxc-1) then
 c...  this "if" test assumes both xlinc and xrinc are at least 1
@@ -2813,7 +2891,7 @@ c************************************************************************
 c...  this "if" test assumes both xlinc and xrinc are at least 1
 
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c...  For flux tubes that don't intersect the limiter:
+c...  For flux tubes that do not intersect the limiter:
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
             do 198 iy = j2, min(j5,iy_lims-1)
 c...  First do the ion density
@@ -3229,7 +3307,7 @@ c************************************************************************
       Use(Share)   # islimon, ix_lim, iy_lims, geometry, nxc
 
       integer ifld, ii
-
+	  
 c ... Initialize the iseqalg array to zero (==>differential equation)
       do ii = 1, neqmx
          iseqalg(ii) = 0
@@ -3378,7 +3456,7 @@ c ... Check for interior boundaries with set velocities; used in rscalf
       endif
 
 c ... Check for double-null symmetry boundaries
-      if (geometry .eq. "dnbot" .and. isfixlb(1) == 0) then
+      if (isudsym==1 .and. isfixlb(1) == 0) then
         do iy=1,ny   # whole ix=nxc and nxc+1 surfaces use algebraic eqns.
           do ifld = 1, nisp
             if (isnionxy(nxc,iy,ifld)*isnionxy(nxc+1,iy,ifld)==1) then
@@ -3455,8 +3533,7 @@ c ... Check for an interior limiter surface
       endif
 
 c ... Check for upper target plates
-      if (geometry == "dnull" .or. geometry=="snowflake15" .or.
-     .    geometry=="snowflake45" .or. geometry=="snowflake75" .or.
+      if (geometry == "dnull" .or. geometry(1:9)=="snowflake" .or.
      .    geometry=="dnXtarget" .or. geometry=="isoleg") then
         do iy = 1, ny
           do ifld = 1, nisp
@@ -3602,8 +3679,7 @@ c...  sources and albedos; presently, only fgnysi,o(,1) is non-zero (F-C)
 c...  We allow for 10 separate sources each on the inner and outer wall
 c...  If nwsor > 10, arrays must be enlarged
       if(nwsor .gt. 10) then
-         call remark ('nwsor > 10, must increase wall source arrays')
-         call kaboom(0)
+         call xerrab ('nwsor > 10, must increase wall source arrays')
       endif
 
 c ... Set possible offset wall positions if parallel domain decomposed
@@ -3923,8 +3999,7 @@ c...  sources
 c...  Allow for 10 separate sources each on the inner and outer plates
 c...  If npltsor > 10, arrays must be enlarged
       if(npltsor .gt. 10) then
-         call remark ('npltsor > 10, must increase wall source arrays')
-         call kaboom(0)
+         call xerrab ('npltsor > 10, must increase wall source arrays')
       endif
 
       do jx = 1, nxpt
@@ -4035,8 +4110,7 @@ c...  Instead use data arrays on inner plt recycling coeff., albedo if ndatlb>0
       do jx = 1, nxpt
         do igsp = 1, ngsp
           if (ndatlb(igsp,jx).gt.50 .or. ndatrb(igsp,jx).gt.50) then
-            call remark ('*** Exceeding storage for ndatlb,rb (>50)*')
-            call kaboom(0)
+            call xerrab ('*** Exceeding storage for ndatlb,rb (>50)*')
           endif
           do idat = 1, ndatlb(igsp,jx)
             do iy = 0, ny+1

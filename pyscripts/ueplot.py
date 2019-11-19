@@ -10,7 +10,7 @@ import pylab
 import string
 import tables
 
-import ueplotdata
+from . import ueplotdata
 
 #
 # This function tests to see if a point lies inside a given polygon
@@ -72,7 +72,7 @@ def mappedInterpolate(xxarry, yyarry, zzvals, nxarry, nyarry):
 
                 contVal = polyContains(polyX, polyY, xx[i], yy[i])
                 if ( contVal ):
-                    print "Box found at ", m, n
+                    print("Box found at ", m, n)
                     mval = m
                     nval = n
                     doBreak = True
@@ -236,7 +236,7 @@ def mappedInterpolate(xxarry, yyarry, zzvals, nxarry, nyarry):
         zz[i] = fn(xx[i], yy[i])
         if ( not doBreak ):
             zz[i] = numpy.nan
-            print "Box NOT found!"
+            print("Box NOT found!")
 
     return zz
 
@@ -279,7 +279,7 @@ if opts.species == 'ion':
 elif opts.species == 'elec':
     ued = udn.tes.read() * 6.21e18
 else:
-    print 'Invalid species plot requested'
+    print('Invalid species plot requested')
     exit(1)
 
 ifg = fh.getNode('/bbb/uegrid/blockInfo')
@@ -583,17 +583,17 @@ pylab.colorbar()
 
 fig3.savefig('core-section%s.png' % opts.sufx)
 
-print "********** Core Interpolation **********"
+print("********** Core Interpolation **********")
 xx1 = numpy.arange(xoff, eqXX.max()+0.0001, (eqXX.max() - xoff) / 100)
 yy1 = numpy.zeros(xx1.shape, numpy.float)
 sln1 = mappedInterpolate(eqXX, eqYY, eqDA, xx1, yy1)
 
-print "********** Edge Interpolation **********"
+print("********** Edge Interpolation **********")
 xx2 = numpy.arange(eqXX.max()-0.02, coXX.max() + 0.0001, (coXX.max() - eqXX.max()) / 25)
 yy2 = numpy.zeros(xx2.shape, numpy.float)
 sln2 = mappedInterpolate(coXX, coYY, udata.getNodalCoreData(), xx2, yy2)
 
-print "********** SOL  Interpolation **********"
+print("********** SOL  Interpolation **********")
 xx3 = numpy.arange(coiXX.max(), sciXX.max() + 0.0001, (sciXX.max() - coiXX.max()) / 25)
 yy3 = numpy.zeros(xx3.shape, numpy.float)
 sln3 = mappedInterpolate(scXX, scYY, udata.getNodalSOLData(), xx3, yy3)

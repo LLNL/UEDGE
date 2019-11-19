@@ -1,5 +1,5 @@
 # Interface class for UEDGE quantities needed to communicate with wall model
-from uedge import *
+from .uedge import *
 
 joule_per_ev = 1.6022e-19
 
@@ -111,13 +111,13 @@ class UEwall:
   def setTgFlux_EW(self, val, loc_index,spec_index):
     bbb.get_ixiybdy(loc_index,ix,iy,wallname)
     if wallname == "innerdiv":
-      print "will set bbb.fegxextlb[iy,spec_index,0] = val*com.sy(ix,iy)"
+      print("will set bbb.fegxextlb[iy,spec_index,0] = val*com.sy(ix,iy)")
     if wallname == "outerdiv":
-      print "will set bbb.fegxextrb[iy,spec_index,1] = val*com.sy(ix,iy)"
+      print("will set bbb.fegxextrb[iy,spec_index,1] = val*com.sy(ix,iy)")
     if wallname == "outerwall":
-      print "will set bbb.fegyexto[ix,spec_index,1] = val*com.sx(ix,iy)"
+      print("will set bbb.fegyexto[ix,spec_index,1] = val*com.sx(ix,iy)")
     if wallname == "privwall":
-      print "will set bbb.fegyexti[ix,spec_index,1] = val*com.sx(ix,iy)"
+      print("will set bbb.fegyexti[ix,spec_index,1] = val*com.sx(ix,iy)")
     
   def getNi_EW(self, loc_index,spec_index):
     return bbb.get1dpoint(bbb.nis[0:nx+1,0:ny+1,spec_index],loc_index)

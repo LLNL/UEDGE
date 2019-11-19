@@ -5,7 +5,7 @@
 HDF basic writer class PW by David Grote, LLNL
 Heavily modified from PW.py originally written by Paul Dubois, LLNL, to use
 HDF files.
-$Id: PWpyt.py,v 7.0 2018/02/28 18:43:48 meyer8 Exp $
+$Id: PWpyt.py,v 7.1 2019/11/01 22:35:38 meyer8 Exp $
 
 This writes all scalars into two tables, one for ints and one for floats.
 Everything else is written out using createArray.
@@ -19,7 +19,7 @@ which is written out on close.
 """
 import tables
 from tables.exceptions import NaturalNameWarning
-import cPickle
+import pickle
 import re
 import string
 import numpy
@@ -86,18 +86,18 @@ class PW:
     def check_open(self):
         "check_open(): raise exception if not open for write."
         if not self.is_open():
-            raise PWError, 'PW object not open for write.'
+            raise PWError('PW object not open for write.')
 
     def close(self):
         "close(): close the file."
         h = self.inquire_file()
         if h is not None:
             if self.inquire_verbosity():
-                print "Closing HDF file being written:",self.inquire_filename()
+                print("Closing HDF file being written:",self.inquire_filename())
 
             # --- Write out the list of things that have to be pickled,
             # --- pickling them all at once.
-            q = cPickle.dumps(self._globalpickledict,-1)
+            q = pickle.dumps(self._globalpickledict,-1)
             h.createArray(self.inquire_group(),'_pickledict',q,
                           title='PickleDict')
 
@@ -224,20 +224,20 @@ FloatScalar.
     def write(self, name, quantity, title=''):
         """Write quantity to file as 'name'"""
         self.check_open()
-        if self.inquire_verbosity() > 1: print "PW::write writing", name
+        if self.inquire_verbosity() > 1: print("PW::write writing", name)
         h = self.inquire_file()
 
         if self._delimiter != '@':
             name = self._fixdelimiter.sub(self._delimiter,name)
 
-        if isinstance(quantity,types.IntType):
+        if isinstance(quantity,int):
             # --- integers are put into the ints table
             origname,name = self.fixlongnames(name)
             self._ints.row['name'] = name
             self._ints.row['value'] = quantity
             self._ints.row.append()
 
-        elif isinstance(quantity,types.FloatType):
+        elif isinstance(quantity,float):
             # --- floats are put into the floats table
             origname,name = self.fixlongnames(name)
             self._floats.row['name'] = name
@@ -264,14 +264,14 @@ FloatScalar.
                 try:
                     if quantity.__class__.__module__ == '__main__':
                         if self.inquire_verbosity():
-                            print name,' is being skipped since it is an instance of a class defined in main and therefore cannot be unpickled'
+                            print(name,' is being skipped since it is an instance of a class defined in main and therefore cannot be unpickled')
                         return
                 except:
                     pass
                 try:
                     if quantity.__module__ == '__main__':
                         if self.inquire_verbosity():
-                            print name,' is being skipped since it is a class defined in main and therefore cannot be unpickled'
+                            print(name,' is being skipped since it is a class defined in main and therefore cannot be unpickled')
                         return
                 except:
                     pass
@@ -279,11 +279,11 @@ FloatScalar.
                 # --- for large objects since they will be pickled twice, but this
                 # --- is the only safe way.
                 try:
-                    q = cPickle.dumps(quantity,-1)
+                    q = pickle.dumps(quantity,-1)
                     del q
                 except:
                     if self.inquire_verbosity():
-                      print name,' is being skipped since it could not be written or pickled'
+                      print(name,' is being skipped since it could not be written or pickled')
                     return
                 # --- Things that need to be pickled will all be written out at
                 # --- once in the same pickle when the file is being closed so that
@@ -293,7 +293,7 @@ FloatScalar.
             except:
                 pass
 
-            raise PWError,"Could not write the variable %s"%name
+            raise PWError("Could not write the variable %s"%name)
 
 if __name__ == "__main__":
     f=PW("foo.hdf")
@@ -318,10 +318,10 @@ if __name__ == "__main__":
     f.k = k
     f.close()
 # read-back test
-    from PRpyt import PR
+    from .PRpyt import PR
     f = PR('foo.hdf')
     for x in f.inquire_names():
-        print x, "is", eval(x), ", in file it is", eval('f.'+x)
+        print(x, "is", eval(x), ", in file it is", eval('f.'+x))
     f.close()
 # record-writing
     g = PW('goo.hdf')
@@ -333,7 +333,7 @@ if __name__ == "__main__":
         xh [i] = x
     g.close()
     g = PR('goo.hdf')
-    print "xh is", xh, ", file it is ", g.xh
+    print("xh is", xh, ", file it is ", g.xh)
     g.close()
 
 

@@ -825,7 +825,6 @@ cc                     iyom = iyo
 cc                  endif
 cc  60           continue
 cc  70        continue
-
             if (ixm .eq. ixs) then
                ixmp = ixm + 1
             elseif (ixm .eq. ixf) then
@@ -848,6 +847,7 @@ cc  70        continue
             else
                iyomp = iyom + 1
             endif
+
 c...  Special case for xno = 0,1; yyn could be more general if xn.ne.0,1
             icount = 0
   72        continue
@@ -857,7 +857,7 @@ c...  Special case for xno = 0,1; yyn could be more general if xn.ne.0,1
      .points, check vel. grd at nx')
                write(*,*) 'ixo,iy,ixm,iyom = ',ixo,iy,ixm,iyom,
      .                    '  ixf,ixof,iyf,iyof = ',ixf,ixof,iyf,iyof
-               call kaboom(0) 
+               call xerrab("") 
             endif
             if (abs(xno(ixo,iyomp)-xno(ixo,iyom)) .lt. smalln) then
                xxn = xno(ixo,iyom)

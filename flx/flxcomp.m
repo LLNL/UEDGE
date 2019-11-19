@@ -178,7 +178,7 @@ c........Find starting point (iserch,jserch,leadir) on each flux contour
                   write(*,*) "Error in loop 91 of subroutine contours:"
                   write(*,*) "  contour psi0 = ",(pfr-simagx)/(sibdry-simagx),
      .                 " not found in region ",ns
-                  call kaboom(0)
+                  call xerrab("")
                endif
                tstvalv=(f(i,j+jstepf)-pfr)*(f(i,j)-pfr)
                if (tstvalv > 0) go to 91     # continue vertical stepping
@@ -202,7 +202,7 @@ c........Find starting point (iserch,jserch,leadir) on each flux contour
                   write(*,*) "Error in loop 92 of subroutine contours:"
                   write(*,*) "  contour psi0 = ",(pfr-simagx)/(sibdry-simagx),
      .                 " not found in region ",ns
-                  call kaboom(0)
+                  call xerrab("")
                endif
                tstvalh=(f(i+istepf,j)-pfr)*(f(i,j)-pfr)
                if (tstvalh > 0) go to 92     # continue horizontal stepping
@@ -228,7 +228,7 @@ c........Find starting point (iserch,jserch,leadir) on each flux contour
                   write(*,*) "Error in loop 93 of subroutine contours:"
                   write(*,*) "  contour psi0 = ",(pfr-simagx)/(sibdry-simagx),
      .                 " not found in region ",ns
-                  call kaboom(0)
+                  call xerrab("")
                endif
                tstval=(f(i+istepf,j+jstepf)-pfr)*(f(i,j)-pfr)
                if (tstval .gt. 0.) go to 93  # continue diagonal stepping
@@ -289,7 +289,7 @@ c     ** Find the first point on the "pfr" contour
                write(*,*) "jserch = ",jserch(nc)
                write(*,*) "iserch = ",iserch(nc)
                write(*,*) "imax =   ",imax
-               call kaboom(0)
+               call xerrab("")
             endif
             tstval=(f(i+1,j)-pfr)*(f(i,j)-pfr)
             if (tstval > 0.0) go to 100
@@ -345,7 +345,7 @@ c     ** Find the first point on the "pfr" contour
                write(*,*) "jserch = ",jserch(nc)
                write(*,*) "iserch = ",iserch(nc)
                write(*,*) "imax =   ",imax
-               call kaboom(0)
+               call xerrab("")
             endif
             tstval=(f(i+1,j)-pfr)*(f(i,j)-pfr)
             if (tstval > 0.0) go to 200
@@ -401,7 +401,7 @@ c     ** Find the first point on the "pfr" contour
                write(*,*) "iserch = ",iserch(nc)
                write(*,*) "jserch = ",jserch(nc)
                write(*,*) "jmaxs =  ",jmaxs
-               call kaboom(0)
+               call xerrab("")
             endif
             tstval=(f(i,j+1)-pfr)*(f(i,j)-pfr)
             if (tstval > 0.0) go to 300
@@ -457,7 +457,7 @@ c     ** Find the first point on the "pfr" contour
                write(*,*) "iserch = ",iserch(nc)
                write(*,*) "jserch = ",jserch(nc)
                write(*,*) "jmaxs =  ",jmaxs
-               call kaboom(0)
+               call xerrab("")
             endif
             tstval=(f(i,j+1)-pfr)*(f(i,j)-pfr)
             if (tstval > 0.0) go to 400
@@ -513,7 +513,7 @@ c     ** Find the first point on the "pfr" contour
                write(*,*) "iserch = ",iserch(nc)
                write(*,*) "jmins =  ",jmins
                write(*,*) "jserch = ",jserch(nc)
-               call kaboom(0)
+               call xerrab("")
             endif
             tstval=(f(i,j+1)-pfr)*(f(i,j)-pfr)
             if (tstval > 0.0) go to 500
@@ -569,7 +569,7 @@ c     ** Find the first point on the "pfr" contour
                write(*,*) "iserch = ",iserch(nc)
                write(*,*) "jmins =  ",jmins
                write(*,*) "jserch = ",jserch(nc)
-               call kaboom(0)
+               call xerrab("")
             endif
             tstval=(f(i,j+1)-pfr)*(f(i,j)-pfr)
             if (tstval > 0.0) go to 600
@@ -1008,7 +1008,7 @@ c----------------------------------------------------------------------c
             call remark("*** ")
             call remark("*** function theta_ok: illegal argument n")
             call remark("*** ")
-            call kaboom(0)
+            call xerrab("")
          endif
 c----------------------------------------------------------------------c
       elseif (nsearch .eq. 4) then # SOL + finite core region
@@ -1049,7 +1049,7 @@ c----------------------------------------------------------------------c
             call remark("*** ")
             call remark("*** function theta_ok: illegal argument n")
             call remark("*** ")
-            call kaboom(0)
+            call xerrab("")
          endif
 c----------------------------------------------------------------------c
       else
@@ -1057,7 +1057,7 @@ c----------------------------------------------------------------------c
          call remark("*** ")
          call remark("*** function theta_ok: nsearch must be 2 or 4")
          call remark("*** ")
-         call kaboom(0)
+         call xerrab("")
 c----------------------------------------------------------------------c
       endif
 c----------------------------------------------------------------------c

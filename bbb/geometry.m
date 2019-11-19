@@ -467,6 +467,13 @@ c  ---------------------------------------------------------------------
 *=======================================================================
 *//computation//
 
+      if ((geometry.eq."dnbot").or.((geometry(1:9).eq."snowflake")
+     .     .and.isudsym==1)) then
+        isudsym=1
+      else
+        isudsym=0
+      endif
+
 c ... Generate grid information or read it from file 'gridue'.
 
       if(mhdgeo .eq. 1) then
@@ -561,7 +568,7 @@ c.... Set indirect addressing arrays for x-direction
       endif           
 
 c     Re-define midplane guard cells for symmetric double-null
-      if (geometry=='dnbot' .and. ismpsym==1) call mpguardc
+      if (isudsym==1 .and. ismpsym==1) call mpguardc
 
 *     Define guard cells around the edge of the mesh --
       call guardc
@@ -768,7 +775,7 @@ c.... Set indirect addressing arrays for x-direction
       endif           
 
 c     Re-define midplane guard cells for symmetric double-null
-      if (geometry=='dnbot'.and.ismpsym==1.and.nxc>1) call mpguardc
+      if (isudsym==1.and.ismpsym==1.and.nxc>1) call mpguardc
 
 *     Define guard cells around the edge of the mesh --
       call guardc
@@ -960,8 +967,7 @@ c...  Define horizontal and vertical distance between velocity centers that
 c...  straddle the x-point; 1/ghxpt is the horizontal distance and 1/gvxpt is 
 c...  the vertical distance; sxyxpt is the average surface area
 c
-      if (geometry=="dnull" .or. geometry=="snowflake15" .or.
-     .    geometry=="snowflake45" .or. geometry=="snowflake75" .or.
+      if (geometry=="dnull" .or. geometry(1:9)=="snowflake" .or.
      .    geometry=="dnXtarget" .or. geometry=="isoleg") then
 c         at lower x-point:
           ghxpt_lower = 2. / sqrt( 
@@ -1085,7 +1091,7 @@ c...  If nonorthogonal grid is used, gyf & gxfn have already been calculated
 
 c...  Calculate a normalization constant for the iy=0 cells
 c...  of the core boundary region
-      if (geometry=="snowflake45" .or. geometry=="snowflake75"
+      if ((geometry(1:9)=="snowflake" .and. geometry(10:11).ne."15")
      &       .or. geometry=="dnXtarget") then
         ix_last_core_cell = ixpt2(1)
       else
@@ -1095,15 +1101,14 @@ c...  of the core boundary region
       ix = min(ix, nx+ixmxbcl)
       sygytotc = sy(ix,0)*gyf(ix,0)
       do ix = ixpt1(1)+1, ix_last_core_cell
-         if ( .not. ((geometry=="dnbot") .and.
-     .                  ((ix==nxc) .or. (ix==nxc+1))) ) then
+         if ( .not. (isudsym==1 .and. ((ix==nxc) .or. (ix==nxc+1))) ) then
            sygytotc = sygytotc + sy(ix,0)*gyf(ix,0)
          endif
       enddo
 
 c...  Setup the isixcore(ix) array: =1 if ix on iy=0 core bdry; =0 if not
       do ix = 0, nx+1
-        if(geometry=="snowflake45" .or. geometry=="snowflake75"
+        if ((geometry(1:9)=="snowflake" .and. geometry(10:11).ne."15")
      &       .or. geometry=="dnXtarget") then
           if( ix > ixpt1(1) .and. ix <= ixpt2(1)) then
             isixcore(ix) = 1
@@ -1292,7 +1297,7 @@ c ... Fix the core boundary; just a convention
       xcv(nx+1) = xfv(nx+1)
 
 *  -- define y on density faces -- at outboard midplane (?)
-      if (ixpt2(1) > 0 .and. geometry .ne. 'dnbot'.and.isddcon==0) then
+      if (ixpt2(1) > 0 .and. (isudsym.ne.1) .and.isddcon==0) then
          rmmax = rm(nxleg(1,1)+nxcore(1,1)+1,ny,0)
          do ix = nxleg(1,1)+nxcore(1,1)+1, ixpt2(1)
            if (rm(ix,ny,0) >= rmmax) then
@@ -1442,7 +1447,7 @@ c...  Porter problem with low density carbon
 
 c...  Reset fym, fy0, fyp at ix=nxc-1 and ix=nxc+1 to impose zero-flux
 c...  boundary conditions at midplane for geometry='dnbot'
-      if (geometry=='dnbot' .and. isxmpog==1) then
+      if (isudsym==1 .and. isxmpog==1) then
         do ix = nxc-1, nxc+1, 2
           do ik = 0, 1
             do iy = 0, ny+1
@@ -1868,6 +1873,9 @@ c-----------------------------------------------------------------------
       real z4, r4, delrm, delzm, thetax, thetay
       integer ifxfail, ifyfail, nj, itry, ik
       data errlim/1.e-10/, bigslp/1.e20/, eps/1e-3/
+	  
+*=======================================================================
+*//computation//
 
       nj = max(0, nxomit)
 
@@ -1994,8 +2002,7 @@ c...  reset values next to cut at ixpt1 or ixpt2 if half-space problem
         
 
 c...  reset values for midplane guard cells of double-null configuration
-      if (((geometry.eq.'dnbot').or.(geometry.eq.'dnXtarget'))
-     &                                           .and. nxc.gt.0) then
+      if ((isudsym==1.or.(geometry.eq.'dnXtarget')) .and. nxc.gt.0) then
          do iy = 0, ny+1
             angfx(nxc-1,iy) = 0.
             angfx(nxc  ,iy) = 0.
@@ -2022,8 +2029,8 @@ c...  those at iy+1 (ishy=1)
 c...        Skip non-physical interior guard cells for dnbot and limiter
 c...        and upper divertor plates of a full double null.
 c...        Note nxomit added to dnbot cases for outer DNB when nxc=0.
-            if (geometry.eq."dnbot" .and. ix+nxomit.eq.nxc) goto 20
-            if (geometry.eq."dnbot" .and. ix+nxomit.eq.nxc+1) goto 20
+            if (isudsym==1 .and. ix+nxomit.eq.nxc) goto 20
+            if (isudsym==1 .and. ix+nxomit.eq.nxc+1) goto 20
             if ((islimon .ne. 0) .and. (ix .eq. ix_lim  )) goto 20
             if ((islimon .ne. 0) .and. (ix .eq. ix_lim+1)) goto 20
             if ((nxpt==2) .and. (ix .eq. ixrb(1)+1)) goto 20
@@ -2108,8 +2115,7 @@ c...  matter except possibly gyf(0,0) for half-space problem & iflcore=1
       enddo
 c...  Approx. gyf in midplane guard cells for geometry=dnbot, only for 
 c...  corner boundary condition
-      if (((geometry.eq.'dnbot').or.(geometry.eq.'dnXtarget'))
-     &                                           .and. nxc.gt.0) then
+      if ((isudsym==1.or.(geometry.eq.'dnXtarget')) .and. nxc.gt.0) then
          do iy = 0, ny
             gyf(nxc,iy) = gyf(nxc-1,iy)
             gyf(nxc+1,iy) = gyf(nxc+2,iy)
@@ -2149,7 +2155,7 @@ c...  of the x-face.
 
       ifyfail = 0
       do 41 ix = 0, nx 
-	 if (geometry=="dnbot" .and. ix==nxc) goto 41
+	 if (isudsym==1 .and. ix==nxc) goto 41
          # skip non-physical interface between inboard and outboard midplane
          do 40 iy = 1, ny
 c...  Fix possible divide-by-zero
@@ -2330,9 +2336,9 @@ c ---------------------------------------------------------------------
 *     decreasing direction. LINDIS returns the values at the intersection
 *     (rx,zx), and the distances d1, d2, and d3:
 *
-*        d1 = distance between (rx,zx) and (rm1,zm1), 
-*        d2 = distance between (rx,zx) and (rm2,zm2) 
-*        d3 = distance between (rm1,zm1) and (rm2,zm2), 
+*        d1 = distance between (rx,zx) and (r1,z1), 
+*        d2 = distance between (rx,zx) and (r2,z2) 
+*        d3 = distance between (r1,z1) and (r2,z2), 
 ****************************************************************************
       implicit none
       Use(Dim)            # nx,ny

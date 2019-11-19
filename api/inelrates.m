@@ -46,7 +46,7 @@ c     is given in the variable inelrad (formerly carbavg.dat).
      .      status='old')
       if (ios .ne. 0) then
          write (*,*) '*** Input file inelrad=', inelrad(1), ' not found'
-         call kaboom(0)
+         call xerrab("")
       endif
       read(us,inrad)
       close (us)
@@ -91,7 +91,7 @@ c
      .   '*** Routine inelinput -- bbb.ziin incompatible with')
             call remark(
      .   '          assumptions of multi-charge state model')
-            call kaboom(0)
+            call xerrab("")
          endif
       enddo
 c
@@ -100,7 +100,7 @@ c
      .      status='old')
       if (ios .ne. 0) then
          write (*,*) '*** Input file inelmc=', inelmc(1), ' not found'
-         call kaboom(0)
+         call xerrab("")
       endif
 c
 c   ionization rate

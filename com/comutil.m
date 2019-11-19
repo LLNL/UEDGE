@@ -9,12 +9,12 @@ c ... Common blocks:
       Use(Share)   # nycore,nysol,nxleg,nxcore,nxomit,igrid,geometry
 
 c ... Compute variables used for grid and xpoint index dimensions.
+
       nxpt = 1
       nxm = nxleg(igrid,1) + nxcore(igrid,1) + nxcore(igrid,2)
      .                     + nxleg(igrid,2)  + 4*nxxpt
       nym = nycore(igrid) + nysol(igrid)
-      if (geometry=="dnull" .or. geometry=="snowflake15" .or.
-     .    geometry=="snowflake45" .or. geometry=="snowflake75" .or.
+      if (geometry=="dnull" .or. geometry(1:9)=="snowflake" .or.
      .    geometry=="isoleg") then
 	 nxpt = 2   # for geometry=isoleg, set after flxrun/grdrun
          if(geometry=="dnull") then  #Symmetric double-null config
@@ -10079,7 +10079,7 @@ c     local variables --
       character*80 line
 
 c     procedures --
-      external freeus, kaboom, remark, gallot, readrt1
+      external freeus, gallot, readrt1, xerrab
 
 c----------------------------------------------------------------------c
 c     Read tanh fit data from file (T. Osborne)
@@ -10090,8 +10090,7 @@ ccc      call freeus(nget)
       open (nget, file=fname, form='formatted', iostat=ios,
      .     status='old')
       if (ios .ne. 0) then
-         call remark('**** netanh.dat file not found')
-         call kaboom(0)
+         call xerrab('**** netanh.dat file not found')
       endif
 
       read (nget,*) str1, str2, ptnam
@@ -10154,7 +10153,7 @@ c     local variables --
       character*80 line
 
 c     procedures --
-      external freeus, kaboom, remark, gallot, readrt1
+      external freeus, gallot, readrt1, xerrab
 
 c----------------------------------------------------------------------c
 c     Read tanh fit data from file (T. Osborne)
@@ -10165,8 +10164,7 @@ ccc      call freeus(nget)
       open (nget, file=fname, form='formatted', iostat=ios,
      .     status='old')
       if (ios .ne. 0) then
-         call remark('**** tetanh.dat file not found')
-         call kaboom(0)
+         call xerrab('**** tetanh.dat file not found')
       endif
 
       read (nget,*) str1, str2, ptnam
@@ -10229,7 +10227,7 @@ c     local variables --
       character*80 line
 
 c     procedures --
-      external freeus, kaboom, remark, gallot, readrt1
+      external freeus, gallot, readrt1, xerrab
 
 c----------------------------------------------------------------------c
 c     Read spline fit data from file (T. Osborne)
@@ -10240,8 +10238,7 @@ ccc      call freeus(nget)
       open (nget, file=fname, form='formatted', iostat=ios,
      .     status='old')
       if (ios .ne. 0) then
-         call remark('**** tispline.dat file not found')
-         call kaboom(0)
+         call xerrab('**** tispline.dat file not found')
       endif
 
       read (nget,*) str1, str2, ptnam
@@ -10339,7 +10336,7 @@ c     local variables --
       character*30 prof_name
 
 c     procedures --
-      external kaboom, remark, gallot
+      external gallot, xerrab
 c----------------------------------------------------------------------c
 c     Read expt profiles from file
 c----------------------------------------------------------------------c
@@ -10348,8 +10345,7 @@ c----------------------------------------------------------------------c
       open (nget, file=fname, form='formatted', iostat=ios,
      .     status='old')
       if (ios .ne. 0) then
-         call remark('**** D3D_fit file not found')
-         call kaboom(0)
+         call xerrab('**** D3D_fit file not found')
       endif
 
       read (nget,*) prof_name

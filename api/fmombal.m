@@ -1209,8 +1209,7 @@ c
      >	nr,istore,iflag)
 	if( ldir.gt.1 )call scopy(nknz,amat,1,zmat(1,misa),1)
 	if( iflag.ne.0 )then
-	print *,' CALL TO UINVM2 FAILED! '
-	call kaboom(0)
+	call xerrab(" CALL TO UINVM2 FAILED! ")
 	endif
 c
 c	STORE SOLUTION VECTOR IN RESPONSE ARRAY URESP FOR EACH ISOTOPE

@@ -5,14 +5,16 @@
 # be sure to reset iterm=1 (=> last step was successful)
 
 # IMPORT UEDGE (assuming starting from ipython before any imports)
-from uedge import *
+from .uedge import *
+from .ruthere import *
+from .uexec import *
         
 # IMPORT HDF5 routines for saving solutions below
-from uedge.hdf5 import *
+from .hdf5 import *
 
 # INITIALIZE PARAMS -- SHOULD BE DONE IN MASTER SCRIPT OR TERMINAL SESSION
 # BEFORE INVOKING THIS SCRIPT
-execfile("rdinitdt.py")
+uexec("uedge.rdinitdt",returns=globals())
 no = 0;yes = 1
 echo = no
 
@@ -22,20 +24,21 @@ echo = no
 
 # Check if successful time-step exists (bbb.iterm=1)
 if (bbb.iterm == 1):
-    print "Initial successful time-step exists"
+    print("Initial successful time-step exists")
     bbb.dtreal = bbb.dtreal*bbb.mult_dt #compensates dtreal divided by mult_dt below
 else:
-    print "*---------------------------------------------------------*"
-    print "Need to take initial step with Jacobian; trying to do here"
-    print "*---------------------------------------------------------*"
+    print("*---------------------------------------------------------*")
+    print("Need to take initial step with Jacobian; trying to do here")
+    print("*---------------------------------------------------------*")
     bbb.icntnunk = 0
     bbb.exmain()
+    ruthere()
     bbb.dtreal = bbb.dtreal*bbb.mult_dt #compensates dtreal divided by mult_dt below
 
-if (bbb.iterm <> 1):
-    print "*--------------------------------------------------------------*"
-    print "Error: converge an initial time-step first; then retry rdcontdt"
-    print "*--------------------------------------------------------------*"
+if (bbb.iterm != 1):
+    print("*--------------------------------------------------------------*")
+    print("Error: converge an initial time-step first; then retry rdcontdt")
+    print("*--------------------------------------------------------------*")
     exit()
  
 nx=com.nx;ny=com.ny;nisp=com.nisp;ngsp=com.ngsp;numvar=bbb.numvar
@@ -46,6 +49,7 @@ if (i_stor==0):
    te_stor = zeros((bbb.n_stor,nx+1+1,ny+1+1),"d")
    ti_stor = zeros((bbb.n_stor,nx+1+1,ny+1+1),"d")
    ng_stor = zeros((bbb.n_stor,nx+1+1,ny+1+1,ngsp),"d")
+   tg_stor = zeros((bbb.n_stor,nx+1+1,ny+1+1,ngsp),"d")
    phi_stor = zeros((bbb.n_stor,nx+1+1,ny+1+1),"d")
    tim_stor = zeros((bbb.n_stor),"d")
    dtreal_stor = zeros((bbb.n_stor),"d")
@@ -79,7 +83,7 @@ bbb.ylodt = bbb.yl
 bbb.pandf1 (-1, -1, 0, bbb.neq, 1., bbb.yl, bbb.yldot)
 fnrm_old = sqrt(sum((bbb.yldot[0:neq]*bbb.sfscal[0:neq])**2))
 if (bbb.initjac == 1): fnrm_old=1.e20
-print "initial fnrm =",fnrm_old
+print("initial fnrm =",fnrm_old)
 
 for ii1 in range( 1, bbb.ii1max+1):
    if (bbb.ismfnkauto==1): bbb.mfnksol = 3
@@ -103,11 +107,11 @@ for ii1 in range( 1, bbb.ii1max+1):
    bbb.deldt = min(bbb.deldt,deldt_0)
    bbb.deldt = max(bbb.deldt,bbb.deldt_min)
    nsteps_nk=1
-   print '--------------------------------------------------------------------'
-   print '--------------------------------------------------------------------'
-   print ' '
-   print '*** Number time-step changes = ',ii1,' New time-step = ', bbb.dtreal
-   print '--------------------------------------------------------------------'
+   print('--------------------------------------------------------------------')
+   print('--------------------------------------------------------------------')
+   print(' ')
+   print('*** Number time-step changes = ',ii1,' New time-step = ', bbb.dtreal)
+   print('--------------------------------------------------------------------')
 
    bbb.itermx = bbb.itermxrdc
    if (ii1>1  or  bbb.initjac==1):	# first time calc Jac if initjac=1
@@ -136,6 +140,7 @@ for ii1 in range( 1, bbb.ii1max+1):
       bbb.isdtsfscal = isdtsf_sav
       bbb.ftol = min(bbb.ftol_dt, 0.01*fnrm_old)
       exmain() # take a single step at the present bbb.dtreal
+      ruthere()
       if (bbb.iterm == 1):
          bbb.dt_tot = bbb.dt_tot + bbb.dtreal
          nfe_tot = nfe_tot + bbb.nfe[0,0]
@@ -143,10 +148,10 @@ for ii1 in range( 1, bbb.ii1max+1):
          bbb.pandf1 (-1, -1, 0, bbb.neq, 1., bbb.yl, bbb.yldot)
          fnrm_old = sqrt(sum((bbb.yldot[0:neq-1]*bbb.sfscal[0:neq-1])**2))
          if (bbb.dt_tot>=0.9999999*bbb.t_stop  or  fnrm_old<bbb.ftol_min):
-            print ' '
-            print '*****************************************************'
-            print '**  SUCCESS: frnm < bbb.ftol; or dt_tot >= t_stop  **'
-            print '*****************************************************'
+            print(' ')
+            print('*****************************************************')
+            print('**  SUCCESS: frnm < bbb.ftol; or dt_tot >= t_stop  **')
+            print('*****************************************************')
             break
 
    bbb.icntnunk = 1
@@ -156,23 +161,24 @@ for ii1 in range( 1, bbb.ii1max+1):
          bbb.itermx = bbb.itermxrdc
          bbb.ftol = min(bbb.ftol_dt, 0.01*fnrm_old)
          bbb.exmain()
+         ruthere()
          if (bbb.iterm == 1):
             bbb.ylodt = bbb.yl
             bbb.pandf1 (-1, -1, 0, bbb.neq, 1., bbb.yl, bbb.yldot)
             fnrm_old = sqrt(sum((bbb.yldot[0:neq-1]*bbb.sfscal[0:neq-1])**2))
-            print "Total time = ",bbb.dt_tot,"; Timestep = ",bbb.dtreal
-            print "variable index ipt = ",ipt, " bbb.yl[ipt] = ",bbb.yl[ipt]
+            print("Total time = ",bbb.dt_tot,"; Timestep = ",bbb.dtreal)
+            print("variable index ipt = ",ipt, " bbb.yl[ipt] = ",bbb.yl[ipt])
             dtreal_sav = bbb.dtreal
             bbb.dt_tot = bbb.dt_tot + bbb.dtreal
             nfe_tot = nfe_tot + bbb.nfe[0,0]
             hdf5_save(savefn)
             if (bbb.dt_tot>=0.999999999999*bbb.t_stop  or  fnrm_old<bbb.ftol_min):
-               print ' '
-               print '*****************************************************'
-               print '**  SUCCESS: frnm < bbb.ftol; or dt_tot >= t_stop  **'
-               print '*****************************************************'
+               print(' ')
+               print('*****************************************************')
+               print('**  SUCCESS: frnm < bbb.ftol; or dt_tot >= t_stop  **')
+               print('*****************************************************')
                break
-            print " "
+            print(" ")
 ##       Store variables if a storage time has been crossed
             if (bbb.dt_tot >= dt_stor*i_stor and i_stor<=bbb.n_stor):
                i_stor1 = i_stor-1
@@ -203,37 +209,37 @@ for ii1 in range( 1, bbb.ii1max+1):
       for ii in range(neq):
          if (abs(bbb.yldot[ii]*scalfac[ii]) > ydmax):
             itrouble=ii
-            print "** Fortran index of trouble making equation is:"
-            print itrouble+1
+            print("** Fortran index of trouble making equation is:")
+            print(itrouble+1)
             break
-      print "** Number of variables is:"
-      print "numvar = ", numvar
-      print " "
+      print("** Number of variables is:")
+      print("numvar = ", numvar)
+      print(" ")
       iv_t = (itrouble).__mod__(numvar) + 1
-      print "** Troublemaker equation is:"
-      print "iv_t = ",iv_t
-      print " "
-      print "** Troublemaker cell (ix,iy) is:"
-      print bbb.igyl[itrouble,]
-      print " "
-      print "** Timestep for troublemaker equation:"
-      print bbb.dtuse[itrouble]
-      print " "
-      print "** yl for troublemaker equation:"
-      print bbb.yl[itrouble]
-      print " "
+      print("** Troublemaker equation is:")
+      print("iv_t = ",iv_t)
+      print(" ")
+      print("** Troublemaker cell (ix,iy) is:")
+      print(bbb.igyl[itrouble,])
+      print(" ")
+      print("** Timestep for troublemaker equation:")
+      print(bbb.dtuse[itrouble])
+      print(" ")
+      print("** yl for troublemaker equation:")
+      print(bbb.yl[itrouble])
+      print(" ")
       echo=oldecho
       ######## end of idtroub script ##############################
 
       if (bbb.dtreal < bbb.dt_kill):
-          print ' '
-          print '*************************************'
-          print '**  FAILURE: time-step < dt_kill   **'
-          print '*************************************'
+          print(' ')
+          print('*************************************')
+          print('**  FAILURE: time-step < dt_kill   **')
+          print('*************************************')
           break
       bbb.irev = 1
-      print '*** Converg. fails for bbb.dtreal; reduce time-step by 3, try again'
-      print '----------------------------------------------------------------- '
+      print('*** Converg. fails for bbb.dtreal; reduce time-step by 3, try again')
+      print('----------------------------------------------------------------- ')
       bbb.dtreal = bbb.dtreal/(3*bbb.mult_dt)
       bbb.dtphi = bbb.rdtphidtr*bbb.dtreal
       if (bbb.ismfnkauto==1 and bbb.dtreal > bbb.dtmfnk3): bbb.mfnksol = -3

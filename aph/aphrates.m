@@ -16,7 +16,7 @@ c     local variables --
 
 c     procedures --
       real rqa, rsa
-      external remark, kaboom, rqa, rsa
+      external rqa, rsa
 
 c     Compute electron radiation loss rate per neutral H atom due to
 c     "ionization" processes - D. Stotler's "coupling to the ground state"
@@ -138,8 +138,7 @@ c     radiation rate --
 
 c----------------------------------------------------------------------c
       else				# write error message
-         call remark('function erl1 not defined for istabon > 15')
-         call kaboom(0)
+         call xerrab('function erl1 not defined for istabon > 15')
       endif
 
       return
@@ -163,7 +162,7 @@ c     local variables --
 
 c     procedures --
       real rra
-      external remark, kaboom, rra
+      external rra
 
 c     Compute electron radiation loss rate per H ion due to
 c     "recombination" processes - D. Stotler's "coupling to the continuum"
@@ -285,8 +284,7 @@ c     radiation rate --
 
 c-----------------------------------------------------------------------
       else				# write error message
-         call remark('function erl2 not defined for istabon > 15')
-         call kaboom(0)
+         call xerrab('function erl2 not defined for istabon > 15')
       endif
 
       return
@@ -420,7 +418,7 @@ Use(Aphwrk)
 
 c     external procedures --
       real rsa, svradp, B2VAhL
-      external rsa, svradp, B2VAhL, remark, kaboom, gettime
+      external rsa, svradp, B2VAhL, gettime
 
 c     local variables --
       real a
@@ -604,8 +602,7 @@ c     has already added it in
 
 c----------------------------------------------------------------------c
       elseif (istabon .gt. 7) then	# write error message 
-         call remark('**** function rqa is not defined for istabon > 7')
-         call kaboom(0)
+         call xerrab('**** function rqa is not defined for istabon > 7')
 
 c----------------------------------------------------------------------c
       endif

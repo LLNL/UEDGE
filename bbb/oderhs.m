@@ -94,8 +94,7 @@ c..   note: dim(a,b) = max((a-b),0)
 *  -- simulate a CASE statement --
       goto (1, 10, 20, 30, 40, 50, 60, 70), abs(methx) + 1
 *  -- if code drops through this goto, improper value of methx
-        write(*,*) '*** methx has improper value in fd2tra ***'
-        call kaboom(0)
+        call xerrab('*** methx has improper value in fd2tra ***')
 
 *  --------------------------------------------------------------------
 *  -- /meth/ = 0 --
@@ -157,7 +156,7 @@ c..   note: dim(a,b) = max((a-b),0)
 
 *  ------------------------------------------------------------------
 *  -- /meth/ = 4 --
-*  Simple hybrid scheme.
+*  Simple hybrid scheme
    40 continue
       do 43 iy = j4, j8
          do 42 ix = i1, i5
@@ -230,8 +229,7 @@ c..   note: dim(a,b) = max((a-b),0)
 *  -- simulate a CASE statement --
       goto (101, 110, 120, 130, 140, 150), abs(methy) + 1
 *  -- if code drops through this goto, improper value of methy
-        write(*,*) '*** methy has improper value in fd2tra ***'
-        call kaboom(0)
+        call xerrab('*** methy has improper value in fd2tra ***')
 
 *  ------------------------------------------------------------------
 *  -- /meth/ = 0 --
@@ -322,8 +320,7 @@ c..   note: dim(a,b) = max((a-b),0)
 *  -- simulate a CASE statement --
       goto (201, 210, 220, 230, 240, 250, 260, 270, 280), abs(methy) + 1
 *  -- if code drops through this goto, improper value of methy
-        write(*,*) '** methy(isnonog=1) has improper value in fd2tra **'
-        call kaboom(0)
+        call xerrab('** methy(isnonog=1) has improper value in fd2tra **')
 
 *  ------------------------------------------------------------------
 *  -- /meth/ = 0 --
@@ -558,14 +555,16 @@ c    yldot is the RHS of ODE solver or RHS=0 for Newton solver (NKSOL)
       parameter (nigmx=100)
 
 *  -- local variables
-      integer ifld, jfld, zn, k, k1, k2, jx, ixt, ixt1, ixr, ixr1, iixt
+      integer ifld, jfld, zn, k, k1, k2, jx, ixt, ixt1, ixr, ixr1, iixt,
+     .        ixt0
       real fxet, fxit, qr, vt0, vt1, vtn, vtn2, pradold, eeliold, 
      .     erlizold, erlrcold, psorrgold(nigmx), psorcxgold(nigmx),
      .     nuizold(nigmx), nucxold(nigmx), nurcold(nigmx), nuixold(nigmx),
      .     psorgold(nigmx), tsfe, tsjf, niavex, niavey, teave, tiave, tgavex,
      .     zeffave, noavex, noavey, tiavey, tgavey, psordisold, 
      .     nucxiold(nigmx), nueliold(nigmx), nuelgold(nigmx), rrfac, visxtmp,
-     .     vttn, vttp, neavex, pwrebkgold, pwribkgold, feexflr, feixflr
+     .     vttn, vttp, neavex, pwrebkgold, pwribkgold, feexflr, feixflr,
+     .     naavex,naavey,nuelmolx,nuelmoly
       real fqpo, fqpom, friceo, friceom, upeo, upeom, fricio(100), 
      .     friciom(100), upio(100), upiom(100), uupo(100), uupom(100)
       real nevol, ngvol, kionz, krecz, kcxrz, kionm, krecm, kcxrm, nzbg,
@@ -593,7 +592,7 @@ cgrs  real teyc, glte   # used in commented-out code, and never computed
       real dndym1,dndy0,dndyp1,d2ndy20,d2ndy2p1,d3ndy3
       real dtdym1,dtdy0,dtdyp1,d2tdy20,d2tdy2p1,d3tdy3,nhi_nha
       integer idum, idumaray(1)
-      real(Size4) sec4, gettime, tsimpfe, tsimp, tsnpg
+      real(Size4) sec4, gettime, tsimpfe, tsimp, tsnpg, ueb
       integer impflag
 cnxg      data igs/1/
 
@@ -603,7 +602,7 @@ cnxg      data igs/1/
       Use(Math_problem_size)   # neqmx,numvar
       Use(Timing)   # istimingon,ttotfe,ttotjf,ttimpfe,ttimpjf,ttnpg
       Use(Share)    # nxpt,nxomit,geometry,nxc,cutlo,islimon,ix_lim,iy_lims
-                    # istabon
+                    # istabon,isudsym
       Use(Phyvar)   # pi,me,mp,ev,qe,rt8opi
       Use(UEpar)    # methe,methu,methn,methi,methg,concap,lnlam,
                     # convis,icnuiz,icnucx,cnuiz,cnucx,isrecmon,
@@ -674,7 +673,7 @@ cnxg      data igs/1/
       real radmc, svdiss, vyiy0, vyiym1, v2ix0, v2ixm1
       external rsa, rra, rqa, rcx, emissbs, erl1, erl2, radneq, radimpmc
       external radmc, svdiss
-
+	  
 ccc      save
 
 *  -- procedures --
@@ -690,18 +689,16 @@ ccc      save
 
 c  Check array sizes
       if (ngsp > nigmx .or. nisp > nigmx) then
-         call remark("***PANDF in oderhs.m: increase nigmx, recompile")
-         call kaboom(0)
+         call xerrab("***PANDF in oderhs.m: increase nigmx, recompile")
       endif
 
 ************************************************************************
 *  -- initialization --
 ************************************************************************
 c     Set ix index for outer midplane turbulence
-      if (geometry=='dnbot') then
+      if (isudsym==1) then
          ixmp2 = nxc + 2
-      elseif (geometry=='dnull' .or. geometry=="snowflake15" .or.
-     .        geometry=="snowflake45" .or. geometry=="snowflake75" .or.
+      elseif (geometry=='dnull' .or. geometry(1:9)=="snowflake" .or.
      .        geometry=="dnXtarget" .or. geometry=="isoleg") then
          ixmp2 = ixmdp(2) + 1
       else
@@ -713,8 +710,7 @@ c     (MER 1996/10/28)
 c     (IJ  2015/04/06) add ismcnon>=3 for external call to run_neutrals 
       if (ismcnon .eq. 1) then        # use MC sources only:
          if (svrpkg .eq. "cvode") then
-           call remark('*** ismcnon=1 not allowed for cvode ***')
-           call kaboom(0)
+           call xerrab('*** ismcnon=1 not allowed for cvode ***')
          endif
          cfneut=0.
          if (isupgon(1) .eq. 1) then
@@ -744,8 +740,7 @@ c     (IJ  2015/04/06) add ismcnon>=3 for external call to run_neutrals
             endif
             cmneut=1.
          else
-            call remark('*** PANDF: ismcnon=2 & yl(neq+1)=0 ???')
-            call kaboom(0)
+            call xerrab('*** PANDF: ismcnon=2 & yl(neq+1)=0 ???')
          endif
       else if (ismcnon .eq. 3) then         # switch between two neutral models internally
          if (yl(neq+1) .gt. 0) then         # use fluid model for preconditioner
@@ -798,8 +793,7 @@ c     (IJ  2015/04/06) add ismcnon>=3 for external call to run_neutrals
             endif 
 
          else
-            call remark('*** PANDF: ismcnon=3 & yl(neq+1)=0 ???')
-            call kaboom(0)
+            call xerrab('*** PANDF: ismcnon=3 & yl(neq+1)=0 ???')
          endif
          if (yl(neq+1) .lt. 0) then       # RHS eval (not precon eval)
 			if (isextneuton .ne. 0) then  # implicit use of external neutrals inside exmain
@@ -1647,7 +1641,7 @@ c     to those from parallel flow.
 
       do ifld = 1, nfsp
          do iy = j1, j6
-            if (i1 .gt. 0) then
+            if (i1 .gt. 0) then  # il is initial ix; here for uu(ixm1(i1-1,,)
                ix = i1
                ix1 = ixm1(ix,iy)
                uu(ix1,iy,ifld) = uup(ix1,iy,ifld) +
@@ -1663,7 +1657,7 @@ c     to those from parallel flow.
      .               (cftef*v2ce(ix1,iy,ifld)+cftdd*v2cd(ix1,iy,ifld))*
      .                                                       rrv(ix1,iy)
             endif
-            do ix = i1, i6
+            do ix = i1, i6    #now the remainder of the uu(ix,,)
                ix2 = ixp1(ix,iy)
                uu(ix,iy,ifld) = uup(ix,iy,ifld) +
      .                          0.5 * (rbfbt(ix,iy) + rbfbt(ix2,iy)) *
@@ -1680,6 +1674,36 @@ c     to those from parallel flow.
             enddo
          enddo
       enddo
+
+c...  If upi not from full ||mom eq (e.g.,isimpon=6), set impurity
+c...  uu(ixrb,,) & upi(ixrb,,) via generalized Bohm cond.
+      if(isimpon > 0 .and. nusp_imp == 0) then
+        do jx = 1, nxpt
+	  ixt0 = ixlb(jx)
+          ixt = ixrb(jx)+1 
+          ixt1 = ixrb(jx)
+	  do ifld = nhsp+1, nfsp
+	    do iy = j1, j6
+c ..       first left plate(s)
+              cs = csfacrb(ifld,jx)*sqrt( (te(ixt0,iy) +
+     .                            csfacti*ti(ixt0,iy))/mi(ifld) )
+              ueb = cfueb*( cf2ef*v2ce(ixt0,iy,ifld)*rbfbt(ixt0,iy) -
+     .                            vytan(ixt0,iy,ifld) )/rrv(ixt0,iy)
+	      uu(ixt0,iy,ifld) = -rrv(ixt0,iy)*cs
+              upi(ixt0,iy,ifld) = -(cs - ueb)
+c ..       switch to right plate(s)
+              cs = csfacrb(ifld,jx)*sqrt( (te(ixt1,iy) +
+     .                            csfacti*ti(ixt1,iy))/mi(ifld) )
+              ueb = cfueb*( cf2ef*v2ce(ixt1,iy,ifld)*rbfbt(ixt,iy) -
+     .                            vytan(ixt1,iy,ifld) )/rrv(ixt1,iy)
+	      uu(ixt1,iy,ifld) = rrv(ixt1,iy)*cs
+	      uu(ixt,iy,ifld) = uu(ixt1,iy,ifld)
+              upi(ixt1,iy,ifld) = cs - ueb
+              upi(ixt,iy,ifld) = upi(ixt1,iy,ifld)
+            enddo
+          enddo
+        enddo
+      endif
 
 ************************************************************************
 *     Calculate the currents fqx, fqy, fq2 and fqp, if isphion = 1
@@ -2293,8 +2317,7 @@ c ... Add volume particle loss terms for quasi 1-D radial model
 c ... Set up nuiz & sources for hydrogen molecular gas
       if (ishymol .eq. 1) then
          if (nhgsp .eq. 1) then
-          call remark('*** nhgsp must exceed 1 for ishymol=1 ***')
-          call kaboom(0)
+          call xerrab('*** nhgsp must exceed 1 for ishymol=1 ***')
         endif
         do iy = iys1, iyf6
          do ix = ixs1, ixf6
@@ -2327,8 +2350,7 @@ c  *** a Jacobian calculation
          if (ishosor.eq.1) then  #full RHS eval
 
            if (svrpkg.eq."cvode") then    # cannot access yl(neq+1)
-            call remark('*** svrpkg=cvode not allowed for ishosor=1 **')
-            call kaboom(0)
+            call xerrab('*** svrpkg=cvode not allowed for ishosor=1 **')
            endif 
 
           if (yl(neq+1).lt.0) then  #full RHS eval
@@ -3001,25 +3023,47 @@ c ... Gas thermal coefficients, initially for molecules *
 *
 c ... Gas thermal conductivity coeffs - from self-collisions
 *****************************************************************
+
       do igsp = 1, ngsp
         do iy = j1, j6
         iy1 = min(iy,ny)
           do ix = i1, i6
             ix1 = ixp1(ix,iy)
-            tgavex= max(0.5*(tg(ix,iy,igsp) + tg(ix1,iy,igsp)),temin*ev)
+            tgavex = max( (tg(ix,iy,igsp)*gx(ix,iy) +
+     .                              tg(ix1,iy,igsp)*gx(ix1,iy)) /
+     .                             (gx(ix,iy) + gx(ix1,iy)), temin*ev )
             tgavey=max(0.5*(tgy0(ix,iy,igsp)+tgy1(ix,iy,igsp)),temin*ev)
-            noavex = ( ng(ix,iy,igsp)*gx(ix ,iy) +
+            noavex = ( ng(ix,iy,igsp)*gx(ix,iy) +
      .                                   ng(ix1,iy,igsp)*gx(ix1,iy)) /
      .                                   (gx(ix,iy) + gx(ix1,iy))
+            niavex = ( ni(ix,iy,1)*gx(ix,iy) +
+     .                                   ni(ix1,iy,1)*gx(ix1,iy)) /
+     .                                   (gx(ix,iy) + gx(ix1,iy))
+            naavex = ( ni(ix,iy,2)*gx(ix,iy) +
+     .                                   ni(ix1,iy,2)*gx(ix1,iy)) /
+     .                                   (gx(ix,iy) + gx(ix1,iy))
             noavey = 0.5*(ngy0(ix,iy1,igsp) + ngy1(ix,iy1,igsp))
-            cshx = cftgcond*tgavex/(mg(igsp)*noavex*keligig(igsp))  #assume K not fcn Tg
-            qshx = cshx * (tg(ix,iy,1)-tg(ix1,iy,1)) * gxf(ix,iy)
+            niavey = 0.5*(niy0(ix,iy1,1) + niy1(ix,iy1,1))
+            naavey = 0.5*(niy0(ix,iy1,2) + niy1(ix,iy1,2))
+            nuelmolx = noavex*kelhmhm + niavex*kelhmhg + 
+     .                 naavex*kelhmhg
+            qflx = flalftmx*sqrt(tgavex/mg(igsp))*noavex*tgavex
+            cshx = cftgcond*noavex*tgavex/(mg(igsp)*nuelmolx)  #assume K not fcn Tg
+            qshx = cshx * (tg(ix,iy,igsp)-tg(ix1,iy,igsp)) * gxf(ix,iy)
             hcxg(ix,iy,igsp) = cshx / 
-     .                     (1+ (abs(qshx/qflx))**flgamtg)**(1./flgamtg)
-            cshy = cftgcond*tgavey/(mg(igsp)*noavey*keligig(igsp))  #assume K not fcn Tg
-            qshy = cshy * (tgy0(ix,iy1,1)-tgy1(ix1,iy,1)) * gyf(ix,iy)
+     .                     (1.+ (abs(qshx/qflx))**flgamtg)**(1./flgamtg)
+            hcxg(ix,iy,igsp)=(1.-cfhcxgc(igsp))*hcxg(ix,iy,igsp)+
+     .                     cfhcxgc(igsp)*noavex*kxg_use(ix,iy,igsp)
+c..   Now radial direction
+            nuelmoly = noavey*kelhmhm + niavey*kelhmhg + 
+     .                 naavey*kelhmhg
+            qfly = flalftmy*sqrt(tgavey/mg(igsp))*noavey*tgavey
+            cshy = cftgcond*noavey*tgavey/(mg(igsp)*nuelmoly)  #assume Kel_s not fcn Tg
+            qshy = cshy*(tgy0(ix,iy1,igsp)-tgy1(ix,iy1,igsp))*gyf(ix,iy)
             hcyg(ix,iy,igsp) = cshy / 
-     .                     (1 + (abs(qshy/qflx))**flgamtg)**(1./flgamtg)
+     .                     (1 + (abs(qshy/qfly))**flgamtg)**(1./flgamtg)
+            hcyg(ix,iy,igsp)=(1-cfhcygc(igsp))*hcyg(ix,iy,igsp)+
+     .                     cfhcygc(igsp)*noavey*kyg_use(ix,iy,igsp)
           enddo
         enddo
       enddo
@@ -3112,8 +3156,7 @@ cfw                 fnix(ix,iy,ifld) = fnix(ix,iy,ifld) - fngxy(ix,iy,1)
 cfw              end if
 cc              endif
    80      continue
-           if (((geometry.eq.'dnbot').or.(geometry.eq.'dnXtarget'))
-     &                                           .and. nxc > 1) then
+           if ((isudsym==1.or.geometry.eq.'dnXtarget') .and. nxc > 1) then
               fnix(nxc-1,iy,ifld)=0.
               fnix(nxc,  iy,ifld)=0.
               fnix(nxc+1,iy,ifld)=0.
@@ -3734,17 +3777,16 @@ c ... IJ 2016 resmo contrib changes if ion or neut
      .                        * (ni(ix,iy,ifld)*ti(ix,iy))/(ni(ix,iy,ifld)*ti(ix,iy))
                  endif
               endif
-cc...   Removed cfw(4)* factor last line; check with Fred (7/26/95)
   306       continue
-c... Special case to try to avoid the small dx between up at nx & nx+1
-c... Normalization is to give same magnitude as boundary eqn.
-            if (ixmxbcl.eq.1) then   # ix=nx is exterior boundary
-               do jx = 1, nxpt
-                  iixt = ixrb(jx)
-                  resmo(iixt,iy,ifld) = nurlxu*volv(iixt,iy)*fnorm(ifld)*
-     .                      (up(iixt+1,iy,ifld)-up(iixt,iy,ifld))/vpnorm
-               enddo
-            endif
+ccc... Special case to try to avoid the small dx between up at nx & nx+1
+ccc... Normalization is to give same magnitude as boundary eqn.
+cc            if (ixmxbcl.eq.1) then   # ix=nx is exterior boundary
+cc               do jx = 1, nxpt
+cc                  iixt = ixrb(jx)
+cc                  resmo(iixt,iy,ifld) = nurlxu*volv(iixt,iy)*fnorm(ifld)*
+cc     .                      (up(iixt+1,iy,ifld)-up(iixt,iy,ifld))/vpnorm
+cc               enddo
+cc            endif
   305    continue
 
 c  -- Include frictional drag in parallel flow here if isofric=1; otherwise
@@ -3925,14 +3967,18 @@ c IJ 2016/10/10	add cfneutsor_ei multiplier to control fraction of neutral energ
                do jx = 1, nxpt  #if at plate, sub (1-cfloxiplt)*neut-contrib
                  if(ixmnbcl==1) then  #real plate-need for parallel UEDGE
                    iixt = ixlb(jx) #left plate
-                   floxi(iixt,iy) = floxi(iixt,iy) - (1.-cfloxiplt)*
-     .                               cfcvti*2.5*cfneut*cfneutsor_ei*fnix(iixt,iy,ifld)
+                   if(fnix(iixt,iy,ifld) > 0.) then
+                     floxi(iixt,iy) = floxi(iixt,iy) - (1.-cfloxiplt)*
+     .                 cfcvti*2.5*cfneut*cfneutsor_ei*fnix(iixt,iy,ifld)
+                   endif
                  endif
                  if(ixmxbcl==1) then #real plate-need for parallel UEDGE
                    iixt = ixrb(jx) # right plate
-                   floxi(iixt,iy) = floxi(iixt,iy) - (1.-cfloxiplt)*
-     .                               cfcvti*2.5*cfneut*cfneutsor_ei*fnix(iixt,iy,ifld)
-                   floxi(ixrb(jx)+1,iy) = 0.0e0
+                   if(fnix(iixt,iy,ifld) < 0.) then
+                     floxi(iixt,iy) = floxi(iixt,iy) - (1.-cfloxiplt)*
+     .                 cfcvti*2.5*cfneut*cfneutsor_ei*fnix(iixt,iy,ifld)
+                   endif
+                   floxi(ixrb(jx)+1,iy) = 0.0e0  #cosmetic
                  endif
                enddo
  726        continue
@@ -4373,8 +4419,7 @@ c ... Demand that net feex cannot be out of the plates
       endif
 
       do 310 iy = j2, j5
-         if (((geometry.eq.'dnbot').or.(geometry.eq.'dnXtarget'))
-     &                                           .and. nxc > 1) then
+	    if((isudsym==1.or.geometry.eq.'dnXtarget') .and. nxc > 1) then
             feex(nxc-1,iy) = 0.
             feix(nxc-1,iy) = 0.
             feex(nxc,iy) = 0.
@@ -4462,8 +4507,7 @@ c...  Electron radiation loss -- ionization and recombination
 ccc         if (ishosor.eq.1) then  #full RHS eval
 ccc
 ccc           if (svrpkg.eq."cvode") then    # cannot access yl(neq+1)
-ccc            call remark('*** svrpkg=cvode not allowed for ishosor=1 **')
-ccc            call kaboom(0)
+ccc            call xerrab('*** svrpkg=cvode not allowed for ishosor=1 **')
 ccc           endif 
 ccc
 ccc           if (yl(neq+1).lt.0) then  #full RHS eval
@@ -4563,11 +4607,8 @@ c ... If molecules are present as gas species 2, add ion/atom cooling
       if(ishymol == 1) then
         do iy = j2, j5
           do ix = i2, i5
-            engcoolm(ix,iy) =  - cfmolcool*kelighg(2)*2.*
-     .                                     (mi(1)/(mi(1)+mg(2)))*
-     .                     (ni(ix,iy,1)+ni(ix,iy,2))*ng(ix,iy,2)*
-     .                     1.5*(ti(ix,iy)-tg(ix,iy,2))*vol(ix,iy)
-            resei(ix,iy) = resei(ix,iy) + engcoolm(ix,iy)
+            resei(ix,iy) = resei(ix,iy) - vol(ix,iy)*eqpg(ix,iy,2)*
+     .                                     (ti(ix,iy)-tg(ix,iy,2))
           enddo
         enddo
       endif
@@ -4754,7 +4795,7 @@ c******************************************************************
 
          if (istimingon .eq. 1) call timimpfj (tsimp, xc)
       endif  #loop for isimpon==2
-
+  
 cccc ... If impurity densities are being calculated and we are
 cccc     calculating residuals, get impurity residuals from INEL
 cccc     subroutine fimp.
@@ -5079,7 +5120,7 @@ c ... Output arguments:
 
 c ... Local variables:
       integer misa, ifld, jz
-
+	  
 c ... Loop over ion species, looking for change to a new isotope, and
 c     finding maximum charge state.
       natomic(1) = 1   # electrons are "isotope 1"
@@ -5099,7 +5140,7 @@ c     finding maximum charge state.
            call remark("subroutine mombal0 error: ")
            call remark("To avoid write out-of-bounds for array natomic")
            call remark("increase the value of MXMISO and recompile.")
-	   call kaboom(0)
+	       call xerrab("")
          endif
          natomic(misotope) = nzsp(jz)
          nchstate = max(nchstate, natomic(misotope)) 
@@ -5601,7 +5642,7 @@ c
       Use(Locflux)  # floxg,floyg,conxg,conyg
       Use(Indices_domain_dcl)    # iymnbcl,iymxbcl
       Use(Volsrc)   # volpsorg
-
+	  
 *  -- procedures --
       real ave
       ave(t0,t1) = 2*t0*t1 / (cutlo+t0+t1)
@@ -5609,7 +5650,7 @@ c
 c ------------------
       methgx = mod(methg, 10)
       methgy = methg/10
-
+	  
       do 895 igsp = 1, ngsp
 
 c.... First the flux in the x-direction
@@ -5965,8 +6006,7 @@ c.... Calculate the residual for the gas equation for diffusive neutral case
 
       if (isupgon(igsp).eq.0) then
          do 892 iy = j2, j5
-            if (((geometry.eq.'dnbot').or.(geometry.eq.'dnXtarget'))
-     &                                           .and. nxc > 1) then
+	      if ((isudsym==1.or.geometry.eq.'dnXtarget') .and. nxc > 1) then
 	      fngx(nxc-1,iy,igsp) = 0.
 	      fngx(nxc,  iy,igsp) = 0.
 	      fngx(nxc+1,iy,igsp) = 0.
@@ -6071,7 +6111,7 @@ c
       Use(Parallv)  # nxg,nyg
       Use(Rccoef)   # recylb,recyrb,recycw,recycz,sputtr
       Use(Selec)    # i1,i2,i3,i4,i5,i6,i7,i8,j1,j2,j3,j4,j5,j6,j7,j8
-                    # xlinc,xrinc,yinc,ixm1,ixp1,stretcx
+                    # xlinc,xrinc,yinc,ixm1,ixp1
       Use(Comgeo)   # vol, gx, gy, sx ,xy
       Use(Noggeo)   # fym,fy0,fyp,fymx,fypx,angfx
       Use(Compla)   # mi, zi, ni, uu, up, v2, v2ce, vygtan, mg
@@ -6088,7 +6128,7 @@ c
       Use(MCN_dim)      # ngsp, ...
       Use(MCN_sources)  # cfneut_sng, cfneutdiv_fng, ... mcfngx, mcfngy, ...
       Use(Interp)		# ngs, tgs 
-
+	  
 *  -- procedures --
       real ave
       ave(t0,t1) = 2*t0*t1 / (cutlo+t0+t1)
@@ -6096,7 +6136,7 @@ c
 c ------------------
       methgx = mod(methg, 10)
       methgy = methg/10
-
+	  
 c      write (*,*) "neudifpg"
       do 895 igsp = 1, ngsp
 
@@ -6127,20 +6167,19 @@ c ..Timing;initialize
      .           (ng(ix,iy,igsp)*gx(ix,iy) + ng(ix2,iy,igsp)*gx(ix2,iy))
      .                                      / (8*(gx(ix,iy)+gx(ix2,iy)))
             csh = (1-isgasdc) * cdifg(igsp) * sx(ix,iy) * gxf(ix,iy) *
-     .                (1/mg(igsp))* ave( stretcx(ix,iy)/nu1,
-     .                                   stretcx(ix2,iy)/nu2 ) +
+     .                (1/mg(igsp))* ave( 1./nu1,1./nu2 ) +
      .              isgasdc * sx(ix,iy) * gxf(ix,iy) * difcng / tgf +
      .                        rld2dxg(igsp)**2*sx(ix,iy)*(1/gxf(ix,iy))*
      .                    0.5*(nuiz(ix,iy,igsp)+nuiz(ix2,iy,igsp))/tgf
             qtgf = alftng * fgtdx(ix) * sx(ix,iy) *
-     .            ave( stretcx(ix,iy)*gx(ix,iy)/nu1 ,
-     .                 stretcx(ix2,iy)*gx(ix2,iy)/nu2 )
+     .            ave( gx(ix,iy)/nu1 ,gx(ix2,iy)/nu2 )
      .                     * (vtn**2 - vtnp**2)
             if (isupgon(igsp).eq.1) then # only 2->pol project.;up has rest
                csh = csh*(1 - rrv(ix,iy)**2)
                qtgf = qtgf*(1 - rrv(ix,iy)**2)
             endif
             vygtan(ix,iy,igsp) = 0.  # vygtan is grad(T) rad vel on x-face
+                                     # vygtan) only from thermal force
             if (isnonog .eq. 1 .and. iy .le. ny) then
                   grdnv =(    ( fym (ix,iy,1)*log(tg(ix2,iy1,igsp)) +
      .                          fy0 (ix,iy,1)*log(tg(ix2,iy ,igsp)) +
@@ -6546,8 +6585,7 @@ c.... Calculate the residual for the gas equation for diffusive neutral case
 
       if (isupgon(igsp).eq.0) then
         do 892 iy = j2, j5
-          if (((geometry.eq.'dnbot').or.(geometry.eq.'dnXtarget'))
-     &                                           .and. nxc > 1) then 
+          if ((isudsym==1.or.geometry.eq.'dnXtarget') .and. nxc > 1) then 
 	     fngx(nxc-1,iy,igsp) = 0.
 	     fngx(nxc,  iy,igsp) = 0.
 	     fngx(nxc+1,iy,igsp) = 0.
@@ -6668,7 +6706,7 @@ c --------------------------------------------------------------------------
       Use(Locflux)  # floxg,floyg,conxg,conyg
       Use(Indices_domain_dcl)    # iymnbcl,iymxbcl
       Use(Volsrc)   # volpsorg
-
+	  
 *  -- procedures --
       real ave
       ave(t0,t1) = 2*t0*t1 / (cutlo+t0+t1)
@@ -6676,7 +6714,7 @@ c --------------------------------------------------------------------------
 c ------------------
       methgx = mod(methg, 10)
       methgy = methg/10
-
+	  
       do 895 igsp = 1, ngsp
 
 c.... First the flux in the x-direction
@@ -6965,8 +7003,7 @@ c.... Calculate the residual for the gas equation for diffusive neutral case
 
       if (isupgon(igsp).eq.0) then
          do 892 iy = j2, j5
-            if (((geometry.eq.'dnbot').or.(geometry.eq.'dnXtarget'))
-     &                                           .and. nxc > 1) then
+            if ((isudsym==1.or.geometry.eq.'dnXtarget') .and. nxc > 1) then
 	      fngx(nxc-1,iy,igsp) = 0.
 	      fngx(nxc,  iy,igsp) = 0.
 	      fngx(nxc+1,iy,igsp) = 0.
@@ -7066,7 +7103,7 @@ c ..  the gas fluxes and then used to form fnix if isupgon(igsp)=1
       Use(Locflux)  # floxg,floyg,conxg,conyg
       Use(Indices_domain_dcl)    # iymnbcl,iymxbcl
       Use(Volsrc)   # volpsorg
-
+	  
 *  -- procedures --
       real ave
       ave(t0,t1) = 2*t0*t1 / (cutlo+t0+t1)
@@ -7383,8 +7420,7 @@ c.... Calculate the residual or right-hand-side for the gas equation
 
       if (isupgon(igsp).eq.0) then
          do 892 iy = j2, j5
-            if (((geometry.eq.'dnbot').or.(geometry.eq.'dnXtarget'))
-     &                                           .and. nxc > 1) then
+            if ((isudsym==1.or.geometry.eq.'dnXtarget') .and. nxc > 1) then
 	      fngx(nxc-1,iy,igsp) = 0.
 	      fngx(nxc,  iy,igsp) = 0.
 	      fngx(nxc+1,iy,igsp) = 0.
@@ -7547,18 +7583,8 @@ c ... Compute poloidal conduction
             t1 = max (tg(ix2,iy,igsp), temin*ev)
             vt0 = sqrt(t0/mg(igsp))
             vt1 = sqrt(t1/mg(igsp))
-c... flux-limit occurs in building hcxg - redo next 6-7 lines
-            qfl = flalftgxa(ix) * sx(ix,iy) * rrv(ix,iy) *
-     .             (ng(ix,iy,igsp)*vt0*t0 + ng(ix2,iy,igsp)*vt1*t1) / 2
-            csh = sx(ix,iy) * hcxg(ix,iy,igsp) * gxf(ix,iy) 
-	    lxtgc = 0.5*(tg(ix,iy,igsp)+tg(ix2,iy,igsp)) /
-     .             ( abs(tg(ix,iy,igsp)-tg(ix2,iy,igsp))*gxf(ix,iy) + 
-     .                                                     100.*cutlo)
-	    qsh = csh * (tg(ix,iy,igsp)-tg(ix2,iy,igsp)) * 
-     .                                             (1. + lxtgc/lxtgmax)
-            qgpar(ix,iy,igsp) = qsh/(rrv(ix,iy)*sx(ix,iy))
-            qr = abs(qsh/qfl)
-            conxge(ix,iy,igsp) = csh / (1 + qr)**2
+c... flux-limit occurs in building hcxg - do not flux-limit 2nd time
+            conxge(ix,iy,igsp) = sx(ix,iy) * hcxg(ix,iy,igsp) * gxf(ix,iy) 
           enddo
           conxge(nx+1,iy,igsp) = 0
         enddo
@@ -7590,6 +7616,29 @@ c... flux-limit occurs in building hcxg - redo next 6-7 lines
             floxge(ix,iy,igsp) = cfcvtg*2.5*fngx(ix,iy,igsp)
           enddo
           floxge(nx+1,iy,igsp) = 0.
+        enddo
+      enddo
+
+*  -- Correct bdry:remove any inward power from plates; ok in parallel
+      do igsp = 1, ngsp
+        do iy = j4, j8
+          do jx = 1, nxpt  #if at plate, sub (1-cfloxiplt)*neut-contrib
+            if(ixmnbcl==1) then  #real plate-need for parallel UEDGE
+              iixt = ixlb(jx) #left plate
+              if(fngx(iixt,iy,igsp) > 0.) then
+                floxge(iixt,iy,igsp) = floxge(iixt,iy,igsp) -
+     .                    (1.-cfloxiplt)*cfcvti*2.5*fngx(iixt,iy,igsp)
+              endif
+            endif
+            if(ixmxbcl==1) then #real plate-need for parallel UEDGE
+              iixt = ixrb(jx) # right plate
+              if(fngx(iixt,iy,igsp) < 0.) then
+                floxge(iixt,iy,igsp) = floxge(iixt,iy,igsp) -
+     .                   (1.-cfloxiplt)*cfcvti*2.5*fngx(iixt,iy,igsp)
+              endif
+              floxge(ixrb(jx)+1,iy,igsp) = 0.0e0 #cosmetic
+            endif
+          enddo
         enddo
       enddo
 
@@ -7625,8 +7674,8 @@ c... flux-limit occurs in building hcxg - redo next 6-7 lines
             reseg(ix,iy,igsp)= -( fegx(ix,iy,igsp)-fegx(ix1,iy,  igsp)+
      .                            fegy(ix,iy,igsp)-fegy(ix, iy-1,igsp) )
             reseg(ix,iy,igsp)= reseg(ix,iy,igsp) + vol(ix,iy)* 
-     .                                               eqpg(ix,iy,igsp)*
-     .                                      (ti(ix,iy)-tg(ix,iy,igsp))
+     .                      eqpg(ix,iy,igsp)*(ti(ix,iy)-tg(ix,iy,igsp))+
+     .                   cftgdiss(igsp)*psorg(ix,iy,igsp)*tg(ix,iy,igsp)
           enddo
         enddo
       enddo
@@ -7703,7 +7752,7 @@ c
         ierrjm = ijmgetmr(msgjm,80,1,nrcv)
         if (ierrjm .eq. 0) then
           if (msgjm(1:nrcv).eq.'kaboom' .or. msgjm(1:nrcv).eq.'k')then
-            call kaboom(0)
+            call xerrab("")
           endif
         endif
       endif
@@ -7726,54 +7775,10 @@ c...  potential equations are not reordered.
 c
 c ... Now add psuedo or real timestep for nksol method, but not both
       if (nufak.gt.1.e5 .and. dtreal.lt.1.e-5) then
-         call remark('***Both 1/nufak and dtreal < 1.e5 - illegal***')
-         call kaboom(0)
+         call xerrab('***Both 1/nufak and dtreal < 1.e5 - illegal***')
       endif
 
-c ... Add psuedo timestep if flag set for Jacobian - i.e., yl(neq+1) > 0.
-c      if ((svrpkg.eq.'nksol' .or. svrpkg.eq.'petsc') .and. dtnewt.lt.1.e15) then
-c      if (yl(neq+1).gt.0. .and. svrpkg.eq.'nksol'.and. dtnewt.lt.1.e15)
-c     .                                                            then
-c         if (xc.lt.0 .and. yc.lt.0) then   
-c            do iv = 1, neq  # Jacobian initialization
-c               yldot(iv) = yldot(iv) - yl(iv)/dtnewt
-c            enddo
-c         else               # Jacobian calc.
-c            yldot(ieq) = yldot(ieq) - yl(ieq)/dtnewt
-c            if (ieq .ge. 2) yldot(ieq-1) = yldot(ieq-1) - 
-c     .                                               yl(ieq-1)/dtnewt
-c         endif
-c         do iy = j2, j5   # j1 and j6 include boundary eqns.
-c            do ix = i2, i5
-c               if(isnion .eq. 1) then
-c                  do ifld = 1, nisp
-c                     iv = idxn(ix,iy,ifld)
-c                     yldot(iv) = yldot(iv) - yl(iv)/dtnewt
-c                  enddo
-c               endif
-c               do ifld = 1, nusp
-c                  if(isupon(ifld) .eq. 1) then
-c                     iv = idxu(ix,iy,ifld)
-c                     yldot(iv) = yldot(iv) - yl(iv)/dtnewt
-c                  endif
-c               enddo
-c               iv =  idxte(ix,iy)
-c               iv1 = idxti(ix,iy)
-c               if(isteon.eq.1) yldot(iv) = yldot(iv) - yl(iv)/dtnewt
-c               if(istion.eq.1) yldot(iv1)= yldot(iv1)- yl(iv1)/dtnewt
-c               do igsp = 1, ngsp
-c                  if(isngon(igsp).eq.1) then
-c                     iv = idxg(ix,iy,igsp)
-c                     yldot(iv) = yldot(iv) - yl(iv)/dtnewt
-c                  endif
-c               enddo
-c              iv = idxphi(ix,iy)
-c               if (isphion.eq.1) yldot(iv) = yldot(iv) - yl(iv)/dtnewt
-c           enddo
-c         enddo
-c      endif
- 
-c...  Or, instead, add a real timestep, dtreal, to the nksol equations 
+c...  Add a real timestep, dtreal, to the nksol equations 
 c...  NOTE!! condition yl(neq+1).lt.0 means a call from nksol, not jac_calc
 
       if(dtreal < 1.e15) then
@@ -7896,7 +7901,7 @@ c...  variables are used, i.e., n,nv,nT, or n,v,T, or n,v,nT
 
 *  -- Local variables
       integer ifld
-      real nbv, nbvdot, nbidot, nbedot, nbgdot, yldot_np1
+      real nbv, nbvdot, nbidot, nbedot, nbgdot, yldot_np1, nbg2dot(ngsp)
 
 c...  If isflxvar=0, we use ni,v,Te,Ti,ng as variables, and the ODEs need
 c...  to be modified as original equations are for d(nv)/dt, etc
@@ -7924,6 +7929,13 @@ ccc            if (isngonxy(ix,iy,1) .eq. 1) nbidot = cngtgx(1)*yldot(idxg(ix,iy
                   nbedot = nbedot + zi(ifld)*yldot(iv)*n0(ifld)
                endif
   255       continue
+            do igsp = 1, ngsp
+               nbg2dot(igsp) = 0.
+               if(isngonxy(ix,iy,ifld) == 1) then
+                 iv = idxg(ix,iy,igsp)
+                 nbg2dot(igsp) = yldot(iv)*n0g(igsp)
+               endif
+            enddo
 c...    Omit cases where iseqalg=1 indicating algebraic b.c. and ix=nx for up.
 c...    Could cause trouble for nisp.ne.nusp, but majority species should
 c...    be the first ones in the nisp series, so probably ok.
@@ -7977,6 +7989,13 @@ c ....            Fix limiter case with algebraic eqns, not ODEs
      .                            (nit(ix,iy) + cngtgx(1)*ng(ix,iy,1))
                  endif
                endif
+               do igsp = 1, ngsp
+                 if(istgonxy(ix,iy,igsp) == 1) then
+                   iv = idxtg(ix,iy,igsp)
+                   yldot(iv) = ( yldot(iv)*n0g(igsp) -
+     .                            yl(iv)*nbg2dot(igsp) )/ng(ix,iy,igsp)
+                 endif
+              enddo
             endif
   260    continue
  270  continue
@@ -8462,7 +8481,7 @@ cc     .                   jacelem = jacelem - nufak*suscal(iv)/sfscal(iv)
      .             '*** jac_calc -- More storage needed for Jacobian.',
      .             ' Storage exceeded at (i,j) = (',ii,',',iv,').',
      .             ' Increase lenpfac.'
-	          call kaboom(0)
+	          call xerrab("")
                endif
 cc               if (rdoff.ne.0.e0) jacelem=jacelem*(1.0e0+ranf()*rdoff)
                rcsc(nnz) = jacelem
@@ -8480,7 +8499,7 @@ ccc               call convsr_vo (xc, yc, yl)  # was one call to convsr
 ccc               call convsr_aux (xc, yc, yl)
                call remark("***** non-zero jac_elem at irstop,icstop")
                write(*,*) 'irstop = ', irstop, ', icstop = ', icstop
-               call kaboom(0)
+               call xerrab("")
             endif
 
          enddo  # end of ii loop over equations
@@ -8580,7 +8599,7 @@ c     factorization routine sgbco from Linpack/SLATEC.
          if (ierr .ne. 0) then
             write(STDOUT,*)
      .         '*** jac_lu_decomp -- csrbnd returned ierr =', ierr
-            call kaboom(0)
+            call xerrab("")
          endif
          tsmatfac = gettime(sec4)
          call sgbco (wp, lowd, INT(neq,4), INT(lbw,4), INT(ubw,4),
@@ -8624,7 +8643,7 @@ c ... Use incomplete factorization routine ilut from SparsKit.
      ./'    decrease the value of lfililut if lenplufac cannot be'
      ./'    increased.'
      .)
-            call kaboom(0)
+            call xerrab("")
          endif
 
 c ... Use incomplete factorization routine precond5 from INEL.
@@ -8637,7 +8656,7 @@ c ... Get the number of nonzero diagonals and the maximum in LU.
          if (ndiag .gt. ndiagmx) then
             call remark('More storage for diagonals of the Jacobian')
             call remark('is needed.  Increase value of ndiagmx.')
-            call kaboom(0)
+            call xerrab("")
          endif
          ndiagm = min(lfilinel+ndiag, ndiagmx)
          iwp(1) = ndiag
@@ -8909,7 +8928,7 @@ c     format.
      .             lbw, ubw, ierr)
       if (ierr .ne. 0) then
          write(STDOUT,*) '*** jacd1 -- ierr =', ierr
-         call kaboom(0)
+         call xerrab("")
       endif
 
       return
@@ -9655,7 +9674,7 @@ c ... Also find initial maximum of yldot*sf = ydt_max0 for scaling nufak
       do i = 1, neq
          if (abs(sf(i)) .lt. 1e20*cutlo) then
             write(*,*) '*** Error: Jacobian row = 0 for eqn iv =', i
-            call kaboom(0)
+            call xerrab("")
          else
             sf(i) = 1./sf(i)
          endif
@@ -9968,7 +9987,7 @@ cccc     tell user and abort if space is insufficient.
 ccc      if (allot('jacfull', neq*neq) .ne. 0) then
 ccc         write (STDOUT,*)
 ccc     .      '*** jacmap cannot get space for full Jacobian storage.'
-ccc         call kaboom(0)
+ccc         call xerrab("")
 ccc      endif
 
 c ... Convert Jacobian matrix to full storage format.
@@ -9977,7 +9996,7 @@ c ... Convert Jacobian matrix to full storage format.
          write (STDOUT,*)
      .      '*** jacmap got error return ierr =', ierr,
      .      ' from csrdns.'
-         call kaboom(0)
+         call xerrab("")
       endif
 
 c ... Open a file, and output the map.
@@ -11470,7 +11489,7 @@ c     Dimensions:
          call remark('*** READMCNTEST: nmcsp > nmcmx')
          call remark('                 re-compile with larger nmcmx')
          call remark('***')
-         call kaboom(0)
+         call xerrab("")
       endif
 
       call gchange("MCN_test",0)
@@ -11546,7 +11565,7 @@ c     dimension; Dynamic allocation not allowed on C90 (MER 97/03/11).
          call remark('*** READ44: natmi or nmoli or nioni > nmcmx')
          call remark('            re-compile with larger nmcmx')
          call remark('***')
-         call kaboom(0)
+         call xerrab("")
       endif
 
       call gchange("MCN_sources",0)
@@ -11782,7 +11801,7 @@ c ... equations
       Use(Compla)   # mi, zi, ni, uu, up, v2, v2ce, vygtan, mg
       Use(Comflo)   # flnix,flniy
       Use(Indices_domain_dcl)   # ixmxbcl
-
+	  
 c ------------------
 
       do 104 ifld = 1, nfsp
@@ -11843,8 +11862,8 @@ cfw                 flnix(ix,iy,ifld) = flnix(ix,iy,ifld) - fngxy(ix,iy,1)
 cfw              end if
 cc              endif
    80      continue
-           if (((geometry.eq.'dnbot').or.(geometry.eq.'dnXtarget'))
-     &                            .and. nxc > 1) flnix(nxc,iy,ifld)=0.
+           if ((isudsym==1.or.geometry.eq.'dnXtarget') 
+     .                               .and. nxc > 1) flnix(nxc,iy,ifld)=0.
            if (islimon.ne.0 .and. iy.ge.iy_lims) flnix(ix_lim,iy,ifld)=0.
            if (nxpt==2.and.ixmxbcl==1) flnix(ixrb(1)+1,iy,ifld)=0.
    81    continue

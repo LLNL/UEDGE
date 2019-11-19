@@ -16,7 +16,7 @@ c     main driver routine for wdf package
          call remark("*** Error:  write_degas procedure only valid when")
          call remark("               ixpt2-ixpt1 is an even number")
          call remark(" ")
-         call kaboom(0)
+         call xerrab("")
       endif
 
 c     allocate arrays for DEGAS
@@ -69,7 +69,7 @@ Use(Linkgrd)
 Use(Degas1)
 Use(Degas2)
       integer iunit, ios
-      external remark, kaboom, gallot, allot
+      external remark, xerrab, gallot, allot
       external rdgrd1, rdgrd2, rdgrd3
 
 c **************** read the output of the grd package ******************
@@ -78,8 +78,7 @@ c **************** read the output of the grd package ******************
       open (iunit, file='grd-wdf', form='unformatted', iostat=ios,
      &      status='old')
       if (ios .ne. 0) then
-         call remark("**** grd-wdf file not found")
-         call kaboom(0)
+         call xerrab("**** grd-wdf file not found")
       endif
 
 c     read dimensioning parameters and allot storage space for arrays --
@@ -336,7 +335,7 @@ c----------------------------------------------------------------------c
 Use(Dim)
 Use(Linkbbb)
       integer iunit, ios
-      external remark, kaboom, gallot, allot
+      external remark, xerrab, gallot, allot
 
 c **************** read the output of the bbb package ******************
 
@@ -344,8 +343,7 @@ c **************** read the output of the bbb package ******************
       open (iunit, file='bbb-wdf', form='unformatted', iostat=ios,
      &      status='old')
       if (ios .ne. 0) then
-         call remark("**** bbb-wdf file not found")
-         call kaboom(0)
+         call xerrab("**** bbb-wdf file not found")
       endif
 
       read (iunit) nxbbb,nybbb,nycorebbb,nysolbbb,nxleg1bbb,nxcore1bbb,

@@ -235,8 +235,7 @@ c ***************** read the output of the EFIT code *****************
       open (iunit, file=aeqdskfname, form='formatted', iostat=ios,
      .      status='old')
       if (ios .ne. 0) then
-         call remark("**** aeqdsk file not found")
-         call kaboom(0)
+         call xerrab("**** aeqdsk file not found")
       endif
 
         read (iunit,1056) uday,vmonth,vday,vyear
@@ -394,7 +393,7 @@ Use(Dimflxgrd)	#jdim,npts,nxefit,nyefit,nlim,nwork
 Use(Comflxgrd)	#geqdskfname
 Use(Polflx)
       integer iunit, ios
-      external gallot, kaboom, remark
+      external gallot, xerrab, remark
       character*8 label(6)
 
 c *************** read the output of the EFIT code ******************
@@ -402,8 +401,7 @@ c *************** read the output of the EFIT code ******************
       open (iunit, file=geqdskfname, form='formatted', iostat=ios,
      .      status='old')
       if (ios .ne. 0) then
-         call remark("**** geqdsk or neqdsk file not found")
-         call kaboom(0)
+         call xerrab("**** geqdsk or neqdsk file not found")
       endif
 
       read(iunit,2000) (label(i),i=1,6),idum,nxefit,nyefit
@@ -560,7 +558,7 @@ c     local variables --
       real eps, dpsidt_inner, dpsidt_outer
       real t1, t2, t3, r1, r2, r3, r2p, dx, dy, pi, twopi
 
-      external remark, kaboom, rho1
+      external remark, xerrab, rho1
 
       data nmax /30/	# maximum number of newton iterations for alfcy
       data eps /1.0e-10/	# convergence criterion for alfcy
@@ -787,7 +785,7 @@ c----------------------------------------------------------------------c
             call remark("***")
             call remark("*** inflx1: limiter surface r,zlimu not defined")
             call remark("***")
-            call kaboom(1)
+            call xerrab("")
          endif
          # find point on limiter that is nearest the magnetic axis:
          call findptnma(nlimu,rlimu,zlimu,rmagx,zmagx,
@@ -960,7 +958,7 @@ ccc	 ymaxf0(ns)=zseps*1.1
 	 call remark(" ")
 	 call remark("*** inflx1 : search region indexing error")
 	 call remark(" ")
-	 call kaboom(0)
+	 call xerrab("")
       endif
 
       return
@@ -983,7 +981,7 @@ c     local variables --
       real r2p
 
 c     procedures --
-      external kaboom
+      external xerrab
 
 c     initialization --
       data epslon /1.0e-7/
@@ -994,7 +992,7 @@ c     interval t2 < t < t3 with continuous first derivative at t2.
 
       if (t3 .le. t2) then
          write (STDOUT,900)
-         call kaboom(0)
+         call xerrab("")
       endif
   900 format("error in subroutine rho1; bad input parameters: t3 .le. t2")
 
@@ -1048,19 +1046,19 @@ c     with rho(t) and rho'(t) continuous at t2 and t3.
       if (t4 .le. t3) then
          call remark("error in subroutine rho1dn; bad input parameters:")
          write (STDOUT,901) t4, t3
-         call kaboom(0)
+         call xerrab("")
       endif
   901 format("t4=",f4.1," .le. t3=",f4.1)
       if (r2 .le. r1) then
          call remark("error in subroutine rho1dn; bad input parameters:")
          write (STDOUT,902) r2, r1
-         call kaboom(0)
+         call xerrab("")
       endif
   902 format("r2=",f9.6," .le. r1=",f9.6)
       if (r3 .le. r2) then
          call remark("error in subroutine rho1dn; bad input parameters:")
          write (STDOUT,903) r3, r2
-         call kaboom(0)
+         call xerrab("")
       endif
   903 format("r3=",f9.6," .le. r2=",f9.6)
 
@@ -1130,37 +1128,37 @@ c     NOTE: For fac=1, rho(t) is linear on the interval t2 < t < t3.
       if (t2 .le. t1) then
          call remark("error in subroutine rho2dn; bad input parameters:")
          write (STDOUT,899) t2, t1
-         call kaboom(0)
+         call xerrab("")
       endif
   899 format("t2=",f4.1," .le. t1=",f4.1)
       if (t3 .le. t2) then
          call remark("error in subroutine rho2dn; bad input parameters:")
          write (STDOUT,900) t3, t2
-         call kaboom(0)
+         call xerrab("")
       endif
   900 format("t3=",f4.1," .le. t2=",f4.1)
       if (t4 .le. t3) then
          call remark("error in subroutine rho2dn; bad input parameters:")
          write (STDOUT,901) t4, t3
-         call kaboom(0)
+         call xerrab("")
       endif
   901 format("t4=",f4.1," .le. t3=",f4.1)
       if (r2 .le. r1) then
          call remark("error in subroutine rho2dn; bad input parameters:")
          write (STDOUT,902) r2, r1
-         call kaboom(0)
+         call xerrab("")
       endif
   902 format("r2=",f9.6," .le. r1=",f9.6)
       if (r3 .le. r2) then
          call remark("error in subroutine rho2dn; bad input parameters:")
          write (STDOUT,903) r3, r2
-         call kaboom(0)
+         call xerrab("")
       endif
   903 format("r3=",f9.6," .le. r2=",f9.6)
       if (r4 .le. r3) then
          call remark("error in subroutine rho2dn; bad input parameters:")
          write (STDOUT,904) r4, r3
-         call kaboom(0)
+         call xerrab("")
       endif
   904 format("r4=",f9.6," .le. r3=",f9.6)
 
@@ -1233,37 +1231,37 @@ c     so for slp2fac=slp3fac=1, rho(t) is strictly linear on t2 < t < t3.
       if (t2 .le. t1) then
          call remark("error in subroutine rho3dn; bad input parameters:")
          write (STDOUT,899) t2, t1
-         call kaboom(0)
+         call xerrab("")
       endif
   899 format("t2=",f4.1," .le. t1=",f4.1)
       if (t3 .le. t2) then
          call remark("error in subroutine rho3dn; bad input parameters:")
          write (STDOUT,900) t3, t2
-         call kaboom(0)
+         call xerrab("")
       endif
   900 format("t3=",f4.1," .le. t2=",f4.1)
       if (t4 .le. t3) then
          call remark("error in subroutine rho3dn; bad input parameters:")
          write (STDOUT,901) t4, t3
-         call kaboom(0)
+         call xerrab("")
       endif
   901 format("t4=",f4.1," .le. t3=",f4.1)
       if (r2 .le. r1) then
          call remark("error in subroutine rho3dn; bad input parameters:")
          write (STDOUT,902) r2, r1
-         call kaboom(0)
+         call xerrab("")
       endif
   902 format("r2=",f9.6," .le. r1=",f9.6)
       if (r3 .le. r2) then
          call remark("error in subroutine rho3dn; bad input parameters:")
          write (STDOUT,903) r3, r2
-         call kaboom(0)
+         call xerrab("")
       endif
   903 format("r3=",f9.6," .le. r2=",f9.6)
       if (r4 .le. r3) then
          call remark("error in subroutine rho3dn; bad input parameters:")
          write (STDOUT,904) r4, r3
-         call kaboom(0)
+         call xerrab("")
       endif
   904 format("r4=",f9.6," .le. r3=",f9.6)
 
@@ -1322,14 +1320,14 @@ c     local variables --
       real a,b
 
 c     procedures --
-      external kaboom
+      external xerrab
 
 c     rho1l(t) is a rational function of the form (f+gt)/(p+qt) on
 c     the interval t1 < t < t2 with fixed slope at t1
 
       if (t2 .le. t1) then
          write (STDOUT,900)
-         call kaboom(0)
+         call xerrab("")
       endif
   900 format("error in subroutine rho1l; bad input parameters: t2 .le. t1")
 
@@ -1364,14 +1362,14 @@ c     local variables --
       real a,b
 
 c     procedures --
-      external kaboom
+      external xerrab
 
 c     rho1r(t) is a rational function of the form (f+gt)/(p+qt) on
 c     the interval t1 < t < t2 with fixed slope at t2
 
       if (t2 .le. t1) then
          write (STDOUT,900)
-         call kaboom(0)
+         call xerrab("")
       endif
   900 format("error in subroutine rho1r; bad input parameters: t2 .le. t1")
 
@@ -1406,7 +1404,7 @@ c     local variables --
       real a,b,c
 
 c     procedures --
-      external kaboom
+      external xerrab
 
 c     rho(t) is quadratic on the interval t1 < t < t2
 c     and linear on the interval t2 < t < t3 with continuous
@@ -1414,7 +1412,7 @@ c     first derivative at t2.
 
       if (t3 .le. t2) then
          write (STDOUT,900)
-         call kaboom(0)
+         call xerrab("")
       endif
   900 format("error in subroutine rho2; bad input parameters: t3 .le. t2")
 
@@ -1451,7 +1449,7 @@ c     local variables --
       real a,b,c,d
 
 c     procedures --
-      external kaboom
+      external xerrab
 
 c     rho(t) is cubic on the interval t1 < t < t2 and linear on
 c     the interval t2 < t < t3 with continuous first and second
@@ -1459,7 +1457,7 @@ c     derivatives at t2.
 
       if (t3 .le. t2) then
          write (STDOUT,900)
-         call kaboom(0)
+         call xerrab("")
       endif
   900 format("error in subroutine rho3; bad input parameters: t3 .le. t2")
 
@@ -1497,7 +1495,7 @@ c     local variables --
       real r2p_quadratic,d
 
 c     procedures --
-      external kaboom
+      external xerrab
 
 c     rho(t) is cubic on the interval t1 < t < t3 with the slope
 c     at t2 enhanced by a factor s2 over that obtained for a quadratic
@@ -1506,11 +1504,11 @@ c     form.
       if (t3 .le. t2) then
          write (STDOUT,901)
   901 format("error in subroutine rho4; bad input parameters: t3 .le. t2")
-         call kaboom(0)
+         call xerrab("")
       elseif (t2 .le. t1) then
          write (STDOUT,902)
   902 format("error in subroutine rho4; bad input parameters: t2 .le. t1")
-         call kaboom(0)
+         call xerrab("")
       endif
 
 c     For a quadratic form, the slope at t2 would be
@@ -1555,7 +1553,7 @@ c     local variables --
       real a,b,c,d
 
 c     procedures --
-      external kaboom
+      external xerrab
 
 c     This defines rho(t) as a piece-wise rational function of the form
 c          rho = r1 + (t-t1)/(a + b*(t-t1))
@@ -1566,12 +1564,12 @@ c     with a specified derivative rho'(t2) = r2p
 
       if (t2 .le. t1) then
          write (STDOUT,900)
-         call kaboom(0)
+         call xerrab("")
       endif
   900 format("error in subroutine rho5; bad input parameters: t2 .le. t1")
       if (t3 .le. t2) then
          write (STDOUT,901)
-         call kaboom(0)
+         call xerrab("")
       endif
   901 format("error in subroutine rho5; bad input parameters: t3 .le. t2")
 

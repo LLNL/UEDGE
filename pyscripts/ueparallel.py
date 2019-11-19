@@ -1,9 +1,9 @@
 #
 # Python file with some parallel operations
 #
-parallel_version = "$Id: ueparallel.py,v 7.0 2018/02/28 18:43:48 meyer8 Exp $"
+parallel_version = "$Id: ueparallel.py,v 7.1 2019/11/01 22:34:45 meyer8 Exp $"
 
-from uedge import with_numpy,gettypecode
+from .uedge import with_numpy,gettypecode
 if with_numpy:
   from numpy import *
   ArrayType = ndarray
@@ -77,7 +77,7 @@ def DisableAll():
 # Print object on all processors
 def pprint(obj):
   if not lparallel:
-    print str(obj)
+    print(str(obj))
     return
   # Ignore all exceptions to make sure that there is not a lock up.
   try:
@@ -85,13 +85,13 @@ def pprint(obj):
   except:
     ss = ''
   mpi.synchronizedWrite(ss+'\n')
-  if mpi.rank == 0: print
+  if mpi.rank == 0: print()
 
 # ---------------------------------------------------------------------------
 # Print array (or list) from all processors
 def aprint(obj):
   if not lparallel:
-    print str(obj)
+    print(str(obj))
     return
   mpi.synchronizedWrite(str(obj))
 
@@ -164,7 +164,7 @@ def gatherarray(a,root=0,othersempty=0,bcast=0):
   isinputok = globalmin(isinputok)
   # --- If any returned an error, then all exit (to avoid a deadlock)
   if not isinputok:
-    print "Object could not be converted to an array"
+    print("Object could not be converted to an array")
     return None
   # --- Now, actually gather the array.
   # --- The check of whether the result is ok may not be needed.
@@ -176,8 +176,8 @@ def gatherarray(a,root=0,othersempty=0,bcast=0):
   # --- Make sure again that the input is ok on all of the processors
   isinputok = globalmin(isinputok)
   if not isinputok:
-    print "Error in gather object"
-    if type(a) == ArrayType: print "Object has shape ",shape(a)
+    print("Error in gather object")
+    if type(a) == ArrayType: print("Object has shape ",shape(a))
     return None
   # --- All processors but root simply return either the input argument
   # --- or an empty array unless the result is to be broadcast

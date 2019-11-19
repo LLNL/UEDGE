@@ -308,17 +308,16 @@ c_mpi      integer ierr
       if (inegni .gt. 0 .and. itrap_negni.eq.1) then 
          call remark("***  ni is negative - calculation stopped")
 	 write(*,*) 'At  ix =', ixneg, ' iy =', iyneg, ' ifld =', ifldneg
-         call kaboom(0)
+         call xerrab("")
       endif
       if (inegng .gt. 0 .and. itrap_negng.eq.1) then 
          call remark("***  ng is negative - calculation stopped")
 	 write(*,*) 'At  ix =', ixneg, ' iy =', iyneg, ' igsp =', igspneg
-         call kaboom(0)
+         call xerrab("")
       endif
 cc Since Te and Ti have temin eV floors, this not used
 cc      if (inegt .gt. 0 .and. itrap_negt.eq.1) then 
-cc         call remark("***  Te or Ti is negative - calculation stopped")
-cc         call kaboom(0)
+cc         call xerrab("***  Te or Ti is negative - calculation stopped")
 cc      endif
 
 C the message passing is done twice here to get nm for up - very inefficient
@@ -510,8 +509,7 @@ c ... Replace values of ne calculated above by values consistent
 c     with those of the INEL average-ion impurity model, if it is
 c     being used.  Note that zi(2) passed to rnec will not be used.
       if (isimpon .eq. 3) then
-         call remark("**** Ave-ion model with isimpon=3 disabled")
-         call kaboom(0)
+         call xerrab("**** Ave-ion model with isimpon=3 disabled")
 ccc         impflag = 1
 ccc         do iy = js, je
 ccc            do ix = is, ie

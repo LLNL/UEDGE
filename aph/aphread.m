@@ -177,7 +177,7 @@ c     local variables --
       character idcod*8, idtyp*8, id1*32
 
 c     procedures --
-      external freeus, kaboom, remark, gallot, readrt1
+      external freeus, xerrab, gallot, readrt1
 
 c----------------------------------------------------------------------c
 c     Read ADPAK rate data from 'un*formatted' file (B. Braams)
@@ -187,8 +187,7 @@ c----------------------------------------------------------------------c
       open (nget, file=fname, form='formatted', iostat=ios,
      .     status='old')
       if (ios .ne. 0) then
-         call remark('**** ADPAK data file not found; set aphdir path')
-         call kaboom(0)
+         call xerrab('**** ADPAK data file not found; set aphdir path')
       endif
 
 c     read header --
@@ -269,7 +268,7 @@ c     local variables --
       integer ios, nget, jd, jt, jr
 
 c     procedures --
-      external freeus, kaboom, remark
+      external freeus, xerrab
 
 c----------------------------------------------------------------------c
 c     Read density-dependent rate data from POST93 data file 'nwfits'
@@ -279,8 +278,7 @@ c----------------------------------------------------------------------c
       open (nget, file=fname, form='formatted', iostat=ios,
      .     status='old')
       if (ios .ne. 0) then
-         call remark('**** data file nwfits not found; set aphdir path')
-         call kaboom(0)
+         call xerrab('**** data file nwfits not found; set aphdir path')
       endif
 
       jr = 1
@@ -317,7 +315,7 @@ c     local variables --
       integer ios, nget, jd, jt, jr
 
 c     procedures --
-      external freeus, kaboom, remark
+      external freeus, xerrab
 
 c----------------------------------------------------------------------c
 c     Read density-dependent rate data from DEGAS file 'eh.dat'
@@ -327,8 +325,7 @@ c----------------------------------------------------------------------c
       open (nget, file=fname, form='formatted', iostat=ios,
      .     status='old')
       if (ios .ne. 0) then
-         call remark('**** DEGAS file eh.dat not found; set aphdir path')
-         call kaboom(0)
+         call xerrab('**** DEGAS file eh.dat not found; set aphdir path')
       endif
 
       jr = 1
@@ -372,7 +369,7 @@ c     local variables --
       character*80 zdummy
 
 c     procedures --
-      external freeus, kaboom, remark
+      external freeus, xerrab
 
 c----------------------------------------------------------------------c
 c     Read density-dependent hydrogenic rate file, e.g., 'ehr1.dat'
@@ -382,9 +379,8 @@ c----------------------------------------------------------------------c
       open (nget, file=fname, form='formatted', iostat=ios,
      .     status='old')
       if (ios .ne. 0) then
-         call remark('**** hydrogenic rate file not found; set aphdir 
+         call xerrab('**** hydrogenic rate file not found; set aphdir 
      . path or isaphdir = 0')
-         call kaboom(0)
       endif
 
       do 100 jr=1,mpr
@@ -475,7 +471,7 @@ c     local variables --
       character*80 zdummy
 
 c     procedures --
-      external freeus, kaboom, remark
+      external freeus, xerrab
 
 c----------------------------------------------------------------------c
 c     Read dens-depend hydro. + n=2-9 data, e.g., thin.dat
@@ -485,9 +481,8 @@ c----------------------------------------------------------------------c
       open (nget, file=fname, form='formatted', iostat=ios,
      .     status='old')
       if (ios .ne. 0) then
-         call remark('**** hydrogenic rate file not found; set aphdir
+         call xerrab('**** hydrogenic rate file not found; set aphdir
      . path')
-         call kaboom(0)
       endif
 
 c     ionization rate (cm**3/sec):
@@ -638,7 +633,7 @@ c     local variables --
       integer ios, nget, je, jt
 
 c     procedures --
-      external freeus, kaboom, remark
+      external freeus, xerrab
 
 c----------------------------------------------------------------------c
 c     Read charge exchange rate data from DEGAS file 'atmc.dat'
@@ -648,9 +643,8 @@ c----------------------------------------------------------------------c
       open (nget, file=fname, form='formatted', iostat=ios,
      .     status='old')
       if (ios .ne. 0) then
-         call remark('**** DEGAS file atmc.dat not found; set aphdir
+         call xerrab('**** DEGAS file atmc.dat not found; set aphdir
      . path')
-         call kaboom(0)
       endif
 
 c     unused data:

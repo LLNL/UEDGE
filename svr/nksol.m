@@ -1,5 +1,5 @@
 c
-c $Id: nksol.m,v 7.0 2018/02/28 18:59:57 meyer8 Exp $
+c $Id: nksol.m,v 7.1 2019/10/14 22:59:29 meyer8 Exp $
 c
 
 c!include "../mppl.h"
@@ -1007,7 +1007,7 @@ C-----------------------------------------------------------------------
 ccc      ierrjm = ijmgetmr(msgjm,80,1,nrcv)
 ccc      if (ierrjm .eq. 0) then
 ccc         if (msgjm(1:nrcv).eq.'kaboom' .or. msgjm(1:nrcv).eq.'k')then
-ccc            call kaboom(0)
+ccc            call xerrab("")
 ccc         endif
 ccc      endif
 C-----------------------------------------------------------------------

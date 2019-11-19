@@ -1313,8 +1313,7 @@ c----------------------------------------------------------------------
       temp=delsq-ss
       arg=ds*ds+dd*temp
       if (arg <= 0.0) then
-        call remark('***FATAL in UOA (trsapp: divide-by-zero, reduce rhobeg')
-        call kaboom(0)
+        call xerrab('***FATAL in UOA (trsapp: divide-by-zero, reduce rhobeg')
       endif
       bstep=temp/(ds+sqrt(ds*ds+dd*temp))
       goto 170
@@ -1622,7 +1621,7 @@ c----------------------------------------------------------------------
 c_tdr      call parsestr("f_uoa=objfcn_newuoa(x_uoa)")
       call remark('***Must provide functionality just above to use')
       call remark('***parsestr does not work for c++ uedge')
-      call kaboom(0)
+      call xerrab("")
       f=f_uoa
 
       return

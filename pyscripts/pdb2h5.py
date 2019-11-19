@@ -13,17 +13,17 @@
 import sys, os
 
 # Import uefacets for interface convenience
-import uefacets
+from . import uefacets
 
 # import getopts for cmd line parsing
 import getopt
 
 # import uedge and all its structures
-from uedge import *
+from .uedge import *
 
 def usage(code):
-    print "pdb2h5 [-h] -i <infile> -o <outfile> [-p <paramfile>]"
-    print " -h: Print this help"
+    print("pdb2h5 [-h] -i <infile> -o <outfile> [-p <paramfile>]")
+    print(" -h: Print this help")
     sys.exit(code)
 
 try:
@@ -49,8 +49,8 @@ ue = uefacets.Uedge()
 
 try:
     ue.readParams(prmfile)
-except NameError, _:
-    print "No parameter file specified, continuing..."
+except NameError as _:
+    print("No parameter file specified, continuing...")
 
 ue.buildData()
 ue.restore(infile)

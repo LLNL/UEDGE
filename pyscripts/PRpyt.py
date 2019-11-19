@@ -5,7 +5,7 @@
 HDF basic writer class PR by David Grote, LLNL
 Heavily modified from PR.py originally written by Paul Dubois, LLNL, to use
 HDF files.
-$Id: PRpyt.py,v 7.0 2018/02/28 18:43:48 meyer8 Exp $
+$Id: PRpyt.py,v 7.1 2019/11/01 22:35:38 meyer8 Exp $
 
 This provides a nice wrapper over the pytables for reading general
 self-describing data sets written out with PWpyt.PW.
@@ -16,7 +16,7 @@ import pprint
 import tables
 import sys
 import re
-import cPickle
+import pickle
 import string
 
 _version = '0.4'
@@ -96,13 +96,13 @@ that PR can read it in.
     def check_open(self):
         "check_open(): raise exception if not open for read."
         if not self.is_open():
-            raise PRError, 'PR object not open for read.'
+            raise PRError('PR object not open for read.')
 
     def close(self):
         "close(): close the file."
         if self.is_open():
             if self.inquire_verbosity():
-                print "Closing HDF file ",self.inquire_filename()
+                print("Closing HDF file ",self.inquire_filename())
             self._file.close()
 
             self._file = None
@@ -129,10 +129,10 @@ that PR can read it in.
         else:
           # --- Get only names in the specified group
           ll = self._file.listNodes(group,classname='Leaf')
-          ll = map(lambda l:l.name,ll)
+          ll = [l.name for l in ll]
           # --- Fix the delimiter in all of the names if needed.
           if self._delimiter != '@':
-              ll = map(lambda l:self._fixdelimiter.sub(self._delimiter,l),ll)
+              ll = [self._fixdelimiter.sub(self._delimiter,l) for l in ll]
           return ll
 
     def inquire_mode(self):
@@ -193,7 +193,7 @@ that PR can read it in.
 
             # --- Handle special cases
             if node.title == "Pickled":
-              data = cPickle.loads(data)
+              data = pickle.loads(data)
             if node.title == 'ZeroLength':
               data = numpy.zeros(data[:-1],dtype=string.ascii_letters[data[-1]])
 
@@ -207,7 +207,7 @@ that PR can read it in.
         "read in the delimiter"
         node = self._file.getNode(self.inquire_group(),'_delimiter_')
         if node.title != 'Delimiter':
-            raise PRError,"Error: the delimiter was overwritten"
+            raise PRError("Error: the delimiter was overwritten")
         self._delimiter = node.read()
 
     def _scan_Nodes(self):
@@ -234,14 +234,14 @@ that PR can read it in.
         # --- Read in the pickled dictionary
         node = self._file.getNode(self.inquire_group()+'_pickledict')
         if node.title != 'PickleDict':
-            print "Warning: the pickle dictionary was written over, the data may not be reliable"
-        globalpickledict = cPickle.loads(node.read())
+            print("Warning: the pickle dictionary was written over, the data may not be reliable")
+        globalpickledict = pickle.loads(node.read())
 
         # --- Add the unpickled data to the cache
         self._cache.update(globalpickledict)
 
         # --- Add all of the names to the list
-        self._names += globalpickledict.keys()
+        self._names += list(globalpickledict.keys())
 
     def _readtable(self,table):
         for i in table.iterrows():
@@ -271,5 +271,5 @@ that PR can read it in.
         if 0 <= flag <= 2:
             self._verbose = flag
         else:
-            raise PRError, 'Illegal value for verbosity: '+`flag`
+            raise PRError('Illegal value for verbosity: '+repr(flag))
 

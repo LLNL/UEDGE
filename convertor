@@ -6,7 +6,7 @@ targetdir = "."
 #create the directory list
 f=open("Dirlist","r")
 dirlist =f.read().split()
-print "directory list =",dirlist
+print("directory list ="+repr(dirlist))
 # define the mppl to f90 class
 class M2F(generic):
    suffixin = "m"

@@ -300,8 +300,7 @@ c...  Make a symmetric grid in zm if isgrdsym=1; redistribute zm's and
       if (isgrdsym .eq. 1) then
          if ((nxm-1)/2.eq.nxm/2 .or. 
      .                          (ixpt2_init-1)/2.eq.ixpt2_init/2) then
-            call remark('*** nxm or ixpt2_init odd, cannot use isgrdsym ***')
-            call kaboom(0)
+            call xerrab('*** nxm or ixpt2_init odd, cannot use isgrdsym ***')
          endif
          do iy = 1, nym  #don't change points ,2 and ,4 until second ix loop
             do ix = 1, nx/2
@@ -701,7 +700,7 @@ c
       logical jump
       integer ibeg, irun, istart1, iend1, irange, i, k, nkint
       real rlimit, z1, z2, tau, s, t, dy1, beta
-      external kaboom
+      external xerrab
 
 c     icood=1, flux curve goes right, transform to system beta=0.
 c     icood=2, flux curve goes up, transform to system beta=Pi/2.
@@ -824,7 +823,7 @@ c     Definitions for this spline segment --
      &            " flux contour j = ",i2)
           write (STDOUT,*) "Try changing the value of alpha1 or"
           write (STDOUT,*) "increase psi0sep or increase psi0min1."
-          call kaboom(0)
+          call xerrab("")
        endif
        isys(iseg,j)=icood
        istartg(iseg,j)=istart1
@@ -863,7 +862,7 @@ c     Define interior knots --
       if (mode .ne. 0) then
          call remark("  *** subroutine codsys ***")
          call remark("error from SLATEC routine FC")
-         call kaboom(0)
+         call xerrab("")
       endif
 c     Store the spline data --
       ncap7(iseg,j)=nbkpt
@@ -891,7 +890,7 @@ Use(Spline)
       real B1VAhL
       external B1VAhL
 
-      external kaboom
+      external xerrab
 
 c     evaluates the (iseg,j) spline at x :
 c     returns array y(k) = k-1 th derivative for k=1,4
@@ -910,7 +909,7 @@ c     returns array y(k) = k-1 th derivative for k=1,4
      &           " contour ",i2)
          write (STDOUT,902) x
   902    format ("   x = ",1p1e14.6," in rotated coordinate system")
-         call kaboom(0)
+         call xerrab("")
       endif
 
       return
@@ -931,7 +930,7 @@ c     local variables --
       integer region,j,nex
 
 c     procedures --
-      external remark,kaboom
+      external remark,xerrab
 
 c     This subroutine ensures that each contour extends to (or below)
 c     a lower boundary at y = yextend by linearly extrapolating if
@@ -947,7 +946,7 @@ c     loop over all regions --
       if (nex .ge. npts) then
          call remark("***** error in subroutine extend")
          call remark("***** number of data points exceeds npts")
-         call kaboom(0)
+         call xerrab("")
       endif
       npointg(j)=nex
       ycurveg(nex+1,j)=2.*ycurveg(nex,j)-ycurveg(nex-1,j)
@@ -993,11 +992,11 @@ c     check for possible out-of-range error condition:
          if (xo .lt. xknts(1,iseg,j)) then
             call remark("*** error from s.r. findalph")
             write (STDOUT,901) iseg,j,xob,yob
-            call kaboom(0)
+            call xerrab("")
          elseif (xo .gt. xknts(ncap7(iseg,j),iseg,j)) then
             call remark("*** error from s.r. findalph")
             write (STDOUT,901) iseg,j,xob,yob
-            call kaboom(0)
+            call xerrab("")
          endif
  901     format("iseg,j,xob,yob = ",i3,i3,f11.4,f11.4)
 
@@ -1346,7 +1345,7 @@ c     local variables --
      &     xob,xosptrx,yob,yosptrx
 
 c     procedures ---
-      external findalph, kaboom, orthogrd, orthogx, remark
+      external findalph, xerrab, orthogrd, orthogx, remark
 
 c     initialization --
       data alphab /0./
@@ -1389,7 +1388,7 @@ c     *** find the segment and the corresponding system.
             write (STDOUT,899) isptrx,jj
   899       format ("data point i=",i3," on contour j=",i3," is not",
      &              " assigned to a spline segment")
-            call kaboom(0)
+            call xerrab("")
          endif
          nsys=isys(iseg,jj)
 c     *** find the rotation angle of the moving system.
@@ -1526,7 +1525,7 @@ Use(Inmesh)
 Use(Linkco)
 Use(Mmod)
 Use(Transfm)
-      external intersect2, remark, kaboom
+      external intersect2, remark, xerrab
 
 c     Local variables --
       integer i,istart,iend,ii,ii1,ii2,j,j1,j2,k,ierr
@@ -1548,8 +1547,7 @@ c     Define the upstream reference surface that stays fixed:
       if (region .eq. 1) then
          nupstream=nupstream1
          if (nupstream .gt. nptmp) then
-            call remark("dimension of r,zupstream1 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("dimension of r,zupstream1 exceeds nptmp")
          endif
          do k=1,nupstream
             rupstream(k)=rupstream1(k)
@@ -1558,8 +1556,7 @@ c     Define the upstream reference surface that stays fixed:
       elseif (region .eq. 2) then
          nupstream=nupstream2
          if (nupstream .gt. nptmp) then
-            call remark("dimension of r,zupstream2 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("dimension of r,zupstream2 exceeds nptmp")
          endif
          do k=1,nupstream
             rupstream(k)=rupstream2(k)
@@ -1571,8 +1568,7 @@ c     Define the surface that coincides with the new divertor plate:
       if (region .eq. 1) then
          nplate=nplate1
          if (nplate .gt. nptmp) then
-            call remark("dimension of r,zplate1 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("dimension of r,zplate1 exceeds nptmp")
          endif
          do k=1,nplate
             rplate(k)=rplate1(k)
@@ -1581,8 +1577,7 @@ c     Define the surface that coincides with the new divertor plate:
       elseif (region .eq. 2) then
          nplate=nplate2
          if (nplate .gt. nptmp) then
-            call remark("dimension of r,zplate2 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("dimension of r,zplate2 exceeds nptmp")
          endif
          do k=1,nplate
             rplate(k)=rplate2(k)
@@ -1593,8 +1588,7 @@ c     Define the surface that coincides with the new divertor plate:
 c     Define the surface that coincides with the original divertor plate:
       nplate0=j2-j1+1
          if (nplate0 .gt. nptmp) then
-            call remark("dimension of r,zplate0 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("dimension of r,zplate0 exceeds nptmp")
          endif
       do k=j1,j2
          rplate0(k-j1+1)=cmeshx(iend,k)
@@ -1640,7 +1634,7 @@ c     Intersection of (cmeshx,y) with upstream reference surface
          if (ierr .ne. 0) then
             write (STDOUT,885) j
  885        format ("no upstream intersection for cmeshx,y on j=",i3)
-            call kaboom(0)
+            call xerrab("")
          endif
 
 c        ensure that separatrix points are not modified above x-point:
@@ -1678,7 +1672,7 @@ c     Intersection of (x,ycurveg) with upstream reference surface
          if (ierr .ne. 0) then
             write (STDOUT,886) j
  886        format ("no upstream intersection for x,ycurveg on j=",i3)
-            call kaboom(0)
+            call xerrab("")
          endif
 
 c        ensure that separatrix points are not modified above x-point:
@@ -1704,7 +1698,7 @@ c     Intersection of (x,ycurveg) with new divertor plate
  887        format ("no new plate intersection for x,ycurveg on j=",i3)
             write (STDOUT,889)
  889        format ("*** You may have to extend the plate end points")
-            call kaboom(0)
+            call xerrab("")
          endif
          ii2=icp+1	# index of first point below new divertor plate
 
@@ -1759,7 +1753,7 @@ Use(Inmesh)	# ilmax
 Use(Linkco)	# ixpoint,cmeshx,cmeshy
 Use(Mmod)	# 
 Use(Transfm)	# ijump
-      external intersect2, remark, kaboom
+      external intersect2, remark, xerrab
 
 c     local variables --
       integer i,ii,istart,iend,j,jj,k
@@ -1776,8 +1770,7 @@ c     Define the upstream reference surface:
       if (region .eq. 1) then
          nupstream=nupstream1
          if (nupstream .gt. nptmp) then
-            call remark("meshmod2: dim'n of r,zupstream1 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("meshmod2: dim'n of r,zupstream1 exceeds nptmp")
          endif
          do k=1,nupstream
             rupstream(k)=rupstream1(k)
@@ -1786,8 +1779,7 @@ c     Define the upstream reference surface:
       elseif (region .eq. 2) then
          nupstream=nupstream2
          if (nupstream .gt. nptmp) then
-            call remark("meshmod2: dim'n of r,zupstream2 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("meshmod2: dim'n of r,zupstream2 exceeds nptmp")
          endif
          do k=1,nupstream
             rupstream(k)=rupstream2(k)
@@ -1800,8 +1792,7 @@ c     Define the divertor plate surface:
       if (region .eq. 1) then
          nplate=nplate1
          if (nplate .gt. nptmp) then
-            call remark("meshmod2: dimension of r,zplate exceeds nptmp")
-            call kaboom(0)
+            call xerrab("meshmod2: dimension of r,zplate exceeds nptmp")
          endif
          do k=1,nplate
             rplate(k)=rplate1(k)
@@ -1810,8 +1801,7 @@ c     Define the divertor plate surface:
       elseif (region .eq. 2) then
          nplate=nplate2
          if (nplate .gt. nptmp) then
-            call remark("meshmod2: dimension of r,zplate exceeds nptmp")
-            call kaboom(0)
+            call xerrab("meshmod2: dimension of r,zplate exceeds nptmp")
          endif
          do k=1,nplate
             rplate(k)=rplate2(k)
@@ -1840,7 +1830,7 @@ c     Intersection of reference surface with x,ycurveg
             write (STDOUT,886) j
  886        format 
      & ("meshmod2: no reference intersection for x,ycurveg on j=",i3)
-            call kaboom(0)
+            call xerrab("")
          endif
          ii1=icu+1	# index of first point below reference surface
 c     Re-define the data point at index ii1-1 to lie exactly on the
@@ -1858,7 +1848,7 @@ c     Intersection of divertor plate surface with x,ycurveg)
      & ("meshmod2: no plate intersection for x,ycurveg on j=",i3)
             write (STDOUT,889)
  889        format ("*** You may have to extend the plate end points")
-            call kaboom(0)
+            call xerrab("")
          endif
          ii2=icp+1	# index of first point below divertor plate
 
@@ -1942,7 +1932,7 @@ Use(Mmod)       # ntop,ntop1,ntop2,rtop,rtop1,rtop2,ztop,ztop1,ztop2,
                 # ymsh,dss,dssleg,xcrv,ycrv,dsm,dsc,dmix0,delmax,
                 # dsmesh0,dsmesh1,dsmesh2,dsmesh,wtmesh1
 Use(Transfm)    # ijump
-      external intersect2, remark, kaboom, twixt
+      external intersect2, remark, xerrab, twixt
       logical twixt
 
 c     Local variables --
@@ -1970,8 +1960,7 @@ c     Define the top-of-mesh surface :
       if (region .eq. 1) then
          ntop=ntop1
          if (ntop .gt. nptmp) then
-            call remark("dimension of r,ztop1 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("dimension of r,ztop1 exceeds nptmp")
          endif
          do k=1,ntop
             rtop(k)=rtop1(k)
@@ -1980,8 +1969,7 @@ c     Define the top-of-mesh surface :
       elseif (region .eq. 2) then
          ntop=ntop2
          if (ntop .gt. nptmp) then
-            call remark("dimension of r,ztop2 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("dimension of r,ztop2 exceeds nptmp")
          endif
          do k=1,ntop
             rtop(k)=rtop2(k)
@@ -1993,8 +1981,7 @@ c     Define the upstream reference surface :
       if (region .eq. 1) then
          nupstream=nupstream1
          if (nupstream .gt. nptmp) then
-            call remark("dimension of r,zupstream1 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("dimension of r,zupstream1 exceeds nptmp")
          endif
          do k=1,nupstream
             rupstream(k)=rupstream1(k)
@@ -2003,8 +1990,7 @@ c     Define the upstream reference surface :
       elseif (region .eq. 2) then
          nupstream=nupstream2
          if (nupstream .gt. nptmp) then
-            call remark("dimension of r,zupstream2 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("dimension of r,zupstream2 exceeds nptmp")
          endif
          do k=1,nupstream
             rupstream(k)=rupstream2(k)
@@ -2016,8 +2002,7 @@ c     Define the downstream reference surface :
       if (region .eq. 1) then
          ndnstream=ndnstream1
          if (ndnstream .gt. nptmp) then
-            call remark("dimension of r,zdnstream1 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("dimension of r,zdnstream1 exceeds nptmp")
          endif
          do k=1,ndnstream
             rdnstream(k)=rdnstream1(k)
@@ -2026,8 +2011,7 @@ c     Define the downstream reference surface :
       elseif (region .eq. 2) then
          ndnstream=ndnstream2
          if (ndnstream .gt. nptmp) then
-            call remark("dimension of r,zdnstream2 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("dimension of r,zdnstream2 exceeds nptmp")
          endif
          do k=1,ndnstream
             rdnstream(k)=rdnstream2(k)
@@ -2039,8 +2023,7 @@ c     Define the new divertor plate surface :
       if (region .eq. 1) then
          nplate=nplate1
          if (nplate .gt. nptmp) then
-            call remark("dimension of r,zplate1 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("dimension of r,zplate1 exceeds nptmp")
          endif
          do k=1,nplate
             rplate(k)=rplate1(k)
@@ -2049,8 +2032,7 @@ c     Define the new divertor plate surface :
       elseif (region .eq. 2) then
          nplate=nplate2
          if (nplate .gt. nptmp) then
-            call remark("dimension of r,zplate2 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("dimension of r,zplate2 exceeds nptmp")
          endif
          do k=1,nplate
             rplate(k)=rplate2(k)
@@ -2061,8 +2043,7 @@ c     Define the new divertor plate surface :
 c     Define the old (orthogonal) divertor plate surface :
       nplate0=j2-j1+1
          if (nplate0 .gt. nptmp) then
-            call remark("dimension of r,zplate0 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("dimension of r,zplate0 exceeds nptmp")
          endif
       do k=j1,j2
          rplate0(k-j1+1)=cmeshx0(iend,k)
@@ -2154,7 +2135,7 @@ c     Intersection of (cmeshx,y) with upstream reference surface
          if (ierr .ne. 0) then
             write (STDOUT,880) j
  880        format ("no upstream intersection for cmeshx,y on j=",i3)
-            call kaboom(0)
+            call xerrab("")
          endif
          if (imu .lt. imt) then
             imu=imt
@@ -2191,7 +2172,7 @@ c     Intersection of (x,ycurveg) with top-of-mesh surface
          if (ierr .ne. 0) then
             write (STDOUT,884) j
  884        format ("no top-of-mesh intersection for x,ycurveg on j=",i3)
-            call kaboom(0)
+            call xerrab("")
          endif
          if (j .eq. jsptrx(region)) then	# top is at x-point
             ict=ijump(j)+2	# there are 3 identical data points here
@@ -2207,7 +2188,7 @@ c     Intersection of (x,ycurveg) with upstream reference surface
          if (ierr .ne. 0) then
             write (STDOUT,885) j
  885        format ("no upstream intersection for x,ycurveg on j=",i3)
-            call kaboom(0)
+            call xerrab("")
          endif
 c        index of first point below reference surface is icu+1
 c        Ensure that upstream surface lies "below" top-of-mesh surface
@@ -2224,7 +2205,7 @@ c     Intersection of (x,ycurveg) with downstream reference surface
          if (ierr .ne. 0) then
             write (STDOUT,886) j
  886        format ("no dnstream intersection for x,ycurveg on j=",i3)
-            call kaboom(0)
+            call xerrab("")
          endif
 c        index of first point below reference surface is icd+1
 c        Ensure that downstream surface lies "below" upstream surface
@@ -2245,7 +2226,7 @@ c           a possible problem with multiple intersections (MER 95/09/05)
  888        format ("no new plate intersection for x,ycurveg on j=",i3)
             write (STDOUT,889)
  889        format ("*** You may have to extend the plate end points")
-            call kaboom(0)
+            call xerrab("")
          endif
 c        index of first point below new divertor plate is icp+1
 
@@ -2256,7 +2237,7 @@ c     Intersection of (x,ycurveg) with old divertor plate
          if (ierr .ne. 0) then
             write (STDOUT,890) j
  890        format ("no old plate intersection for x,ycurveg on j=",i3)
-            call kaboom(0)
+            call xerrab("")
          endif
 c        index of first point below old divertor plate is icp0+1
 
@@ -2357,7 +2338,7 @@ c     Intersection of x,ycurveg with ith angle (orthogonal) surface
                write (STDOUT,891) j,i
  891           format ("no angle intersection for x,ycurveg on j=",i3,
      &                 " at i=",i3)
-               call kaboom(0)
+               call xerrab("")
             endif
 c     Index of first (x,ycrv) point below angle surface is ica+1
             dsmesh0(i)=dsc(ica)+sqrt( (xca-xcrv(ica))**2
@@ -2453,7 +2434,7 @@ Use(Mmod)	# nupstream,rupstream,zupstream as temporary arrays
                 # ndnstream,rdnstream,zdnstream as temporary arrays
 		# xcrv,ycrv,dsc,fuzzm,wtold
 Use(Transfm)	# ijump
-      external intersect2, remark, kaboom
+      external intersect2, remark, xerrab
 
 c     Local variables --
       integer ii,j,i1crv,i2crv,icu,kcu,icp,kcp,ierr,region,istart,iend
@@ -2471,8 +2452,7 @@ c     Smooth spatial irregularities in angle-like surfaces of the mesh
 	 elseif (j .gt. jaxis) then
 	    region=2
 	 else
-	    call remark("smooth: region not defined")
-	    call kaboom(0)
+	    call xerrab("smooth: region not defined")
 	 endif
 
 c     Temporary variables for (xcurveg,ycurveg) surface data
@@ -2498,7 +2478,7 @@ c     Intersection of straight line with x,ycurveg is (xcu,ycu):
             write (STDOUT,886) j,i
  886        format 
      & ("smooth: no intersection for x,ycurveg on j=",i3," with i=",i3)
-            call kaboom(0)
+            call xerrab("")
          endif
 c     The point (x,ycu) lies between icu and icu+1 on x,ycrv.
 
@@ -2519,7 +2499,7 @@ c     Intersection of segmented line with x,ycurveg is (xcp,ycp):
             write (STDOUT,887) j,i
  887        format 
      & ("smooth: no intersection for x,ycurveg on j=",i3," with i=",i3)
-            call kaboom(0)
+            call xerrab("")
          endif
 c     The point (x,ycp) lies between icp and icp+1 on x,ycrv.
 
@@ -2663,7 +2643,7 @@ c     *** determine the segment on which this point lies.
                write (STDOUT,901) i,j
   901          format ("orthogonal surface i = ",i3,
      &                 " at flux surface j = ",i3)
-               call kaboom(0)
+               call xerrab("")
             endif
             iseg=isegalt
          endif
@@ -2672,7 +2652,7 @@ c     *** determine the segment on which this point lies.
             write (STDOUT,899) ipoint,j
   899       format ("data point i=",i3," on contour j=",i3," is not",
      &              " assigned to a spline segment")
-            call kaboom(0)
+            call xerrab("")
          endif
          nsys=isys(iseg,j)
          alphaf=alphasys(nsys)
@@ -2832,7 +2812,7 @@ c     *** determine the segment on which this point lies.
                write (STDOUT,901) i,j
   901          format ("orthogonal surface i = ",i3,
      &                 " at flux surface j = ",i3)
-               call kaboom(0)
+               call xerrab("")
             endif
             iseg=isegalt
          endif
@@ -2841,7 +2821,7 @@ c     *** determine the segment on which this point lies.
             write (STDOUT,899) ipoint,j
   899       format ("data point i=",i3," on contour j=",i3," is not",
      &              " assigned to a spline segment")
-            call kaboom(0)
+            call xerrab("")
          endif
          nsys=isys(iseg,j)
          alphaf=alphasys(nsys)
@@ -3061,7 +3041,7 @@ c     ------------------------------------------------------------------
       real xcurveg(nptsg,jdimg),ycurveg(nptsg,jdimg)
       real cmeshx(idimg,jdimg),cmeshy(idimg,jdimg)
 
-      external twixt,remark,kaboom
+      external twixt,remark,xerrab
       logical twixt,xtest,ytest
 
 c     This subroutine finds the indicies (km,kp) of the (x,ycurveg)
@@ -3097,7 +3077,7 @@ c     Otherwise, xtest and ytest are FALSE.
          if (km==0) then			# test not satisfied
             call remark("***     failure in subroutine seed0      ***")
             call remark("*** first point not found on separatrix ***")
-            call kaboom(0)
+            call xerrab("")
          else				# interpolate to find y
             dx1=abs(xcurveg(km,j)-x0)
             dx2=abs(xcurveg(kp,j)-x0)
@@ -3118,7 +3098,7 @@ c     Otherwise, xtest and ytest are FALSE.
          if (km==0) then			# test not satisfied
             call remark("***     failure in subroutine seed0      ***")
             call remark("*** first point not found on separatrix ***")
-            call kaboom(0)
+            call xerrab("")
          else				# put data in cmeshx,y
             cmeshx(i,j)=x0
             cmeshy(i,j)=y0
@@ -3136,7 +3116,7 @@ c     Otherwise, xtest and ytest are FALSE.
          if (km==0) then			# test not satisfied
             call remark("***     failure in subroutine seed0      ***")
             call remark("*** first point not found on separatrix ***")
-            call kaboom(0)
+            call xerrab("")
          else				# interpolate to find x
             dy1=abs(ycurveg(km,j)-y0)
             dy2=abs(ycurveg(kp,j)-y0)
@@ -3159,7 +3139,7 @@ c     ------------------------------------------------------------------
       real xcurveg(nptsg,jdimg),ycurveg(nptsg,jdimg)
       real cmeshx(idimg,jdimg),cmeshy(idimg,jdimg)
 
-      external twixt,remark,kaboom
+      external twixt,remark,xerrab
       logical twixt,xtest,ytest
 
 c     This subroutine finds the indicies (km,kp) of the (x,ycurveg)
@@ -3195,7 +3175,7 @@ c     Otherwise, xtest and ytest are FALSE.
          if (km==0) then			# test not satisfied
             call remark("***     failure in subroutine seedl      ***")
             call remark("*** strike point not found on separatrix ***")
-            call kaboom(0)
+            call xerrab("")
          else				# interpolate to find y
             dx1=abs(xcurveg(km,j)-xl)
             dx2=abs(xcurveg(kp,j)-xl)
@@ -3216,7 +3196,7 @@ c     Otherwise, xtest and ytest are FALSE.
          if (km==0) then			# test not satisfied
             call remark("***     failure in subroutine seedl      ***")
             call remark("*** strike point not found on separatrix ***")
-            call kaboom(0)
+            call xerrab("")
          else				# put data in cmeshx,y
             cmeshx(i,j)=xl
             cmeshy(i,j)=yl
@@ -3234,7 +3214,7 @@ c     Otherwise, xtest and ytest are FALSE.
          if (km==0) then			# test not satisfied
             call remark("***     failure in subroutine seedl      ***")
             call remark("*** strike point not found on separatrix ***")
-            call kaboom(0)
+            call xerrab("")
          else				# interpolate to find x
             dy1=abs(ycurveg(km,j)-yl)
             dy2=abs(ycurveg(kp,j)-yl)
@@ -3318,7 +3298,7 @@ c           Intersection of (x,ycurveg) with top-of-mesh surface
             if (ierr .ne. 0) then
                write (STDOUT,884) j
  884           format ("sow: no top-of-mesh for x,ycurveg on j=",i3)
-               call kaboom(0)
+               call xerrab("")
             endif
 c           index of first point below top-of-mesh is ict+1
             cmeshx(i0,j)=xct
@@ -4896,7 +4876,7 @@ c     local variables --
       integer n,j,npt,j1,npt1
       real dx,dy,rleft,slope,yc1
 
-      external remark,kaboom
+      external remark,xerrab
 
 c     This subroutine extrapolates flux contours beyond the left
 c     boundary of the EFIT computational domain, to permit construction
@@ -4927,7 +4907,7 @@ c     Extrapolate the separatrix:
          else
             call remark("***  error in subroutine exleft  ***")
             call remark("*** npointg(j) exceeds npts limit ***")
-            call kaboom(0)
+            call xerrab("")
          endif
 
 c     Extrapolate SOL flux surfaces:
@@ -4949,7 +4929,7 @@ c     Prevent flux surface intersection
 	    else
 	       call remark("***  error in subroutine exleft  ***")
 	       call remark("*** npointg(j) exceeds npts limit ***")
-	       call kaboom(0)
+	       call xerrab("")
 	    endif
          enddo
 
@@ -4972,7 +4952,7 @@ c     Prevent flux surface intersection
 	    else
 	       call remark("***  error in subroutine exleft  ***")
 	       call remark("*** npointg(j) exceeds npts limit ***")
-	       call kaboom(0)
+	       call xerrab("")
 	    endif
          enddo
 
@@ -5008,7 +4988,7 @@ Use(Transfm)    # ijump
 
       real xtform, wtform
       external intersect2, xtform, wtform
-      external remark, kaboom
+      external remark, xerrab
 
 c     Local variables --
       integer i,iend,ii,j,j1,j2,k,ierr
@@ -5043,8 +5023,7 @@ c     Define the top-of-mesh surface :
       if (region .eq. 1) then
          ntop=ntop1
          if (ntop .gt. nptmp) then
-            call remark("dimension of r,ztop1 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("dimension of r,ztop1 exceeds nptmp")
          endif
          do k=1,ntop
             rtop(k)=rtop1(k)
@@ -5053,8 +5032,7 @@ c     Define the top-of-mesh surface :
       elseif (region .eq. 2) then
          ntop=ntop2
          if (ntop .gt. nptmp) then
-            call remark("dimension of r,ztop2 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("dimension of r,ztop2 exceeds nptmp")
          endif
          do k=1,ntop
             rtop(k)=rtop2(k)
@@ -5066,8 +5044,7 @@ c     Define the upstream reference surface :
       if (region .eq. 1) then
          nupstream=nupstream1
          if (nupstream .gt. nptmp) then
-            call remark("dimension of r,zupstream1 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("dimension of r,zupstream1 exceeds nptmp")
          endif
          do k=1,nupstream
             rupstream(k)=rupstream1(k)
@@ -5076,8 +5053,7 @@ c     Define the upstream reference surface :
       elseif (region .eq. 2) then
          nupstream=nupstream2
          if (nupstream .gt. nptmp) then
-            call remark("dimension of r,zupstream2 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("dimension of r,zupstream2 exceeds nptmp")
          endif
          do k=1,nupstream
             rupstream(k)=rupstream2(k)
@@ -5089,8 +5065,7 @@ c     Define the flamefront surface :
       if (region .eq. 1) then
          nff=nff1
          if (nff .gt. nptmp) then
-            call remark("dimension of r,zff1 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("dimension of r,zff1 exceeds nptmp")
          endif
          do k=1,nff
             rff(k)=rff1(k)
@@ -5099,8 +5074,7 @@ c     Define the flamefront surface :
       elseif (region .eq. 2) then
          nff=nff2
          if (nff .gt. nptmp) then
-            call remark("dimension of r,zff2 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("dimension of r,zff2 exceeds nptmp")
          endif
          do k=1,nff
             rff(k)=rff2(k)
@@ -5127,8 +5101,7 @@ c     Define the divertor plate surface :
       if (region .eq. 1) then
          nplate=nplate1
          if (nplate .gt. nptmp) then
-            call remark("dimension of r,zplate1 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("dimension of r,zplate1 exceeds nptmp")
          endif
          do k=1,nplate
             rplate(k)=rplate1(k)
@@ -5137,8 +5110,7 @@ c     Define the divertor plate surface :
       elseif (region .eq. 2) then
          nplate=nplate2
          if (nplate .gt. nptmp) then
-            call remark("dimension of r,zplate2 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("dimension of r,zplate2 exceeds nptmp")
          endif
          do k=1,nplate
             rplate(k)=rplate2(k)
@@ -5164,7 +5136,7 @@ c     Intersection of (cmeshx,y) with flamefront surface
       if (ierr .ne. 0) then
          write (STDOUT,801) j
  801     format ("no flamefront intersection for cmeshx,y on j=",i3)
-         call kaboom(0)
+         call xerrab("")
       endif
 c     Allow the user to specify the number of cells downstream
 c     between the flamefront and divertor plate
@@ -5219,7 +5191,7 @@ c     Intersection of (x,ycurveg) with top-of-mesh surface
          if (ierr .ne. 0) then
             write (STDOUT,884) j
  884        format ("no top-of-mesh intersection for x,ycurveg on j=",i3)
-            call kaboom(0)
+            call xerrab("")
          endif
          if (j .eq. jsptrx(region)) then	# top is at x-point
             ict=ijump(j)+2	# there are 3 identical data points here
@@ -5235,7 +5207,7 @@ c     Intersection of (x,ycurveg) with upstream reference surface
          if (ierr .ne. 0) then
             write (STDOUT,885) j
  885        format ("no upstream intersection for x,ycurveg on j=",i3)
-            call kaboom(0)
+            call xerrab("")
          endif
 c        index of first point below reference surface is icu+1
 c        Ensure that upstream surface lies "below" top-of-mesh surface
@@ -5252,7 +5224,7 @@ c     Intersection of (x,ycurveg) with flamefront surface
          if (ierr .ne. 0) then
             write (STDOUT,886) j
  886        format ("no flamefront intersection for x,ycurveg on j=",i3)
-            call kaboom(0)
+            call xerrab("")
          endif
 c        index of first point below flamefront surface is icff+1
 c        Ensure that flamefront surface lies "below" upstream surface
@@ -5273,7 +5245,7 @@ c     a possible problem with multiple intersections (MER 95/09/05)
  888        format ("no plate intersection for x,ycurveg on j=",i3)
             write (STDOUT,889)
  889        format ("*** You may have to extend the plate end points")
-            call kaboom(0)
+            call xerrab("")
          endif
 c        index of first point below divertor plate is icp+1
 
@@ -5334,7 +5306,7 @@ c     Intersection of x,ycurveg with ith angle (orthogonal) surface
                write (STDOUT,891) j,i
  891           format ("no angle intersection for x,ycurveg on j=",i3,
      &                 " at i=",i3)
-               call kaboom(0)
+               call xerrab("")
             endif
 c     Index of first (x,ycrv) point below angle surface is ica+1
             dsmesh3(i)=dsc(ica)+sqrt( (xca-xcrv(ica))**2
@@ -5393,7 +5365,7 @@ c----------------------------------------------------------------------c
       integer iflag
       real t,t1,t2,t3,wtmax,gamma12,gamma23
 
-      external remark,kaboom
+      external remark,xerrab
 
       if (iflag .eq. 0) then
          wtform = wtmax
@@ -5406,8 +5378,7 @@ c----------------------------------------------------------------------c
             wtform = wtmax * ((t3-t)/(t3-t2))**gamma23
          endif
       else
-         call remark("*** wtform: unknown iflag option ***")
-         call kaboom(0)
+         call xerrab("*** wtform: unknown iflag option ***")
       endif
 
       return
@@ -5422,7 +5393,7 @@ c----------------------------------------------------------------------c
       real t,t1,t2,t3,x1,x2,x3,slopefac1,slopefac2,slopefac3
 
       real xtform1,xtform2,xtform3
-      external xtform1,xtform2,xtform3,remark,kaboom
+      external xtform1,xtform2,xtform3,remark,xerrab
 
       if (iflag .eq. 1) then
          xtform = xtform1(t,t1,t2,t3,x1,x2,x3,
@@ -5434,8 +5405,7 @@ c----------------------------------------------------------------------c
          xtform = xtform3(t,t1,t2,t3,x1,x2,x3,
      &                      slopefac1,slopefac2,slopefac3)
       else
-         call remark("*** xtform: unknown iflag option ***")
-         call kaboom(0)
+         call xerrab("*** xtform: unknown iflag option ***")
       endif
 
       return
@@ -5617,7 +5587,7 @@ c     outboard regions of the mesh
          call remark("***")
          call remark("getlim: limiter point nma not defined")
          call remark("***")
-         call kaboom(0)
+         call xerrab("")
       endif
 
 c     For inboard region of the mesh:
@@ -5698,7 +5668,7 @@ Use(Mmod)       # ntop,rtop,ztop,ntop0,rtop0,ztop0,nbot,rbot,zbot,
                 # dsmesh0,dsmesh1,dsmesh,wtm1
 Use(Transfm)    # ijump
 Use(Limiter)	# nsplit1,rsplit1,zsplit1,nsplit2,rsplit2,zsplit2
-      external intersect2, remark, kaboom
+      external intersect2, remark, xerrab
 
 c     Local variables --
       integer i,ii,j,j1,j2,k,ierr
@@ -5719,8 +5689,7 @@ c     Define the new (limiter interface) top-of-mesh surface :
       if (region .eq. 1) then
          ntop=nsplit1
          if (ntop .gt. nptmp) then
-            call remark("meshlim:dimension of r,zsplit1 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("meshlim:dimension of r,zsplit1 exceeds nptmp")
          endif
          do k=1,ntop
             rtop(k)=rsplit1(k)
@@ -5729,8 +5698,7 @@ c     Define the new (limiter interface) top-of-mesh surface :
       elseif (region .eq. 2) then
          ntop=nsplit2
          if (ntop .gt. nptmp) then
-            call remark("meshlim:dimension of r,zsplit2 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("meshlim:dimension of r,zsplit2 exceeds nptmp")
          endif
          do k=1,ntop
             rtop(k)=rsplit2(k)
@@ -5742,8 +5710,7 @@ c     Define the original top-of-mesh surface :
       itop=1
       ntop0=j2-j1+1
          if (ntop0 .gt. nptmp) then
-            call remark("meshlim:dimension of r,ztop0 exceeds nptmp")
-            call kaboom(0)
+            call xerrab("meshlim:dimension of r,ztop0 exceeds nptmp")
          endif
       do k=j1,j2
          rtop0(k-j1+1)=cmeshx0(itop,k)
@@ -5761,8 +5728,7 @@ c     regions of the mesh; usually, the surface at i=ixpoint(1,region)
       ibot=ixpoint(1,region)
       nbot=j2-j1+1
          if (nbot .gt. nptmp) then
-            call remark("meshlim:dimension of r,zbot exceeds nptmp")
-            call kaboom(0)
+            call xerrab("meshlim:dimension of r,zbot exceeds nptmp")
          endif
       do k=j1,j2
          rbot(k-j1+1)=cmeshx0(ibot,k)
@@ -5824,7 +5790,7 @@ c     Intersection of (x,ycurveg) with new top-of-mesh surface
          if (ierr .ne. 0) then
             write (STDOUT,884) j
  884        format ("no top-of-mesh intersection for x,ycurveg on j=",i3)
-            call kaboom(0)
+            call xerrab("")
          endif
 c        index of first point below top-of-mesh is ict+1
 
@@ -5835,7 +5801,7 @@ c     Intersection of (x,ycurveg) with old top-of-mesh surface
          if (ierr .ne. 0) then
             write (STDOUT,885) j
  885        format ("no top-of-mesh intersection for x,ycurveg on j=",i3)
-            call kaboom(0)
+            call xerrab("")
          endif
 c        index of first point below top-of-mesh is ict0+1
 
@@ -5846,7 +5812,7 @@ c     Intersection of (x,ycurveg) with bottom surface
          if (ierr .ne. 0) then
             write (STDOUT,886) j
  886        format ("no bot intersection for x,ycurveg on j=",i3)
-            call kaboom(0)
+            call xerrab("")
          endif
 c        index of first point below bottom surface is icb+1
 
@@ -5900,7 +5866,7 @@ c     Intersection of x,ycurveg with ith angle (orthogonal) surface
                write (STDOUT,891) j,i
  891           format ("no angle intersection for x,ycurveg on j=",i3,
      &                 " at i=",i3)
-               call kaboom(0)
+               call xerrab("")
             endif
 c     Index of first (x,ycrv) point below angle surface is ica+1
             dsmesh0(i)=dsc(ica)-sqrt( (xca-xcrv(ica))**2

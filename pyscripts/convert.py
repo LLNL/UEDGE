@@ -5,7 +5,6 @@
 # import utilities to create filtered list of files 
 from filelists import *
 import os
-import types
 import filecmp
 
 """
@@ -94,15 +93,16 @@ F90subrules = []
 
 F90_90subrules = []
 
+TupleType = type((0,0))
+ListType = type([0,0])
+StringType = type("fubar")
+
 MPPLsubrules = []
 
 try:
-  execfile("localrules.py")
+  from localrules import *
 except:
-  try:
-    execfile("../localrules.py")
-  except:
-    print("No file or problem with 'localrules.py'; proceeding with default rules")
+  print("No file or problem with 'localrules.py'; proceeding with default rules")
 
 def fnconvert(name,suffixout):
     # Converts a file name "name" by substituting suffixout for the
@@ -139,16 +139,16 @@ class processdirs:
         curpath = os.getenv("PWD")
         try:
             os.mkdir(outroot)
-            print "Creating directory "+outroot
+            print("Creating directory "+outroot)
         except:
             try:
                 os.chdir(outroot)
-                print "Output directory already exists; proceeding"
+                print("Output directory already exists; proceeding")
                 os.chdir(curpath)
             except:
                 raise "Can't create output directory"
         for direc in indirs:
-            print "Entering directory "+direc
+            print("Entering directory "+direc)
             if direc == ".":
                 curdir = curpath.split("/")[-1]
                 outdir = outroot+"/"+curdir
@@ -163,10 +163,10 @@ class processall:
     classlist = ["Py","Cpp","Cpp_h","Cpp_hh","Fortran","F90","F90_90","MPPL"]
     def __init__(self,indir=".",outdir="./converted",clean=None):
         for entry in self.classlist:
-            a=eval(entry+"("+`indir`+","+`outdir`+",clean="+`clean`+")")
+            a=eval(entry+"("+repr(indir)+","+repr(outdir)+",clean="+repr(clean)+")")
             # Only process file types with non-empty substition rules
             if (a.subrules != []):
-                print "processing for file type ",entry
+                print("processing for file type "+entry)
                 a.process()
 
 class generic:
@@ -202,7 +202,7 @@ Notes:
     def process(self):
         # get the list of files to process
         self.filelist = filesublist(self.indir,self.suffixin)
-        print "processing directory",self.indir,"to directory",self.outdir
+        print( "processing directory" + self.indir+ "to directory" + self.outdir)
         # exclude convert.py, localrules.py and filelists.py from filelist
         if (self.suffixin == "py"):
             try:
@@ -237,7 +237,7 @@ Notes:
         self.outfile = self.outdir+"/"+outfilename
         if (newer(self.infile,self.outfile)):
             # Only process infile if it is newer than outfile
-            print "converting file "+self.infile+" to "+self.outfile
+            print("converting file "+self.infile+" to "+self.outfile)
             f=open(self.infile,"r")
             g=open(self.outfile,"w")
             lines=f.readlines()
@@ -246,24 +246,24 @@ Notes:
               iline = iline + 1
               for rule in self.subrules:
                 if (line != None):
-                  if type(rule)==types.TupleType or type(rule)==types.ListType:
-                    line = string.replace(line,rule[0],rule[1])
+                  if type(rule)==TupleType or type(rule)==ListType:
+                    line = line.replace(rule[0],rule[1])
                   else:
                     # if it's not a tuple or list, assume it is a method
                     # that executes something
                     # more complicated than a simple replace
                     line = rule(line)
               if (line != None):
-                  if (type(line) == types.StringType):
+                  if (type(line) == StringType):
                       g.write(line)
-                  if (type(line) == types.ListType):
+                  if (type(line) == ListType):
                       g.writelines(line)
                     
             g.close()
             f.close()
             if self.doclean == 1:
               if filecmp.cmp(self.outfile,self.infile) and self.outfile != self.infile:
-                print self.outfile + " is the same as " + self.infile + ", removing"
+                print(self.outfile + " is the same as " + self.infile + ", removing")
                 os.remove(self.outfile)
 
 class Py(generic):

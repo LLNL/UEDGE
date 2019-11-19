@@ -180,7 +180,7 @@ Use(Share)          # nxxpt,epslon,ishalfm
 Use(Refinex)        # isrefxptn
       character*(*) fname, runidarg
       integer ix, iy, ii, jj
-      external remark, kaboom, magnetics, writedata
+      external remark, xerrab, magnetics, writedata
 
 #     Map the inboard half of the cmesh to the B2 mesh --
       iy = 0
@@ -292,12 +292,10 @@ c        insert a guard cell at the symmetry plane
       enddo
 
       if (ix .ne. nxm-4*nxxpt) then
-         call remark("*** ix indexing error in subroutine wrdnbot")
-         call kaboom(0)
+         call xerrab("*** ix indexing error in subroutine wrdnbot")
       endif
       if ( (jsptrx(2)-jmin(2)) .ne. (jmax(1)-jsptrx(1)) ) then
-         call remark("*** iy indexing error in subroutine wrdnbot")
-         call kaboom(0)
+         call xerrab("*** iy indexing error in subroutine wrdnbot")
       endif
       iysptrx1(1) = jsptrx(2) - jmin(2)
       iysptrx2(1) = iysptrx1(1)
@@ -336,7 +334,7 @@ Use(Share)          # nxxpt
 Use(Refinex)        # isrefxptn
       character*(*) fname, runidarg
       integer ix, iy, ii, jj, ixlast
-      external remark, kaboom, magnetics, writedata
+      external remark, xerrab, magnetics, writedata
 
 #     Map the outboard half of the cmesh to the B2 mesh --
       iy = 0
@@ -410,8 +408,7 @@ Use(Refinex)        # isrefxptn
          ixlast = ix
       enddo
       if (ixlast .ne. 1) then
-         call remark("*** ix indexing error in subroutine wrdndata ***")
-         call kaboom(0)
+         call xerrab("*** ix indexing error in subroutine wrdndata ***")
       endif
       iysptrx1(1) = jsptrx(2) - jmin(2)
       iysptrx2(1) = iysptrx1(1)
@@ -480,7 +477,7 @@ Use(Share)          # nxxpt,ishalfm
 Use(Refinex)        # isrefxptn
       character*(*) fname, runidarg
       integer ix, iy, ii, jj, ixlast, ixmin
-      external remark, kaboom, magnetics, writedata
+      external remark, xerrab, magnetics, writedata
 
 #     Map the inboard half of the cmesh to the B2 mesh --
       iy = 0
@@ -562,8 +559,7 @@ Use(Refinex)        # isrefxptn
       enddo
 
       if (ixlast .ne. nxm-4*nxxpt) then
-         call remark("*** ix indexing error in subroutine wrsndata ***")
-         call kaboom(0)
+         call xerrab("*** ix indexing error in subroutine wrsndata ***")
       endif
       iysptrx1(1) = jmax(1) - jsptrx(1)
       iysptrx2(1) = iysptrx1(1)
@@ -733,7 +729,7 @@ Use(Refinex)        # isrefxptn
       character*(*) fname, runidarg
       integer ix, iy, ii, jj, jjlim1
       real cmx, cmy
-      external remark, kaboom, magnetics, writedata
+      external remark, xerrab, magnetics, writedata
 
 ccc MER 97/12/29
 c     Correction to ensure that inboard and outboard segments of flux 
@@ -889,12 +885,10 @@ ccc   MER 97/10/10  interpolate (extrapolation produces cell overlap)
       enddo
 
       if (ix .ne. nxm-4*nxxpt) then
-         call remark("*** ix indexing error in subroutine wrlim")
-         call kaboom(0)
+         call xerrab("*** ix indexing error in subroutine wrlim")
       endif
       if ( (jsptrx(2)-jmin(2)) .ne. (jmax(1)-jsptrx(1)) ) then
-         call remark("*** iy indexing error in subroutine wrlim")
-         call kaboom(0)
+         call xerrab("*** iy indexing error in subroutine wrlim")
       endif
       iysptrx1(1) = jsptrx(2) - jmin(2)
       iysptrx2(1) = iysptrx1(1)
@@ -1968,7 +1962,7 @@ Use(Mmod)	# nupstream,rupstream,zupstream as temporary arrays
                 # ndnstream,rdnstream,zdnstream as temporary arrays
 		# xcrv,ycrv,dsc,fuzzm,wtold
 Use(Transfm)	# ijump
-      external intersect2, remark, kaboom, twixt
+      external intersect2, remark, xerrab, twixt
 
 c     Local variables --
       integer ii,j,i1crv,i2crv,icu,kcu,icp,kcp,ierr,istart,iend,iy
@@ -2031,7 +2025,7 @@ c     Intersection of straight line with x,ycurveg is (xcu,ycu):
             write (STDOUT,886) j,iy
  886        format 
      & ("smoothx: no intersec'n of j=",i3," with str line for iy=",i3)
-            call kaboom(0)
+            call xerrab("")
          endif
 c     The point (x,ycu) lies between icu and icu+1 on x,ycrv.
 
@@ -2052,7 +2046,7 @@ c     Intersection of segmented line with x,ycurveg is (xcp,ycp):
             write (STDOUT,887) j,iy
  887        format 
      & ("smoothx: no intersec'n of j=",i3," with seg line for iy=",i3)
-            call kaboom(0)
+            call xerrab("")
          endif
 c     The point (x,ycp) lies between icp and icp+1 on x,ycrv.
 

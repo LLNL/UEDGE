@@ -2941,7 +2941,7 @@ c453       continue
 ccc            write(*,*) 'nfe = ', idat(12), '   npe = ', idat(13)
 ccc            write(*,*) 'time = ', x, '   dt = ', h
 ccc         elseif(msgjm(1:nrcv).eq.'kaboom' .or. msgjm(1:nrcv).eq.'k')then
-ccc            call kaboom(0)
+ccc            call xerrab("")
 ccc         endif
 ccc      endif
 C-----------------------------------------------------------------------
@@ -5401,7 +5401,7 @@ C     Special error message section to kaboom out: 9/25/95
 ccc      ierrjm = ijmgetmr(msgjm,80,1,nrcv)
 ccc      if (ierrjm .eq. 0) then
 ccc         if(msgjm(1:nrcv).eq.'kaboom' .or. msgjm(1:nrcv).eq.'k') then
-ccc            call kaboom(0)
+ccc            call xerrab("")
 ccc         endif
 ccc      endif
       

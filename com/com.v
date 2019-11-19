@@ -7,7 +7,7 @@ ngspmx = 6	# maximum number of gas species; also must set in bbb.v
 ***** OMFIT:
 iomfit  integer /1/     # switch used by OMFIT
 
-  
+
 ***** COMroutines:
 glbwrlog(ioun)          function
    # writes cpu,io,sys,mem to i/o unit number ioun
@@ -138,7 +138,9 @@ ycurve(npts,jdim)       _real    [m]
      # vertical position of nth data point on jth contour segment
 npoint(jdim)    _integer
      # number of data points on jth contour segment
-
+geqdskfname  character*64 /'neqdsk'/ 
+     #File name for geqdsk/neqdsk EFIT file
+  
 ***** Aeqflxgrd:
      # information read from the A-file produced by the EFIT code
 vmonth	integer		# EFIT version month
@@ -196,6 +198,8 @@ nesum	integer	/2/
      # number of e-coils
 eccurt(nesum)	_real
      # data from e-coils
+aeqdskfname  character*64 /'aeqdsk'/ 
+     #File name for aeqdsk EFIT file
 
 ***** RZ_grid_info:
 # RZ grid location data and magnetic-field info at those locations
@@ -256,6 +260,7 @@ geometry	character*16 /"snull"/
 				# ='snowflake15' for Ryutov's theta~15 deg
 				# ='snowflake45' for Ryutov's theta~45 deg
 				# ='snowflake75' for Ryutov's theta~75 deg
+				# ='snowflake105' for Ryutov's theta~105 deg
 				# ='dnXtarget' for dnbot with Xtarget
 nxc		integer	/4/	# center index of x-grid, normally nx/2,
                                 # OR
@@ -264,6 +269,7 @@ simagxs         real            # "shared" value of simagx from flx package
 sibdrys         real            # "shared" value of sibdry from flx package
 ismpsym         integer /0/     # =1 re-constructs "guard" cells at midplane
                                 # of "dnbot" via up/down symmetry
+isudsym         integer /0/     #=1 up-down symmetric setup (only down part is modeled)
 islimon		integer	/0/
 	# option switch to apply b.c.'s at ix_lim and ix_lim+1
 	# =1 turns on limiter/continuity b.c.'s
@@ -647,7 +653,7 @@ tim_chng_max      real [s] /1./ #max time assigned to d/dt for data fits
 taudndt(0:ny+1)  _real [s] /1.e50/ #calc dens rise time for data fits
 taudeedt(0:ny+1) _real [s] /1.e50/ #calc elec energy rise time for data fits
 taudeidt(0:ny+1) _real [s] /1.e50/ #calc ion energy rise time for data fits
-isprofvspsi      integer   /1/    #=0 is expt fit vs psi, =0 if fit vs r
+isprofvspsi      integer   /1/    #=1 if expt fit vs psi, =0 if fit vs r
 epsi_fit(num_elem) _real  /0./    #expt pol flux data values
 psi_s(num_elem)    _real  /0./    #value of epsi_fit shifted by psishift
 yyc_fit(num_elem)  _real  /0./    #radial distance from outermp for expt prof
@@ -655,6 +661,8 @@ eprofile_fit(num_elem) _real /0./ #expt profile values at epsi_fit
 
 ***** Subs2:
 # Subroutines that can be called from parser
+xerrab(msg:string)                  subroutine
+        # interface to remark and kaboom
 readne_dat(fname:string)			subroutine
         # reads tanh coeffs for radial elec density profile fits 
         # in fname   the filename

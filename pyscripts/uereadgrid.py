@@ -35,10 +35,10 @@ class UeReadGrid:
 
         # Reshape the grid data to be linear
         data = numpy.zeros( (lns.__len__() * 3), numpy.float )
-        print data.shape
+        print(data.shape)
         for i in range(0, lns.__len__()-1):
             ll = lns[i].split()
-            print ll
+            print(ll)
             data[3*i  ] = string.atof( ll[0] )
             data[3*i+1] = string.atof( ll[1] )
             data[3*i+2] = string.atof( ll[2] )

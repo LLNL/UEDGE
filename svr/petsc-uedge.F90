@@ -1,5 +1,5 @@
 !
-! $Id: petsc-uedge.F90,v 7.1 2019/05/30 22:18:16 meyer8 Exp $
+! $Id: petsc-uedge.F90,v 7.2 2019/10/14 22:59:29 meyer8 Exp $
 !
 
 !  Module used within a single call of PetscSnes()
@@ -682,7 +682,7 @@
             if (abs(jacelem*sfscal(iv)) .gt. jaccliplim) then
                if (nnz .gt. nnzmx) then
                   write(6,*) '*** jac_calc - Storage exceeded at (i,j)=',ii,iv,' nnz=',nnz,' nnzmx=',nnzmx
-                 call kaboom(0)
+                 call xerrab("")
                endif
 !               if (rdoff.ne.0.e0) jacelem=jacelem*(1.0e0+ranf()*rdoff)
                rcsc(nnz) = jacelem
@@ -715,7 +715,7 @@
 
                call remark("***** non-zero jac_elem at irstop,icstop")
                write(6,*) 'irstop = ', irstop, ', icstop = ', icstop
-               call kaboom(0)
+               call xerrab("")
             endif
 
          enddo  ! end of ii loop over equations

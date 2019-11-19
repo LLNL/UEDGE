@@ -151,12 +151,12 @@ c     routines.
       if (kymax .lt. kybeg) then
          write(*,90) '*** Max. growth rate for L-mode turbulence',
      .      ' found at ky < kybeg = ', kybeg
-         call kaboom(-1)
+         call xerrab("")
       endif
       if (kymax .gt. kyend) then
          write(*,90) '*** Max. growth rate for L-mode turbulence',
      .      ' found at ky > kyend = ', kyend
-         call kaboom(-1)
+         call xerrab("")
       endif
  90   format(a,a,f6.3)
 

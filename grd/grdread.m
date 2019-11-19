@@ -37,7 +37,7 @@ Use(System)
 Use(Mmod)
 Use(Argfc)
       integer iunit, ios
-      external remark, kaboom, gallot, gchange
+      external remark, xerrab, gallot, gchange
       external rdflx1, rdflx2, rdflx3
 
 c **************** read the output of the flx package ******************
@@ -46,8 +46,7 @@ c **************** read the output of the flx package ******************
       open (iunit, file='flx-grd', form='unformatted', iostat=ios,
      &      status='old')
       if (ios .ne. 0) then
-         call remark("**** flx-grd file not found")
-         call kaboom(0)
+         call xerrab("**** flx-grd file not found")
       endif
 
 c     read dimensioning parameters and allot storage space for arrays --
@@ -151,7 +150,7 @@ Use(Dim)              # nxm,nym
 Use(Xpoint_indices)   # ixlb,ixpt1,ixmdp,ixpt2,ixrb,iysptrx1,iysptrx2
       character*(*) fname, runid
       integer nuno,ios
-      external freeus,remark,kaboom,gallot,rdgrid
+      external freeus,remark,xerrab,gallot,rdgrid
 
 c     Read mesh parameters from a UEDGE code grid data file
 
@@ -159,8 +158,7 @@ c     Read mesh parameters from a UEDGE code grid data file
       open (nuno, file=fname, form='formatted', iostat=ios,
      &      status='old')
       if (ios .ne. 0) then
-         call remark("**** requested grid data file not found")
-         call kaboom(0)
+         call xerrab("**** requested grid data file not found")
       endif
 
       if (geometry=="dnull" .or. geometry=="snowflake15" .or.
@@ -195,7 +193,7 @@ Use(Dim)              # nxm,nym
 Use(Xpoint_indices)   # ixlb,ixpt1,ixmdp,ixpt2,ixrb,iysptrx1,iysptrx2
       character*(*) fname, runid
       integer nuno,ios
-      external freeus,remark,kaboom,gallot,rdgrid
+      external freeus,remark,xerrab,gallot,rdgrid
 
 c     Read a UEDGE code grid data file
 
@@ -203,8 +201,7 @@ c     Read a UEDGE code grid data file
       open (nuno, file=fname, form='formatted', iostat=ios,
      &      status='old')
       if (ios .ne. 0) then
-         call remark("**** requested grid data file not found")
-         call kaboom(0)
+         call xerrab("**** requested grid data file not found")
       endif
 
       if (geometry=="dnull" .or. geometry=="snowflake15" .or.

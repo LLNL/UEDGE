@@ -47,7 +47,7 @@ c-----------------------------------------------------------------------
       integer jx,ixl,ixlp1,ixlp2,ixr,ixrm1,ixrm2,iyp2
 
       Use(Dim)               # nx,ny,nxpt
-      Use(Share)             # geometry,nxc,islimon
+      Use(Share)             # geometry,nxc,islimon,isudsym
       Use(Xpoint_indices)    # ixlb,ixpt1,ixpt2,ixrb,iysptrx
       Use(Math_problem_size) # neqmx(for arrays not used here)
       Use(Phyvar)            # ev,qe
@@ -73,8 +73,8 @@ c-----------------------------------------------------------------------
       Use(Parallv)           # nxg,nyg
       Use(Time_dep_nwt)      # dtreal
       Use(Interp)            # nxold,nyold
-      Use(Indices_domain_dcl)# ixmnbcl,ixmxbcl
-
+      Use(Indices_domain_dcl)# ixmnbcl,ixmxbcl	  
+	  
       ifld = 1
 
 ************************************************************************
@@ -178,7 +178,7 @@ c           old case with frfqpn=0 ...
                endif  # end if-test for ix boundary cells
             enddo  # end do-loop on number of mesh regions
 
-            if(geometry.eq.'dnbot' .and. ix==nxc)  fqp(ix,iy) = 0.
+            if(isudsym==1 .and. ix==nxc)  fqp(ix,iy) = 0.
 
             if (iy .eq. 1) then
                dphi_iy1(ix) = -fqp(ix,iy)/(rrv(ix,iy)*sx(ix,iy)*
@@ -425,7 +425,7 @@ c ...     Force boundary fqx to be uniform; these fqx only for phi B.C.
      .                     fqx(ixrb(jx),iy) = fqx(ixrb(jx)-1,iy)
             enddo 
    46    continue
-         if (((geometry.eq.'dnbot').or.(geometry.eq.'dnXtarget'))
+         if ((isudsym==1.or.(geometry.eq.'dnXtarget'))
      &                           .and. nxc.gt.0) fqx(nxc,iy) = 0.
          if (islimon.ne.0 .and. iy.ge.iy_lims) fqx(ix_lim,iy)=0.
    47 continue

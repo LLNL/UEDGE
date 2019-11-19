@@ -1,5 +1,5 @@
 #
-# $Id: uefacets.py,v 7.0 2018/02/28 18:43:48 meyer8 Exp $
+# $Id: uefacets.py,v 7.1 2019/11/01 22:34:45 meyer8 Exp $
 # Implementation of uedge methods for FACETS
 #
 # Substantial revisions R. Cohen 4/21/08
@@ -17,8 +17,8 @@ import __main__
 import string
 import types
 from copy import copy
-from uedge import *
-from uewall import *
+from .uedge import *
+from .uewall import *
 
 joule_per_ev = 1.6022e-19
 
@@ -31,7 +31,7 @@ try:
   # bbb.writeToLog( "FileNode imported." )
   import numpy as numerix
   have_tables = 1
-except ImportError, inst:
+except ImportError as inst:
   # bbb.writeToLog( "ImportError:", inst )
   have_tables = 0
 except:
@@ -174,7 +174,7 @@ class Uedge:
       # bbb.writeToLog( "Uedge.readParams called with file, %s."%sourcefile )
       pass
     try:
-      execfile(sourcefile)
+      exec(compile(open(sourcefile).read(), sourcefile, 'exec'))
     except:
       raise
     if not bbb.mype:
@@ -306,7 +306,7 @@ class Uedge:
 
     try:
       rhs = self.getMap[name]
-      if type(rhs)==types.ListType:
+      if type(rhs)==list:
         # ions or neutrals
         if len(rhs) == 4:
           # ions
@@ -319,7 +319,7 @@ class Uedge:
           return rhs()
     except:
       # The expert option.
-      print eval(name)
+      print(eval(name))
       return eval(name)
       # An exception will be raised if name is invalid
 
@@ -334,7 +334,7 @@ class Uedge:
 
     try:
       rhs = self.setMap[name]
-      if type(rhs)==types.ListType:
+      if type(rhs)==list:
         # ions or neutrals
         if len(rhs) == 4:
           rhs[0](value,self.findindexi(rhs[1:]))
@@ -348,7 +348,7 @@ class Uedge:
       # The expert option.
       bbb.writeToLog( "Using expert option to set a parameter" )
       bbb.writeToLog( "EXPERT OPTION WITH NAME '%s'" % name )
-      exec(name+"="+`value`)
+      exec(name+"="+repr(value))
       # An exception will be raised if name is invalid
 
   def setString(self, name, value):
@@ -357,7 +357,7 @@ class Uedge:
     # the map.  Note this can be used by UEDGE experts to set any variable
     # in UEDGE's variable descriptor files, if name is of the form
     # packagename.variablename
-    print name, value
+    print(name, value)
     # self.setMap[name](value)
 
   def getString(self, name):
@@ -382,7 +382,7 @@ class Uedge:
     self.nusp=com.nusp
 
     rhs = self.uewall.getMap[name]
-    if type(rhs)==types.ListType:
+    if type(rhs)==list:
       # ions or neutrals
       if len(rhs) == 4:
         # ions
@@ -405,7 +405,7 @@ class Uedge:
       raise name+" is invalid edge-wall interface name"
    #bbb.writeToLog( "Inside uefacets::setDoubleAtIndex with name ", name, " value ", value )
     rhs =self.uewall.setMap[name]
-    if type(rhs)==types.ListType:
+    if type(rhs)==list:
       # ions or neutrals
       if len(rhs) == 4:
         rhs[0](value,loc_index,self.findindexi(rhs[1:]))
@@ -530,13 +530,13 @@ class Uedge:
     # eventually may want to set an array of ion heat fluxes
     bbb.pcorei = val * com.area_core
     if not bbb.mype:
-      bbb.writeToLog( "setTiFlux_CE: val = " + `val` + ", global_area = " + `com.area_core` + ", global_flux = " + `bbb.pcorei` )
+      bbb.writeToLog( "setTiFlux_CE: val = " + repr(val) + ", global_area = " + repr(com.area_core) + ", global_flux = " + repr(bbb.pcorei) )
 
   def setTeFlux_CE(self, val):
     bbb.iflcore = 1
     bbb.pcoree = val * com.area_core
     if not bbb.mype:
-      bbb.writeToLog( "setTeFlux_CE: val = " + `val` + ", global_area = " + `com.area_core` + ", global_flux = " + `bbb.pcoree` )
+      bbb.writeToLog( "setTeFlux_CE: val = " + repr(val) + ", global_area = " + repr(com.area_core) + ", global_flux = " + repr(bbb.pcoree) )
 
 
   def setTgFlux_CE(self, val, index):
@@ -657,12 +657,12 @@ class Uedge:
 # Dump to hdf4
     if fname[len(fname) - 4:] == ".hdf":
       dumpedobjs = Forthon.pydump(fname, hdf=1, returnfobjlist=1)
-      bbb.writeToLog( "Dumped " + `dumpedobjs` + "to hdf" )
+      bbb.writeToLog( "Dumped " + repr(dumpedobjs) + "to hdf" )
       return
 
 # Default: dump to pdb
     dumpedobjs = Forthon.pydump(fname, hdf=0, returnfobjlist=1)
-    bbb.writeToLog( "Dumped " + `dumpedobjs` + "to pdb" )
+    bbb.writeToLog( "Dumped " + repr(dumpedobjs) + "to pdb" )
 
   """
   Restore the variables (not the mesh) from a file.
@@ -678,7 +678,7 @@ class Uedge:
     if pyrestart != "":
       if os.path.exists(pyrestart):
         bbb.writeToLog( "Including py file in restart:  " + pyrestart )
-        execfile(pyrestart)
+        exec(compile(open(pyrestart).read(), pyrestart, 'exec'))
       else:
         bbb.writeToLog( "ERROR: "+ pyrestart + " does not exist." )
 
@@ -689,7 +689,7 @@ class Uedge:
         # msg = "In restore in uefacets.py to open"
         if not bbb.mype:
           bbb.writeToLog( "Uedge.restore: Opening %s on rank %d."%(fname,bbb.mype) )
-          bbb.writeToLog( "time = " + `self.t` )
+          bbb.writeToLog( "time = " + repr(self.t) )
         # For python, I want to do the transpose
         doTransposeFlag=1
         errval = 0
@@ -715,7 +715,7 @@ class Uedge:
 # Iterate once to a solution
 #       bbb.exmain()
 
-    except string, ex:
+    except string as ex:
       ex += ".  File name = fname."
       raise ex
 
@@ -739,7 +739,7 @@ class Uedge:
 
     ixpt11 = self.ixpt11;ixpt21=self.ixpt21
     # bbb.writeToLog( "sy =", com.sy[ixpt11:ixpt21,0] )
-    bbb.writeToLog( "area = "+ `com.area_core` )
+    bbb.writeToLog( "area = "+ repr(com.area_core) )
     self.Raverage = bbb.fluxsurfav1(com.rm[ixpt11:ixpt21,0,0])
     # In above, making use of thin-ness of guard cell so needn't worry
     # about using centered cell value of r.
@@ -748,7 +748,7 @@ class Uedge:
     # Executes an arbitrary python command expressed as a string.
     # This allows skilled UEDGE users to have full access to uedge's
     # python interface via the FACETS interface
-    exec(command) in __main__.__dict__
+    exec((command), __main__.__dict__)
 
   def ListPackages(self):
     # returns a list of uedge's packages.   Variable names within

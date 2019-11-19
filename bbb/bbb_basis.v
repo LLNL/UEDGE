@@ -378,6 +378,7 @@ cfcvti	  real  [ ] /1.0/   #coef mult ion & neut pol convect(~5/2) energy flow
 cfcvtg	  real  [ ] /1.0/   #coef mult gas pol convect(~5/2) energy flow
 cfloxiplt real  [ ] /.0/    #coef mult neutral convect engy from plates
 cfloygwall real [ ] /.0/    #coef mult neutral convect engy from walls
+cftgdiss(ngspmx)  real  [ ] /ngspmx*1./ # coef mult tg*nu_diss eng loss
 exjbdry   real  [ ] /10./   #exponent pwr to limit fqp < fqpsat at plates
 cfgpijr   real  [ ] /1./    #scalar factor for grad_Pi term in fqya
 iszeffcon integer   /0/     #if =1, zeff=zeffcon
@@ -388,6 +389,8 @@ cfqya     real      /1./    #Coef for anomalous current in y-direction (new mode
 cfqyao    real      /1./    #Coef for anomalous current in y-direction (old model)
 cfqyae    real      /1./    #Coef for anomalous electron current in y-direction
 cfqyai    real      /0./    #Coef for anomalous ion current in y-direction
+cfhcxgc(ngspmx) real /ngspmx*0./ # Coef constant pol heat conduct (chixg_use)
+cfhcygc(ngspmx) real /ngspmx*0./ # Coef constant rad heat conduct (chiyg_use)
 cftgcond  real      /1./    #Coef for gas thermal cond (usually molecules)
 cftgeqp  real       /1.5/   #Coef for gas thermal equipartion (usually molecules)
  
@@ -458,7 +461,7 @@ isngcore(ngspmx) integer /ngspmx*0/ #switch for neutral-density core B.C.
 istgcore(ngspmx) integer /ngspmx*1/ #switch for neutral-density core B.C.
                                     #=0, set tg(ixcore,0,igsp)=ti(ixcore,0)
 				    #=1, set fixed temp tgcore(igsp)
-				    #if > 2, set zero grad; tg(,0,)=tg(,1,)
+				    #if > 1, set zero grad; tg(,0,)=tg(,1,)
 curcore(1:nispmx) real [A] /0.,30*0./ #value of current from core if isnicore=0
 lzcore(1:nispmx)  real [kg/ms] /nispmx*0./ #tor. ang. mom dens core bdry; phi eqn
 lzflux(1:nispmx)  real [kg/s**2]/nispmx*0./ #tor. ang. mom dens flux core bdry; up eqn
@@ -496,6 +499,11 @@ istewc    integer    /1/     # switch for outer-wall BC on Te
 			     # =3, set Te scale length to lyte
                              # =4, set feey = bceew*fniy*te
 istiwc    integer    /1/     #switch for outer-wall BC on Ti, see istewc detail
+istgwc(ngspmx) integer/ngspmx*0/    #switch for outer-wall BC on Tg(,0,igsp)
+	 		     # =0, set fixed temp to tgwall
+			     # =1, use extrapolation BC
+			     # =2, set Tg scale length to lytg(2,
+                             # >2, report error in input
 istepfc   integer    /0/     # switch for priv.-flux BC on Te
 			     # =0, set zero energy flux
 	 		     # =1, set fixed temp to tedge or tewalli
@@ -503,6 +511,11 @@ istepfc   integer    /0/     # switch for priv.-flux BC on Te
 			     # =3, set Te scale length to lyte
                              # =4, set feey = bceew*fniy*te
 istipfc   integer    /0/     #switch for priv.-flux BC on Ti, see istewc detail
+istgpfc(ngspmx) integer/ngspmx*0/   #switch for PF BC on Tg(,0,igsp)
+	 		     # =0, set fixed temp to tgwall
+			     # =1, use extrapolation BC
+			     # =2, set Tg scale length to lytg(1,
+                             # >2, report error in input
 tewalli(0:nx+1) _real [eV] #/(nx+2)*0./
                              #inner wall Te for istepfc=1.; = tedge if not set
 tiwalli(0:nx+1) _real [eV] #/(nx+2)*0./
@@ -518,6 +531,7 @@ isulytex        integer /0/  #if=0, lytex filled with lyte
 lytex(2,0:nx+1)    _real [m] # pol dep radial te grad length if set < 1e5
                              # istepfc,wc=3: 1:2=i:o, 2nd dim ix
 lyti(1:2)  real /2*1e20/ [m] #decaying rad Ti grad leng;(1,2) istipfc,wc=3
+lytg(1:2,ngspmx) real /12*1e20/ #rad tg scale length: PF (1,; Outer(2,
 isulytix        integer /0/  #if=0, lytix filled with lyti
                              #if=1, user values of lytex used
 lytix(2,0:nx+1)    _real [m] # pol dep radial ti grad length if set < 1e5
@@ -759,6 +773,8 @@ cgengpl   real		 /0./   #new scale fac atom eng plate loss; old cgpl
 cgengw    real           /0./   #new scale fac atom eng wall loss
 cgmompl   real           /1./   #scale fac atom par mom plate loss
 vgmomp    real     [m/s] /2.e3/ #vel used in exp factor of atom mom loss
+istglb(ngspmx) _integer  /0/    #=0 for tg=tgwall; =1 for extrap
+istgrb(ngspmx) _integer  /0/    #=0 for tg=tgwall; =1 for extrap
 
 ***** Outpwall:
 # Arrays used to communicate wall fluxes to a wall simulation code
@@ -1263,8 +1279,10 @@ flalfv        real          /1.e+10/    #parallel velocity flux limit factor
 isupdrag      integer       /0/         #=1 adds nonunif B-field drag on v_||
 con_leng      real          /1e20/ [m]  #connect length used for coll trans fac
 frac_pt       real          /0.3/       #invers aspect ratio for colliless drag
-flalftgx      real          /1./        #poloidal gas temp. diff. flux limit
-flalftgy      real          /1./        #radial gas temp. diff. flux limit
+flalftgx      real          /1./        #poloidal atom temp. diff. flux limit
+flalftgy      real          /1./        #radial atom temp. diff. flux limit
+flalftmx      real          /1./        #poloidal mol temp. diff. flux limit
+flalftmy      real          /1./        #radial mol temp. diff. flux limit
 flalfvgx      real          /1./        #poloidal gas parall viscosity flux lim
 flalfvgy      real          /1./        #radial gas parall viscosity flux limit
 flalfvgxy     real          /1./        #FL for neutral fmixy
@@ -1275,9 +1293,10 @@ sigcx         real   [m**2] /1.e-18/    #cx cross-sect if icnucx=2
 sigcxms(nisp,ngsp)   _real [m**2] /1e-19/ #cx x-sect for (ifld,igsp) coll
 rcxighg(ngspmx) real      /ngspmx*0./   #ratio of charge-exchange rate for
                                         #ng_imp+ni_hydrn -> ng_hydrn+ni_Z=1_imp
-kelhihg         real [m**3/s] /5e-16/   #elastic coll. coeff:hyd_ion+hyd_gas
-kelhghg         real [m**3/s] /5e-16/   #elastic coll. coeff:hyd_atm+hyd_gas
-kelhmhg         real [m**3/s] /5e-16/   #elastic coll. coeff:hyd_mol+hyd_gas
+kelhihg         real [m**3/s] /5e-16/   #elastic coll. coeff:hyd_ion+hyd_atom
+kelhghg         real [m**3/s] /5e-16/   #elastic coll. coeff:hyd_atm+hyd_atom
+kelhmhg         real [m**3/s] /5e-16/   #elastic coll. coeff:hyd_mol+hyd_atom
+kelhmhm         real [m**3/s] /5e-16/   #elastic coll. coeff:hyd_mol+hyd_mol
 kelighi(ngspmx) real [m**3/s]/0.,5*5e-16/#elastic coll. coeff:imp_gas+hyd_ion
 kelighg(ngspmx) real [m**3/s]/0.,5*5e-16/#elastic coll. coeff:imp_gas+hyd_gas
 keligii(ngspmx) real [m**3/s]/0.,5*5e-16/#elastic coll. coeff:imp_gas+imp_ion
@@ -2000,6 +2019,8 @@ kye_use(0:nx+1,0:ny+1)        _real [m**2/s]#for kye; see dif_use comment
 kyi_use(0:nx+1,0:ny+1)        _real [m**2/s]#for kyi; see dif_use comment
 kxe_use(0:nx+1,0:ny+1)        _real [m**2/s]#user elec pol. heat cond
 kxi_use(0:nx+1,0:ny+1)        _real [m**2/s]#user ion pol. heat cond.
+kxg_use(0:nx+1,0:ny+1,1:ngsp) _real [m**2/s]#user gas pol. heat cond.
+kyg_use(0:nx+1,0:ny+1,1:ngsp) _real [m**2/s]#user gas rad. heat cond.
 dutm_use(0:nx+1,0:ny+1,1:nisp) _real [m**2/s]#for difutm; see dif_use comment
 vy_use(0:nx+1,0:ny+1,1:nisp) _real [m/s]  #user-set rad vel;for isbohmcalc=0
 vyup_use(0:nx+1,0:ny+1)     _real  [m/s]  #user-set conv vel of ion || vel, up
@@ -2833,7 +2854,7 @@ initsol        integer   /0/  #flag to initially solve algebraic eqns for
                               #DASPK (yes=1)
 ttbeg          real                  #initial Te in Joules = tinit/ev (calc)
 tinit          real      /40./       #initial electron temperature Te in eV
-tscal          real      /.5/        #ratio of initial Ti to Te
+tscal          real      /.5/        #ratio of initial Ti & Tg to Te
 ngscal(ngspmx) real   /ngspmx*.1/    #ratio of initial gas density to ion dens
 xgscal         real      /1./        #exponential scale of initial gas (m)
 nibeg(1:nispmx) real  /nispmx*2.e19/ #initial ion density
@@ -3798,7 +3819,7 @@ yielh(imx+1)	       _real
 yielz(imx+1,lnst+1)    _real
 
 ***** Ident_vars:
-uedge_ver  character*80 /'$Name: V7_08_03 $'/
+uedge_ver  character*80 /'$Name:  $'/
 uedge_date character*80 /'Version date in README_Uedge_vers in dir uedge'/
 
 ***** Last_group_ex_sav_var:

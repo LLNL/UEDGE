@@ -24,10 +24,9 @@ Although UEDGE is written in Fortran, for efficient execution and analysis of re
 either Python or BASIS scripting shells. Python is easily available for many platforms 
 (http://www.Python.org/). The features and availability of BASIS are described in "Basis Manual Set" 
 by P.F. Dubois, Z.C. Motteler, et al., Lawrence Livermore National Laboratory report UCRL-MA-118541, 
-June, 2002 and http://basis.llnl.gov/).  BASIS has been reviewed and released by LLNL for unlimited 
-distribution. The Python version utilizes PYBASIS scripts developed by D.P. Grote, LLNL.  The Python 
-version also uses MPPL code and MAC Perl script, available from the public-domain BASIS source above. 
-The Forthon version of UEDGE uses the same source files but utilizes Forthon to produce a Python-compatible 
+June, 2002 and http://basis.llnl.gov/), however, BASIS is deprecated. Contact one of the UEDGE developers
+if you insist on running it within that environment. 
+The Python version of UEDGE uses the same source files but utilizes Forthon to produce a Python-compatible 
 source.  Forthon has been developed by D.P. Grote (see http://hifweb.lbl.gov/Forthon/ and Grote et al. 
 in the references below), and it is freely available. The graphics can be performed by any package importable 
 to Python, such as PYGIST.  The parallel version of UEDGE available through Python also uses the PETSc linear 

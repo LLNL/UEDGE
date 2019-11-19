@@ -1339,7 +1339,7 @@ C Note..  VNORML, SDOT, SNRM2, and R1MACH9 are
 C function routines.  All the others are subroutines.
 C
 C The intrinsic and external routines used by the VODPK package are..
-C ABS, float, max, min, SIGN, SQRT, ijmgetmr, kaboom, and write.
+C ABS, float, max, min, SIGN, SQRT, ijmgetmr, xerrab, and write.
 C
 C-----------------------------------------------------------------------
 C
@@ -3706,7 +3706,7 @@ ccTDR     .           , imxer2,'   imxnewt = ', imxer3
 ccTDR            write(*,*) 'time = ', tn-h, '   dt = ', h
 ccTDR            write(*,*) 'bigts = ', big2, '   dsm = ', dsm
 ccTDR         elseif(msgjm(1:nrcv).eq.'kaboom' .or. msgjm(1:nrcv).eq.'k')then
-ccTDR            call kaboom(0)
+ccTDR            call xerrab("")
 ccTDR         endif
 ccTDR      endif
 C-----------------------------------------------------------------------

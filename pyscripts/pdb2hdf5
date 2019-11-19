@@ -3,14 +3,14 @@
 import numpy as np
 import pact.pdb as pdb
 import h5py
-from uedge import bbb 
+from .uedge import bbb 
 import sys,getopt
 
 def usage(status=0):
-    print
-    print
-    print "pdb2hdf5 <-h|--help> [ infile [ outfile ]] "
-    print
+    print()
+    print()
+    print("pdb2hdf5 <-h|--help> [ infile [ outfile ]] ")
+    print()
     sys.exit(status)
 
 def pdb2h5py(infile,outfile):
@@ -21,72 +21,73 @@ def pdb2h5py(infile,outfile):
     try:
         fp = pdb.open(infile,'r')
         hf = h5py.File(outfile,'w')
+        hfg = hf.create_group('bbb')
     except:
-        print "Couldn't open pdb file ",infile
+        print("Couldn't open pdb file ",infile)
         usage(1)
     try:
         din = np.array(fp.read('ngs@bbb'))
         din = din.reshape(din.shape[::-1]).transpose()
         try:
-           hf.create_dataset('ngs@bbb',data=din)
+           hfg.create_dataset('ngs',data=din)
         except:
-           print "Couldn't write ngs to  ",outfile
+           print("Couldn't write ngs to  ",outfile)
     except:
-        print "Couldn't read ngs from  ",infile
+        print("Couldn't read ngs from  ",infile)
     try:
         din = np.array(fp.read('nis@bbb'))
         din = din.reshape(din.shape[::-1]).transpose()
         try:
-           hf.create_dataset('nis@bbb',data=din)
+           hfg.create_dataset('nis',data=din)
         except:
-           print "Couldn't write nis to  ",outfile
+           print("Couldn't write nis to  ",outfile)
     except:
-        print "Couldn't read nis from  ",infile
+        print("Couldn't read nis from  ",infile)
     try:
         din = np.array(fp.read('phis@bbb'))
         din = din.reshape(din.shape[::-1]).transpose()
         try:
-           hf.create_dataset('phis@bbb',data=din)
+           hfg.create_dataset('phis',data=din)
         except:
-           print "Couldn't write phis to  ",outfile
+           print("Couldn't write phis to  ",outfile)
     except:
-        print "Couldn't read phis from  ",infile
+        print("Couldn't read phis from  ",infile)
     try:
         din = np.array(fp.read('tes@bbb'))
         din = din.reshape(din.shape[::-1]).transpose()
         try:
-           hf.create_dataset('tes@bbb',data=din)
+           hfg.create_dataset('tes',data=din)
         except:
-           print "Couldn't write tes to  ",outfile
+           print("Couldn't write tes to  ",outfile)
     except:
-        print "Couldn't read tes from  ",infile
+        print("Couldn't read tes from  ",infile)
     try:
         din  = np.array(fp.read('tis@bbb'))
         din = din.reshape(din.shape[::-1]).transpose()
         try:
-           hf.create_dataset('tis@bbb',data=din)
+           hfg.create_dataset('tis',data=din)
         except:
-           print "Couldn't write tis to  ",outfile
+           print("Couldn't write tis to  ",outfile)
     except:
-        print "Couldn't read tis from  ",infile
+        print("Couldn't read tis from  ",infile)
     try:
         din = np.array(fp.read('ups@bbb'))
         din = din.reshape(din.shape[::-1]).transpose()
         try:
-           hf.create_dataset('ups@bbb',data=din)
+           hfg.create_dataset('ups',data=din)
         except:
-           print "Couldn't write ups to  ",outfile
+           print("Couldn't write ups to  ",outfile)
     except:
-        print "Couldn't read ups from  ",infile
+        print("Couldn't read ups from  ",infile)
     try:
         din = np.array(fp.read('tgs@bbb'))
         din = din.reshape(din.shape[::-1]).transpose()
         try:
-           hf.create_dataset('tgs@bbb',data=din)
+           hfg.create_dataset('tgs',data=din)
         except:
-           print "Couldn't write tgs to  ",outfile
+           print("Couldn't write tgs to  ",outfile)
     except:
-        print "Couldn't read tgs from  ",infile
+        print("Couldn't read tgs from  ",infile)
 
     fp.close()
     hf.close()
@@ -96,12 +97,12 @@ optlist,args = getopt.getopt(sys.argv[1:],'h',options)
 optdict = {}
 for o in optlist:
    optdict.update({o[0]:o[1]})
-if optdict.has_key('-h') or optdict.has_key('--help'):
+if '-h' in optdict or '--help' in optdict:
     usage(0)
 
 if __name__ == "__main__":
    try:
-      from tkFileDialog import askopenfilename,asksaveasfilename
+      from tkinter.filedialog import askopenfilename,asksaveasfilename
       if len(args) < 1:
          infile = askopenfilename(title="Select input pdb file",filetypes=[("allfiles","*"),("pdb","*.pdb"), ("pdf","*.pdf"),("sav","*.sav")])
       else:

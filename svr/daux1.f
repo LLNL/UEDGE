@@ -1,4 +1,4 @@
-      subroutine dewset (n, itol, rtol, atol, ycur, ewt)
+      subroutine dewset_u (n, itol, rtol, atol, ycur, ewt)
 clll. optimize
 c-----------------------------------------------------------------------
 c this subroutine sets the error weight vector ewt according to
@@ -6,8 +6,8 @@ c     ewt(i) = rtol(i)*abs(ycur(i)) + atol(i),  i = 1,...,n,
 c with the subscript on rtol and/or atol possibly replaced by 1 above,
 c depending on the value of itol.
 c-----------------------------------------------------------------------
-      integer*4 n, itol
-      integer*4 i
+      integer n, itol
+      integer i
       double precision rtol, atol, ycur, ewt
       dimension rtol(n), atol(n), ycur(n), ewt(n)
 c
@@ -31,8 +31,8 @@ c
 c----------------------- end of subroutine dewset ----------------------
       end
 cc *********************************************cc
-      double precision function d1mach9 (idum)
-      integer*4 idum
+      double precision function d1mach9_u (idum)
+      integer idum
 c-----------------------------------------------------------------------
 c this routine computes the unit roundoff of the machine in double
 c precision.  this is defined as the smallest positive machine number
@@ -43,13 +43,13 @@ c-----------------------------------------------------------------------
  10   u = u*0.5d0
       comp = 1.0d0 + u
       if (comp .ne. 1.0d0) go to 10
-      d1mach9 = u*2.0d0
+      d1mach9_u = u*2.0d0
       return
 c----------------------- end of function d1mach9 ------------------------
       end
 cc *******************************************************************cc
-      subroutine dxerrwv(msg, nmes, nerr, level, ni, i1, i2, nr, r1, r2)
-      integer*4 nmes, nerr, level, ni, i1, i2, nr,
+      subroutine dxerrwv_u(msg, nmes, nerr, level, ni, i1, i2, nr,r1,r2)
+      integer nmes, nerr, level, ni, i1, i2, nr,
      1   i, lun, mesflg
       double precision r1, r2
       character*(*) msg
@@ -115,12 +115,12 @@ c-----------------------------------------------------------------------
  50   format(6x,15hin above,  r1 =,d21.13,3x,4hr2 =,d21.13)
 c abort the run if level = 2. ------------------------------------------
  100  if (level .ne. 2) return
-      call kaboom(0)
+      call xerrab("")
 c----------------------- end of subroutine dxerrwv ---------------------
       end
 cc ************************************************cc
-      subroutine dgefa(a,lda,n,ipvt,info)
-      integer*4 lda,n,ipvt(n),info
+      subroutine dgefa_u(a,lda,n,ipvt,info)
+      integer lda,n,ipvt(n),info
       double precision a(lda,n)
 c
 c     dgefa factors a double precision matrix by gaussian elimination.
@@ -164,12 +164,12 @@ c     cleve moler, university of new mexico, argonne national lab.
 c
 c     subroutines and functions
 c
-c     blas daxpy,dscal,idamax
+c     blas daxpy_u,dscal_u,idamax_u
 c
 c     internal variables
 c
       double precision t
-      integer*4 idamax,j,k,kp1,l,nm1
+      integer idamax_u,j,k,kp1,l,nm1
 c
 c
 c     gaussian elimination with partial pivoting
@@ -182,7 +182,7 @@ c
 c
 c        find l = pivot index
 c
-         l = idamax(n-k+1,a(k,k),1) + k - 1
+         l = idamax_u(n-k+1,a(k,k),1) + k - 1
          ipvt(k) = l
 c
 c        zero pivot implies this column already triangularized
@@ -200,7 +200,7 @@ c
 c           compute multipliers
 c
             t = -1.0d0/a(k,k)
-            call dscal(n-k,t,a(k+1,k),1)
+            call dscal_u(n-k,t,a(k+1,k),1)
 c
 c           row elimination with column indexing
 c
@@ -210,7 +210,7 @@ c
                   a(l,j) = a(k,j)
                   a(k,j) = t
    20          continue
-               call daxpy(n-k,t,a(k+1,k),1,a(k+1,j),1)
+               call daxpy_u(n-k,t,a(k+1,k),1,a(k+1,j),1)
    30       continue
          go to 50
    40    continue
@@ -223,8 +223,8 @@ c
       return
       end
 cc ****************************************************cc
-      subroutine dgesl(a,lda,n,ipvt,b,job)
-      integer*4 lda,n,ipvt(n),job
+      subroutine dgesl_u(a,lda,n,ipvt,b,job)
+      integer lda,n,ipvt(n),job
       double precision a(lda,n),b(n)
 c
 c     dgesl solves the double precision system
@@ -279,12 +279,12 @@ c     cleve moler, university of new mexico, argonne national lab.
 c
 c     subroutines and functions
 c
-c     blas daxpy,ddot
+c     blas daxpy_u,ddot_u
 c
 c     internal variables
 c
-      double precision ddot,t
-      integer*4 k,kb,l,nm1
+      double precision ddot_u,t
+      integer k,kb,l,nm1
 c
       nm1 = n - 1
       if (job .ne. 0) go to 50
@@ -300,7 +300,7 @@ c
                b(l) = b(k)
                b(k) = t
    10       continue
-            call daxpy(n-k,t,a(k+1,k),1,b(k+1),1)
+            call daxpy_u(n-k,t,a(k+1,k),1,b(k+1),1)
    20    continue
    30    continue
 c
@@ -310,7 +310,7 @@ c
             k = n + 1 - kb
             b(k) = b(k)/a(k,k)
             t = -b(k)
-            call daxpy(k-1,t,a(1,k),1,b(1),1)
+            call daxpy_u(k-1,t,a(1,k),1,b(1),1)
    40    continue
       go to 100
    50 continue
@@ -319,7 +319,7 @@ c        job = nonzero, solve  trans(a) * x = b
 c        first solve  trans(u)*y = b
 c
          do 60 k = 1, n
-            t = ddot(k-1,a(1,k),1,b(1),1)
+            t = ddot_u(k-1,a(1,k),1,b(1),1)
             b(k) = (b(k) - t)/a(k,k)
    60    continue
 c
@@ -328,7 +328,7 @@ c
          if (nm1 .lt. 1) go to 90
          do 80 kb = 1, nm1
             k = n - kb
-            b(k) = b(k) + ddot(n-k,a(k+1,k),1,b(k+1),1)
+            b(k) = b(k) + ddot_u(n-k,a(k+1,k),1,b(k+1),1)
             l = ipvt(k)
             if (l .eq. k) go to 70
                t = b(l)
@@ -341,8 +341,8 @@ c
       return
       end
 cc ************************************************ cc
-      subroutine dgbfa(abd,lda,n,ml,mu,ipvt,info)
-      integer*4 lda,n,ml,mu,ipvt(n),info
+      subroutine dgbfa_u(abd,lda,n,ml,mu,ipvt,info)
+      integer lda,n,ml,mu,ipvt(n),info
       double precision abd(lda,n)
 c
 c     dgbfa factors a double precision band matrix by elimination.
@@ -422,13 +422,13 @@ c     cleve moler, university of new mexico, argonne national lab.
 c
 c     subroutines and functions
 c
-c     blas daxpy,dscal,idamax
+c     blas daxpy_u,dscal_u,idamax_u
 c     fortran max0,min0
 c
 c     internal variables
 c
       double precision t
-      integer*4 i,idamax,i0,j,ju,jz,j0,j1,k,kp1,l,lm,m,mm,nm1
+      integer i,idamax_u,i0,j,ju,jz,j0,j1,k,kp1,l,lm,m,mm,nm1
 c
 c
       m = ml + mu + 1
@@ -469,7 +469,7 @@ c
 c        find l = pivot index
 c
          lm = min0(ml,n-k)
-         l = idamax(lm+1,abd(m,k),1) + m - 1
+         l = idamax_u(lm+1,abd(m,k),1) + m - 1
          ipvt(k) = l + k - m
 c
 c        zero pivot implies this column already triangularized
@@ -487,7 +487,7 @@ c
 c           compute multipliers
 c
             t = -1.0d0/abd(m,k)
-            call dscal(lm,t,abd(m+1,k),1)
+            call dscal_u(lm,t,abd(m+1,k),1)
 c
 c           row elimination with column indexing
 c
@@ -502,7 +502,7 @@ c
                   abd(l,j) = abd(mm,j)
                   abd(mm,j) = t
    70          continue
-               call daxpy(lm,t,abd(m+1,k),1,abd(mm+1,j),1)
+               call daxpy_u(lm,t,abd(m+1,k),1,abd(mm+1,j),1)
    80       continue
    90       continue
          go to 110
@@ -516,8 +516,8 @@ c
       return
       end
 cc ************************************************ cc
-      subroutine dgbsl(abd,lda,n,ml,mu,ipvt,b,job)
-      integer*4 lda,n,ml,mu,ipvt(n),job
+      subroutine dgbsl_u(abd,lda,n,ml,mu,ipvt,b,job)
+      integer lda,n,ml,mu,ipvt(n),job
       double precision abd(lda,n),b(n)
 c
 c     dgbsl solves the double precision band system
@@ -578,13 +578,13 @@ c     cleve moler, university of new mexico, argonne national lab.
 c
 c     subroutines and functions
 c
-c     blas daxpy,ddot
+c     blas daxpy_u,ddot_u
 c     fortran min0
 c
 c     internal variables
 c
-      double precision ddot,t
-      integer*4 k,kb,l,la,lb,lm,m,nm1
+      double precision ddot_u,t
+      integer k,kb,l,la,lb,lm,m,nm1
 c
       m = mu + ml + 1
       nm1 = n - 1
@@ -603,7 +603,7 @@ c
                   b(l) = b(k)
                   b(k) = t
    10          continue
-               call daxpy(lm,t,abd(m+1,k),1,b(k+1),1)
+               call daxpy_u(lm,t,abd(m+1,k),1,b(k+1),1)
    20       continue
    30    continue
 c
@@ -616,7 +616,7 @@ c
             la = m - lm
             lb = k - lm
             t = -b(k)
-            call daxpy(lm,t,abd(la,k),1,b(lb),1)
+            call daxpy_u(lm,t,abd(la,k),1,b(lb),1)
    40    continue
       go to 100
    50 continue
@@ -628,7 +628,7 @@ c
             lm = min0(k,m) - 1
             la = m - lm
             lb = k - lm
-            t = ddot(lm,abd(la,k),1,b(lb),1)
+            t = ddot_u(lm,abd(la,k),1,b(lb),1)
             b(k) = (b(k) - t)/abd(m,k)
    60    continue
 c
@@ -639,7 +639,7 @@ c
             do 80 kb = 1, nm1
                k = n - kb
                lm = min0(ml,n-k)
-               b(k) = b(k) + ddot(lm,abd(m+1,k),1,b(k+1),1)
+               b(k) = b(k) + ddot_u(lm,abd(m+1,k),1,b(k+1),1)
                l = ipvt(k)
                if (l .eq. k) go to 70
                   t = b(l)
@@ -652,8 +652,8 @@ c
       return
       end
 cc ********************************************************** cc
-      subroutine dgbco(abd,lda,n,ml,mu,ipvt,rcond,z)
-      integer*4 lda,n,ml,mu,ipvt(n)
+      subroutine dgbco_u(abd,lda,n,ml,mu,ipvt,rcond,z)
+      integer lda,n,ml,mu,ipvt(n)
       double precision abd(lda,n),z(n)
       double precision rcond
 c
@@ -766,15 +766,15 @@ c
 c     subroutines and functions
 c
 c     linpack dgbfa
-c     blas daxpy,ddot,dscal,dasum
+c     blas daxpy_u,ddot_u,dscal_u,dasum_u
 c     fortran dabs,dmax1,max0,min0,dsign
 c
 c     internal variables
 c
-      double precision ddot,ek,t,wk,wkm
-      double precision anorm,s,dasum,sm,ynorm
+      double precision ddot_u,ek,t,wk,wkm
+      double precision anorm,s,dasum_u,sm,ynorm
       integer is,j,ju,k,kb,kp1,l,la,lm,lz,m,mm
-      integer*4 info
+      integer info
 c
 c
 c     compute 1-norm of a
@@ -783,7 +783,7 @@ c
       l = ml + 1
       is = l + mu
       do 10 j = 1, n
-         anorm = dmax1(anorm,dasum(l,abd(is,j),1))
+         anorm = dmax1(anorm,dasum_u(l,abd(is,j),1))
          if (is .gt. ml + 1) is = is - 1
          if (j .le. mu) l = l + 1
          if (j .ge. n - ml) l = l - 1
@@ -791,7 +791,7 @@ c
 c
 c     factor
 c
-      call dgbfa(abd,lda,n,ml,mu,ipvt,info)
+      call dgbfa_u(abd,lda,n,ml,mu,ipvt,info)
 c
 c     rcond = 1/(norm(a)*(estimate of norm(inverse(a)))) .
 c     estimate = norm(z)/norm(y) where  a*z = y  and  trans(a)*y = e .
@@ -812,7 +812,7 @@ c
          if (z(k) .ne. 0.0d0) ek = dsign(ek,-z(k))
          if (dabs(ek-z(k)) .le. dabs(abd(m,k))) go to 30
             s = dabs(abd(m,k))/dabs(ek-z(k))
-            call dscal(n,s,z,1)
+            call dscal_u(n,s,z,1)
             ek = s*ek
    30    continue
          wk = ek - z(k)
@@ -849,26 +849,26 @@ c
    90    continue
          z(k) = wk
   100 continue
-      s = 1.0d0/dasum(n,z,1)
-      call dscal(n,s,z,1)
+      s = 1.0d0/dasum_u(n,z,1)
+      call dscal_u(n,s,z,1)
 c
 c     solve trans(l)*y = w
 c
       do 120 kb = 1, n
          k = n + 1 - kb
          lm = min0(ml,n-k)
-         if (k .lt. n) z(k) = z(k) + ddot(lm,abd(m+1,k),1,z(k+1),1)
+         if (k .lt. n) z(k) = z(k) + ddot_u(lm,abd(m+1,k),1,z(k+1),1)
          if (dabs(z(k)) .le. 1.0d0) go to 110
             s = 1.0d0/dabs(z(k))
-            call dscal(n,s,z,1)
+            call dscal_u(n,s,z,1)
   110    continue
          l = ipvt(k)
          t = z(l)
          z(l) = z(k)
          z(k) = t
   120 continue
-      s = 1.0d0/dasum(n,z,1)
-      call dscal(n,s,z,1)
+      s = 1.0d0/dasum_u(n,z,1)
+      call dscal_u(n,s,z,1)
 c
       ynorm = 1.0d0
 c
@@ -880,15 +880,15 @@ c
          z(l) = z(k)
          z(k) = t
          lm = min0(ml,n-k)
-         if (k .lt. n) call daxpy(lm,t,abd(m+1,k),1,z(k+1),1)
+         if (k .lt. n) call daxpy_u(lm,t,abd(m+1,k),1,z(k+1),1)
          if (dabs(z(k)) .le. 1.0d0) go to 130
             s = 1.0d0/dabs(z(k))
-            call dscal(n,s,z,1)
+            call dscal_u(n,s,z,1)
             ynorm = s*ynorm
   130    continue
   140 continue
-      s = 1.0d0/dasum(n,z,1)
-      call dscal(n,s,z,1)
+      s = 1.0d0/dasum_u(n,z,1)
+      call dscal_u(n,s,z,1)
       ynorm = s*ynorm
 c
 c     solve  u*z = w
@@ -897,7 +897,7 @@ c
          k = n + 1 - kb
          if (dabs(z(k)) .le. dabs(abd(m,k))) go to 150
             s = dabs(abd(m,k))/dabs(z(k))
-            call dscal(n,s,z,1)
+            call dscal_u(n,s,z,1)
             ynorm = s*ynorm
   150    continue
          if (abd(m,k) .ne. 0.0d0) z(k) = z(k)/abd(m,k)
@@ -906,11 +906,11 @@ c
          la = m - lm
          lz = k - lm
          t = -z(k)
-         call daxpy(lm,t,abd(la,k),1,z(lz),1)
+         call daxpy_u(lm,t,abd(la,k),1,z(lz),1)
   160 continue
 c     make znorm = 1.0
-      s = 1.0d0/dasum(n,z,1)
-      call dscal(n,s,z,1)
+      s = 1.0d0/dasum_u(n,z,1)
+      call dscal_u(n,s,z,1)
       ynorm = s*ynorm
 c
       if (anorm .ne. 0.0d0) rcond = ynorm/anorm

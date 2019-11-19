@@ -162,7 +162,7 @@ c
       if (ii .lt. 0) then
          write (*,*) '*** mcrates could not find za=',za,' zn=',zn
          write (*,*) '*** check mcfilenames array'
-         call kaboom(0)
+         call xerrab("")
       endif
 c
 c     Compute rate parameters for transitions from table species ii.
@@ -277,7 +277,7 @@ c     local variables --
       character idcod*8, idtyp*8, id1*32, mcfnuse*256
 
 c     procedures --
-      external freeus, gchange, kaboom
+      external freeus, gchange, xerrab
 
 c ... Initialize iprt_imp_file on
       data iprt_imp_file/1/
@@ -301,7 +301,7 @@ c----------------------------------------------------------------------c
          write(*,*)
      .     '*** Input file mcfilename = "', mcfilename(i),
      .     '" not found.'
-         call kaboom(0)
+         call xerrab("")
       endif
 
 c     read header --
@@ -329,7 +329,7 @@ c     Test for compatibility of (rtnt,rtnn) from different tables:
          write(*,*)
      .      '*** subroutine readmc: incompatible table dimensions in ',
      .      mcfilename(i),' and ',mcfilename(i-1)
-         call kaboom(0)
+         call xerrab("")
       endif
 
 c     allocate storage --
@@ -505,7 +505,7 @@ c     First, find the species index of the neutral impurity atom
       if (k0 .lt. 0) then
          write (*,*) '*** radmc could not find za=',0,' zn=',znuc
          write (*,*) '*** check mcfilenames array'
-         call kaboom(0)
+         call xerrab("")
       endif
 
       radmc = 0.	# total electron energy loss rate
@@ -563,7 +563,7 @@ c     Data is from CRC Handbook of Chemistry and Physics, except as noted.
       if (zatomic .ge. znuclear) then
          write (*,*) '*** ebindz: input error'
          write (*,*) ' zatomic=',zatomic,'   .ge.   znuclear=',znuclear
-         call kaboom(0)
+         call xerrab("")
       endif
 
       if (znuclear .eq. 1) then		# hydrogen
@@ -1156,7 +1156,7 @@ c            ebindz=72.28               # CRC handbook value
       else   # data not available
          write (*,*) '*** ebindz: no binding energy data'
          write (*,*) '    for znuclear=',znuclear,', zatomic=',zatomic
-         call kaboom(0)
+         call xerrab("")
       endif
 
       return

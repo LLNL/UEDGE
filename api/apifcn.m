@@ -254,7 +254,7 @@ c     blanks). Basis function basfilex expands $,~.
       if (ios .ne. 0) then
          write(*,*) 
      .      '*** Input file ',impfname,' not found'
-         call kaboom(0)
+         call xerrab("")
       else
          write(*,*)
      .      '*** Reading from impurity excitation rate file: ',impfname
@@ -450,7 +450,7 @@ c Assign this point to pixels in rows jj and jj+1
              write (*,*) 'error:  ',
      .         'tried to assign more than 2 points to jj+1 pixel (',
      .          ii,',',jj+1,')'
-	     call kaboom(0)
+         call xerrab("")
 	   endif
          endif
 	 if ( (1 .le. ii) .and. (ii .le. nrpix) .and.
@@ -467,7 +467,7 @@ c Assign this point to pixels in rows jj and jj+1
 	     write (*,*) 'error:  ',
      .         'tried to assign more than 2 points to jj pixel (',
      .          ii,',',jj,')'
-	     call kaboom(0)
+         call xerrab("")
 	   endif
          endif
       enddo
@@ -507,7 +507,7 @@ c Assign this point to pixels in column ii and ii+1
 	     write (*,*) 'error:  ',
      .         'tried to assign more than 2 points to ii+1 pixel (',
      .          ii+1,',',jj,')'
-	     call kaboom(0)
+         call xerrab("")
 	   endif
          endif
          if ( (1 .le. ii) .and. (ii .le. nrpix) .and.
@@ -524,7 +524,7 @@ c Assign this point to pixels in column ii and ii+1
 	     write (*,*) 'error:  ',
      .         'tried to assign more than 2 points to ii pixel (',
      .          ii,',',jj,')'
-	     call kaboom(0)
+         call xerrab("")
 	   endif
          endif
       enddo
@@ -539,7 +539,7 @@ c Assign LOS vertices to pixels (iv1,jv1) and (iv2,jv2):
           npd(iv1,jv1)=npd(iv1,jv1)+1
         else
           write (*,*) 'error in end-point 1 pixel (',iv1,',',jv1,')'
-          call kaboom(0)
+         call xerrab("")
         endif
       endif
       if ( (1 .le. iv2) .and. (iv2 .le. nrpix) .and.
@@ -550,7 +550,7 @@ c Assign LOS vertices to pixels (iv1,jv1) and (iv2,jv2):
           npd(iv2,jv2)=npd(iv2,jv2)+1
         else
           write (*,*) 'error in end-point 2 pixel (',iv2,',',jv2,')'
-          call kaboom(0)
+         call xerrab("")
         endif
       endif
 

@@ -1,5 +1,5 @@
 c-----------------------------------------------------------------------
-c $Id: odesetup.m,v 7.12 2019/05/29 17:54:28 meyer8 Exp $
+c $Id: odesetup.m,v 7.16 2019/10/14 18:33:19 meyer8 Exp $
 c
 c!include "bbb.h"
 c!include "../com/com.h"
@@ -20,7 +20,7 @@ c-----------------------------------------------------------------------
       Use(Math_problem_size)   # neqmx,numvar,numvarbwpad
       Use(Cdv)      # ifexmain, iallcall
       Use(Share)    # nycore,nysol,nxleg,nxcore,nxomit,igrid,isgrdsym,
-                    # nyomitmx
+                    # nyomitmx,geometry
       Use(UEpar)    # svrpkg,,isnion,isupon,isupgon,isteon,
                     # istion,isngon,isphion
       Use(UEint)    # minu,ziin,newgeo,mhdgeo,isallloc
@@ -144,8 +144,7 @@ c----------------------------------------------------------------------c
          endif	# end if-test on mhdgeo
 c----------------------------------------------------------------------c
       elseif (gengrid==0) then        # read from gridue file
-         if (geometry=="dnull" .or. geometry=="snowflake15" .or.
-     .       geometry=="snowflake45" .or. geometry=="snowflake75" .or.
+         if (geometry=="dnull" .or. geometry(1:9)=="snowflake" .or.
      .       geometry=="dnXtarget" .or. geometry=="isoleg") then
             nxpt=2
          else
@@ -184,14 +183,14 @@ c ... Check that number neutral gas species is not larger than ngspmx
       if (ngsp .gt. ngspmx) then
          call remark('***Increase ngspmx (now <ngsp) & recompile***')
          call remark('*** And increase nuixold,psorgold in pandf ***')
-         call kaboom(0)
+         call xerrab("")
       endif
 
 c ... Check that isupcore=2 is not being used
       do igsp = 1, ngsp
         if (isngcore(igsp) == 2) then
           write(*,*) "*** isngcore=2 option unvailable; igsp = ",igsp
-          call kaboom(0)
+          call xerrab("")
         endif
       enddo
 
@@ -200,7 +199,7 @@ c ... Check that a gas source and albedo is not assigned to nonexistent gas sp
       do isor = 1, nwsor
          if (igspsori(isor).gt. ngsp .or. igspsoro(isor).gt.ngsp) then
             call remark('*** igspsori,o refers to igsp > ngsp *** ')
-            call kaboom(0)
+            call xerrab("")
          endif
       enddo
 
@@ -208,13 +207,13 @@ c ... Check attempt to use deprecated variables fchemywi and fchemywo
       if (fchemywi .ne. 1. .or. fchemywo .ne. 1.) then
 	call remark('**Input error: change fchemywi --> fchemygwi(igsp)
      .               and fchemywo --> fchemygwo(igsp)')
-        call kaboom(0)
+        call xerrab("")
       endif
 
 c ... Check consistency of cngmom; should be zero if inertial neutrals
       if (isupgon(1).eq. 1 .and. cngmom(1).ne.0) then
          call remark('*** WARNING, likely Error: cngmom=1, isupgon=1')
-ccc         call kaboom(0)
+ccc         call xerrab("")
       endif
 
 c ... Check consistency of radial gradient boundary conditions
@@ -223,8 +222,7 @@ c ... Check consistency of radial gradient boundary conditions
         call remark('*** WARNING: large lyni does not give 0 flux B.C.')
       endif
       if (nx > 1000) then
-        call remark('*** lyni allocate req nx<=1000; need recompile')
-        call kaboom(0)
+        call xerrab('*** lyni allocate req nx<=1000; need recompile')
       endif
       if ((istewc==3 .or. istepfc==3) .and. lyte(1)+lyte(2) > 1e9) then
         call remark('*** WARNING: large lyte may not give 0 flux B.C.')
@@ -243,8 +241,7 @@ c ... Check consistency of impurity variables.
       do ifld = 1, ngsp-nhgsp
          nzspt = nzspt + nzsp(ifld)
          if (nzsp(ifld) .gt. nzspmx) then
-            call remark('*** nzspmx .gt. nzsp(ifld); reset nzspmx ***')
-            call kaboom(0)
+            call xerrab('*** nzspmx .gt. nzsp(ifld); reset nzspmx ***')
          endif
       enddo
       if (isimpon .ge. 4) then
@@ -275,8 +272,7 @@ c ... Check if isnfmiy=1 when geometry is snowflake > SF15
       if (geometry=="snowflake45" .or. geometry=="snowflake75" .or.
      .    geometry=="snowflake105" .or. geometry=="snowflake145") then
          if (isnfmiy == 1) then
-            call remark('*** ERROR: isnfmiy=1 not option here; set to 0')
-            call kaboom(0)
+            call xerrab('*** ERROR: isnfmiy=1 not option here; set to 0')
          endif
       endif
 
@@ -352,7 +348,7 @@ c 'banded'.
               write(STDOUT,*) "*** Invalid option:  premeth=",premeth
               write(STDOUT,*) "When using standard Newton, premeth ",
      .                        "must equal banded."
-              call kaboom(0)
+              call xerrab("")
             endif
          endif
       endif
@@ -380,7 +376,7 @@ c save preconditioner reordering info for icntnunk=1 case.
          call gallot("Nonzero_diagonals",0)
       else
          write(STDOUT,*) "*** Invalid option:  premeth=",premeth
-         call kaboom(0)
+         call xerrab("")
       endif
 
 c ... Set lengths of work arrays for desired solver option.
@@ -398,8 +394,7 @@ c ... Set lengths of work arrays for desired solver option.
          # nothing to do for cvode, but this validates cvode as solver
       elseif (svrpkg.eq.'daspk') then
          if (iscolnorm .ne. 0) then
-            call remark('**** Set iscolnorm=0 for DASPK, then restart *')
-            call kaboom(0)
+            call xerrab('**** Set iscolnorm=0 for DASPK, then restart *')
          endif
          if (info(12).eq.0) then   # direct solution method with
                                    # banded Jacobian supplied in jacd1
@@ -425,15 +420,14 @@ cc     do not reset if icntnunk=1 (saved Jac) as storage changes if mmaxu reset
          liw = 20 + mmaxu + liwp
       else
          write(STDOUT,*) "*** Invalid option:  svrpkg=",svrpkg
-         call kaboom(0)
+         call xerrab("")
       endif
 
 c ... Set maximum lengths of arrays to hold part of Jacobian matrix,
 c     and allocate space, if used.
       if (iondenseqn .eq. 'inel' .or.
      .    isimpon .eq. 3 .or. isimpon .eq. 4) then
-         call remark("*** Ave-ion models isimpon=3,4 disabled")
-         call kaboom(0)
+         call xerrab("*** Ave-ion models isimpon=3,4 disabled")
 ccc         nnz1mx = lenpfac*(nx+2)*(ny+2)
 ccc         if (isimpon .eq. 4) nnz1mx = nzspt * nnz1mx
 ccc         call gallot("Jacobian_part",0)
@@ -749,7 +743,6 @@ c-----------------------------------------------------------------------
 *  preliminaries.
 *  ---------------------------------------------------------------------
 
-
 *  -- check nx, ny, nhsp --
       if (nx.lt.1 .or. ny.lt.1 .or. nhsp.lt.1) then
          call xerrab ('ueinit -- faulty argument nx, ny, nhsp')
@@ -799,6 +792,12 @@ c ... The inverse pseudo time-step, nufak, is stored in yl(neq+2)
          endif
       endif
 
+c...  If geometry=dnbot and isudsym=0, reset isudsym = isupdown_sym flag
+      if (geometry == 'dnbot' .and. isudsym == 0) then
+         isudsym = 1
+         call remark('*** SETTING isudsym=1 BECAUSE geometry=dndot ***')
+      endif
+
 c...  Advise to use methg=66 if isnonog=1
       if (isnonog .eq. 1 .and. methg.ne.66) then
          call remark('***********************************************')
@@ -808,8 +807,7 @@ c...  Advise to use methg=66 if isnonog=1
 
 c...  Check isphiofft for consistent value
       if (isphiofft.ne.0 .and. isphion.ne.0) then
-         call remark('*** isphion.ne.0 while isphiofft.ne.0; illegal')
-         call kaboom(0)
+         call xerrab('*** isphion.ne.0 while isphiofft.ne.0; illegal')
       endif
 
 c...  Check for validity of the masses and atomic numbers.
@@ -1245,7 +1243,7 @@ c...  Now set sidewall flux limit factors
         flalftgya(0) = 1.e20
         flalftgya(ny) = 1.e20
       endif
-
+	  
 c...  set wall sources
       call walsor
 
@@ -1262,6 +1260,11 @@ c ... Set impurity sources on inner and outer walls.
       call imp_sorc_walls (nx, nzspt, xcpf, xcwo, sy(0,0), sy(0,ny),
      .                        ixp1(0,0), ixp1(0,ny), fnzysi, fnzyso)
 
+c ... Initialize molecular thermal equilibration array in case not computed
+      do igsp = 1,ngsp
+        call s2fill (nx+2, ny+2, 0.0e0, eqpg(0,0,igsp), 1, nx+2)
+      enddo
+      
 *---  bbbbbb begin ifloop b  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
       if (ig .eq. 1 .and. restart .eq. 0) then
 *---  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
@@ -1313,6 +1316,7 @@ c...  This is redundant with above if ngsp=1, but done to set nginit
      .                                          exp(-xcs(ix)/xgscal)
      .                            + exp(-(xcs(nx+1)-xcs(ix))/xgscal) )
      .                      + ngbackg(igsp)
+	       tg(ix,iy,igsp) = tscal*ttbeg
                nginit(ix,iy) = ng(ix,iy,1)
  143           continue
  144        continue
@@ -1469,7 +1473,6 @@ c...  method chosen.
 *     ------------------------------------------------------------------
 
       if(isnintp.eq.0 .or. isimesh.eq.1) then  # Use old interp or copy
-
          if (nis(nxold+1,nyold+1,1) .eq. 0.) then
             call xerrab ('variable nis=0, no saved solution for interp')
          endif
@@ -1498,7 +1501,7 @@ c.... If the grid does not change, but restart from saved variables
                    if (nis(ix,iy,ifld) <= 0.) then
                       call remark('*** Error: nis <= 0 ***')
                       write (*,*) 'Error at ix=', ix,'  iy=',iy,' ifld=',ifld
-                      call kaboom(0)
+                      call xerrab("")
                    endif
                 enddo
              enddo
@@ -1510,7 +1513,7 @@ c.... If the grid does not change, but restart from saved variables
                    if (ngs(ix,iy,igsp) <= 0.) then
                       call remark('*** Error: ngs <= 0 ***')
                       write (*,*) 'Error at ix=', ix,'  iy=',iy
-                      call kaboom(0)
+                      call xerrab("")
                    endif
                    lng(ix,iy,igsp) = log(ng(ix,iy,igsp))
                    tg(ix,iy,igsp) = tgs(ix,iy,igsp)
@@ -1678,7 +1681,7 @@ c...  Check if any ion density is zero
             if (ni(ix,iy,ifld) <= 0) then
               call remark('****** ERROR: ni <= 0 ******')
               write(*,*) 'begins at ix,iy,ifld = ',ix,iy,ifld
-              call kaboom(0)
+              call xerrab("")
             endif
           enddo
         enddo
@@ -1909,8 +1912,7 @@ c ...  First case is the default geometry=snull
                endif
                if (geometry=="dnull") then  #3 conditions for 1-cell cases
                  if (ixpt2(1)==ixpt1(1)+1.or.ixpt2(2)==ixpt1(2)+1) then
-                  call remark("***Error: Single pol cell not supported")
-                  call kaboom(0)
+                  call xerrab("***Error: Single pol cell not supported")
                  endif
                   if (iy.le.iysptrx1(1) .and. ix.eq.ixpt1(1)) then
                      ixm1(ix,iy) = ix-1
@@ -1994,7 +1996,7 @@ c ...  First case is the default geometry=snull
                   elseif ((iy .le. iycut3) .and. (ix .eq. ixcut3)) then
                      ixm1(ix,iy) = ix-1
                      if ((ixcut3 .eq. ixcut2+1) .and. (iy.le.iycut2)) then
-                        ixm1(ix,iy)=ixcut1
+                        ixm1(ix,iy) = ixcut1
                      endif
                      ixp1(ix,iy) = ixcut4+1
                   elseif ((iy .le. iycut3) .and. (ix .eq. ixcut3+1)) then
@@ -2046,6 +2048,42 @@ c ...  First case is the default geometry=snull
                      ixp1(ix,iy) = ix+1
                   endif
                endif	# end of geometry=="snowflake75"
+			   
+			   if (geometry=="snowflake105") then	# AK 10 DEC 2018
+                  if ((iy .le. iycut1) .and. (ix .eq. ixcut1)) then
+                     ixm1(ix,iy) = ix-1
+                     ixp1(ix,iy) = ixcut4+1
+                  elseif ((iy .le. iycut1) .and. (ix .eq. ixcut1+1)) then
+                     ixm1(ix,iy) = ixcut4
+                     ixp1(ix,iy) = ix+1
+					 if ((ixcut2 .eq. ixcut1+1) .and. (iy .le. iycut1)) then
+                        ixp1(ix,iy) = ixcut3+1
+                     endif
+                  elseif ((iy .le. iycut2) .and. (ix .eq. ixcut2)) then
+                     ixm1(ix,iy) = ix-1
+					 if ((ixcut2 .eq. ixcut1+1) .and. (iy .le. iycut1)) ixm1(ix,iy) = ixcut4
+                     ixp1(ix,iy) = ixcut3+1
+                  elseif ((iy .le. iycut2) .and. (ix .eq. ixcut2+1)) then
+                     ixm1(ix,iy) = ixcut3
+                     ixp1(ix,iy) = ix+1
+                  elseif ((iy .le. iycut3) .and. (ix .eq. ixcut3)) then
+                     ixm1(ix,iy) = ix-1
+                     ixp1(ix,iy) = ixcut2+1
+                  elseif ((iy .le. iycut3) .and. (ix .eq. ixcut3+1)) then
+                     ixm1(ix,iy) = ixcut2
+                     ixp1(ix,iy) = ix+1
+                  elseif ((iy .le. iycut4) .and. (ix .eq. ixcut4)) then
+                     ixm1(ix,iy) = ix-1
+					 if (ixcut4.eq.ixcut3+1) ixm1(ix,iy) = ixcut2
+                     ixp1(ix,iy) = ixcut1+1
+                  elseif ((iy .le. iycut4) .and. (ix .eq. ixcut4+1)) then
+                     ixm1(ix,iy) = ixcut1
+                     ixp1(ix,iy) = ix+1
+                  else	# when cuts do not interfere
+                     ixm1(ix,iy) = ix-1
+                     ixp1(ix,iy) = ix+1
+                  endif
+               endif	# end of geometry=="snowflake105"
 
                if (geometry=="isoleg") then	# TDR 03 Dec 2014
                   if ((iy .le. iycut1) .and. (ix .eq. ixcut1)) then
@@ -2296,8 +2334,7 @@ c ... Set values
       ndyt = ndycore(1) + ndysol(1)       # number of domains in y
       ndomain = ndxt*ndyt                 # total number of domains
       if (ndomain > ndomainmx) then
-        call remark("*** Exiting because ndomain > ndomainmx ***")
-        call kaboom(0)
+        call xerrab("*** Exiting because ndomain > ndomainmx ***")
       endif
 
 c ... Initialize bndry conditions to be of the interior type (domain-domain)
@@ -2334,8 +2371,7 @@ c ... Do a special case if isddcon=2: only divides into domains in y-direction
       if (isddcon .eq. 2) then
          ndomain = ndyt
          if (ndomain > ndomainmx) then
-           call remark("*** Exiting because ndomain > ndomainmx ***")
-           call kaboom(0)
+           call xerrab("*** Exiting because ndomain > ndomainmx ***")
          endif
          iycum = 0
          do idy = 1, ndycore(1)+ndysol(1)
@@ -7405,8 +7441,7 @@ c     across inner divertor, up inner wall and around to outer wall,
 c     across outer divertor, then around private flux boundary.
 
          if ((lindex .lt. ib_idiv) .or. (lindex .gt. ie_ipfwall)) then
-            call remark('*** Index out of bounds ***')
-            call kaboom(0)
+            call xerrab('*** Index out of bounds ***')
             endif
          if (lindex .le. ie_idiv) then   # inboard divertor
             ix = 0
@@ -7439,8 +7474,7 @@ c     across outer divertor, then around private flux boundary.
          endif
       endif
       if (geometry .eq. 'dnull') then
-         call remark ("*** getixiybdy double null not implemented ***")
-         call kaboom(0)
+         call xerrab ("*** getixiybdy double null not implemented ***")
       endif
       return
       end

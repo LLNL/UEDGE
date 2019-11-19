@@ -92,7 +92,7 @@ def MoveDecs(s):
         templines = copy.copy(savedlines)
         templines.append(s)
         #empty out savedlines
-        savedlines.__delslice__(0,len(savedlines)+1)
+        del savedlines[0:]
         saved_dec = 0
         in_uses=0
         return templines
@@ -178,8 +178,6 @@ M2Fsubrules.insert(6,grdproc)
 M2Fsubrules.insert(3,("do i1=","do_i1: do i1="))
 M2Fsubrules.insert(4,("break (2) ! exit do_i1","exit do_i1"))
 M2Fsubrules.insert(5,("enddo ! do_i1","enddo do_i1"))
-M2Fsubrules.insert(6,("scopy","dcopy"))
-M2Fsubrules.insert(6,("SCOPY","DCOPY"))
 M2Fsubrules.insert(6,("float","real"))
 M2Fsubrules.insert(6,("dfloat","real"))
 

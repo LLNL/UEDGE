@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# $Id: convert1.py,v 7.0 2018/02/28 18:43:48 meyer8 Exp $
+# $Id: convert1.py,v 7.1 2019/11/01 22:38:19 meyer8 Exp $
 #
 # To try solving linear critical gradient
 
@@ -8,8 +8,8 @@ import sys
 import os
 import getopt
 import string
-import convert
-from convert import *
+from . import convert
+from .convert import *
 
 # define the mppl to f90 class
 class M2F(generic):
@@ -18,7 +18,7 @@ class M2F(generic):
   subrules = globalsubrules + M2Fsubrules
 
 def usage():
-  print "Usage: convert1.py -i <indir> -o <outdir> <infile>"
+  print("Usage: convert1.py -i <indir> -o <outdir> <infile>")
 
 r"""
 main(argv: array of strings)
