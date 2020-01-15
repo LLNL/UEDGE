@@ -318,22 +318,23 @@ def hdf5_restore_dump(file, vars=None, scope=globals()):
     try:
         hf = h5py.File(file, 'r')
     except:
-        print "Couldn't open hdf5 file ", file
+        print("Couldn't open hdf5 file " + str(file))
     for gn in hf.keys():
         g = hf[gn]
         try:
             if prfileattrs:
                 prfileattrs = False
-                print 'File attributes:'
-                print '    written on: ', g.attrs['ctime']
-                print '       by code: ', g.attrs['code']
-                print '       version: ', np.char.strip(g.attrs['ver'])
+                print('File attributes:')
+                print('    written on: ' + str(g.attrs['ctime']))
+                print('       by code: ' + str(g.attrs['code']))
+                print('       version: ' + str(np.char.strip(g.attrs['ver'])))
         except:
-            print 'No file attributes, trying to restore'
+            print('No file attributes, trying to restore')
         if vars == None:
             varlist = g.keys()
         else:
             varlist = list(set(g.keys()) & set(vars))
         for v in varlist:
-            print v
+            print(v)
     hf.close()
+
