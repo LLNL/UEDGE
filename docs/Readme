@@ -1,0 +1,23 @@
+Instructions to generate the UEDGE documentation with Sphinx
+Author: J. Guterl
+Date: 16 Jan 2020
+
+About Sphinx: http://www.sphinx-doc.org/en/master/
+
+This set of instructions have been only tested on MacOS Catalina  and assumed that Python 3.7.6 was installed through Anaconda
+
+Install Sphinx and Sphinx-Fortran
+=================================
+
+run	"conda install sphinx'
+
+Make the documentation
+=================================
+
+run    "make html" in the './docs' directory
+
+Read the documentation
+=================================
+
+open ".docs/build/index.html" with an html browser
+

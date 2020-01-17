@@ -1,0 +1,6 @@
+The UEDGE 2-D Transport Code
+====================
+
+UEDGE is an interactive suite of physics packages using the Python or BASIS scripting systems. The original (circa 2007) Python version was further developed under the FACETS SciDAC project [Cary 2008, McCourt 2012]. The plasma is described by time-dependent 2D plasma fluid equations that include equations for density, velocity, ion temperature, electron temperature, electrostatic potential, and gas density in the edge region of a magnetic fusion energy confinement device. slab, cylindrical, and toroidal geometries are allowed, and closed and open magnetic field-line regions are included. Classical transport is assumed along magnetic field lines, and anomalous transport is assumed across field lines. Multi-charge state impurities can be included with the corresponding line-radiation energy loss.
+
+A fully implicit numerical algorithm is used that allows both Newton-like iterations to steady state and time-dependent solutions with large time-steps. A preconditioning matrix is obtained by approximate (ILUT) inversion of a numerical finite-difference Jacobian, which is then used in a Newton-Krylov solution algorithm. A finite-volume differencing algorithm is used. Over 95% of the coding is in Fortran with the remainder being C.

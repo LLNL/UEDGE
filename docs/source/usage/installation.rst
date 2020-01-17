@@ -1,0 +1,23 @@
+.. _section-1:
+
+Instructions for building a uedge shared-object python module
+=============================================================
+
+This is a major change from the pre-2019 version.
+=================================================
+
+— Read the Uedge README.disclaimer file in directory uedge. —
+-------------------------------------------------------------
+
+I. Checking out and building the needed modules:
+
+1) The python module is now installed with the “pip” command. It is
+   recommended that you have the Anaconda distribution installed. If so
+   then “pip” is part of that distribution.
+
+   a) To just install the uedge module without having source do pip
+      install uedge
+
+   b) To install and have source do the following: pip download uedge
+      tar -zxvf uedge.7.0.8.0.3.tgz cd uedge-7.0.8.0.3 python setup.py
+      build python setup.py install python setup.py test
