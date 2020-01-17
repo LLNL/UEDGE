@@ -3,13 +3,15 @@ Author: J. Guterl
 Date: 16 Jan 2020
 
 About Sphinx: http://www.sphinx-doc.org/en/master/
+About Sphinx-Fortran: https://sphinx-fortran.readthedocs.io/en/latest/
 
 This set of instructions have been only tested on MacOS Catalina  and assumed that Python 3.7.6 was installed through Anaconda
 
 Install Sphinx and Sphinx-Fortran
 =================================
 
-run	"conda install sphinx'
+run	"conda install sphinx"
+run     "pip install sphinx-fortran"
 
 Make the documentation
 =================================
