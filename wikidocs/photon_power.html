@@ -3,7 +3,7 @@ effect on the target sputtering etc.
 
 To calculate the photon radiation power, first call subroutine bbb.pradpltwl(). 
 
-Then the outputs are stored in arrays bbb.pwr_plth(0:ny+1,2*nxpt) and bbb.pwr_pltz(0:ny+1,2*nxpt),
+The outputs are stored in arrays bbb.pwr_plth(0:ny+1,2*nxpt) and bbb.pwr_pltz(0:ny+1,2*nxpt),
 and in arrays pwr_wallh(0:nx+1) and pwr_wallz(0:nx+1).
 
 Array bbb.pwr_plth is for hydrogenic raditaion power flux on target plates [W/m^2]; bbb.pwr_pltz 
@@ -11,6 +11,5 @@ is for impurity radiation power [W/m^2]. Each contains two columns (for single X
 one is for the inner plate, the second one for the outer plate. The other index is the radial index 
 of cells along the target plates. 
 
-For photon radiation power on outer wall, there are two arrays pwr_wallh(0:nx+1) and pwr_wallz(0:nx+1),
-these contain hydrogenic and impurity radiation power flux on outer wall [W/m^2], the index corresponds 
-to the poloidal location.
+Arrays pwr_wallh(0:nx+1) and pwr_wallz(0:nx+1), contain hydrogenic and impurity radiation power flux 
+on the outer wall [W/m^2], the index corresponds to the poloidal location.
