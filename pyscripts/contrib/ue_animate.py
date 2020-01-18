@@ -140,7 +140,7 @@ def animate_heatmapdt(casedir,varible,show=True,savename=False,interval=1000,fig
     chdir(casedir+"/data")  # Go to data directory of specified case: required as required files might be stored here
     # Execute and store variables globally 
     import input as i
-    i.read()
+    i.restore_input()
 
     # Loop through list of commands in case coefficients need to be changed
     for i in commands:
@@ -247,7 +247,7 @@ def animate_vectordt(casedir,varx,vary,show=True,savename=False,interval=1000,fi
     chdir(casedir+"/data")  # Go to data directory of specified case: required as required files might be stored here
     # Execute and store variables globally 
     import input as i
-    i.read()    
+    i.restore_input()    
 
     # Loop through list of commands in case coefficients need to be changed
     for i in commands:
@@ -352,6 +352,7 @@ def ani_vec(varx,vary,path='.',norm=None,zoom='div',show_animation=True,savename
     from matplotlib.pyplot import axes,subplots_adjust,figure,show,close
     from uedge.contrib.ue_plot import vector
     from importlib import reload
+    from uedge.contrib.utils import readcase
 
     func=vector
 
@@ -404,17 +405,9 @@ def ani_vec(varx,vary,path='.',norm=None,zoom='div',show_animation=True,savename
             # Verbose
             print( "Frame ", frame+1, " of ", len(dirs))
             print( "===========================")
+        
+            readcase('{}/{}'.format(path,dirs[frame]))
 
-            # Recursively enter the directories
-            try:
-                chdir(path+"/"+dirs[frame]+"/data")
-            except:
-                return "Directory "+dirs[frame]+"/data not found! Aborting..."
-
-            # Load case and recover solution
-            import input as i
-            reload(i)
-            i.read()
             # Execute any requested commands
             for cmd in commands:
                 exec(cmd)
@@ -456,7 +449,7 @@ def ani_vec(varx,vary,path='.',norm=None,zoom='div',show_animation=True,savename
     else:
         close()
 
-def ani_hm(variable,path='.',zoom='div',zrange=False,zaxis='lin',norm=None,show_animation=True,savename=False,fps=10,figsize=(1.618*6,6),keys={},steps="",framerate=1,output='gif',database=None,subplot=None):
+def ani_hm(variable,path='.',zoom='div',zrange=False,zaxis='lin',norm=None,show_animation=True,savename=False,fps=10,figsize=(1.618*6,6),keys={},steps="",framerate=1,output='gif',database=None,subplot=None,commands=[]):
     """ Function creating a flux-tube plot  animation 
         ani_hm(var,**keys)
         
@@ -483,7 +476,7 @@ def ani_hm(variable,path='.',zoom='div',zrange=False,zaxis='lin',norm=None,show_
     from matplotlib.animation import ArtistAnimation
     from matplotlib.pyplot import axes,subplots_adjust,figure,show,close
     from uedge.contrib.ue_plot import heatmap
-    from importlib import reload
+    from uedge.contrib.utils import readcase
 
     # Set common keys
     keys['zaxis']=zaxis
@@ -534,16 +527,12 @@ def ani_hm(variable,path='.',zoom='div',zrange=False,zaxis='lin',norm=None,show_
             print( "Frame ", frame+1, " of ", len(dirs))
             print( "===========================")
 
-            # Recursively enter the directories
-            try:
-                chdir(path+"/"+dirs[frame]+"/data")
-            except:
-                return "Directory "+dirs[frame]+"/data not found! Aborting..."
+            readcase('{}/{}'.format(path,dirs[frame]))
 
-            # Load case and recover solution
-            import input as i
-            reload(i)
-            i.read()
+            # Execute any requested commands
+            for cmd in commands:
+                exec(cmd)
+
             bbb.ftol=1e20;bbb.issfon=0;bbb.exmain()
 
             # Add timestamp to plot title
@@ -579,7 +568,7 @@ def ani_hm(variable,path='.',zoom='div',zrange=False,zaxis='lin',norm=None,show_
     else:
         close()
 
-def ani_ft(variable,plotft,path='.',yaxis='lin',ylim=False,show_animation=True,save=False,fps=10,figsize=(1.618*6,6),keys={},steps="",framerate=1,output='gif',database=None,subplot=None):
+def ani_ft(variable,plotft,path='.',yaxis='lin',ylim=False,show_animation=True,save=False,fps=10,figsize=(1.618*6,6),keys={},steps="",framerate=1,output='gif',database=None,subplot=None,commands=[]):
     """ Function creating a flux-tube plot  animation 
         ani_ft(var,ft,**keys)        
 
@@ -604,7 +593,7 @@ def ani_ft(variable,plotft,path='.',yaxis='lin',ylim=False,show_animation=True,s
     from matplotlib.animation import ArtistAnimation
     from matplotlib.pyplot import axes,subplots_adjust,figure,show,close
     from uedge.contrib.ue_plot import ft
-    from importlib import reload
+    from uedge.contrib.utils import readcase
 
     func=ft
 
@@ -660,16 +649,12 @@ def ani_ft(variable,plotft,path='.',yaxis='lin',ylim=False,show_animation=True,s
             print( "Frame ", frame+1, " of ", len(dirs))
             print( "===========================")
 
-            # Recursively enter the directories
-            try:
-                chdir(path+"/"+dirs[frame]+"/data")
-            except:
-                return "Directory "+dirs[frame]+"/data not found! Aborting..."
+            readcase('{}/{}'.format(path,dirs[frame]))
 
-            # Load case and recover solution
-            import input as i
-            reload(i)
-            i.read()
+            # Execute any requested commands
+            for cmd in commands:
+                exec(cmd)
+
             bbb.ftol=1e20;bbb.issfon=0;bbb.exmain()
 
             # Add timestamp to plot title
@@ -706,7 +691,7 @@ def ani_ft(variable,plotft,path='.',yaxis='lin',ylim=False,show_animation=True,s
         close()
 
 
-def ani_row(variable,plotrow,ylim=False,yaxis='lin',path='.',show_animation=True,savename=False,fps=10,figsize=(1.618*6,6),keys={},steps="",framerate=1,output='gif',database=None,subplot=None):
+def ani_row(variable,plotrow,ylim=False,yaxis='lin',path='.',show_animation=True,savename=False,fps=10,figsize=(1.618*6,6),keys={},steps="",framerate=1,output='gif',database=None,subplot=None,commands=[]):
     """ Function creating a flux-tube plot  animation 
         ani_row(var,row,**keys)
         
@@ -731,7 +716,7 @@ def ani_row(variable,plotrow,ylim=False,yaxis='lin',path='.',show_animation=True
     from matplotlib.animation import ArtistAnimation
     from matplotlib.pyplot import axes,subplots_adjust,figure,show,close
     from uedge.contrib.ue_plot import row
-    from importlib import reload
+    from uedge.contrib.utils import readcase
 
     func=row
 
@@ -783,16 +768,13 @@ def ani_row(variable,plotrow,ylim=False,yaxis='lin',path='.',show_animation=True
             print("Frame ", frame+1, " of ", len(dirs))
             print("===========================")
 
-            # Recursively enter the directories
-            try:
-                chdir(path+"/"+dirs[frame]+"/data")
-            except:
-                return "Directory "+dirs[frame]+"/data not found! Aborting..."
+            readcase('{}/{}'.format(path,dirs[frame]))
 
-            # Load case and recover solution
-            import input as i
-            reload(i)
-            i.read()
+            # Execute any requested commands
+            for cmd in commands:
+                exec(cmd)
+
+
             bbb.ftol=1e20;bbb.issfon=0;bbb.exmain()
 
             # Add timestamp to plot title

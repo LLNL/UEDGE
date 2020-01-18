@@ -5,6 +5,7 @@ Module defining functions for reading a UEDGE hdf5 dump
 from h5py import File
 import uedge
 from uedge.hdf5 import hdf5_dump
+from uedge.contrib.utils import readcase
 
 
 def natsort(l): 
@@ -32,7 +33,7 @@ class SETUP():
         if len(self.cases[0].get(var).shape)>2:
             # See if a specific species is requested
             if s is None:   # If not, warn user that standard index is used
-                print('WARNING! Multi-species array requested. Using species index 0 of '+str(self.cases[0].get(var).shape[-1])+'.')
+                print('WARNING! Multi-species array requested. Using species index 0/{}.'.format(self.cases[0].get(var).shape[-1]-1))
                 return 0
             else:           # If requested, don't issue warning
                 return s
@@ -56,7 +57,7 @@ class SETUP():
 
 
     '''==========================================
-    Sort
+    Handle the case list
     =========================================='''
 
     def sort_core(self,var,s=None):
@@ -150,9 +151,27 @@ class SETUP():
         else: 
             self.cases.sort(key=lambda case: max(case.get(var)[row,:,suse]))
 
+
+    def get_closest_mp(self,var,val,s=None):
+        ''' Get the index of the case with var closest to val at MP-sep'''
+        return abs(self.mp(var,s=s)-val).argmin()
+
+    def get_closest_core(self,var,val,s=None):
+        ''' Get the index of the case with var closest to val at core MP'''
+        return abs(self.core(var,s=s)-val).argmin()
+
+    def get_closest_index(self,var,val,ix,iy,s=None):
+        ''' Get the index of the case with var closest to val at location specified by index'''
+        return abs(self.index(var,ix,iy,s=s)-val).argmin()
+
+
     '''==========================================
     Get parameter
     =========================================='''
+    def get_name(self):
+        ''' Returns a list of case names '''
+        return [case.get('bbb.label')[0].decode('utf-8').strip() for case in self.cases]
+
 
     def get(self,var,s=None):
         ''' Returns a list of arrays containing var
@@ -849,11 +868,11 @@ def create_dict(dump,variables=None):
                 ret[pack+'.'+var]=array(p.get(var))    # Store the variable to the dictionary as array
     return ret
 
-def create_database(savename=None,sortlocation='core',outpath='.',path='.',subpath='data',commands=[],ret=True,variables=None):
+def create_database(savename=None,sortlocation='mp',outpath='.',path='.',subpath='data',commands=[],ret=True,variables=None):
     ''' Creates a database
         Parameters:
             savename        If set, saves dict as pickle named 'savename'
-            sortlocation    Location for sorting by te: 'core' or 'sep'
+            sortlocation    Location for sorting by te: 'core' or 'mp'
             outpath         Path to location where pickle is saved
             path            Path to parent directory
             subpath         Path to input.py within child directories of path: 
@@ -903,14 +922,9 @@ def create_database(savename=None,sortlocation='core',outpath='.',path='.',subpa
         print('******************************')
         print('*** Directory: '+child+' ***')
         print('******************************')
-        try:
-            chdir(path+"/"+child+"/"+subpath)
-        except:
-            return "Error! Directory "+child+"/"+subpath+"/ not found! Aborting..."
-        import input as i
-        reload(i)
-        i.read()
-    
+        readcase(child,subpath) # Restore the case
+
+
         # Execute any commands before executing
         for cmd in commands:
             exec(cmd) in globals(),locals()
@@ -919,30 +933,18 @@ def create_database(savename=None,sortlocation='core',outpath='.',path='.',subpa
 
 
         retl.append(CASE(variables))
-        '''
-        # Create a temporary hdf5 dump
-        createdump('tempdump',packages=packages)
-        # Read the dump into the dict and append it to the list 
-        retl.append(create_dict('tempdump',variables=variables))
-        # Remove the temporary dump
-        remove('tempdump')
-        '''
 
         chdir(parent)
     
     
     lst=SETUP(retl) 
-    '''
     # Get the sep and xpt locations
-    sep,mp=retl[0]['com.iysptrx'],retl[0]['bbb.ixmp']
-    # Sort by density at requested location
     if sortlocation=='core':
-        retl.sort(key=lambda case: case['bbb.ne'][mp,0])
-    elif sortlocation=='sep':
-        retl.sort(key=lambda case: case['bbb.ne'][mp,sep+1])
+        lst.sort_core('bbb.ne')
+    elif sortlocation=='mp':
+        lst.sort_mp('bbb.ne')
     else:
         print('Error! Unknown sortin location "'+sortlocation+'". Terminating...')
-    '''
     chdir(outpath)
     # Check if save requested
     if savename is not None:
@@ -955,8 +957,12 @@ def create_database(savename=None,sortlocation='core',outpath='.',path='.',subpa
 def restore_database(name):    
     ''' Restores pickled case '''
     from pickle import load
+        
+    with open(name,'rb') as f:
+        ret=load(f)
+
     try:
-        with open(name) as f:
+        with open(name,'rb') as f:
             ret=load(f)
     except:
         print('ERROR! Could not find file "'+name+'"! Aborting...')
@@ -988,7 +994,9 @@ def default_variables():
                 'bbb.hcxg', 'bbb.hcyg','bbb.floxge','bbb.floyge','bbb.conxge','bbb.conyge',
                 'bbb.kxg_use','bbb.kyg_use','bbb.psor','bbb.psordis','bbb.psorrgc',
                 'bbb.pradiz','bbb.pradrc','bbb.pbinde','bbb.pbindrc','bbb.prdiss','bbb.pibirth',
+                'bbb.pradc','bbb.pradz','bbb.pradzc','bbb.prad','bbb.pradht',
                 'bbb.erliz','bbb.erlrc',
+                'bbb.psorbgg','bbb.psorbgz',
                 'bbb.ziin', 'bbb.minu', 'bbb.mi', 'bbb.mg', 'bbb.ziin',
                 'bbb.label' ]
 

@@ -12,7 +12,7 @@ def reconv(path='.'):
     ''' Reconverges all cases in subfolders in path (default current folder)'''
 
     from os import chdir,getcwd,walk
-    from rundt import rundt
+    from uedge.rundt import rundt
 
 
     path=getcwd()

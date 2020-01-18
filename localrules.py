@@ -141,6 +141,9 @@ def Elseifthen(s):
     return s
 
 M2Fsubrules = [("#","!"),Use2use,
+               ("c!ifdef","#ifdef"),
+               ("c!else","#else"),
+               ("c!endif","#endif"),
                ("(Size4)","(kind=4)::"),
                (":: function"," function"),
                (" break "," exit "),

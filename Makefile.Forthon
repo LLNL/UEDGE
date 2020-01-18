@@ -29,7 +29,7 @@ apipy.$(SO): compy.$(SO) api/apifcn.F api/apip93.F api/apisorc.F api/fimp.F api/
 	(cd api;$(FORTHON) --builddir $(BUILDDIR)  -a $(FCOMP) $(DEBUG) -d com -f apifcn.F api apip93.F apisorc.F fimp.F fmombal.F inelrates.F sputt.F)
 
 bbbpy.$(SO): compy.$(SO) bbb/boundary.F bbb/convert.F bbb/geometry.F bbb/griddubl.F bbb/oderhs.F bbb/odesetup.F bbb/odesolve.F bbb/potencur.F bbb/turbulence.F bbb/ext_neutrals.F bbb/bbb.v com/com.v
-	(cd bbb;$(FORTHON) --builddir $(BUILDDIR)  -a $(FCOMP) $(DEBUG) --macros ../com/com.v -d com -f boundary.F bbb convert.F geometry.F griddubl.F oderhs.F odesetup.F odesolve.F potencur.F turbulence.F ext_neutrals.F)
+	(cd bbb;$(FORTHON) --builddir $(BUILDDIR)  -a $(FCOMP) $(DEBUG) --macros ../com/com.v $(READLINE) -d com -f boundary.F bbb convert.F geometry.F griddubl.F oderhs.F odesetup.F odesolve.F potencur.F turbulence.F ext_neutrals.F)
 
 flxpy.$(SO): compy.$(SO) flx/flxcomp.F flx/flxdriv.F flx/flxread.F flx/flxwrit.F flx/flx.v com/com.v
 	(cd flx;$(FORTHON) --builddir $(BUILDDIR)  -a $(FCOMP) $(DEBUG) -d com -f flxcomp.F flx flxdriv.F flxread.F flxwrit.F)

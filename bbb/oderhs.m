@@ -8602,8 +8602,7 @@ c     factorization routine sgbco from Linpack/SLATEC.
             call xerrab("")
          endif
          tsmatfac = gettime(sec4)
-         call sgbco (wp, lowd, INT(neq,4), INT(lbw,4), INT(ubw,4),
-     ,               iwp(4), rcond, rwk1)
+         call sgbco (wp, lowd, neq, lbw, ubw, iwp(4), rcond, rwk1)
          iwp(1) = lowd
          iwp(2) = lbw
          iwp(3) = ubw

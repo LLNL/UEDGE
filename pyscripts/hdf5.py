@@ -1,6 +1,7 @@
 
 import numpy as np
 import h5py
+import uedge
 from .uedge import bbb
 from .uedge import com
 from .uedge_lists import *
@@ -24,7 +25,14 @@ def hdf5_restore(file):
     try:
         dummy = hf['bbb']   # force an exception if the group not there
         hfb = hf.get('bbb')
-        print("New style hdf5 file")
+        try:
+           print('File attributes:')
+           print('     written on: ', hfb.attrs['ctime'])
+           print('        by code: ', hfb.attrs['code'])
+           print('    physics tag: ', np.char.strip(hfb.attrs['ver']))
+           print(' python version: ', np.char.strip(hfb.attrs['pyver']))
+        except:
+            pass
         try:
             bbb.ngs[...] = np.array(hfb.get('ngs'))
         except ValueError as error:
@@ -141,6 +149,10 @@ def hdf5_save(file):
         hfb.attrs['ctime'] = time.ctime()
         hfb.attrs['code'] = 'UEDGE'
         hfb.attrs['ver'] = bbb.uedge_ver
+        try:
+           hfb.attrs['pyver'] = uedge.__version__
+        except:
+           pass
     except ValueError as error:
         print("HDF5 file open failed to ", file)
         print(error)
@@ -275,6 +287,10 @@ def hdf5_dump(file, packages=list_packages(objects=1), vars=None, globals=None):
         hfg.attrs['ctime'] = time.ctime()
         hfg.attrs['code'] = 'UEDGE'
         hfg.attrs['ver'] = bbb.uedge_ver
+        try:
+           hfg.attrs['pyver'] = uedge.__version__
+        except:
+           pass
         for v in list_variables(p, vars=vars):
             if p.allocated(v):
                 try:
@@ -294,6 +310,10 @@ def hdf5_dump(file, packages=list_packages(objects=1), vars=None, globals=None):
         hfg.attrs['ctime'] = time.ctime()
         hfg.attrs['code'] = 'UEDGE'
         hfg.attrs['ver'] = bbb.uedge_ver
+        try:
+           hfg.attrs['pyver'] = uedge.__version__
+        except:
+           pass
         for v in list(set(globals.keys()) & set(vars)):
             try:
                 d = hfg.create_dataset(v, data=globals[v])
@@ -318,22 +338,24 @@ def hdf5_restore_dump(file, vars=None, scope=globals()):
     try:
         hf = h5py.File(file, 'r')
     except:
-        print "Couldn't open hdf5 file ", file
+        print("Couldn't open hdf5 file ", file)
     for gn in hf.keys():
         g = hf[gn]
         try:
             if prfileattrs:
                 prfileattrs = False
-                print 'File attributes:'
-                print '    written on: ', g.attrs['ctime']
-                print '       by code: ', g.attrs['code']
-                print '       version: ', np.char.strip(g.attrs['ver'])
+                print('File attributes:')
+                print('     written on: ', g.attrs['ctime'])
+                print('        by code: ', g.attrs['code'])
+                print( '       version: ', np.char.strip(g.attrs['ver']))
+                print('    physics tag: ', np.char.strip(g.attrs['ver']))
+                print(' python version: ', np.char.strip(g.attrs['pyver']))
         except:
-            print 'No file attributes, trying to restore'
+            print('No file attributes, trying to restore')
         if vars == None:
             varlist = g.keys()
         else:
             varlist = list(set(g.keys()) & set(vars))
         for v in varlist:
-            print v
+            print(v)
     hf.close()

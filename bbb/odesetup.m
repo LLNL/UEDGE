@@ -1,5 +1,5 @@
 c-----------------------------------------------------------------------
-c $Id: odesetup.m,v 7.16 2019/10/14 18:33:19 meyer8 Exp $
+c $Id: odesetup.m,v 7.17 2019/12/02 17:29:13 meyer8 Exp $
 c
 c!include "bbb.h"
 c!include "../com/com.h"
@@ -6336,8 +6336,19 @@ c_mpi       call MPI_BCAST(area_core,1,MPI_DOUBLE_PRECISION,0,uedgeComm,ierr)
       end
 c ***** End of subroutine init_par_meshg *****************************      
 c ---------------------------------------------------------------------c
-      subroutine exmain
 
+      subroutine exmain_f
+
+*
+*     12/1/2019 - meyer8@llnl.gov: Changed the name of the entry point.
+*     Exmain is now provided by a C source file. This allows us to 
+*     trap SIGINT and provide a Basis-like debug mode in the Python
+*     version of the code. There is no physics in the C source, only
+*     system calls to handle the Control-C. When built with Basis the
+*     C source file simply drops through to this entry point.
+*
+*
+*
 *     EXMAIN is the main subroutine for the two dimensional edge plasma
 *     code UEDGE. The code solves a system of fluid equations that
 *     models the edge plasma in an axisymmetric configuration.

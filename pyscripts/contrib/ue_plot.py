@@ -1,8 +1,17 @@
 # Holm10 Nov 5 2019, created from scratch
+# 191203    - added showfig for displaying while in debug mode
+#           - added projection options for all radial plots
+
 
 from matplotlib.pyplot import ion
 ion()
 
+
+
+def display():
+    ''' Shows the figure output while in debug mode '''
+    from matplotlib.pyplot import show
+    show(block=True)
 
 def calcang(geo,nodeorder=range(5), ccw=True):
     """ Function calculating poloidal and radial angles at CC
@@ -105,8 +114,8 @@ def ue_interpolate(val,interp=1):
         
     return ret
 
-def heatmap(Z,s=0,ax=False,zrange=False,cbar=True,cmap="YlOrRd",zoom="div",plotvessel=["sep","outline"],maintainaspect=True,
-    xlabel=None,ylabel=None,title=None,units=None,zaxis="lin"):
+def heatmap(Z,s=None,ax=False,zrange=False,cbar=True,cmap="magma",zoom="div",plotvessel=["sep","outline"],maintainaspect=True,
+    xlabel=None,ylabel=None,title=None,units=None,zaxis="lin",showgrid=True):
     """Creates a heatmap of requested variable using polygons.
     heatmap(var,**keys)
 
@@ -120,7 +129,7 @@ def heatmap(Z,s=0,ax=False,zrange=False,cbar=True,cmap="YlOrRd",zoom="div",plotv
                         First tuple entry can be set to "min"/"max" to only limit either Z-boundary
     zaxis:              Z-axis type; "lin"/"log" (TODO log)
     cbar:               Boolean defining whether to plot a vertical colorbar on the same axis
-    cmap[=YlOrRd]:      Colormap object to use with C, as defined by maplotlib.cm. 
+    cmap[='magma']:     Colormap object to use with C, as defined by maplotlib.cm. 
     plotvessel:         variable defining whether to plot vessel outlines, grid boundaries, and separatrix
                         All are plotted is plotvessel=True. If only part of the boundaries should be plotted
                         plotvessel should be a list containing any or all of the following strings:
@@ -153,14 +162,22 @@ def heatmap(Z,s=0,ax=False,zrange=False,cbar=True,cmap="YlOrRd",zoom="div",plotv
     from matplotlib.cm import ScalarMappable
    # from matplotlib.ticker import LogFormatter,LogLocator
 
-    if len(Z.shape)>2:
-        Z=Z[:,:,s]
-        print('WARNING! Multi-species array requested. Plotting species index '+s+'.')
+    # Check if we have mutispecies array or not
+    if len(Z.shape)==3:
+        if s is None:   # Warn user if s is unset, and return sepcies index 0
+            Z=Z[:,:,0]
+            print('WARNING! Multi-species array requested. Plotting species index 0.')
+        else:
+            Z=Z[:,:,s]
 
     if ax is False:
         ret=figure()
         ax=ret.add_subplot(111)
-
+    else:
+        try:
+            ax=ax.get_axes()[0]
+        except:
+            pass
 
     # Set zoom location
     if zoom=="ot":
@@ -186,7 +203,7 @@ def heatmap(Z,s=0,ax=False,zrange=False,cbar=True,cmap="YlOrRd",zoom="div",plotv
             ylim,xlim= [com.rm.min(),com.rm.max()],[com.zm.min(),com.zm.max()]
         else:
             print("Slab geometry is only compatible with 'ot' and 'device' zooming!")
-            return -1
+            return
 
 
     # Set heatmap limits if requested
@@ -212,7 +229,7 @@ def heatmap(Z,s=0,ax=False,zrange=False,cbar=True,cmap="YlOrRd",zoom="div",plotv
         Zcol=((log10(Z)-floor(log10(Zmin)))/(floor(log10(Zmax))-floor(log10(Zmin))))
     else:
         print("Only valid zaxis options are 'lin' and 'log'!")
-        return -1
+        return
         
     # Set colormap
     cmap=get_cmap(cmap)
@@ -276,6 +293,10 @@ def heatmap(Z,s=0,ax=False,zrange=False,cbar=True,cmap="YlOrRd",zoom="div",plotv
             extend="neither"
         cbar=colorbar(sm,ax=ax,extend=extend)
     
+    # Plot grid if requested
+    if showgrid is True:
+        grid(ax=ax,color='grey',alpha=0.5,linewidth=0.1)
+
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
     
@@ -342,7 +363,7 @@ def pltves(ax=False,plotoutline=True,plotves=True,plotsep=True):
         oboundy.append(com.zm[-1,-1,4])
         ax.plot(oboundx,oboundy,"k-",linewidth=0.5)
 
-        for i in range(com.ixpt1[0]):  # Add each poloidal sep position
+        for i in range(com.ixpt1[0]+1):  # Add each poloidal sep position
             pfrboundx.append(com.rm[i,0,1])
             pfrboundy.append(com.zm[i,0,1])
         pfrboundx.append(com.rm[com.ixpt1[0],0,2])
@@ -363,7 +384,7 @@ def pltves(ax=False,plotoutline=True,plotves=True,plotsep=True):
         coreboundy.append(com.zm[com.ixpt2[0],0,2])
         ax.plot(coreboundx,coreboundy,"k-",linewidth=0.5)
         
-        for j in range(com.ny):  # Add each poloidal sep position
+        for j in range(com.ny+1):  # Add each poloidal sep position
             lplatex.append(com.rm[0,j,1])
             lplatey.append(com.zm[0,j,1])
         # Complete RH Bound
@@ -371,7 +392,7 @@ def pltves(ax=False,plotoutline=True,plotves=True,plotsep=True):
         lplatey.append(com.zm[0,-1,3])
         ax.plot(lplatex,lplatey,"k-",linewidth=0.5)
 
-        for j in range(com.ny):  # Add each poloidal sep position
+        for j in range(com.ny+1):  # Add each poloidal sep position
             rplatex.append(com.rm[-1,j,1])
             rplatey.append(com.zm[-1,j,1])
         # Complete RH Bound
@@ -390,7 +411,7 @@ def pltves(ax=False,plotoutline=True,plotves=True,plotsep=True):
 
 def vector(poldata,raddata,ax=False,C=False,datascale=1, arrow_scale=10.,
         plotpol=True,plotrad=True,zoom="div",xlabel=None,ylabel=None,title=None,units=None,quiverunits=False,color=(0,0,0),cmap=False,plotvessel=["sep","outline"],
-        maintainaspect=True,hm=False,unitlength=False, norm=None,s=None):
+        maintainaspect=True,unitlength=False, norm=None,s=None):
     """Creates a quiver vector diagram on the supplied grid to the supplied axis.
     vecto(poldata,raddata,**keys)
 
@@ -425,9 +446,6 @@ def vector(poldata,raddata,ax=False,C=False,datascale=1, arrow_scale=10.,
     title               title string
     units               Units string
     quiverunits[=quiver default]: definition of quiver keyword argument unit. [default=quiver default]
-    hm[=None]:         plots heatmap if set to dictionary containing plot_heatmap keywords.
-                            The dictionary should contain key "var" containing the data to be plotted
-                            Exclude: ax,zoom,maintainaspect
     unitlength[=False]:     Boolean defining wheter to plot unit length arrows or not
     norm:                   Set the arrow scaling. Default scales to max in domain
 
@@ -445,6 +463,12 @@ def vector(poldata,raddata,ax=False,C=False,datascale=1, arrow_scale=10.,
     if ax is False:
         ret=figure()
         ax=ret.add_subplot(111)
+    else:
+        try:
+            ax=ax.get_axes()[0]
+        except:
+            pass
+
 
     # Check that shapes are correct
     if poldata.shape!=raddata.shape:
@@ -543,13 +567,6 @@ def vector(poldata,raddata,ax=False,C=False,datascale=1, arrow_scale=10.,
             cmap="bwr"
 
 
-    if hm is not False:
-        var=hm.pop("var")
-        exec('pl='+var) in locals(),globals()
-        heatmap(pl,ax=ax,maintainaspect=False,zoom=zoom,**hm)
-        hm['var']=var
-
-
     # Create quiver parameter dictionary
     quiverparams={"scale":arrow_scale*norm,"cmap":cmap} 
 
@@ -604,7 +621,7 @@ def vector(poldata,raddata,ax=False,C=False,datascale=1, arrow_scale=10.,
 
 
 
-def grid(ax=False,showcc=False,showcut=False,showves=False,showplates=False):
+def grid(ax=False,showcc=False,showcut=False,showves=False,showplates=False,color='k',alpha=1,linewidth=0.2):
     """ Plots grid from UE execution 
     grid(**keys)
 
@@ -618,14 +635,18 @@ def grid(ax=False,showcc=False,showcut=False,showves=False,showplates=False):
     Returns: Figure object if ax=False [default], Void otherwise.
     """
     from matplotlib.pyplot import figure
-#    from uedge import com.nx,com.ny,com.rm,com.zm,com.ixpt1,com.ixpt2,com.iysptrx,com.xlim,com.ylim,grd.rplate1,grd.zplate1,grd.rplate2,grd.zplate2,bbb.mhdgeo,bbb.geometry
     from uedge import com,grd,bbb
-#    from uedge import *
 
 
-    if not ax:
+    # See if we are to add to axis or plot new fig
+    if ax is False:
         ret=figure()
         ax=ret.add_subplot(111)
+    else:
+        try:
+            ax=ax.get_axes()[0]
+        except:
+            pass
 
     for i in range(com.nx+2):   # Do poloidal dir
         for j in range(com.ny+2):   # Do radial dir
@@ -638,7 +659,7 @@ def grid(ax=False,showcc=False,showcut=False,showves=False,showplates=False):
                     pltx.append(com.rm[i,j,k])
                     plty.append(com.zm[i,j,k])
                     
-            ax.plot(pltx,plty,"k-",linewidth=0.2)
+            ax.plot(pltx,plty,"-",linewidth=linewidth,color=color,alpha=alpha)
             if showcc:
                 ax.plot(com.rm[i,j,0],com.zm[i,j,0],"r.")
     if showcut:    # Mark most important cells around X-point cut
@@ -651,9 +672,9 @@ def grid(ax=False,showcc=False,showcut=False,showves=False,showplates=False):
                         ax.plot(com.rm[xcell+dx,com.iysptrx+dy,0],com.zm[xcell+dx,com.iysptrx+dy,0],"k.")
     if bbb.mhdgeo==-1:    
         # Highlight sep and x-point
-        ax.plot(com.zm[:-1,com.iysptrx+1,2],com.rm[:-1,com.iysptrx+1,2],"k-",linewidth=3) 
-        ax.plot(com.zm[com.ixpt2[0]+1,:com.iysptrx+2,1][0],com.rm[com.ixpt2[0]+1,:com.iysptrx+2,1][0],"k-",linewidth=3) 
-        ax.plot(com.zm[com.ixpt2[0],com.iysptrx+1:,2][0],com.rm[com.ixpt2[0],com.iysptrx+1:,2][0],"k--",linewidth=3) 
+        ax.plot(com.zm[:-1,com.iysptrx+1,2],com.rm[:-1,com.iysptrx+1,2],"-",linewidth=3,color=color,alpha=alpha) 
+        ax.plot(com.zm[com.ixpt2[0]+1,:com.iysptrx+2,1][0],com.rm[com.ixpt2[0]+1,:com.iysptrx+2,1][0],"-",linewidth=3,color=color,alpha=alpha) 
+        ax.plot(com.zm[com.ixpt2[0],com.iysptrx+1:,2][0],com.rm[com.ixpt2[0],com.iysptrx+1:,2][0],"--",linewidth=3,color=color,alpha=alpha) 
     
 
     if showves:
@@ -861,7 +882,7 @@ def species(Y,s):
 
 
 
-def radialplotter(X,Y,ax,line,marker,color,linewidth,markersize,xlabel,ylabel,title,xlim,ylim,yaxis):
+def radialplotter(X,Y,ax,line,marker,color,linewidth,markersize,xlabel,ylabel,title,xlim,ylim,yaxis,legend):
     """ Routine containing main radial plotting options """
     from matplotlib.pyplot import figure
 
@@ -882,10 +903,13 @@ def radialplotter(X,Y,ax,line,marker,color,linewidth,markersize,xlabel,ylabel,ti
         ax.semilogy(X[1:-1],Y[1:-1],color=color,marker=marker,linestyle=line,linewidth=linewidth,markersize=markersize)
     else:
         print("Specify yaxis to be either 'lin' or 'log'!")
-        return -1
+        return
 
     # Mark SEP
-    ax.axvline(0,color="k")
+    if X.min()<0 and X.max()>0:
+        ax.axvline(0,color="k")
+    else:
+        ax.axvline(1,color="k")
 
     # Set limits if requested
     if xlim is not False:
@@ -895,12 +919,16 @@ def radialplotter(X,Y,ax,line,marker,color,linewidth,markersize,xlabel,ylabel,ti
     
 
     # Plot the requested labels
-    if xlabel is not False:
+    if xlabel is not None:
         ax.set_xlabel(xlabel)
-    if ylabel is not False:
+    if ylabel is not None:
         ax.set_ylabel(ylabel)
-    if title is not False:
+    if title is not None:
         ax.get_figure().suptitle(title)
+
+    # Set legend if requested
+    if legend is not False:
+        ax.legend(legend,loc='best',frameon=False,handlelength=3,facecolor=None)
 
     # Rerturn the figure if drawn
     if "ret" in vars():
@@ -909,7 +937,7 @@ def radialplotter(X,Y,ax,line,marker,color,linewidth,markersize,xlabel,ylabel,ti
 
 
 
-def it(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,xlabel="Distance along IT [m]",ylabel=False,title="IT profile",xlim=False,ylim=False,yaxis="lin"):
+def it(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,xlabel=None,ylabel=False,title="IT profile",xlim=False,ylim=False,yaxis="lin",legend=False,xaxis='it'):
     """ Plots the specified parameter along the inner target
     it(var,**keys)
 
@@ -920,7 +948,7 @@ def it(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,
     ax[=False]:     Axis where to plot. If False, new figure is created. If ax is figure object, plots on first axes object. 
                     If ax is axes object, plots on the requested axes.
     line[='-']:     Line style
-    marker[='o']     Marker style
+    marker[='o']    Marker style
     color[='k']     Marker and line color
     linewidth[=2]   Plotted line width
     markersize[=8]  Plotted marker size
@@ -930,22 +958,44 @@ def it(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,
     xlim:           Tuple containing X-axis limits
     ylim:           Tuple containing Y-axis limits
     yaxis:          Y-axis scale: 'lin' or 'log'
+    xaxis[='it']    X-axis selector. Options are inner target ('it'), outer target ('ot'), midplane ('mp'),
+                    or normalized Psi ('psi')
     s[=0]           Species index if multi-species array set as variable
+    legend:         List of label titles, in order that lines were plotted
 
 
     Returns: Figure object if ax=False [default], Void otherwise.
     """
     from uedge import com
+    if xaxis=='it':
+        x=com.yylb[:,0]
+        if xlabel is None:
+            xlabel='Distance along IT [m]'
+    elif xaxis=='ot':
+        x=com.yyrb[:,0]
+        if xlabel is None:
+            xlabel='Distance along OT [m]'
+    elif xaxis=='mp':
+        x=com.yyc
+        if xlabel is None:
+            xlabel='Distance projected onto LFS-MP [m]'
+    elif xaxis=='psi':
+        x=com.psinormc
+        if xlabel is None:
+            xlabel=r'$\rm{\Psi_{norm}}$ [-]'
+    else:
+        return "Projection must be set to 'mp', 'it', 'ot', or 'psi'!"
+        
 
     Y=species(Y,s)[1,:]
 
-    ret=radialplotter(com.yylb[:,0],Y,ax,line,marker,color,linewidth,markersize,xlabel,ylabel,title,xlim,ylim,yaxis)
+    ret=radialplotter(x,Y,ax,line,marker,color,linewidth,markersize,xlabel,ylabel,title,xlim,ylim,yaxis,legend)
 
     if ax is False:
         ret.show()
         return ret
 
-def ot(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,xlabel="Distance along OT [m]",ylabel=False,title="OT profile",xlim=False,ylim=False,yaxis="lin"):
+def ot(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,xlabel=None,ylabel=False,title="OT profile",xlim=False,ylim=False,yaxis="lin",legend=False,mp=False,psi=False,xaxis='ot'):
     """ Plots the specified parameter along the outer target
     ot(var,**keys)
 
@@ -957,6 +1007,7 @@ def ot(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,
                     If ax is axes object, plots on the requested axes.
     line[='-']:     Line style
     marker[='o']     Marker style
+    mp[=False]:     Project the target profiles to the midplane
     color[='k']     Marker and line color
     linewidth[=2]   Plotted line width
     markersize[=8]  Plotted marker size
@@ -966,23 +1017,44 @@ def ot(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,
     xlim:           Tuple containing X-axis limits
     ylim:           Tuple containing Y-axis limits
     yaxis:          Y-axis scale: 'lin' or 'log'
+    xaxis[='ot']    X-axis selector. Options are inner target ('it'), outer target ('ot'), midplane ('mp'),
+                    or normalized Psi ('psi')
     s[=0]           Species index if multi-species array set as variable
 
 
     Returns: Figure object if ax=False [default], Void otherwise.
     """
     from uedge import com
+    if xaxis=='it':
+        x=com.yylb[:,0]
+        if xlabel is None:
+            xlabel='Distance along IT [m]'
+    elif xaxis=='ot':
+        x=com.yyrb[:,0]
+        if xlabel is None:
+            xlabel='Distance along OT [m]'
+    elif xaxis=='mp':
+        x=com.yyc
+        if xlabel is None:
+            xlabel='Distance projected onto LFS-MP [m]'
+    elif xaxis=='psi':
+        x=com.psinormc
+        if xlabel is None:
+            xlabel=r'$\rm{\Psi_{norm}}$ [-]'
+    else:
+        return "Projection must be set to 'mp', 'it', 'ot', or 'psi'!"
+
 
     Y=species(Y,s)[-2,:]
 
-    ret=radialplotter(com.yyrb[:,0],Y,ax,line,marker,color,linewidth,markersize,xlabel,ylabel,title,xlim,ylim,yaxis)
+    ret=radialplotter(x,Y,ax,line,marker,color,linewidth,markersize,xlabel,ylabel,title,xlim,ylim,yaxis,legend)
 
     if ax is False:
         ret.show()
         return ret
 
 
-def mp(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,xlabel="Distance along midplane [m]",ylabel=False,title="Midplane profile",xlim=False,ylim=False,yaxis="lin"):
+def mp(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,xlabel=None,ylabel=False,title="Midplane profile",xlim=False,ylim=False,yaxis="lin",legend=False,xaxis='mp'):
     """ Plots the specified parameter along the midplane
     mp(var,**keys)
 
@@ -1003,22 +1075,43 @@ def mp(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,
     xlim:           Tuple containing X-axis limits
     ylim:           Tuple containing Y-axis limits
     yaxis:          Y-axis scale: 'lin' or 'log'
+    xaxis[='mp']    X-axis selector. Options are inner target ('it'), outer target ('ot'), midplane ('mp'),
+                    or normalized Psi ('psi')
     s[=0]           Species index if multi-species array set as variable
+    legend:         List of label titles, in order that lines were plotted
 
 
     Returns: Figure object if ax=False [default], Void otherwise.
     """
     from uedge import bbb,com
+    if xaxis=='it':
+        x=com.yylb[:,0]
+        if xlabel is None:
+            xlabel='Distance along IT [m]'
+    elif xaxis=='ot':
+        x=com.yyrb[:,0]
+        if xlabel is None:
+            xlabel='Distance along OT [m]'
+    elif xaxis=='mp':
+        x=com.yyc
+        if xlabel is None:
+            xlabel='Distance along LFS-MP [m]'
+    elif xaxis=='psi':
+        x=com.psinormc
+        if xlabel is None:
+            xlabel=r'$\rm{\Psi_{norm}}$ [-]'
+    else:
+        return "Projection must be set to 'mp', 'it', 'ot', or 'psi'!"
 
     Y=species(Y,s)[bbb.ixmp,:]
 
-    ret=radialplotter(com.yyc,Y,ax,line,marker,color,linewidth,markersize,xlabel,ylabel,title,xlim,ylim,yaxis)
+    ret=radialplotter(x,Y,ax,line,marker,color,linewidth,markersize,xlabel,ylabel,title,xlim,ylim,yaxis,legend)
 
     if ax is False:
         ret.show()
         return ret
 
-def row(Y,row,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,xlabel=False,ylabel=False,title=False,xlim=False,ylim=False,yaxis="lin",projection="mp"):
+def row(Y,row,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,xlabel=None,ylabel=None,title=None,xlim=False,ylim=False,yaxis="lin",xaxis="mp",legend=False):
     """ Plots the specified parameter along requested row projected onto the requested location
     mp(var,row,**keys)
 
@@ -1030,7 +1123,6 @@ def row(Y,row,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersi
     ax[=False]:         Axis where to plot. If False, new figure is created. If ax is figure object, plots on first axes object. 
                         If ax is axes object, plots on the requested axes.
     line[='-']:         Line style
-    projection[='mp']   X-axis projection, alternatives are: midplane ('mp'), outer target ('ot'), or inner target ('it')
     marker[='o']        Marker style
     color[='k']         Marker and line color
     linewidth[=2]       Plotted line width
@@ -1041,7 +1133,10 @@ def row(Y,row,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersi
     xlim:               Tuple containing X-axis limits
     ylim:               Tuple containing Y-axis limits
     yaxis:              Y-axis scale: 'lin' or 'log'
+    xaxis[='mp']    X-axis selector. Options are inner target ('it'), outer target ('ot'), midplane ('mp'),
+                    or normalized Psi ('psi')
     s[=0]               Species index if multi-species array set as variable
+    legend:         List of label titles, in order that lines were plotted
 
 
     Returns: Figure object if ax=False [default], Void otherwise.
@@ -1052,40 +1147,38 @@ def row(Y,row,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersi
     Returns: Figure object if ax=False [default], Void otherwise.
     """
     from uedge import bbb,com
-
-
-    if projection=="mp":
-        X=com.yyc
-        if xlabel is False:
-            xlabel="Projected distance along midplane [m]"
-        if title is False:
-            title="Row "+str(row)+" projected along midplane"
-    elif projection=="ot":
-        X=com.yyrb[:,0]
-        if xlabel is False:
-            xlabel="Projected distance along OT [m]"
-        if title is False:
-            title="Row "+str(row)+" projected along OT"
-    elif projection=="it":
-        X=com.yylb[:,0]
-        if xlabel is False:
-            xlabel="Projected distance along IT[m]"
-        if title is False:
-            title="Row "+str(row)+" projected along IT"
+    if xaxis=='it':
+        x=com.yylb[:,0]
+        if xlabel is None:
+            xlabel='Distance along IT [m]'
+    elif xaxis=='ot':
+        x=com.yyrb[:,0]
+        if xlabel is None:
+            xlabel='Distance along OT [m]'
+    elif xaxis=='mp':
+        x=com.yyc
+        if xlabel is None:
+            xlabel='Distance along LFS-MP [m]'
+    elif xaxis=='psi':
+        x=com.psinormc
+        if xlabel is None:
+            xlabel=r'$\rm{\Psi_{norm}}$ [-]'
     else:
-        print( "Projection must be set to 'mp', 'it', or 'ot'!")
-        return -1
+        return "Projection must be set to 'mp', 'it', 'ot', or 'psi'!"
+
+    if title is None:
+        title='Radial profile for row={}'.format(row)
 
     Y=species(Y,s)
 
-    ret=radialplotter(X,Y[row,:],ax,line,marker,color,linewidth,markersize,xlabel,ylabel,title,xlim,ylim,yaxis)
+    ret=radialplotter(x,Y[row,:],ax,line,marker,color,linewidth,markersize,xlabel,ylabel,title,xlim,ylim,yaxis,legend)
 
     if ax is False:
         ret.show()
         return ret
 
 
-def ftplotter(X,Y,ax,line,marker,color,linewidth,markersize,xlabel,ylabel,title,xlim,ylim,yaxis):
+def ftplotter(X,Y,ax,line,marker,color,linewidth,markersize,xlabel,ylabel,title,xlim,ylim,yaxis,legend):
     from matplotlib.pyplot import figure
     from uedge import com,bbb
     
@@ -1106,7 +1199,7 @@ def ftplotter(X,Y,ax,line,marker,color,linewidth,markersize,xlabel,ylabel,title,
         ax.semilogy(X[1:-1],Y[1:-1],color=color,marker=marker,linestyle=line,linewidth=linewidth,markersize=markersize)
     else:
         print("Specify yaxis to be either 'lin' or 'log'!")
-        return -1
+        return
 
     # Mark xpt and midplane
     
@@ -1130,6 +1223,11 @@ def ftplotter(X,Y,ax,line,marker,color,linewidth,markersize,xlabel,ylabel,title,
         ax.set_ylabel(ylabel)
     if title is not False:
         ax.get_figure().suptitle(title)
+
+    # Set legend if requested
+    if legend is not False:
+        ax.legend(legend,loc='best',frameon=False,handlelength=3,facecolor=None)
+
 
     # Return figure if created
     if "ret" in vars():
@@ -1155,7 +1253,7 @@ def calcdist(para):
     return x
 
 
-def sep(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,xlabel=False,ylabel=False,title=False,xlim=False,ylim=False,para=False,yaxis="lin"):
+def sep(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,xlabel=False,ylabel=False,title=False,xlim=False,ylim=False,para=False,yaxis="lin",legend=False):
     """ Plots the specified parameter along (First flux tube outside) the separatrix
     sep(var,**keys)
 
@@ -1177,6 +1275,7 @@ def sep(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8
     ylim:           Tuple containing Y-axis limits
     yaxis:          Y-axis scale: 'lin' or 'log'
     s[=0]           Species index if multi-species array set as variable
+    legend:         List of label titles, in order that lines were plotted
 
 
     Returns: Figure object if ax=False [default], Void otherwise.
@@ -1197,7 +1296,7 @@ def sep(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8
             title="Poloidal distance along separatrix"
 
 
-    ret=ftplotter(calcdist(para)[:,com.iysptrx+1],Y,ax,line,marker,color,linewidth,markersize,xlabel,ylabel,title,xlim,ylim,yaxis)
+    ret=ftplotter(calcdist(para)[:,com.iysptrx+1],Y,ax,line,marker,color,linewidth,markersize,xlabel,ylabel,title,xlim,ylim,yaxis,legend)
 
 
     if ax is False:
@@ -1206,7 +1305,7 @@ def sep(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8
 
 
 
-def ft(Y,ft,s=None,ax=False,line='-',color='k',marker='o',linewidth=2,markersize=8,xlabel=False,ylabel=False,title=False,xlim=False,ylim=False,para=False,yaxis="lin"):
+def ft(Y,ft,s=None,ax=False,line='-',color='k',marker='o',linewidth=2,markersize=8,xlabel=False,ylabel=False,title=False,xlim=False,ylim=False,para=False,yaxis="lin",legend=False):
     """ Plots the specified parameter along the specified flux tube
     ft(var,ft,**keys)
 
@@ -1229,6 +1328,7 @@ def ft(Y,ft,s=None,ax=False,line='-',color='k',marker='o',linewidth=2,markersize
     ylim:           Tuple containing Y-axis limits
     yaxis:          Y-axis scale: 'lin' or 'log'
     s[=0]           Species index if multi-species array set as variable
+    legend:         List of label titles, in order that lines were plotted
 
 
     Returns: Figure object if ax=False [default], Void otherwise.
@@ -1249,7 +1349,8 @@ def ft(Y,ft,s=None,ax=False,line='-',color='k',marker='o',linewidth=2,markersize
             title="Poloidal distance along FT "+str(ft)
 
 
-    ret=ftplotter(calcdist(para)[:,ft],Y[:,ft],ax,line,marker,color,linewidth,markersize,xlabel,ylabel,title,xlim,ylim,yaxis)
+    ret=ftplotter(calcdist(para)[:,ft],Y[:,ft],ax,line,marker,color,linewidth,markersize,xlabel,ylabel,title,xlim,ylim,yaxis,legend)
+
 
 
     if ax is False:
@@ -1258,7 +1359,7 @@ def ft(Y,ft,s=None,ax=False,line='-',color='k',marker='o',linewidth=2,markersize
 
 
 
-def plot(X,Y,ax=False,linewidth=2,markersize=8,xlabel=False,ylabel=False,title=False,xlim=False,ylim=False,yaxis="lin",marker='',line='-',color='k'):
+def plot(X,Y,ax=False,linewidth=2,markersize=8,xlabel=False,ylabel=False,title=False,xlim=False,ylim=False,yaxis="lin",marker='',line='-',color='k',legend=False,xaxis='lin'):
     """ Plots the specified x and y axes, including guard cells
     plot(x,y,**keys)
 
@@ -1280,6 +1381,7 @@ def plot(X,Y,ax=False,linewidth=2,markersize=8,xlabel=False,ylabel=False,title=F
     xlim:           Tuple containing X-axis limits
     ylim:           Tuple containing Y-axis limits
     yaxis:          Y-axis scale: 'lin' or 'log'
+    legend:         List of label titles, in order that lines were plotted
 
 
     Returns: Figure object if ax=False [default], Void otherwise.
@@ -1297,14 +1399,29 @@ def plot(X,Y,ax=False,linewidth=2,markersize=8,xlabel=False,ylabel=False,title=F
         except:
             pass
 
+
     # Plot with option for yaxis
     if yaxis=="lin":
-        ax.plot(X[1:-1],Y[1:-1],color=color,marker=marker,linestyle=line,linewidth=linewidth,markersize=markersize)
+        if xaxis=="lin":
+            ax.plot(X[1:-1],Y[1:-1],color=color,marker=marker,linestyle=line,linewidth=linewidth,markersize=markersize)
+        elif xaxis=="log":
+            ax.semilogx(X[1:-1],Y[1:-1],color=color,marker=marker,linestyle=line,linewidth=linewidth,markersize=markersize)
+        else:
+            print("Specify xaxis to be either 'lin' or 'log'!")
+            return
     elif yaxis=="log":
-        ax.semilogy(X[1:-1],Y[1:-1],color=color,marker=marker,linestyle=line,linewidth=linewidth,markersize=markersize)
+        if xaxis=="lin":
+            ax.semilogy(X[1:-1],Y[1:-1],color=color,marker=marker,linestyle=line,linewidth=linewidth,markersize=markersize)
+        elif xaxis=="log":
+            ax.loglog(X[1:-1],Y[1:-1],color=color,marker=marker,linestyle=line,linewidth=linewidth,markersize=markersize)
+        else:
+            print("Specify xaxis to be either 'lin' or 'log'!")
+            return
     else:
         print("Specify yaxis to be either 'lin' or 'log'!")
-        return -1
+        return
+
+
 
 
     # Set axis limits if requested
@@ -1312,7 +1429,10 @@ def plot(X,Y,ax=False,linewidth=2,markersize=8,xlabel=False,ylabel=False,title=F
         ax.set_xlim(xlim)
     if ylim is not False:
         ax.set_ylim(ylim)
-    
+
+    # Set legend if requested
+    if legend is not False:
+        ax.legend(legend,loc='best',frameon=False,handlelength=3,facecolor=None)
 
     # Show requested labels
     if xlabel is not False:

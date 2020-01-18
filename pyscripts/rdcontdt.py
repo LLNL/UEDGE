@@ -139,6 +139,7 @@ for ii1 in range( 1, bbb.ii1max+1):
          bbb.numrev = 0			#bbb.restart counter for dt reversals
       bbb.isdtsfscal = isdtsf_sav
       bbb.ftol = min(bbb.ftol_dt, 0.01*fnrm_old)
+      bbb.ftol = max(bbb.ftol, bbb.ftol_min)
       exmain() # take a single step at the present bbb.dtreal
       ruthere()
       if (bbb.iterm == 1):
@@ -160,6 +161,7 @@ for ii1 in range( 1, bbb.ii1max+1):
       if (bbb.iterm == 1):
          bbb.itermx = bbb.itermxrdc
          bbb.ftol = min(bbb.ftol_dt, 0.01*fnrm_old)
+         bbb.ftol = max(bbb.ftol, bbb.ftol_min)
          bbb.exmain()
          ruthere()
          if (bbb.iterm == 1):

@@ -10,7 +10,7 @@ import site
 from Forthon.compilers import FCompiler
 import getopt
 
-version='7.0.8.4.7'
+version='7.0.8.4.14'
 
 try:
     os.environ['PATH'] += os.pathsep + site.USER_BASE + '/bin'
@@ -165,6 +165,18 @@ if parallel:
 with open('pyscripts/__version__.py','w') as ff:
     ff.write("__version__ = '%s'\n"%version)
 
+define_macros=[("WITH_NUMERIC", "0"),
+               ("FORTHON_PKGNAME", '\"uedgeC\"'),
+               ("FORTHON","1")]
+
+# check for readline
+rlncom = "echo \"int main(){}\" | gcc -x c -lreadline - "
+rln = os.system(rlncom)
+if rln == 0: 
+   define_macros = define_macros + [("HAS_READLINE","1")]
+   os.environ["READLINE"] = "-l readline"
+   libraries = ['readline'] + libraries
+
 
 setup(name="uedge",
       version=version,
@@ -181,14 +193,13 @@ setup(name="uedge",
       ext_modules=[Extension('uedge.uedgeC',
                              ['uedgeC_Forthon.c',
                               os.path.join(builddir, 'Forthon.c'),
-                              'com/handlers.c', 'com/vector.c'],
+                              'com/handlers.c', 'com/vector.c','bbb/exmain.c'],
                              include_dirs=[builddir, numpy.get_include()],
                              library_dirs=library_dirs,
                              libraries=libraries,
-                             define_macros=[("WITH_NUMERIC", "0"),
-                                            ("FORTHON_PKGNAME", '\"uedgeC\"')],
+                             define_macros=define_macros,
                              extra_objects=uedgeobjects,
-                             extra_link_args=['-g'] +
+                             extra_link_args=['-g','-DFORTHON'] +
                              fcompiler.extra_link_args,
                              extra_compile_args=fcompiler.extra_compile_args
                              )],

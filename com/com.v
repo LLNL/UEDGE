@@ -138,7 +138,7 @@ ycurve(npts,jdim)       _real    [m]
      # vertical position of nth data point on jth contour segment
 npoint(jdim)    _integer
      # number of data points on jth contour segment
-geqdskfname  character*64 /'neqdsk'/ 
+geqdskfname  character*128 /'neqdsk'/ 
      #File name for geqdsk/neqdsk EFIT file
   
 ***** Aeqflxgrd:
@@ -198,7 +198,7 @@ nesum	integer	/2/
      # number of e-coils
 eccurt(nesum)	_real
      # data from e-coils
-aeqdskfname  character*64 /'aeqdsk'/ 
+aeqdskfname  character*128 /'aeqdsk'/ 
      #File name for aeqdsk EFIT file
 
 ***** RZ_grid_info:

@@ -3077,6 +3077,7 @@ ifexmain           integer /0/  #scalar to indicate if subroutine allocate
                                 #=1 means allocate is called by exmain,
                                 #=0 means it is not.
 iallcall	   integer /0/  #flag to signal first call to allocate
+exmain_aborted integer /.false./ # Set to .true. in Python version on control-C abort
 
 ***** RZ_cell_info:
 # RZ grid-cell center and face locations
