@@ -10,7 +10,7 @@ import site
 from Forthon.compilers import FCompiler
 import getopt
 
-version='7.0.8.4.7'
+version='8.beta'
 
 try:
     os.environ['PATH'] += os.pathsep + site.USER_BASE + '/bin'
@@ -25,6 +25,7 @@ except:
     raise SystemExit("Distutils problem")
 
 optlist, args = getopt.getopt(sys.argv[1:], 'gt:F:', ['parallel', 'petsc'])
+print(optlist)
 machine = sys.platform
 debug = 0
 fcomp = None
@@ -84,7 +85,7 @@ class uedgeClean(build):
                 call(['make', '-f', 'Makefile.PETSc', 'clean'])
         else:
             if petsc == 0:
-                call(['make', '-f', 'Makefile.Forthon3', 'clean'])
+                call(['make', '-f', '-j 16', 'Makefile.Forthon3', 'clean'])
             else:
                 call(['make', '-f', 'Makefile.PETSc3', 'clean'])
 
@@ -180,7 +181,7 @@ setup(name="uedge",
       scripts=['pyscripts/pdb2hdf5', 'pyscripts/bas2py', 'pyscripts/hdf52pdb'],
       ext_modules=[Extension('uedge.uedgeC',
                              ['uedgeC_Forthon.c',
-                              os.path.join(builddir, 'Forthon.c'),
+                              'build/Forthon.c',
                               'com/handlers.c', 'com/vector.c'],
                              include_dirs=[builddir, numpy.get_include()],
                              library_dirs=library_dirs,
