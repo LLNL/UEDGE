@@ -1,0 +1,23 @@
+UEDGE allows interpolating a solution to a new grid. Here is the usual way to refine the grid:
+1) first obtain a solution from scratch on a very crude grid
+2) interpolate the previous solution to a finer grid
+3) drive the solution to a steady state
+4) repeat steps 2,3 several more times as needed
+
+
+Here is the basic workflow for resizing (usually refining) the grid
+
+*** First, calculate (or restore) a solution on an old grid ***
+
+##-change grid settings, e.g., 
+    com.nysol[0]=6
+    com.nxleg[0,1]=8
+
+##-set flags for using a new grid:
+    bbb.restart=1; bbb.newgeo=1
+    bbb.icntnunk=0 #-this one may be needed
+    
+##-use some small time step to start running on the new grid
+    bbb.dtreal = 1e-14; bbb.ftol=1e-10;
+    bbb.isbcwdt=1; bbb.itermx=30; bbb.exmain()
+    
