@@ -21,6 +21,7 @@ a.out
 convertor
 forthonf2c.h
 localrules.py
+localrules.pyc
 mppl.h
 pck
 setup.py
@@ -51,13 +52,6 @@ api/forthonf2c.h
 api/inelrates.m
 api/pck
 api/sputt.m
-bbb/.#bbb.v.7.10
-bbb/.#bbb.v.7.11
-bbb/.#bbb.v.7.13
-bbb/.#bbb.v.7.14
-bbb/.#bbb.v.7.19
-bbb/.#bbb.v.7.9
-bbb/.#geometry.m.7.6
 bbb/.odesolve.m.swp
 bbb/Package
 bbb/PackageMake
@@ -74,6 +68,7 @@ bbb/geometry.m
 bbb/griddubl.m
 bbb/lsodefix
 bbb/oderhs.m
+bbb/oderhs.m.sav
 bbb/odesetup.m
 bbb/odesolve.m
 bbb/pck
@@ -137,11 +132,14 @@ jupyter/PyUedge.ipynb
 jupyter/README
 jupyter/aeqdsk
 jupyter/case_setup.py
+jupyter/case_setup2.py
+jupyter/case_setup2.pyc
 jupyter/d3d.hdf5
 jupyter/d3d.pdb
 jupyter/gridue
 jupyter/junk.tris
 jupyter/neqdsk
+jupyter/rdd3d_cfdupg.8x4.hdf5
 jupyter/.ipynb_checkpoints/PyUedge-checkpoint.ipynb
 pyscripts/.#rdinitdt.py.7.0
 pyscripts/.#uedge_lists.py.7.2
@@ -159,10 +157,12 @@ pyscripts/bbb.dat
 pyscripts/cdf4.py
 pyscripts/com.dat
 pyscripts/convert.py
+pyscripts/convert.pyc
 pyscripts/convert1.py
 pyscripts/convertvsh5.py
 pyscripts/double.py
 pyscripts/filelists.py
+pyscripts/filelists.pyc
 pyscripts/flx.dat
 pyscripts/grd.dat
 pyscripts/hdf5.py
@@ -202,6 +202,7 @@ pyscripts/contrib/reconv.py
 pyscripts/contrib/ue_animate.py
 pyscripts/contrib/ue_plot.py
 pyscripts/contrib/utils.py
+pytests/README
 pytests/__init__.py
 pytests/__init__.pyc
 pytests/uedge_test.py
@@ -209,8 +210,12 @@ pytests/uedge_test.pyc
 pytests/level_1/dotest.py
 pytests/level_1/template.py
 pytests/level_1/pyres/template.res
+pytests/level_2/aeqdsk
+pytests/level_2/aeqdskd3d
 pytests/level_2/dotest.py
 pytests/level_2/gridue
+pytests/level_2/neqdsk
+pytests/level_2/neqdskd3d
 pytests/level_2/rdd3d_cfdupg_8x4.py
 pytests/level_2/data/aeqdskd3d
 pytests/level_2/data/d3d_cfdupg.h5
@@ -227,6 +232,7 @@ svr/PackageMake
 svr/daspk.m
 svr/daux1.f
 svr/nksol.m
+svr/nksol.m.sav
 svr/pck
 svr/petsc-uedge.F90
 svr/svr.pack

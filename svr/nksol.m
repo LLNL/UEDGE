@@ -1,5 +1,5 @@
 c
-c $Id: nksol.m,v 7.1 2019/10/14 22:59:29 meyer8 Exp $
+c $Id: nksol.m,v 7.2 2020/02/12 18:35:18 meyer8 Exp $
 c
 
 c!include "../mppl.h"
@@ -811,7 +811,9 @@ ccc      write(*,*) 'epsmch = ', epsmch
 c-----------------------------------------------------------------------
 c     initialize parameters.  check for illegal input.
 c-----------------------------------------------------------------------
-      if ( (iabs(mf) .lt. 1) .or. (iabs(mf) .gt. 3) ) then
+
+c:MVU 15-jan-2020      if ( (iabs(mf) .lt. 1) .or. (iabs(mf) .gt. 3) ) then
+      if ( (iabs(mf) .lt. 1) .or. (iabs(mf) .gt. 4) ) then
 c illegal value of method flag mf.
         iterm = -1
         ierr = 10
@@ -832,9 +834,21 @@ c-----------------------------------------------------------------------
         elseif (mf .eq. -1) then
           methn = 0
           methk = 2
-        elseif (mf .ge. 2) then
+ccc MVU: 15-jan-2020					  
+c        elseif (mf .ge. 2) then
+c          methn = 2
+c          methk = mf - 1
+        elseif (mf .eq. 2) then
           methn = 2
-          methk = mf - 1
+          methk = 1
+        elseif (mf .eq. 3) then
+          methn = 2
+          methk = 2
+        elseif (mf .eq. 4) then
+c........ using direct solver
+          methn = 2
+          methk = 3
+ccc MVU: 15-jan-2020
         elseif (mf .le. -2) then
           methn = 0
           methk = -mf - 1
@@ -920,6 +934,10 @@ c first check for illegal values.
           lenk = 1 + 3*n + 3 + n*mmax + n + mmax**2
         else if (methk .eq. 2) then
           lenk = 1 + 3*n + 3 + n*mmax + n + 2 + 2*mmax*(mmax+1) + mmax
+ccc MVU: 15-jan-2020
+        else if (methk .eq. 3) then
+          lenk = 1 + 3*n + 3 + n*mmax + n + 2 + 2*mmax*(mmax+1) + mmax
+ccc MVU: 15-jan-2020
         endif
       lenwm = lenk + lenwmp
       if (lenwmp .ne. 0) then
@@ -1565,6 +1583,9 @@ c-----------------------------------------------------------------------
 c methods used so far:
 c 1. methk = 1      ------> spiom
 c 2. methk = 2      ------> gmres
+ccc MVU: 15-jan-2020
+c 3. methk = 3      ------> direct
+ccc MVU: 15-jan-2020
 c-----------------------------------------------------------------------
       integer i, ib, iflag, ihes, iv, miom
       real bnrm
@@ -1578,7 +1599,7 @@ c-----------------------------------------------------------------------
       save
 c
       iersl = 0
-      go to (100,200), methk
+      go to (100,200,300), methk
 c-----------------------------------------------------------------------
 c use the spiom algorithm to solve the linear system j*x = -f.
 c-----------------------------------------------------------------------
@@ -1628,6 +1649,56 @@ c-----------------------------------------------------------------------
         iwm(1) = mgmr
         endif
       return
+
+ccc MVU: 15-jan-2020
+c-----------------------------------------------------------------------
+c use the direct algorithm to solve the linear system j*x = -f.
+c-----------------------------------------------------------------------
+ 300  continue
+      mmaxp1 = mmax + 1
+      iv = 3
+      ib = iv + n*mmax
+      ihes = ib + n + 1
+      ihsv = ihes + mmax*(mmaxp1+1) + 1
+      iwk = ihsv + mmax*mmaxp1
+      iq = iwk + n
+      do 310 i = 1,n
+ 310     wm(i+ib-1) = x(i)
+
+ccc - this is direct solver
+      do i=1,n
+       x(i)=x(i)*sf(i)/su(i)
+      enddo
+      call psol(n, u, savf, su, sf, f, jac, wm(iwk), wm(locwmp),
+     *          iwm(locimp), x, iflag)
+      npsl = 1
+      bnrm = 0.
+      mgmr = 1
+      rhom = 0.
+
+ccc - this way mfnksol=4 would identically match mfnksol=3
+c$$$      call spigmr (n, u, savf, wm(ib), su, sf, mmax, mmaxp1, kmp,
+c$$$     *   eps, f, jac, psol, npsl, x, wm(iv), wm(ihes), wm(iq),
+c$$$     *   wm(ihsv), mgmr, wm(locwmp), iwm(locimp), wm(iwk), methn,
+c$$$     *   bnrm, ipflg, iflag, rhom)
+
+      nni = nni + 1
+      nli = nli + mgmr
+      nps = nps + npsl
+      if (iflag .ne. 0) ncfl = ncfl + 1
+      if (iflag .ge. 2) iersl = 1
+      if (iflag .lt. 0) iersl = -1
+      if (iersl .eq. 0) then
+        call scopy (mmax, wm(ib), 1, wm(ihes), 1)
+        wm(1) = bnrm
+        iwm(1) = mgmr
+        endif
+      return
+ccc MVU: 15-jan-2020
+
+
+
+
 c----------------------- end of subroutine solpk -----------------------
       end
       subroutine spiom (n, u, savf, b, su, sf, mmax, iomp, eps,
@@ -3186,6 +3257,9 @@ c
       slpi = -two*f1nrm*ratio
 CCC should an adjf1 be used for f1nrm above??
       if (methk .eq. 2) slpi = slpi + rhom*rhom*ratio
+ccc MVU: 15-jan-2020
+      if (methk .eq. 3) slpi = slpi + rhom*rhom*ratio
+ccc MVU: 15-jan-2020
       call slngth(n, u, p, su, rlngth)
       rlmin = stptol/rlngth
       rl = one
@@ -3368,7 +3442,7 @@ c     formats.
 c-----------------------------------------------------------------------
  9000   format(//
      * ' nksol ---  illegal value for mf.  mf must be between '
-     */'            1 and 3, or between -3 and -1.'
+     */'            1 and 4, or between -3 and -1.'
      *)
  9010   format(//
      * ' nksol ---  illegal value for mdif.  mdif must either 0 or 1. '

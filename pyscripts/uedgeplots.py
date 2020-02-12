@@ -10,7 +10,8 @@ from matplotlib import interactive
 from uedge import *
 from numpy import sin, cos
 from scipy import spatial
-from scipy.misc import bytescale
+from skimage.util import img_as_ubyte as bytescale
+
 
 # This file defines a function to plot the UEDGE mesh, and # then calls the function to plot the entire mesh.
 # To use this file in a simple way, give the following ands:
@@ -222,7 +223,7 @@ def mkdensityfile(filename, ival, renmin=None, renmax=None, samples=[500, 500, 5
     val[:, -1] = 0
     vf = np.append(val.ravel(), [renmin])
     #dens = bytescale(np.average(vf[i],axis=1,weights=1./d),cmin=renmin,cmax=renmax)
-    dens = bytescale(vf[i], cmin=renmin, cmax=renmax)
+    dens = bytescale(vf[i] - renmin)
     file.write(dens)
     file.close()
 

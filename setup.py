@@ -10,7 +10,7 @@ import site
 from Forthon.compilers import FCompiler
 import getopt
 
-version='7.0.8.4.14'
+version='7.0.8.4.15rc1'
 
 try:
     os.environ['PATH'] += os.pathsep + site.USER_BASE + '/bin'
