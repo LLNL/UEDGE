@@ -1,0 +1,39 @@
+isphion=1
+  b0=5.         #=1 for normal direction B field
+  rsigpl=1.e-8  #anomalous cross field conductivity
+  cfjhf=1.      #turn on heat flow from current (fqp)
+  cfjve=1.      #makes vex=vix-cfjve*fqx
+  jhswitch=1    #Joule Heating switch
+  newbcl=1      #Sheath boundary condition (bcee, i) from current equation
+  newbcr=1
+  isfdiax=1     #Factor to turn on diamagnetic contribution to sheath
+  cfyef=1.0     #EXB drift in y direction
+  cf2ef=1.0     #EXB drift in 2 direction
+  cfybf=1.0     #turns on vycb - radial Grad B drift
+  cf2bf=1.0     #turns on v2cb - perp. Grad B drift (nearly pol)
+  cfqybf=1.0    #turns on vycb contrib to radial current
+  cfq2bf=1.0    #turns on v2cb contrib to perp("2") current
+  cfydd=0.0     #turns off divergence free diamagnetic current
+  cf2dd=0.0     #turns off divergence free perp diagmatic current
+  cfqybbo=0     #turn off Grad B current on boundary
+  cfqydbo=1     #use full diagmagetic current on boundary to force j_r=0
+  cfniybbo=1.   # use to avoid artificial source at core boundary
+  cfniydbo=0.   # use to avoid artificial source at core boundary
+  cfeeybbo=1.   # ditto
+  cfeeydbo=0.   # ditto
+  cfeixdbo=1.   # turn on BXgrad(T) drift in plate BC
+  cfeexdbo=1.   # turn on diamagnetic drift in plate BC
+  cftef=1.0     #turns on v2ce for toroidal velocity
+  cftdd=1.0     #turns on v2dd (diamag vel) for toloidal velocity
+  cfqym=1.0     #turns on inertial correction to fqy current
+  iphibcc=0     # don't set extrapolation BC for Er at iy=0
+  iphibcwi=0    # set ey=0 on inner wall if =0
+                # phi(PF)=phintewi*te(ix,0) on PF wall if =1
+  iphibcwo=0    # same for outer wall
+  isutcore=2    # =1, set dut/dy=0 on iy=0 (if iphibcc=0)
+                # =0, toroidal angular momentum=lzcore on iy=0 (iphibcc=0)
+  isnewpot=1.0
+  rnewpot=1.0
+  cfnus_i=1.0;cfnus_e=1.0       #include collisionality in drift effects 
+  isybdrywd=1   # use diffusive flux only on y boundary
+lfililut=200;lenpfac=150;lenplufac=150
