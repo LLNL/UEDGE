@@ -1,11 +1,11 @@
 # Print information on a UEDGE variable                                                                                      
-# Usage:                                                                                                                     
-# >>> list("itermx")                                                                                                         
+# Usage example:                                                                                                                     
+# >>> uelist("itermx")                                                                                                         
 #                                                                                                                            
-# MVU 20-mar-2020                                                                                                            
+# First coding: MVU 20-mar-2020                                                                                                            
 #============================================================                                                                
 
-def list(varname):
+def uelist(varname):
     resbbb=bbb.listvar(varname)
     if (resbbb != None):
         print(resbbb)
