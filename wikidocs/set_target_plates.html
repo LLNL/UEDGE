@@ -19,8 +19,8 @@ grd.rplate2=[2.1, 2.0, 1.9, 1.8]
 grd.zplate2=[1.6, 1.5, 1.4, 1.3]
 
 Here are arrays in R and Z containing the coordinates defining the inner and outer plates as piece-wise linear curves. Important: (i) the 
-plates should cover the range of flux surfaces, from psi0min2 to psi0max, and (ii) the plate should pass through the strike point of the 
-original (orthogonal) grid.
+plate should fully cut across the leg, i.e., should cover the range of flux surfaces, from psi0min2 to psi0max, (ii) the plate should 
+pass through the strike point of the original (orthogonal) grid, and (iii) the plate cannot cut into the domain above the X-point level.
 
 (2) Use settings:
 com.ismmon=3; grd.istream=0; grd.iplate=1; grd.nsmooth=2; grd.wtmesh1=0.75; grd.dmix0=1.0
