@@ -1,0 +1,27 @@
+Once you have generated a grid with orthogonal plates you can implement a target plate geometry as follows:
+1) create a python source file plate.blah.py with target plates data that looks like this:
+
+<pre><code> 
+# Define lower divertor plate for DTT
+
+# for inboard half of mesh:
+grd.nplate1=3
+call gchange("grd.Mmod",0)
+
+grd.rplate1=[\
+1.55E+00, 1.55E+00,  1.55E+00]
+
+grd.zplate1=[\
+1.8E+00, 1.6E+00, 1.4E+00]
+
+
+# for outboard half of mesh:
+grd.nplate2=4
+call gchange("grd.Mmod",0)
+
+grd.rplate2=[\
+2.1, 2.0, 1.9, 1.8]
+
+grd.zplate2=[\
+1.6, 1.5, 1.4, 1.3]
+<pre><code> 
