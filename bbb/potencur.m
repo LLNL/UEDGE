@@ -249,10 +249,10 @@ c...  use the radial index of the innermost separatrix (see iysptrx definition
 c...  in subroutine nphygeo)
             if ( isxpty(ix,iy)==0 .and. iysptrx.gt.0 )
      .          temp1 = 4.0*(prtv(ix,iy) - prtv(ix3,iy)) * gxc(ix,iy)
-            fqyae(ix,iy) = ( sy(ix,iy)*sigbary*gyf(ix,iy)/qe ) * (
-     .        + (ney1(ix,iy)*tey1(ix,iy) - ney0(ix,iy)*tey0(ix,iy))/nbary
+            fqyae(ix,iy) = ( sy(ix,iy)*sigbary/(dynog(ix,iy)*qe) ) * (
+     .        + (ney1(ix,iy)*tey1(ix,iy) - ney0(ix,iy)*tey0(ix,iy))/nbary 
      .        - qe * (phiy1(ix,iy) - phiy0(ix,iy)) )
-            fqyai(ix,iy) = - ( sy(ix,iy)*sigbary*gyf(ix,iy)/(qe*zi(1)) ) * (
+            fqyai(ix,iy) = -(sy(ix,iy)*sigbary/(dynog(ix,iy)*qe*zi(1)) ) * (
      .        + (niy1(ix,iy,1)*tiy1(ix,iy) - niy0(ix,iy,1)*tiy0(ix,iy))/nbary
      .        + qe*zi(1) * (phiy1(ix,iy) - phiy0(ix,iy)) )  # off by default
             fqyao(ix,iy) = cfqyao*(cfqyae*fqyae(ix,iy) + cfqyai*fqyai(ix,iy))
@@ -302,6 +302,7 @@ ccc            fqy(ix,iy) = fqya(ix,iy) + cfydd*fqyd(ix,iy)
      .                         (niy1(ix,iy-1,ifld)+niy0(ix,iy-1,ifld))*
      .                      (2*r0slab+rm(ix,iy-1,0)+rm(ix,iy,0))*utm )*
      .                                                         gy(ix,iy)
+c... Use gy not 1/dynog as diff is btwn 2 cells, not interp pts
  
              fmity(ix,iy+1,ifld) = -0.25*mi(ifld)*
      .                            (difutm(ifld)+dutm_use(ix,iy+1,ifld))* 
@@ -332,9 +333,10 @@ ccc            fqy(ix,iy) = fqya(ix,iy) + cfydd*fqyd(ix,iy)
             phiy1d = (phiy1(ix,iy) - phiy1s(ix,iy))/dtreal
             phiy0d = (phiy0(ix,iy) - phiy0s(ix,iy))/dtreal
             
+c... Next diffs btwn interp pts (niy1&niy0), thus use 1/dynog, not gyf
             fqydti(ix,iy,ifld) = ( -qe*0.5*
      .                             (niy1(ix,iy,ifld)+niy0(ix,iy,ifld))/
-     .                    (mi(ifld)*omgci**2) )*gyf(ix,iy)*sy(ix,iy)* (
+     .                   (mi(ifld)*omgci**2*dynog(ix,iy)) )*sy(ix,iy)* (
      .              (tiy1d-tiy0d) +
      .              (tiy1d+tiy0d)*(niy1(ix,iy,ifld) - niy0(ix,iy,ifld))/
      .                 (niy1(ix,iy,ifld)+niy0(ix,iy,ifld)) +

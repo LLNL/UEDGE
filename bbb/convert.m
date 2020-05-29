@@ -622,7 +622,7 @@ c Tom:  add comments here to explain the indices used on do 25 and 24
                priy0(ix,iy,ifld) = interppri(ix,iy,0,ifld)
                priy1(ix,iy,ifld) = interppri(ix,iy,1,ifld) 
                gpiy(ix,iy,ifld) = (priy1(ix,iy,ifld) -
-     .                             priy0(ix,iy,ifld)) * gyf(ix,iy)
+     .                             priy0(ix,iy,ifld))/dynog(ix,iy)
                if (zi(ifld).ne.0.) gpry(ix,iy) = gpry(ix,iy) +
      .            gpiy(ix,iy,ifld)
    24       continue
@@ -641,7 +641,7 @@ c Tom:  add comments here to explain the indices used on do 25 and 24
             priy0(ix,iy,ifld) = interppri(ix,iy,0,ifld)
             priy1(ix,iy,ifld) = interppri(ix,iy,1,ifld) 
             gpiy(ix,iy,ifld) = (priy1(ix,iy,ifld) -
-     .                          priy0(ix,iy,ifld)) * gyf(ix,iy)
+     .                          priy0(ix,iy,ifld))/dynog(ix,iy)
             if (zi(ifld).ne.0.) gpry(ix,iy) = gpry(ix,iy) +
      .            gpiy(ix,iy,ifld)
    25    continue
@@ -745,18 +745,18 @@ c Tom:  add comments here to explain the indices used on do 30 and 29
          inc = isign(max(1,iabs(ie-ixm1(ie,js))),ie-ixm1(ie,js))
 	 do 29 ix = ixm1(is,js), min(nx,ie), inc
             gpey(ix,iy) = (ney1(ix,iy)*tey1(ix,iy) - 
-     .                     ney0(ix,iy)*tey0(ix,iy)) * gyf(ix,iy)
-            gtey(ix,iy) = (tey1(ix,iy) - tey0(ix,iy)) * gyf(ix,iy)
-            gtiy(ix,iy) = (tiy1(ix,iy) - tiy0(ix,iy)) * gyf(ix,iy)
-            ey(ix,iy) = - (phiy1(ix,iy) - phiy0(ix,iy)) * gyf(ix,iy)
+     .                     ney0(ix,iy)*tey0(ix,iy)) / dynog(ix,iy)
+            gtey(ix,iy) = (tey1(ix,iy) - tey0(ix,iy)) / dynog(ix,iy)
+            gtiy(ix,iy) = (tiy1(ix,iy) - tiy0(ix,iy)) / dynog(ix,iy)
+            ey(ix,iy) = - (phiy1(ix,iy) - phiy0(ix,iy)) / dynog(ix,iy)
             gpry(ix,iy) = gpry(ix,iy) + gpey(ix,iy)
    29    continue
          ix = ixp1(ie,iy)
          gpey(ix,iy) = (ney1(ix,iy)*tey1(ix,iy) - 
-     .                  ney0(ix,iy)*tey0(ix,iy)) * gyf(ix,iy)
-         gtey(ix,iy) = (tey1(ix,iy) - tey0(ix,iy)) * gyf(ix,iy)
-         gtiy(ix,iy) = (tiy1(ix,iy) - tiy0(ix,iy)) * gyf(ix,iy)
-         ey(ix,iy) = - (phiy1(ix,iy) - phiy0(ix,iy)) * gyf(ix,iy)
+     .                  ney0(ix,iy)*tey0(ix,iy)) / dynog(ix,iy)
+         gtey(ix,iy) = (tey1(ix,iy) - tey0(ix,iy)) / dynog(ix,iy)
+         gtiy(ix,iy) = (tiy1(ix,iy) - tiy0(ix,iy)) / dynog(ix,iy)
+         ey(ix,iy) = - (phiy1(ix,iy) - phiy0(ix,iy)) / dynog(ix,iy)
          gpry(ix,iy) = gpry(ix,iy) + gpey(ix,iy)
  30   continue
 

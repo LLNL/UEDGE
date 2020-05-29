@@ -44,6 +44,7 @@ csfacti   real            /1./  #Bohm speed = sqrt((te+csfacti*ti)/mi)
 cslim     real            /1./  #frac of cs used for limiter Bohm sheath b.c.
 dcslim    real            /0./  #reduce sonic flow at limiter by the factor
                                 #cslim*[1-exp(-(iy-iy_lims+1)/dcslim)]
+islnlamcon integer        /0/   #=0, loglambda=Braginskii;if=1,loglambda=lnlam
 lnlam     real            /12./ #Coulomb log;shouldn't be constant
 methe     integer         /33/  #elec. eng. eqn: 22-cd, 33-uw, 44-hyb, 55-p-law
 methu     integer         /33/  #ion mom. eqn: 22-cd, 33-uw, 44-hyb, 55-p-law
@@ -138,10 +139,10 @@ mfl       real
 msh       real
 ro        real
 cs        real
+ctaue(0:nx+1,0:ny+1,nisp)  _real  #calc factor for elec Coulomb coll
+ctaui(0:nx+1,0:ny+1,nisp)  _real  #calc factor for ion Coulomb coll
 fxe       real
-ctaue     real
 fxi       real
-ctaui     real
 zcoef     real          #factor (calc) give zeff dependence of elec thermal c.
 coef1     real          #factor (calc) for energy equipartion rate
 cnurn     real    /1./  #scales nurlx rate for ion continuity eqn.
@@ -196,17 +197,17 @@ rrmin     real    /0./ #min rr used in calc of u_tor & fqy for potential calc.
 isdtsfscal integer /0/ #if=1, dt is included in sfscal Jac scaling factor
 frfqpn    real    /1./ #frac. of new fqp at ix=0,nx using grad at ix=1,nx-1
 cffqpsat  real    /1./ #factor by which fqp can exceed fqpsatlb,rb (sat. cur)
-isplflxl  integer /1/  #=0, flalfe,i not active at ix=0 & nx;=1 active all ix
-isplflxlv integer /1/  #=0, flalfv not active at ix=0 & nx;=1 active all ix
-isplflxlgx integer /1/ #=0, flalfgx not active at ix=0 & nx;=1 active all ix
-isplflxlgxy integer /1/ #=0, flalfgxy not active at ix=0 & nx;=1 active all ix
+isplflxl  integer /0/  #=0, flalfe,i not active at ix=0 & nx;=1 active all ix
+isplflxlv integer /0/  #=0, flalfv not active at ix=0 & nx;=1 active all ix
+isplflxlgx integer /0/ #=0, flalfgx not active at ix=0 & nx;=1 active all ix
+isplflxlgxy integer /0/ #=0, flalfgxy not active at ix=0 & nx;=1 active all ix
 iswflxlgy   integer /0/ #=0, flalfgy not active at iy=0 & ny;=1 active all iy
-isplflxlvgx integer /1/ #=0, flalfvgx not active at ix=0 & nx;=1 active all ix
-isplflxlvgxy integer /1/ #=0, flalfvgxy not active at ix=0 & nx;=1 active all ix
-iswflxlvgy  integer /1/ #=0, flalfvgy not active at iy=0 & ny;=1 active all iy
-isplflxltgx integer /1/ #=0, flalfvgx not active at ix=0 & nx;=1 active all ix
-isplflxltgxy integer /1/ #=0, flalfvgxy not active at ix=0 & nx;=1 active all ix
-iswflxltgy  integer /1/ #=0, flalfvgy not active at iy=0 & ny;=1 active all iy
+isplflxlvgx integer /0/ #=0, flalfvgx not active at ix=0 & nx;=1 active all ix
+isplflxlvgxy integer /0/ #=0, flalfvgxy not active at ix=0 & nx;=1 active all ix
+iswflxlvgy  integer /0/ #=0, flalfvgy not active at iy=0 & ny;=1 active all iy
+isplflxltgx integer /0/ #=0, flalfvgx not active at ix=0 & nx;=1 active all ix
+isplflxltgxy integer /0/ #=0, flalfvgxy not active at ix=0 & nx;=1 active all ix
+iswflxltgy  integer /0/ #=0, flalfvgy not active at iy=0 & ny;=1 active all iy
 flalfipl  real /1.e20/ #ion therm flux lim factor on plates when isplflxl=0
 flalfepl  real /1.e20/ #elec therm flux lim factor on plates when isplflxl=0
 isfeexpl0 integer  /0/ #if=1, feex cannot be out of inner/outer plates
@@ -298,7 +299,7 @@ sxgpr     real      /1./    #stretches x-coord. for gas in private flux region
 xstscal   real  [m] /1./    #scale-length with stretch-coord decays from plates
 rld2dxg(ngspmx) real /ngspmx*0./ #ratio of gas decay-length to dx via artificial diff.
 rld2dyg(ngspmx) real /ngspmx*0./ #ratio of gas decay-length to dy via artificial diff.
-cngflox(ngspmx) real /ngspmx*1./ #fac for x-flux from convection in ng-eqn.
+cngflox(ngspmx) real /ngspmx*0./ #fac for x-flux from convection in ng-eqn.
 cngfloy(ngspmx) real /ngspmx*1./ #fac for y-flux from convection in ng-eqn.
 cngniflox(nispmx,ngspmx) real /nispmxngspmx*0./ #fac for rel ion-neut x-vel in ng-eqn
 cngnifloy(nispmx,ngspmx) real /nispmxngspmx*0./ #fac for rel ion-neut y-vel in ng-eqn
@@ -323,6 +324,8 @@ cfvxnrr   real      /1./    #=1 gives rr**2 in visx gas; =0 gives old 1 factor
 cfvisyn   real      /1./    #Coef. for neutral y-visc. in up(,,iispg) eqn
 cfvcsx(1:nispmx) real /nispmx*1./  #Coefs for x-visc. in ti-eq. with ismcnon>0
 cfvcsy(1:nispmx) real /nispmx*1./  #Coefs for y-visc. in ti-eq. with ismcnon>0
+isvhyha   integer   /0/     #switch (=1) for harmonic y-ave of up in visc heat
+upvhflr   real      /1.e2/  #min denom for up harmc ave (isvhyha=1); visc heat
 vboost    real      /1./    #previously scaled eqp; no longer in use
 cvgp      real      /1./    #Coef for v.Grad(p) terms.
 cfvgpx(1:nispmx) real /nispmx*1./ #Coefs for x components of v.grad(p) in ti-eq
@@ -413,11 +416,12 @@ isphilbc	integer	/0/     #Switch for ix=0 b.c. on phi
 isphirbc	integer	/0/     #Switch for ix=nx+1 b.c. on phi
 				#=0, phi = phi0r + kappar * te
 				#=1, phi = phi0r
-iphibcc 	integer /0/	#core BC at iy=1 when isnewpot=1;iy=0 
+iphibcc 	integer /3/	#core BC at iy=1 when isnewpot=1;iy=0 
                                 #=1, d^2(ey)/dy^2=0
                                 #=2, te=constant & ey(ixmp,0)=eycore
                                 #=3, phi=constant & ey(ixmp,0)=eycore
-                                #>3, dphi(ix,1)=dphi_iy1,isutcore ctrls ix=ixmp
+                                #>3 or < 1 now unavailable, previously
+				#dphi(ix,1)=dphi_iy1,isutcore ctrls ix=ixmp
 iphibcwi        integer /0/     #=0, d(ey)/dy=0
 				#=1, phi(ix,0) = phintewi*te(ix,0)/ev
 				#=3, d(phi)/dy/phi = 1/lyphi(1)
@@ -677,11 +681,11 @@ isutcore  integer      /0/      #Used for ix=ixcore phi BC ONLY IF iphibcc > 3
 				#=0, tor mom=lzcore on core;
                                 #=1, d<uz>/dy=0;
 				#>1, d^2(Ey)/dy^2=0 at outer midplane
-isupwi(nispmx) integer /nispmx*1/ #=0 sets up=0 on inner wall
+isupwi(nispmx) integer /nispmx*2/ #=0 sets up=0 on inner wall
                                 #=1 sets fmiy=0 (parallel mom-dens y-flux)
               			#=2 sets dup/dy=0 on inner wall
               			#=3 sets (1/up)dup/dy=1/lyup(1) scale length
-isupwo(nispmx) integer /nispmx*1/ #=0 sets up=0 on outer wall
+isupwo(nispmx) integer /nispmx*2/ #=0 sets up=0 on outer wall
                                 #=1 sets fmiy=0 (parallel mom-dens y-flux)
               			#=2 sets dup/dy=0 on outer wall
               			#=3 sets (1/up)dup/dy=1/lyup(2) scale length
@@ -1084,6 +1088,7 @@ ipflag       integer /1/ #nksol flag to precondition (1=yes)
 mfnksol      integer /-3/#nksol method flag; =1 means dogleg strategy,
                          #=2 means linesearch with Arnoldi method,
                          #=3 means linesearch with GMRES method.
+			 #=4 full direct solve by RSmirnov;set premeth=banded
                          #negative mfnksol ignores global constaints
 iprint       integer /1/ #nksol optional statistics flag.
                          #=0 means no optional statistics are printed.
@@ -1227,8 +1232,8 @@ facbei	      real [ ]      /0./	#factor for Bohm Ti diff. coeff.
 vcony(1:nispmx) real [m/s] /nispmx*0./  #value of constant radial velocity
 difcng	      real [m**2/s] /50./       #constant gas diff. coeff if isgasdc=1
 isgasdc       integer       /0/         #switch to turn on constant gas dif coef
-flalfe        real          /1e20/      #|| heat flux limit factor for elec.
-flalfi        real          /1.e+10/    #|| heat flux limit factor for ions
+flalfe        real          /0.21/      #|| heat flux limit factor for elec.
+flalfi        real          /0.21/    #|| heat flux limit factor for ions
 lxtemax       real [m]      /1.e10/	#max pol. scale len of elec heat-flux lim
 lxtimax       real [m]      /1.e10/	#max pol. scale len of ion heat-flux lim
 lxtgmax       real [m]      /1.e10/	#max pol. scale len of gas heat-flux lim
@@ -1243,7 +1248,8 @@ fricflf       real          /1./        #flux-limiting factor for inputs to
 isflxlde      integer       /0/         #=1,elec flux limit diff;=0, conv/diff
 isflxldi      integer       /2/         #=1,ion flux limit diff;=0, conv/diff
                                         #=2, diff on individ hxcij
-kxe           real          /1.35/      #pol elec heat conduc factor; 1.35->Balescu 
+kxe           real          /1./        #pol Braginsk elec heat conduc factor;
+                                        #prev 1.35->Balescu explain by M.Zhao 
 alfkxi        real          /0./        #reduces ion thermal conduc, K_||, if
                                         #|ti(ix+1)-ti(ix)|<alfkxi*ti(ix)
 alfkxe        real          /0./        #reduces elec thermal conduc, K_||, if
@@ -1275,7 +1281,7 @@ gcfacgtx      real	    /0./	#mult grad Ti conv gas x-flux ix=0 & nx
 gcfacgty      real	    /0./	#mult grad Ti conv gas y-flux iy=0 & ny
 isdifxg_aug   integer       /0/         #=1 enhances D_xgas with flx-lim factor
 isdifyg_aug   integer       /0/         #=1 enhances D_ygas with flx-lim factor
-flalfv        real          /1.e+10/    #parallel velocity flux limit factor
+flalfv        real          /0.5/    #parallel velocity flux limit factor
 isupdrag      integer       /0/         #=1 adds nonunif B-field drag on v_||
 con_leng      real          /1e20/ [m]  #connect length used for coll trans fac
 frac_pt       real          /0.3/       #invers aspect ratio for colliless drag
@@ -1588,6 +1594,7 @@ nginit(0:nx+1,0:ny+1)      _real  [m^-3]  #init gas dens in primary cell (ix,iy)
 phi(0:nx+1,0:ny+1)         _real  [V]     #potential in primary cell (ix,iy)
 phiv(0:nx+1,0:ny+1)        _real  [V]     #potential at vertex of cell
 zeff(0:nx+1,0:ny+1)        _real  [ ]     #Z_effective charge in cell (ix,iy)
+loglambda(0:nx+1,0:ny+1)   _real  [ ]     #Coulomb logarithm
 netap(0:nx+1,0:ny+1)       _real  [ ]     #ne*parallel resistivity
 znot(0:nx+1,0:ny+1)        _real  [ ]     #=Sum(n_z * Z^2)/n_i in cell
 zimpc(0:nx+1,0:ny+1)       _real  [ ]     #Zimp (avg-ion model) in cell (ix,iy)
@@ -1958,6 +1965,7 @@ w0(0:nx+1,0:ny+1)       _real
 w1(0:nx+1,0:ny+1)       _real
 w2(0:nx+1,0:ny+1)       _real
 w3(0:nx+1,0:ny+1)       _real
+wvh(0:nx+1,0:ny+1,1:2)  _real	#species dependent viscous heating
 
 ***** Locflux:
 #Local arrays for the calculation of the fluxes and other quantities.
@@ -2799,7 +2807,7 @@ jacfull(neq,neq) _real
 premeth character*8 /"ilut"/  # type of preconditioning used in the
                               # linear iteration:
                               # ="banded" means use full banded jacobian as
-                              #  preconditioner.
+                              #  preconditioner. Also used with mfnksol=4
                               # ="ilut" means use ilut preconditioning.
                               # ="inel" means use INEL ILU preconditioning
 lenpfac        integer   /60/ # fudge factor to multiply neq by to get an
@@ -3819,7 +3827,7 @@ yielh(imx+1)	       _real
 yielz(imx+1,lnst+1)    _real
 
 ***** Ident_vars:
-uedge_ver  character*80 /'$Name:  $'/
+uedge_ver  character*80 /'$Name: V7_09_01 $'/
 uedge_date character*80 /'Version date in README_Uedge_vers in dir uedge'/
 
 ***** Last_group_ex_sav_var:

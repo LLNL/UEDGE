@@ -21,7 +21,7 @@ nym     integer /4/     # total number of cells in y direc.; nym = ny+nyomitmx
 nxpt	integer /1/	# number of x-points in (R,Z) simulation domain
 nhsp	integer	/1/	# number of hydrogenic species
 nzsp(1:ngspmx-1) integer /5*0/ # number of impurity species per gas species
-nzspt   integer         # total number of impurity species
+nzspt   integer /1/     # total number of impurity species
 nzspmx  integer	   /10/	# maximum of nzsp(igsp) used for storage allocation
 nisp	integer	/1/	# number of ion species
 nusp	integer		# number of parallel momentum equations
@@ -361,8 +361,10 @@ gy(0:nx+1,0:ny+1)   _real   [m^-1]  #1/(y-diameter) of the (ix,iy) primary cell
 dx(0:nx+1,0:ny+1)   _real   [m]     # x-distance of (ix,iy) primary cell;=1/gx
 dxvf(0:nx+1,0:ny+1) _real   [m]     # x-distance of between vel cell ctrs
 dy(0:nx+1,0:ny+1)   _real   [m]     # y-distance of (ix,iy) primary cell;=1/gy
+dynog(0:nx+1,0:ny+1) _real  [m]     #sep btwn nonog interp pts normal to y-face
 gxf(0:nx+1,0:ny+1)  _real   [m^-1]  #1/(x-distance) between density centers
-gxfn(0:nx+1,0:ny+1) _real   [m^-1]  #1/dist. btwn interp. pts, normal to x-face
+##gxfn(0:nx+1,0:ny+1) _real   [m^-1]  #1/dist. btwn interp. pts, normal to x-face
+dxnog(0:nx+1,0:ny+1) _real  [m]     #sep btwn nonog interp pts normal to x-face
 gyf(0:nx+1,0:ny+1)  _real   [m^-1]  #1/(y-distance) perp to y-face between
                                     #niy0 and niy1 variables, etc.
 gxc(0:nx+1,0:ny+1)  _real   [m^-1]  #1/(x-distance) between density vertices
@@ -478,6 +480,7 @@ fymxv(0:nx+1,0:ny+1,0:1) _real [ ]  #frac. of (ix+1-k,iy-1) pt for y deriv,ave
                                    # for (ix,iy) vel. cell where k is third index
 fypxv(0:nx+1,0:ny+1,0:1) _real [ ]  #frac. of (ix+1-k,iy+1) pt for y deriv,ave
                                    # for (ix,iy) vel. cell where k is third index
+redopltvtag  integer       /0/    #if=1, redo plate vtag if numerically inaccur
 
 ***** Timing:
 istimingon integer         /1/    # =1 calcs timing data; call wtottim to output
