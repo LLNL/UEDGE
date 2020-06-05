@@ -3095,6 +3095,13 @@ c ... Call routine to evaluate gas energy fluxes
               fnix(nxc-1,iy,ifld)=0.
               fnix(nxc,  iy,ifld)=0.
               fnix(nxc+1,iy,ifld)=0.
+              uu(nxc-1,iy,ifld) = 0.
+              uu(nxc  ,iy,ifld) = 0.
+              uu(nxc+1,iy,ifld) = 0.
+              vytan(nxc-1,iy,ifld) = 0.
+              vytan(nxc  ,iy,ifld) = 0.
+              vytan(nxc+1,iy,ifld) = 0.
+ 
            endif
            if (islimon.ne.0 .and. iy.ge.iy_lims) fnix(ix_lim,iy,ifld)=0.
            if (nxpt==2 .and. ixmxbcl==1) fnix(ixrb(1)+1,iy,ifld)=0.
@@ -4317,6 +4324,9 @@ c...  Electron radiation loss -- ionization and recombination
                   if (icnuiz.le.1 .and. psor(ix,iy,1).ne.0.) 
      .                                           eeli(ix,iy) = 13.6*ev + 
      .                               erliz(ix,iy)/(fac2sp*psor(ix,iy,1))
+
+                  pradhyd(ix,iy)= ( (eeli(ix,iy)-ebind*ev)*psor(ix,iy,1)+
+     .                                         erlrc(ix,iy) )/vol(ix,iy)
  315           continue
  316        continue
 
@@ -8123,6 +8133,7 @@ c ... Pause from BASIS if a ctrl_c is typed
 c ... Count Jacobian evaluations, both for total and for this case
       ijactot = ijactot + 1   #note: ijactot set 0 in exmain if icntnunk=0
       ijac(ig) = ijac(ig) + 1
+
       if (svrpkg.eq.'nksol') write(*,*) ' Updating Jacobian, npe =  ', 
      .                                                          ijac(ig)
 

@@ -2057,6 +2057,7 @@ eqp(0:nx+1,0:ny+1)          _real [1/m**3]#Te,i equipart. fact; needs *(Te-Ti)*v
 eqpg(0:nx+1,0:ny+1,ngsp)    _real [1/m**3]#Tg,i equipart. fact; needs *(Tg-Ti)*vol
 engcoolm(0:nx+1,0:ny+1)     _real [J/s]   #cool rate ion/atoms by mols if ishymol=1
 eeli(0:nx+1,0:ny+1)         _real  [J]    #electron energy loss per ionization
+pradhyd(0:nx+1,0:ny+1)      _real [W/m**3] /0./#power radiated by hydrogen
 tdiflim                      real [s] /0./ #lim on hcxe/ne; reduces hcxe if >0
 lmfplim			     real [m] /1.e20/#hcxe,i -> hcxe,i/(1+lmfp/lmfelim)
 eta1(0:nx+1,0:ny+1)	    _real [J-s/m**3] #Braginskii ion visc coeff eta_1
@@ -3105,6 +3106,7 @@ ifexmain           integer /0/  #scalar to indicate if subroutine allocate
                                 #is called by exmain.
                                 #=1 means allocate is called by exmain,
                                 #=0 means it is not.
+exmain_aborted integer /.false./ # Set to .true. in Python version on control-C abort
 iallcall	   integer /0/  #flag to signal first call to allocate
 
 ***** RZ_cell_info:
@@ -3827,7 +3829,7 @@ yielh(imx+1)	       _real
 yielz(imx+1,lnst+1)    _real
 
 ***** Ident_vars:
-uedge_ver  character*80 /'$Name: V7_09_01 $'/
+uedge_ver  character*80 /'$Name: V7_09_02 $'/
 uedge_date character*80 /'Version date in README_Uedge_vers in dir uedge'/
 
 ***** Last_group_ex_sav_var:
