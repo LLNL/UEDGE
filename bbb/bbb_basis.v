@@ -3106,7 +3106,7 @@ ifexmain           integer /0/  #scalar to indicate if subroutine allocate
                                 #is called by exmain.
                                 #=1 means allocate is called by exmain,
                                 #=0 means it is not.
-exmain_aborted integer /.false./ # Set to .true. in Python version on control-C abort
+exmain_aborted logical /.false./ # Set to .true. in Python version on control-C abort
 iallcall	   integer /0/  #flag to signal first call to allocate
 
 ***** RZ_cell_info:
