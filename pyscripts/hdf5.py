@@ -25,7 +25,7 @@ def hdf5_restore(file):
         print(error)
     except:
         print("Couldn't open hdf5 file ", file)
-        return
+        return False
 
     try:
         dummy = hf['bbb']   # force an exception if the group not there
@@ -86,6 +86,7 @@ def hdf5_restore(file):
             print("Couldn't read tgs from  ", file)
 
     hf.close()
+    return True
 
 
 def hdf5_save(file, varlist=['bbb.ngs', 'bbb.ng',
