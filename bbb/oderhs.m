@@ -9946,9 +9946,11 @@ cc            ptjdote = ptjdote + jdote(ix,iy)
       enddo
       do igsp = 1, max(1, ngsp-nhgsp)
          pradimpt(igsp) = 0.
-         do iimp = 0, nzsp(igsp)
-            pradimp(iimp,igsp) = 0.
-         enddo
+         if (nzsp(igsp) .ne. 0) then
+            do iimp = 0, nzsp(igsp)
+               pradimp(iimp,igsp) = 0.
+            enddo
+         endif
       enddo    
       pradfft = 0.
       
