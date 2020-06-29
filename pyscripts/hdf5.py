@@ -20,17 +20,17 @@ def hdf5_restore(file):
     """
     try:
         hf = h5py.File(file, 'r')
-    except ValueError as error:
-        print("Couldn't open hdf5 file ", file)
-        print(error)
     except:
         print("Couldn't open hdf5 file ", file)
-        return False
+        raise
 
     try:
         dummy = hf['bbb']   # force an exception if the group not there
         hfb = hf.get('bbb')
-        hdf5_restore_dump(file,hdffile=hf)
+        try:
+           hdf5_restore_dump(file,hdffile=hf)
+        except:
+           raise
         
 
     except:
@@ -132,6 +132,7 @@ def hdf5_save(file, varlist=['bbb.ngs', 'bbb.ng',
     except ValueError as error:
         print("HDF5 file open failed to ", file)
         print(error)
+        raise
     except:
         print("HDF5 file open failed to ", file)
         raise
@@ -157,8 +158,10 @@ def hdf5_save(file, varlist=['bbb.ngs', 'bbb.ng',
         except ValueError as error:
             print("HDF5 write failed to ", file, ' var ', vt[1])
             print(error)
+            raise
         except:
             print("HDF5 write failed to ", file, ' var ', vt[1])
+            raise
 
     for lvt in addvarlist:
         try:
@@ -181,10 +184,13 @@ def hdf5_save(file, varlist=['bbb.ngs', 'bbb.ng',
         except ValueError as error:
             print("HDF5 write failed to ", file, ' var ', vt[1])
             print(error)
+            raise
         except:
             print("HDF5 write failed to ", file, ' var ', vt[1])
+            raise
 
     hf.close()
+    return True
 
 
 def hdf5_dump(file, packages=list_packages(objects=1), vars=None, globals=None):
@@ -198,8 +204,10 @@ def hdf5_dump(file, packages=list_packages(objects=1), vars=None, globals=None):
     except ValueError as error:
         print("Couldn't open hdf5 file ", file)
         print(error)
+        raise
     except:
         print("Couldn't open hdf5 file ", file)
+        raise
     for p in packages:
         hfg = hf.create_group(p.name())
         hfg.attrs['time'] = time.time()
@@ -219,8 +227,10 @@ def hdf5_dump(file, packages=list_packages(objects=1), vars=None, globals=None):
                 except ValueError as error:
                     print("Couldn't write out: "+p.name()+'.'+v)
                     print(error)
+                    raise
                 except:
                     print("Couldn't write out: "+p.name()+'.'+v)
+                    raise
             else:
                 print(p.name()+'.'+v+" is not allocated")
     if globals != None:
@@ -241,10 +251,13 @@ def hdf5_dump(file, packages=list_packages(objects=1), vars=None, globals=None):
             except ValueError as error:
                 print("Couldn't write out: "+p.name()+'.'+v)
                 print(error)
+                raise
             except:
                 print("Couldn't write out: "+p.name()+'.'+v)
+                raise
 
     hf.close()
+    return True
 
 
 def h5py_dataset_iterator(g, prefix=''):
@@ -300,8 +313,12 @@ def hdf5_restore_dump(file, scope=globals(),hdffile=None):
                   setattr(pck,vt[2],dset[()])
            except:
                print('Couldn\'t read dataset ', path)
+               raise
     except:
         print("Couldn't read hdf5 file ", file)
+        raise
 
     if hdffile == None:
         hf.close()
+    
+    return True
