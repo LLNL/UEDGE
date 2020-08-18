@@ -118,6 +118,14 @@ c ...       Note that the rate parameter tables (in group Multicharge) have
 c ...       the same ne-dimension and te-dimension for all species, so
 c ...       the hydrogenic tables must have the same dimensions as the 
 c ...       impurity tables, if both are present.
+      elseif (istabon .eq. 17) then
+         mpe=60
+         mpd=15
+         mpr=1
+         call gallot("Rtdegas",0)
+         call findFile('ehr5.dat', aphdirx, dataDir, adname, isaphdir)
+         call readehr2(TRIM(adname))
+         call setauxvar
       endif
 
       return
