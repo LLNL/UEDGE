@@ -57,7 +57,8 @@ c     radiation rate --
          erl1 = erl11 + fje*(erl12-erl11)
 
 c----------------------------------------------------------------------c
-      elseif (istabon>9 .and. istabon<14) then # logarith. interp on Stotler-95
+      elseif ((istabon>9 .and. istabon<14) .or. istabon .eq. 17) then 
+c     log-log interp on Stotler DEGAS2 tables
 
          jr = 1
 
@@ -138,7 +139,7 @@ c     radiation rate --
 
 c----------------------------------------------------------------------c
       else				# write error message
-         call xerrab('function erl1 not defined for istabon > 15')
+         call xerrab('function erl1 not defined for istabon > 17')
       endif
 
       return
@@ -203,7 +204,8 @@ c     radiation rate --
          erl2 = erl21 + fje*(erl22-erl21)
 
 c----------------------------------------------------------------------c
-      elseif (istabon>9 .and. istabon<14) then # log. interp. of Stotler-95
+      elseif ((istabon>9 .and. istabon<14) .or. istabon .eq. 17) then 
+c     log-log interp on Stotler DEGAS2 tables
 
          jr = 1
 
@@ -284,7 +286,7 @@ c     radiation rate --
 
 c-----------------------------------------------------------------------
       else				# write error message
-         call xerrab('function erl2 not defined for istabon > 15')
+         call xerrab('function erl2 not defined for istabon > 17')
       endif
 
       return
@@ -772,7 +774,8 @@ c                       use polynomial fit from Bob Campbell -  8/93
          rra = srecf(te/ev,ne)
 
 c----------------------------------------------------------------------c
-      elseif (istabon>9 .and. istabon<14) then  # use log interp on Stotler
+      elseif ((istabon>9 .and. istabon<14) .or. istabon .eq. 17) then 
+c     log-log interp on Stotler DEGAS2 tables
          jr = 1
 c     compute abscissae --
          zloge=log(te/ev)
@@ -1027,7 +1030,8 @@ c                       use polynomial fit from Bob Campbell -  8/93
          rsa = sionf(te/ev,ne)
 
 c----------------------------------------------------------------------c
-      elseif (istabon>9 .and. istabon<14) then  # log interp on Stotler
+      elseif ((istabon>9 .and. istabon<14) .or. istabon .eq. 17) then 
+c     log-log interp on Stotler DEGAS2 tables
 
          jr = 1
 
