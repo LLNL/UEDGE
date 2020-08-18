@@ -261,6 +261,8 @@ geometry	character*16 /"snull"/
 				# ='snowflake45' for Ryutov's theta~45 deg
 				# ='snowflake75' for Ryutov's theta~75 deg
 				# ='snowflake105' for Ryutov's theta~105 deg
+				# ='snowflake135' for Ryutov's theta~135 deg
+				# ='snowflake165' for Ryutov's theta~165 deg
 				# ='dnXtarget' for dnbot with Xtarget
 nxc		integer	/4/	# center index of x-grid, normally nx/2,
                                 # OR
@@ -326,6 +328,7 @@ istabon	integer	/7/ +restart
 #	= 14 H.Scott data; add rtau=Ly-a opacity, lin. interp; ehrtau.dat
 #	= 15 H.Scott data; add rtau=Ly-a opacity, log interp; ehrtau.dat
 #	= 16 table look-up using 'b2frates_hyd' file data, log-log interp
+#	= 17 tab look-up; latest DEGAS2/PPPL rates: ehr5.dat (23 Apr 2015)
 
 reset_core_og			integer /0/
         # flag to force diff stencil orthog in core; use if isupstreamx=1
