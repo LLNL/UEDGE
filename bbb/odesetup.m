@@ -1,5 +1,5 @@
 c-----------------------------------------------------------------------
-c $Id: odesetup.m,v 7.19 2020/05/26 02:44:34 rognlien1 Exp $
+c $Id: odesetup.m,v 7.20 2020/08/06 00:29:55 rensink1 Exp $
 c
 c!include "bbb.h"
 c!include "../com/com.h"
@@ -270,7 +270,8 @@ c ... Check if tfcx or tfcy set in input file
         endif
 c ... Check if isnfmiy=1 when geometry is snowflake > SF15
       if (geometry=="snowflake45" .or. geometry=="snowflake75" .or.
-     .    geometry=="snowflake105" .or. geometry=="snowflake145") then
+     .    geometry=="snowflake105" .or. geometry=="snowflake135" .or.
+     .    geometry=="snowflake165") then
          if (isnfmiy == 1) then
             call xerrab('*** ERROR: isnfmiy=1 not option here; set to 0')
          endif
@@ -1910,6 +1911,7 @@ c ...  First case is the default geometry=snull
                   ixm1(ix,iy) = ix-1
                   ixp1(ix,iy) = ix+1
                endif
+
                if (geometry=="dnull") then  #3 conditions for 1-cell cases
                  if (ixpt2(1)==ixpt1(1)+1.or.ixpt2(2)==ixpt1(2)+1) then
                   call xerrab("***Error: Single pol cell not supported")
@@ -2049,19 +2051,19 @@ c ...  First case is the default geometry=snull
                   endif
                endif	# end of geometry=="snowflake75"
 			   
-			   if (geometry=="snowflake105") then	# AK 10 DEC 2018
+               if (geometry=="snowflake105") then	# AK 10 DEC 2018
                   if ((iy .le. iycut1) .and. (ix .eq. ixcut1)) then
                      ixm1(ix,iy) = ix-1
                      ixp1(ix,iy) = ixcut4+1
                   elseif ((iy .le. iycut1) .and. (ix .eq. ixcut1+1)) then
                      ixm1(ix,iy) = ixcut4
                      ixp1(ix,iy) = ix+1
-					 if ((ixcut2 .eq. ixcut1+1) .and. (iy .le. iycut1)) then
+                     if ((ixcut2 .eq. ixcut1+1) .and. (iy .le. iycut1)) then
                         ixp1(ix,iy) = ixcut3+1
                      endif
                   elseif ((iy .le. iycut2) .and. (ix .eq. ixcut2)) then
                      ixm1(ix,iy) = ix-1
-					 if ((ixcut2 .eq. ixcut1+1) .and. (iy .le. iycut1)) ixm1(ix,iy) = ixcut4
+                     if ((ixcut2 .eq. ixcut1+1) .and. (iy .le. iycut1)) ixm1(ix,iy) = ixcut4
                      ixp1(ix,iy) = ixcut3+1
                   elseif ((iy .le. iycut2) .and. (ix .eq. ixcut2+1)) then
                      ixm1(ix,iy) = ixcut3
@@ -2074,7 +2076,7 @@ c ...  First case is the default geometry=snull
                      ixp1(ix,iy) = ix+1
                   elseif ((iy .le. iycut4) .and. (ix .eq. ixcut4)) then
                      ixm1(ix,iy) = ix-1
-					 if (ixcut4.eq.ixcut3+1) ixm1(ix,iy) = ixcut2
+                     if (ixcut4.eq.ixcut3+1) ixm1(ix,iy) = ixcut2	# never satisfied???
                      ixp1(ix,iy) = ixcut1+1
                   elseif ((iy .le. iycut4) .and. (ix .eq. ixcut4+1)) then
                      ixm1(ix,iy) = ixcut1
@@ -2084,6 +2086,76 @@ c ...  First case is the default geometry=snull
                      ixp1(ix,iy) = ix+1
                   endif
                endif	# end of geometry=="snowflake105"
+
+               if (geometry=="snowflake135") then	# MER 24 JUL 2020
+                  if ((iy .le. iycut1) .and. (ix .eq. ixcut1)) then
+                     ixm1(ix,iy) = ix-1
+                     ixp1(ix,iy) = ixcut4+1
+                  elseif ((iy .le. iycut1) .and. (ix .eq. ixcut1+1)) then
+                     ixm1(ix,iy) = ixcut4
+                     ixp1(ix,iy) = ix+1
+                     if ((ixcut2 .eq. ixcut1+1) .and. (iy .le. iycut1)) then
+                        ixp1(ix,iy) = ixcut3+1
+                     endif
+                  elseif ((iy .le. iycut2) .and. (ix .eq. ixcut2)) then
+                     ixm1(ix,iy) = ix-1
+                     if ((ixcut2 .eq. ixcut1+1) .and. (iy .le. iycut1)) ixm1(ix,iy) = ixcut4
+                     ixp1(ix,iy) = ixcut3+1
+                  elseif ((iy .le. iycut2) .and. (ix .eq. ixcut2+1)) then
+                     ixm1(ix,iy) = ixcut3
+                     ixp1(ix,iy) = ix+1
+                  elseif ((iy .le. iycut3) .and. (ix .eq. ixcut3)) then
+                     ixm1(ix,iy) = ix-1
+                     ixp1(ix,iy) = ixcut2+1
+                  elseif ((iy .le. iycut3) .and. (ix .eq. ixcut3+1)) then
+                     ixm1(ix,iy) = ixcut2
+                     ixp1(ix,iy) = ix+1
+                  elseif ((iy .le. iycut4) .and. (ix .eq. ixcut4)) then
+                     ixm1(ix,iy) = ix-1
+                     ixp1(ix,iy) = ixcut1+1
+                  elseif ((iy .le. iycut4) .and. (ix .eq. ixcut4+1)) then
+                     ixm1(ix,iy) = ixcut1
+                     ixp1(ix,iy) = ix+1
+                  else	# when cuts do not interfere
+                     ixm1(ix,iy) = ix-1
+                     ixp1(ix,iy) = ix+1
+                  endif
+               endif	# end of geometry=="snowflake135"
+
+               if (geometry=="snowflake165") then	# MER 24 JUL 2020
+                  if ((iy .le. iycut1) .and. (ix .eq. ixcut1)) then
+                     ixm1(ix,iy) = ix-1
+                     ixp1(ix,iy) = ixcut4+1
+                  elseif ((iy .le. iycut1) .and. (ix .eq. ixcut1+1)) then
+                     ixm1(ix,iy) = ixcut4
+                     ixp1(ix,iy) = ix+1
+                  elseif ((iy .le. iycut2) .and. (ix .eq. ixcut2)) then
+                     ixm1(ix,iy) = ix-1
+                     ixp1(ix,iy) = ixcut3+1
+                  elseif ((iy .le. iycut2) .and. (ix .eq. ixcut2+1)) then
+                     ixm1(ix,iy) = ixcut3
+                     ixp1(ix,iy) = ix+1
+                  elseif ((iy .le. iycut3) .and. (ix .eq. ixcut3)) then
+                     ixm1(ix,iy) = ix-1
+                     ixp1(ix,iy) = ixcut2+1
+                  elseif ((iy .le. iycut3) .and. (ix .eq. ixcut3+1)) then
+                     ixm1(ix,iy) = ixcut2
+                     ixp1(ix,iy) = ix+1
+                     if ((ixcut4 .eq. ixcut3+1) .and. (iy .le. iycut4)) then
+                        ixp1(ix,iy) = ixcut1+1
+                     endif
+                  elseif ((iy .le. iycut4) .and. (ix .eq. ixcut4)) then
+                     ixm1(ix,iy) = ix-1
+                     if (ixcut4 .eq. ixcut3+1) ixm1(ix,iy) = ixcut2
+                     ixp1(ix,iy) = ixcut1+1
+                  elseif ((iy .le. iycut4) .and. (ix .eq. ixcut4+1)) then
+                     ixm1(ix,iy) = ixcut1
+                     ixp1(ix,iy) = ix+1
+                  else	# when cuts do not interfere
+                     ixm1(ix,iy) = ix-1
+                     ixp1(ix,iy) = ix+1
+                  endif
+               endif	# end of geometry=="snowflake165"
 
                if (geometry=="isoleg") then	# TDR 03 Dec 2014
                   if ((iy .le. iycut1) .and. (ix .eq. ixcut1)) then
