@@ -956,25 +956,8 @@ stretcx(0:nx+1,0:ny+1)    _real      #array for stretching gas x-coord.
 
 ***** Aux:
 #Variables for auxiliary storage.
-ix          integer
-iy          integer
-igsp        integer
-iv          integer
-iv1         integer
-iv2         integer
-iv3         integer
-ix1         integer
-ix2         integer
-ix3         integer
-ix4         integer
-ix5         integer
-ix6         integer
 ixmp 	    integer		# poloidal index of outer midplane; for yyc,f
-tv          real
-t0          real
-t1          real
-t2          real
-a           real
+
 
 ***** Err_msg_out restart:
 #Controls for output of error messages

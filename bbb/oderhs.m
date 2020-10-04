@@ -596,6 +596,9 @@ c    yldot is the RHS of ODE solver or RHS=0 for Newton solver (NKSOL)
       integer idum, idumaray(1)
       real(Size4) sec4, gettime, tsimpfe, tsimp, tsnpg, ueb
       integer impflag
+      # former Aux module variables
+      integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
+      real tv,t0,t1,t2,a
 cnxg      data igs/1/
 
       Use(Dim)      # nx,ny,nhsp,nusp,nzspt,nzsp,nisp,ngsp,nxpt
@@ -615,8 +618,7 @@ cnxg      data igs/1/
                     # isofric,isteaven
                     # isnionxy,isuponxy,isteonxy,istionxy,isngonxy,isphionxy,
                     # isupon,isteon,istion,isphion
-      Use(Aux)      # ix,iy,igsp,iv,iv1,iv2,iv3,
-                    # ix1,ix2,ix3,ix4,ix5,ix6,tv,t0,t1,t2,a
+      Use(Aux),only: ixmp
       Use(Coefeq)
       Use(Bcond)    # albedoo,albedoi,isfixlb,isfixrb
                     # xcnearlb,xcnearrb,openbox
@@ -5365,7 +5367,8 @@ c
       real tnuiz,ngnot,lmfp,ty0,ty1,nlmt,nu1,nu2,ffyi,ffyo
       integer iy1, methgx, methgy, iy2, jx
       logical isxyfl
-
+      integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
+      real t,t0,t1,t2,a
       Use(Dim)      # nx,ny,nhsp,nisp,ngsp,nxpt
       Use(Xpoint_indices)      # ixlb,ixpt1,ixpt2,ixrb,iysptrx1
       Use(Share)    # geometry,nxc,isnonog,cutlo,islimon,ix_lim,iy_lims
@@ -5373,8 +5376,6 @@ c
       Use(UEpar)    # methg,
                     # qfl,csh,qsh,cs,
                     # isupgon,iigsp,nlimgx,nlimgy,nlimiy,rld2dx,rld2dy
-      Use(Aux)      # ix,iy,igsp,iv,iv1,iv2,iv3,
-                    # ix1,ix2,ix3,ix4,ix5,ix6,t,t0,t1,t2,a
       Use(Coefeq)   # cngfx,cngfy,cngmom,cmwall,cdifg,rld2dxg,rld2dyg
       Use(Bcond)    # albedoo,albedoi
       Use(Parallv)  # nxg,nyg
@@ -5845,6 +5846,9 @@ c
       integer iym1,iyp1,iyp2,ixm1b,ixp1b,ixp2b
       logical isxyfl
       real(Size4) sec4, gettime
+      # Former Aux module variables
+      integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
+      real t,t0,t1,t2,a
 
       Use(Dim)      # nx,ny,nhsp,nisp,ngsp,nxpt
       Use(Xpoint_indices)      # ixlb,ixpt1,ixpt2,ixrb,iysptrx1
@@ -5853,8 +5857,6 @@ c
       Use(UEpar)    # methg,
                     # qfl,csh,qsh,cs,
                     # isupgon,iigsp,nlimgx,nlimgy,nlimiy,rld2dx,rld2dy
-      Use(Aux)      # ix,iy,igsp,iv,iv1,iv2,iv3,
-                    # ix1,ix2,ix3,ix4,ix5,ix6,t,t0,t1,t2,a
       Use(Coefeq)   # cngfx,cngfy,cngmom,cmwall,cdifg,rld2dxg,rld2dyg
       Use(Bcond)    # albedoo,albedoi
       Use(Parallv)  # nxg,nyg
@@ -6429,7 +6431,9 @@ c --------------------------------------------------------------------------
       real tnuiz,ngnot,lmfp,ty0,ty1,nlmt,ffyo,ffyi
       integer iy1, methgx, methgy, iy2, jx
       logical isxyfl
-
+      # Former Aux module variables
+      integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
+      real t,t0,t1,t2,a
       Use(Dim)      # nx,ny,nhsp,nisp,ngsp,nxpt
       Use(Xpoint_indices)      # ixlb,ixpt1,ixpt2,ixrb,iysptrx1
       Use(Share)    # geometry,nxc,isnonog,cutlo,islimon,ix_lim,iy_lims
@@ -6437,8 +6441,6 @@ c --------------------------------------------------------------------------
       Use(UEpar)    # methg,
                     # qfl,csh,qsh,cs,
                     # isupgon,iigsp,nlimgx,nlimgy,nlimiy,rld2dx,rld2dy
-      Use(Aux)      # ix,iy,igsp,iv,iv1,iv2,iv3,
-                    # ix1,ix2,ix3,ix4,ix5,ix6,t,t0,t1,t2,a
       Use(Coefeq)   # cngfx,cngfy,cngmom,cmwall,cdifg,rld2dxg,rld2dyg
       Use(Bcond)    # albedoo,albedoi
       Use(Parallv)  # nxg,nyg
@@ -6834,8 +6836,9 @@ c ..  the gas fluxes and then used to form fnix if isupgon(igsp)=1
       Use(UEpar)    # methg,
                     # qfl,csh,qsh,cs,
                     # isupgon,iigsp,nlimgx,nlimgy
-      Use(Aux)      # ix,iy,igsp,iv,iv1,iv2,iv3,
-                    # ix1,ix2,ix3,ix4,ix5,ix6,t,t0,t1,t2,a
+       # Former Aux module variables
+      integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
+      real t,t0,t1,t2,a
       Use(Coefeq)   # cngfx,cngfy,cngmom,cmwall,cdifg,rld2dxg,rld2dyg
       Use(Bcond)    # albedoo,albedoi
       Use(Parallv)  # nxg,nyg
@@ -7274,7 +7277,9 @@ c --------------------------------------------------------------------------
       real vt0,vt1,wallfac,lxtgc,dupdx,dupdy,fniy_recy,thetacc
       real vttn,vttp
       integer ifld,iixt,iy1, methgx, methgy, iy2, jx
-
+      #Former Aux module variables
+      integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
+      real t0,t1,t,a
 
       Use(Dim)      # nx,ny,nhsp,nisp,ngsp,nxpt
       Use(Xpoint_indices)      # ixlb,ixpt1,ixpt2,ixrb,iysptrx1
@@ -7283,8 +7288,7 @@ c --------------------------------------------------------------------------
       Use(UEpar)    # methg,
                     # qfl,csh,qsh,cs,
                     # isupgon,iigsp,nlimgx,nlimgy,nlimiy,rld2dx,rld2dy
-      Use(Aux)      # ix,iy,igsp,iv,iv1,iv2,iv3,
-                    # ix1,ix2,ix3,ix4,ix5,ix6,t,t0,t1,t2,a
+
       Use(Coefeq)   # cngfx,cngfy,cngmom,cmwall,cdifg,rld2dxg,rld2dyg
       Use(Bcond)    # albedoo,albedoi
       Use(Parallv)  # nxg,nyg
@@ -7638,7 +7642,7 @@ c...  variables are used, i.e., n,nv,nT, or n,v,T, or n,v,nT
       Use(Compla)
       Use(Indexes)
       Use(Selec)     # i2,i5,j2,j5,ixp1
-      Use(Aux)       # ix,iy,iv,iv1,iv2,ix1
+
       Use(Coefeq)    # cngtgx
       Use(UEpar)     # isnion,isupon,isteon,istion,isngon,isnionxy,isuponxy,
                      # isteonxy,istionxy,isngonxy,isphionxy
@@ -7650,6 +7654,8 @@ c...  variables are used, i.e., n,nv,nT, or n,v,T, or n,v,nT
 
 *  -- Local variables
       integer ifld
+      #Former Aux module variables
+      integer ix,iy,iv,iv1,iv2,ix1,igsp
       real nbv, nbvdot, nbidot, nbedot, nbgdot, yldot_np1, nbg2dot(ngsp)
 
 c...  If isflxvar=0, we use ni,v,Te,Ti,ng as variables, and the ODEs need
@@ -7763,7 +7769,6 @@ c   -------------------------------------------------------------------------
       Use(Dim)      # nx,nxm,ny,nisp
       Use(Math_problem_size)   # neqmx(for arrays not used here)
       Use(Comgeo)   # vol
-      Use(Aux)      # ix,iy
       Use(RZ_grid_info)   # rm,zm
       Use(Volsrc)   # pwrsore,pwrsori,volpsor,pvole,pvoli,ivolcur,
                     # z0pe,z0pi,r0pe,r0pi,zwpe,zwpi,rwpe,rwpi,
@@ -7781,6 +7786,8 @@ c   -------------------------------------------------------------------------
      &     ivolcurgt, mvolcurt
       real argr, argz
       integer isxjcsor, iexjcsor, isyjcsor, ieyjcsor, ifld, nj
+      #Former Aux module variables
+      integer ix,iy,igsp
 
 
 c...  Initialize values and arrays
@@ -10172,7 +10179,6 @@ c ... Use as diagnostic called from BASIS/Python parser (alt. to balancee)
       Use(Comgeo)         # sx,vol,gx,gxf
       Use(Noggeo)         # angfx
       Use(Phyvar)         # pi, ev
-      Use(Aux)            # ix,iy
       Use(Postproc)       # pwr_plth,Pwr_pltz,sdel,rb;sdil,rb; sdbindl,rb,
                           # sdtl,rb;gdil,rd
       Use(Xpoint_indices) # ixlb, ixrb
@@ -10186,6 +10192,8 @@ c ... Use as diagnostic called from BASIS/Python parser (alt. to balancee)
 
 c  Local variables
       integer iu,jx,id,ixi,ixo
+      #Former Aux module variables
+      integer ix,iy
       real tempvo,tempvi
       real pdivilb(1:nxpt),pdivirb(1:nxpt),pdivelb(1:nxpt),
      .     pdiverb(1:nxpt)
@@ -10347,7 +10355,6 @@ c ... Use as diagnostic called from BASIS/Python parser (alt. to balancee)
       Use(Dim)            # nx,ny,nxpt
       Use(Comgeo)         # sy
       Use(Phyvar)         # pi, ev
-      Use(Aux)            # ix,iy
       Use(Postproc)       # pwr_wallh, Pwr_wallz
                           # swallr, swalli, swalle, swbind, swallt
                           # spfwallr
@@ -10357,6 +10364,8 @@ c ... Use as diagnostic called from BASIS/Python parser (alt. to balancee)
 
 c  Local variables
       integer jx,id,ixi,ixo,ip
+      #Former Aux module variables
+      integer ix,iy
       real pwallr,pwalli,pwalle,pwbind
       real swallid(0:nx+1,nfsp)
 
@@ -11474,13 +11483,13 @@ c ... equations
 
 *  -- local variables
       integer methnx,methny,ifld
-
+      #Former Aux module variables
+      integer ix,iy,igsp,iv,iv1,iv2,iv3,ix2,ix3,ix4,ix5,ix6
+      real t,t0,t1,t2,a
       Use(Dim)      # nx,ny,nhsp,nisp,ngsp
       Use(Share)    # nxpt,geometry,nxc,cutlo
       Use(Xpoint_indices)      # ixpt1,ixpt2,iysptrx
       Use(UEpar)    # methn,nlimix,nlimiy,nlimiy
-      Use(Aux)      # ix,iy,igsp,iv,iv1,iv2,iv3,
-                    # ix1,ix2,ix3,ix4,ix5,ix6,t,t0,t1,t2,a
       Use(Coefeq)   # cnfx,cnfy
       Use(Selec)    # i1,i2,i3,i4,i5,i6,i7,i8,j1,j2,j3,j4,j5,j6,j7,j8
                     # xlinc,xrinc,yinc,ixm1,ixp1
@@ -11618,7 +11627,9 @@ c ... neoclassical effects
 *  -- local variables
       integer ifld
       real tempp,tempm,diffp,diffm
-
+      #Former Aux module variables
+      integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
+      real t,t0,t1,t2,a
       Use(Dim)      # nx,ny,nhsp,nisp,ngsp,nusp
       Use(Xpoint_indices)      # ixlb,ixpt1,ixpt2,ixrb,iysptrx1,iysptrx2
                                # iysptrx
@@ -11626,8 +11637,6 @@ c ... neoclassical effects
       Use(RZ_grid_info)  # bpol,b12,b32,bsqr
       Use(Bfield)   #rbfbt
       Use(Share)    # nxpt,geometry,nxc,cutlo
-      Use(Aux)      # ix,iy,igsp,iv,iv1,iv2,iv3,
-                    # ix1,ix2,ix3,ix4,ix5,ix6,tv,t0,t1,t2,a
       Use(Selec)    # i1,i2,i3,i4,i5,i6,i7,i8,xlinc,xrinc,ixs1,
                     # j1,j1p,j2,j2p,j3,j4,j5,j6,j5p,j6p,j7,j8,
       Use(Compla)   # ni,up,te,ti,ng,phi,v2cd,
@@ -11700,6 +11709,9 @@ c ... neoclassical viscosity effects
 
 *  -- local variables
       integer ifld
+      #Former Aux module variables
+      integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
+      real tv,t0,t1,t2,a
       real tempp,tempm,temp0,diffp,diffm,gradx_vpiv,gradx_vpiq
 
       Use(Dim)      # nx,ny,nhsp,nisp,ngsp,nusp
@@ -11709,8 +11721,6 @@ c ... neoclassical viscosity effects
       Use(RZ_grid_info)  # bpol,b12,b32,bsqr,b12ctr
       Use(Bfield)   #rbfbt
       Use(Share)    # nxpt,geometry,nxc,cutlo
-      Use(Aux)      # ix,iy,igsp,iv,iv1,iv2,iv3,
-                    # ix1,ix2,ix3,ix4,ix5,ix6,tv,t0,t1,t2,a
       Use(Selec)    # i1,i2,i3,i4,i5,i6,i7,i8,xlinc,xrinc,ixs1,
                     # j1,j1p,j2,j2p,j3,j4,j5,j6,j5p,j6p,j7,j8,
       Use(Compla)   # ni,up,te,ti,ng,phi,v2cd,

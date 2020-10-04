@@ -61,6 +61,8 @@ cc      Use(Rccoef)
       character*60 runid
       integer iprt_tfcx_warn
       data iprt_tfcx_warn/1/
+      #Former Aux module variables
+      integer igsp
 
 *=======================================================================
 *//computation//
@@ -686,7 +688,6 @@ c-----------------------------------------------------------------------
                     # xcs,xfs,xcwi,xcwo,yyc,yyf
       Use(Xpoint_indices)      # ixlb,ixpt1,ixpt2,ixrb,iysptrx1,iysptrx2
       Use(Math_problem_size)   # neqmx,numvar
-      Use(Aux)      # ix,iy,igsp,tv
       Use(UEint)    # newgeo,newaph,restart,initsol,ttbeg,
                     # tinit,tscal,ngscal,xgscal,minu,ziin,ixgb
       Use(Grid)     # ig
@@ -744,6 +745,9 @@ c-----------------------------------------------------------------------
       integer ixmp4, jx, jy
       real diffustotal, factor
       integer ifld_fcs, ifld_lcs, igsp_lcs, jz
+      #Former Aux module variables
+      integer ix,iy,igsp
+      real tv
 
 *=======================================================================
 *//computation//
