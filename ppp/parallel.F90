@@ -5,7 +5,8 @@
 !-------------------------------------------------------------------------------------------------
 subroutine InitParallel
 
-    Use ParallelSettings,only:OMPParallelJac,MPIParallelJac,ParallelJac,OMPParallelPandf1
+    Use ParallelSettings,only:OMPParallelJac,MPIParallelJac,OMPParallelPandf1
+    Use ParallelEval,only:ParallelJac
     Use HybridSettings,only:HybridOMPMPI
     implicit none
     if ((OMPParallelJac==1 .or. OMPParallelPandf1.gt.0) .and. MPIParallelJac==0) then
@@ -102,15 +103,12 @@ subroutine jac_calc_parallel(neq, t, yl, yldot00, ml, mu, wk,nnzmx, jac, ja, ia)
     if (CheckJac.gt.0) then
 
 
-      write(*,*) '--- Checking if parallel and serial evaluations of jacobian are the same...'
+      write(*,*) '--- Checking whether parallel and serial evaluations of jacobian are the same...'
        write(*,*) '----- Performing serial Evaluation of jacobian...'
        call tick(t_start)
       call jac_calc (neq, t, yl, yldot00, ml, mu, wk,nnzmx, jaccopy, jacopy, iacopy)
       write(*,*) '----- Serial Evaluation of jacobian done in: ',tock(t_start) ,' s'
-     write(*,*) '----- Writing jacobian into serialjac.dat and paralleljac.dat'
-      call jac_write('paralleljac.dat',neq, jac, ja, ia)
-      call jac_write('serialjac.dat',neq, jaccopy, jacopy, iacopy)
-      write(*,*) '----- Comparing jacobians...: nzmax=',ia(neq)-1
+      write(*,*) '----- Comparing jacobians (nzmax=',ia(neq)-1,')'
       do i=1,ia(neq)-1
        if (abs(jaccopy(i)-jac(i)).gt.1e-14) then
            write(*,*) ' ****** diff between jacs :',i,jac(i),jaccopy(i),'|',ja(i),jacopy(i)
@@ -126,6 +124,11 @@ subroutine jac_calc_parallel(neq, t, yl, yldot00, ml, mu, wk,nnzmx, jac, ja, ia)
             exit
             endif
            enddo
+
+           write(*,*) '----- Writing jacobian into serialjac.dat and paralleljac.dat'
+           call jac_write('paralleljac.dat',neq, jac, ja, ia)
+           call jac_write('serialjac.dat',neq, jaccopy, jacopy, iacopy)
+
            if (DumpJac.gt.0) then
            iidebugprint=ja(i)
            ivdebugprint=iv-1
@@ -144,7 +147,9 @@ subroutine jac_calc_parallel(neq, t, yl, yldot00, ml, mu, wk,nnzmx, jac, ja, ia)
            call xerrab('Parallel evaluation of Jacobian differs from serial evaluation... ')
            exit
        endif
+
       enddo
+      write(*,*) '--- Parallel and serial evaluations of jacobian are identical...'
 
       endif
 
@@ -589,6 +594,7 @@ end subroutine OMPJacBuilder
     use Time_dep_nwt,only:nufak,dtreal,ylodt,dtuse,dtphi
     use OMPJacSettings,only:iidebugprint,ivdebugprint,OMPTimingJacRow
     use Jacobian_csc,only:yldot_pert
+    use Jacaux,only:ExtendedJacPhi
     use omp_lib
 
     implicit none
@@ -629,10 +635,11 @@ end subroutine OMPJacBuilder
         ii2 = min(iv+ml, neq)
         ! ... Reset range if this is a potential perturbation with isnewpot=1
         !         if (isphion*isnewpot.eq.1 .and. mod(iv,numvar).eq.0) then
-        if (isphion*isnewpot.eq.1 .and. mod(iv,numvar).eq.0) then
+        if (ExtendedJacPhi.gt.0 .and. isphion*isnewpot.eq.1 .and. mod(iv,numvar).eq.0) then
             ii1 = max(iv-4*numvar*nx, 1)      ! 3*nx may be excessive
             ii2 = min(iv+4*numvar*nx, neq)    ! 3*nx may be excessive
         endif
+
         ! ... Reset range if extrapolation boundary conditions are used
         if (isextrnpf+isextrtpf+isextrngc+isextrnw+isextrtw.gt.0) then
             ii1 = max(iv-2*numvar*(nx+3), 1)      ! guess to include extrap. bc
@@ -3864,3 +3871,20 @@ subroutine ompCopyConvert
       call OmpCopyPointerpriv
       end subroutine ompCopyConvert
 #endif
+subroutine jac_write(filename,neq, jac, jaccol, jacrow)
+
+!  This function serves to output the jacobian for viewing purposes
+      character(*)::filename
+      integer neq,j,k
+      real jac(*)
+      integer jacrow(*), jaccol(*)
+
+      open(UNIT=88,FILE=trim(filename),STATUS='REPLACE')
+
+      do j=1,neq
+        do k=jacrow(j),jacrow(j+1)-1
+          write(88,*)j,jacrow(j),jaccol(k),jac(k)
+        end do
+      end do
+      close(88)
+      end subroutine jac_write

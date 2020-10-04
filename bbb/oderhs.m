@@ -8118,6 +8118,7 @@ c ... Common blocks:
       Use(Parallv)                 # nxg,nyg
       Use(Time_dep_nwt)            # nufak,dtreal,ylodt,dtuse
       Use(Selec)                   # yinc
+      use Jacaux,only:ExtendedJacPhi
 
 c ... Functions:
       logical tstguardc
@@ -8163,6 +8164,9 @@ c ... Set beginning and ending indices of right-hand sides that might be
 c     perturbed.
          ii1 = max(iv-mu, 1)
          ii2 = min(iv+ml, neq)
+c... >>>>> WARNING (added by J.Guterl)
+c... >>>>> WARNING -> Do not forget to keep consistency between this subroutine and localjacbuilder in parallel.F90 when modifiying jacobian eval.
+c... >>>>> WARNING
 c ... Reset range if this is a potential perturbation with isnewpot=1
 ccc         if (isphion*isnewpot.eq.1 .and. mod(iv,numvar).eq.0) then
 cc  Comment out;storage for Jac inconsistent if mu & ml above not used
@@ -8171,6 +8175,23 @@ cc         if (isphion*isnewpot.eq.1 .and. mfnkso < 4) then
 cc            ii1 = max(iv-4*numvar*nx, 1)      # 3*nx may be excessive
 cc            ii2 = min(iv+4*numvar*nx, neq)    # 3*nx may be excessive
 cc         endif
+
+cc J.Guterl: I disagree with the statement above about inconsistent storage. Storage is consistent for abs(mfnksol)<4 with ilut preconditionner
+cc         : as the reconstruction of the jacobian is not based on ubw and lbw.
+cc         : For the banded preconditioner, out of bound checks have been added to csrbnd
+cc         : where lbw abd ubw are simply given to estimate the max dimension of the jacobian.
+cc         : The banded method can be then used even without fully consistent ubw and lbw.
+cc         : Further validation of this statement is needed though.
+cc         : Also, stencil analysis can be performed with the UEDGEToolBox extension.
+
+c... Option added to keep extended Jacobian when phi eq. is on (Added by J.Guterl). See comments above
+       if (ExtendedJacPhi.gt.0) then
+        if(isphion*isnewpot.eq.1 .and. mod(iv,numvar).eq.0) then
+            ii1 = max(iv-4*numvar*nx, 1)      # 3*nx may be excessive
+            ii2 = min(iv+4*numvar*nx, neq)    # 3*nx may be excessive
+        endif
+       endif
+
 c ... Reset range if extrapolation boundary conditions are used
 cc  This reset of ii1,2 may also cause storage prob.; see just above
          if (isextrnpf+isextrtpf+isextrngc+isextrnw+isextrtw.gt.0) then

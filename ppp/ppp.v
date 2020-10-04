@@ -6,7 +6,6 @@ ppp
 OMPParallelPandf1 integer /0/      # [0]: serial pandf1 rhs calc [1] omp parallel pandf1 rhs calc
 OMPParallelJac     integer /0/     # [0]: serial jacobian calc [1] omp parallel jacobian calc
 MPIParallelJac     integer /0/     # [0]: serial jacobian calc [1] omp parallel jacobian calc
-ParallelJac     integer /0/        # [0]: serial jacobian calc [1] omp parallel jacobian calc
 
 ***** OMPSettings:
 OMPAllocDebug integer /0/ #Print info on allocation and association of variables

@@ -3032,6 +3032,7 @@ fnormnw(neqmx)   _real
 issfon            integer /1/  #=1 calc sfscal for row scaling (norml.) by nksol
 isrnorm           integer /1/  #=1 causes row normaliza. of Jac. (see normtype)
 jscalcol          integer /0/  #=1 causes column scaling for daspk
+ExtendedJacPhi  integer /1/    #=1 extend bandwith for jacobian calculation when isphion=1
 
 ***** Variable_perturbation restart:
 delperturb      real	/1.e-8/		# fractional change for finite diffs
@@ -3044,6 +3045,7 @@ jaccliplim	real	  /0./	# rel. value of elements to be retained
 istopjac        integer   /0/   # flag to stop if non-zero elem at irstop,icstop
 irstop          integer   /0/   # row (or eqn) index of non-zero stopping test
 icstop          integer   /0/   # column (or var.) index of n-z stopping test
+
 
 ***** Newtaux:
 icsum              integer
