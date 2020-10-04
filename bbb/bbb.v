@@ -3848,3 +3848,7 @@ setLogFile(filename:string)   subroutine
      # sets the filename base to which to direct log output
 writeToLog(message:string)    subroutine
      # writes a message to the uedge log file
+
+***** ParallelEval: # added by J.Guterl
+ParallelJac     integer /0/        # [0]: serial jacobian calc [1] parallel jacobian calc
+ParallelPandf1     integer /0/        # [0]: serial pandf1 calc [1] parallel pandf1 calc

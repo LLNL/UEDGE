@@ -43,7 +43,6 @@ c-----------------------------------------------------------------------
       Use(Imprad)              # isimpon
       Use(Reduced_ion_interface)   # misotope,natomic,nchstate
       Use(Ynorm)               # iscolnorm
-      Use(Aux)                 # igsp
       Use(Selec)               # xlinc,xrinc,yinc
       Use(Bcond)               # nwsor,igspsori
       Use(Parallv)             # nxg,nyg
@@ -66,12 +65,11 @@ cc      Use(Rccoef)
 
 *=======================================================================
 *//computation//
-      write(*,*)'allocation'
+
       id = 1
       call gallot("Grid",0)
-      write(*,*)'allocation 1'
       call gallot("Stat",0)
-      write(*,*)'allocation 2'
+
 c...  reset inewton to unity if a Newton iteration is used
       inewton(igrid) = 0
       if((svrpkg.eq.'nksol') .or. (svrpkg.eq.'petsc') .or.
@@ -81,17 +79,15 @@ c...  Be sure nufak and dtreal are large if this is time-dependent run
          nufak = 1.e-20
          dtreal = 1.e20
       endif
-      write(*,*)'allocation 2'
+
 c ... Set mesh dimensions and x-point parameters
       if (isallloc .eq. 0) then       # skip if allocating local proc
       nxg = nx                        # only if global allocation
       nyg = ny
       if (newgeo .ne. 0) then         # skip if geometry is unchanged
       if (gengrid==1) then            # compute from flx and grd input
-	 write(*,*)'allocation 0'
          call com_set_dims
          call gchange("Xpoint_indices",0)
-
 c----------------------------------------------------------------------c
          if (mhdgeo == 1) then   #toroidal geo from MHD equilibrium
 c----------------------------------------------------------------------c
@@ -149,15 +145,12 @@ c----------------------------------------------------------------------c
          endif	# end if-test on mhdgeo
 c----------------------------------------------------------------------c
       elseif (gengrid==0) then        # read from gridue file
-      write(*,*)'allocation 2'
          if (geometry=="dnull" .or. geometry(1:9)=="snowflake" .or.
      .       geometry=="dnXtarget" .or. geometry=="isoleg") then
             nxpt=2
-	   else
-	    write(*,*)'allocation 22'
+         else
             nxpt=1
             call gchange("Xpoint_indices",0)  #needed to allocate ixrb
-	    write(*,*)'allocation 23'
 	    if (ixrb(1) == 0) then  #calc indices if not in gridue file
                iysptrx1(1) = nycore(igrid)
                iysptrx2(1) = nycore(igrid)
@@ -172,16 +165,13 @@ c----------------------------------------------------------------------c
                   ixpt2(1) = ixpt2(1) - nxomit
                   ixrb(1) = ixrb(1) - nxomit
                endif
-	     write(*,*)'allocation 24'
                if (nyomitmx >= nysol(igrid)) then  # special case for core only
                   ixmnbcl = 0
                   ixmxbcl = 0
                endif
             endif
          endif
-         write(*,*)'allocation 33'
          call gchange("Xpoint_indices",0)
-         write(*,*)'allocation 0'
          call readgridpars("gridue",runid)  #define/redefine iysptrx1 etc
          nx = nxm - abs(nxomit)
          ny = nym - nyomitmx
@@ -196,7 +186,7 @@ c ... Check that number neutral gas species is not larger than ngspmx
          call remark('*** And increase nuixold,psorgold in pandf ***')
          call xerrab("")
       endif
-      write(*,*)'allocation 01'
+
 c ... Check that isupcore=2 is not being used
       do igsp = 1, ngsp
         if (isngcore(igsp) == 2) then
@@ -363,7 +353,7 @@ c 'banded'.
             endif
          endif
       endif
-      write(*,*)'allocation 02'
+
 c ... Set maximum lengths for preconditioner arrays, and allocate
 c     memory for auxiliary arrays for desired storage-format option,
 c     if necessary.
@@ -372,6 +362,11 @@ c     if necessary.
       else
         nnzmx = lenpfac*neq
       endif
+
+c...  Init OMP/MPI/Hybrid variables after assignment of nnzmx,
+c...   which is used in InitOMP/InitMPI/InitHybrid (added by  J.Guterl)
+        call InitParallel
+
       if (premeth .eq. 'ilut') then
          lwp = nnzmx + lenplufac*neq   # extra space for fill in
          lenplumx = lwp
@@ -433,7 +428,7 @@ cc     do not reset if icntnunk=1 (saved Jac) as storage changes if mmaxu reset
          write(STDOUT,*) "*** Invalid option:  svrpkg=",svrpkg
          call xerrab("")
       endif
-      write(*,*)'allocation 03'
+
 c ... Set maximum lengths of arrays to hold part of Jacobian matrix,
 c     and allocate space, if used.
       if (iondenseqn .eq. 'inel' .or.

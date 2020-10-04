@@ -1919,11 +1919,14 @@ c            totfeix is thermal + kinetic + viscous flux
             totfeixl(iy,jx) = feix(ixt,iy) + ckinfl*kfeix
             totfnix = 0.
             do ifld = 1, nfsp
+            # the condition on zi must include use of v2cd which is not properly set to zero in pandf1
+            if(zi(ifld)>1e-10) then
               totfeixl(iy,jx) = totfeixl(iy,jx) + cfeixdbo*(
      .                      2.5* ni(ixt,iy,ifld)*v2cd(ixt,iy,ifld)*
      .                                sx(ixt,iy)*rbfbt(ixt,iy)+
      .                             floxibgt(ixt,iy,ifld) )*ti(ixt,iy)
-              if(zi(ifld)>1e-10) totfnix = totfnix + fnix(ixt,iy,ifld)
+              totfnix = totfnix + fnix(ixt,iy,ifld)
+              endif
             enddo
             if (isupgon(1)==1) then
 c              Different boundary conditions for neutral momentum equation
@@ -2543,11 +2546,14 @@ c            totfeix is thermal + kinetic + viscous flux
             totfeixr(iy,jx) = feix(ixt1,iy) + ckinfl*kfeix
             totfnix = 0.
             do ifld = 1, nfsp
+            # the condition on zi must include use of v2cd which is not properly set to zero in pandf1
+            if(zi(ifld)>1e-10) then
               totfeixr(iy,jx) = totfeixr(iy,jx) + cfeixdbo*(
      .                    2.5* ni(ixt,iy,ifld)*v2cd(ixt1,iy,ifld)*
      .                          sx(ixt1,iy)*rbfbt(ixt,iy)+
      .                           floxibgt(ixt1,iy,ifld) )*ti(ixt,iy)
-              if(zi(ifld)>1e-10) totfnix = totfnix + fnix(ixt1,iy,ifld)
+               totfnix = totfnix + fnix(ixt1,iy,ifld)
+               endif
             enddo
             if (isupgon(1)==1) then
 c              Different boundary conditions for neutral momentum equation

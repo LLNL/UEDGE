@@ -9371,7 +9371,7 @@ c ... Calculate right-hand sides at unperturbed values of variables.
 
 c ... Calculate Jacobian matrix.
       tp = 0.
-      #Working array wk in place of sf in the call to jac_calc
+      #Working array wk in place of sf in the call to jac_calc (J.Guterl)
       call jac_calc_interface (neq, tp, yl, yldot0, lbw, ubw, wk,
      .               nnzmx, jac, jacj, jaci)
 
@@ -11806,7 +11806,7 @@ c ***** End of subroutine jacwrite **********
       subroutine jac_calc_interface(neq, t, yl, yldot00, ml, mu, wk,
      .                     nnzmx, jac, ja, ia)
 
-c ... Interface for Jacobian matrix calculation (by. J.Guterl)
+c ... Interface for Jacobian matrix calculation (added by. J.Guterl)
 
       implicit none
 
@@ -11825,15 +11825,15 @@ c ... Output arguments:
       real jac(nnzmx)     # nonzero Jacobian elements
       integer ja(nnzmx)   # col indices of nonzero Jacobian elements
       integer ia(neq+1)   # pointers to beginning of each row in jac,ja
-c!ifdef PARALLELJAC
+
+      use ParallelEval,only: ParallelJac
+
       if (ParallelJac.eq.1) then
       call jac_calc_parallel (neq, t, yl, yldot00, ml, mu, wk,
      .               nnzmx, jac, ja, ia)
       else
-c!endif
+
       call jac_calc (neq, t, yl, yldot00, ml, mu, wk,
      .               nnzmx, jac, ja, ia)
-c!ifdef PARALLELJAC
       endif
-c!endif
        end subroutine jac_calc_interface
