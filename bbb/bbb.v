@@ -10,6 +10,7 @@ nispmxngspmx = nispmx*ngspmx # tot numb ion*gas species
 nstramx = 10 # maximum number of strata for MC neutrals code
 }
 
+
 ***** Math_problem_size:
 neqmx		integer		# number of math. eqns to be solved/integrated
 numvar		integer		# number of physical variables per cell
@@ -65,16 +66,16 @@ ingb      integer         /2/     #background gas source=nuiz*ngbackg*
 inflbg    integer         /4/     #expon to force flalfg large near ng~ngback
 				  #ex:flalfgx,y*(1.+(cflgb*ngbackg/ng)**inflbg)
 cflbg     real            /10./   #scaling fac for flalfgx,y using inflbg
-facngbackg2ngs(ngspmx) real /ngspmx*1.e-8/ 
+facngbackg2ngs(ngspmx) real /ngspmx*1.e-8/
                                   #fraction of ngbackg add to initial ngs
 nzbackg(nispmx) real [1/m**3] /nispmx*1.e9/ #background impurity density
 inzb      integer         /2/     #background impurity source=nuiz*nzbackg*
                                   #                 (.9+.1*(nzbackg/nzi)**ingb)
-facnzbackg2nis(nispmx) real /nispmx*1.e-8/ 
+facnzbackg2nis(nispmx) real /nispmx*1.e-8/
                                   #fraction of nzbackg add to initial nis
-upclng(nispmx) real [m/s] /nispmx*1.e8/ 
+upclng(nispmx) real [m/s] /nispmx*1.e8/
                                   #max ion vel at beginning of iteration
-facupclng2ups(nispmx) real /nispmx*1.e-8/ 
+facupclng2ups(nispmx) real /nispmx*1.e-8/
                                   #fraction of upclng subtract from initial ups
 tebg      real [eV]    /1.e-20/   #backgrd elec eng sor to limit te~tebg
 tibg      real [eV]    /1.e-20/   #backgrd ion eng sor to limit te~tebg
@@ -241,7 +242,7 @@ isnupdot1sd               integer /0/  #=0, use 2-pt ndot for (n*up)_dot;
 isphicore0		  integer /0/  #=1 sets phi=0 in core if isphion=1
 is_z0_imp_const           integer /0/  #=0 use hydr Keilhacker;=1 z0_imp_const
 z0_imp_const              real    /1./ #z0 in therm force if is_z0_imp_const=1
-					
+
 ***** Model_choice restart:
 #Flags for choosing one or another calculation of a part of the model
 iondenseqn	character*8	/"llnl"/	# ion continuity equation
@@ -319,7 +320,7 @@ cf2bf     real      /0./    #Coef for Grad B drift in 2-direction
 cfybf     real      /0./    #Coef for Grad B drift in y-direction
 cfcbti    real      /0./    #Coef for adding fnixcb & fniycb to Ti eqn.
 cfcurv	  real      /1./    #Coef for curvature part of Grad_B drift
-cfgradb   real      /1./    #Coef for p_perp part of Grad_B drift	
+cfgradb   real      /1./    #Coef for p_perp part of Grad_B drift
 cfq2bf    real      /0./    #Coef for Grad_B current in 2-direction
 cfqybf    real      /0./    #Coef for Grad_B current in y-direction
 cfqyn     real      /0./    #Coef for cx coll. rad current in y-direction
@@ -333,7 +334,7 @@ cfvisxneov real     /0./    #Coef for v-driven parallel viscosity
 cfvisxneoq real     /0./    #Coef for q-driven parallel viscosity
 cfvycr    real      /0./    #Coef for thermal force class. vel. vycr
 cfvycf    real      /0./    #Coef for visc. force class. vel. vycf
-cfvyavis  real      /0./    #Coef for vy from anom perp viscosity 
+cfvyavis  real      /0./    #Coef for vy from anom perp viscosity
 cfjve     real      /0./    #Coef for J-contribution to ve.
 cfjp2     real      /0./    #Coef for B x gradP terms in div(J) eqn
 cfjpy     real      /0./    #Coef for B x gradP terms in div(J) eqn
@@ -375,7 +376,7 @@ cfhcxgc(ngspmx) real /ngspmx*0./ # Coef constant pol heat conduct (chixg_use)
 cfhcygc(ngspmx) real /ngspmx*0./ # Coef constant rad heat conduct (chiyg_use)
 cftgcond  real      /1./    #Coef for gas thermal cond (usually molecules)
 cftgeqp  real       /1.5/   #Coef for gas thermal equipartion (usually molecules)
- 
+
 
 ***** Bcond restart:
 #Variables for setting the boundary conditions.
@@ -395,7 +396,7 @@ isphilbc	integer	/0/     #Switch for ix=0 b.c. on phi
 isphirbc	integer	/0/     #Switch for ix=nx+1 b.c. on phi
 				#=0, phi = phi0r + kappar * te
 				#=1, phi = phi0r
-iphibcc 	integer /3/	#core BC at iy=1 when isnewpot=1;iy=0 
+iphibcc 	integer /3/	#core BC at iy=1 when isnewpot=1;iy=0
                                 #=1, d^2(ey)/dy^2=0
                                 #=2, te=constant & ey(ixmp,0)=eycore
                                 #=3, phi=constant & ey(ixmp,0)=eycore
@@ -801,7 +802,7 @@ ue_pot_engh2p1lb(0:ny+1,nxptmx)  _real [J] #inner plt deut ion pot energy
 ue_pot_engh2p1rb(0:ny+1,nxptmx)  _real [J] #outer plt deut ion pot energy
 ue_pot_engh2p1yi(0:nx+1)         _real [J] #inner (PF) wall deut ion pot energy
 ue_pot_engh2p1yo(0:nx+1)         _real [J] #outer (PF) wall deut ion pot energy
-  
+
 ***** Rccoef:
 #Variables for recycling coeff. profiles on divertor plates
 #Set for ngspmx gas species
@@ -1228,7 +1229,7 @@ isflxlde      integer       /0/         #=1,elec flux limit diff;=0, conv/diff
 isflxldi      integer       /2/         #=1,ion flux limit diff;=0, conv/diff
                                         #=2, diff on individ hxcij
 kxe           real          /1./        #pol Braginsk elec heat conduc factor;
-                                        #prev 1.35->Balescu explain by M.Zhao 
+                                        #prev 1.35->Balescu explain by M.Zhao
 alfkxi        real          /0./        #reduces ion thermal conduc, K_||, if
                                         #|ti(ix+1)-ti(ix)|<alfkxi*ti(ix)
 alfkxe        real          /0./        #reduces elec thermal conduc, K_||, if
@@ -1374,7 +1375,7 @@ gamee(0:ny+1)     _real [W/m**2s] /0./ # elec radial energy flux
 pfmpg(0:ny+1)     _real [1/m**2s] /0./ # radial neutral particle flux
 facgam(0:nx+1,0:ny+1) _real       /0./ # geom factor for flux-surf averaging
 floyd(0:nx+1,0:ny+1)  _real [1/s] /0./ # equiv radial ion particle current
-							
+
 ***** Turbulence:
 # Variables used in calculating anomalous diffusivities
 kappabar      real [1/m]  /0.003/ # field-line avg'd curvature
@@ -1744,7 +1745,7 @@ vy0(0:nx+1,0:ny+1,1:nisp)  _real [m/s]   #old radial velocity
 ***** Comflo:
 #Variables in common -- flows
 fqp(0:nx+1,0:ny+1)         _real [Amp]  #pol proj of par cur, east face
-cfparcur                    real /0./   #scale fac fqp=cfparcur*parcurrent if	
+cfparcur                    real /0./   #scale fac fqp=cfparcur*parcurrent if
                                         #isimpon=5 (fmombal from Hirshman)
 fq2(0:nx+1,0:ny+1)         _real [Amp]  #pol proj of 2 cur, east face
 fqx(0:nx+1,0:ny+1)         _real [Amp]  #net poloidal current, east face
@@ -1863,7 +1864,7 @@ bcei               real  /2.5/ +restart
                                 #ion sheath energy trans. factor(newbc=0)
 bceew              real  /4./   #elec wall energy trans factor
 bceiw              real  /2.5/  #ion wall energy trans factor
-bcen               real  /0./   #neut energy trans. factor on plates 
+bcen               real  /0./   #neut energy trans. factor on plates
                                 #For combined neutral+ion energy equation
 bcenw              real  /0./   #neut eng trans fac on walls
 isfdiax            real  /0./   #switch to turn on diamagnetic drift for sheath
@@ -2083,9 +2084,9 @@ erliz(0:nx+1,0:ny+1)          _real  [J/s]     # H rad'n loss for ioniz'n
 erlrc(0:nx+1,0:ny+1)          _real  [J/s]     # H rad'n loss for recom'n
 vsoreec(0:nx+1,0:ny+1)	      _real  [J/s]     # cell ctr tot elec vol eng source
 vsoree(0:nx+1,0:ny+1)	      _real  [J/s]     # cell ave tot elec vol eng source
-pwrebkg(0:nx+1,0:ny+1)	      _real  [W/m**3] 
+pwrebkg(0:nx+1,0:ny+1)	      _real  [W/m**3]
                                # elec energy backgrd source; limits te~tebg
-pwribkg(0:nx+1,0:ny+1)	      _real  [W/m**3] 
+pwribkg(0:nx+1,0:ny+1)	      _real  [W/m**3]
                                # ion energy backgrd source; limits ti~tibg
 wjdote(0:nx+1,0:ny+1)         _real  [J/s]     # Joule heating rate
 smoc(0:nx+1,0:ny+1,1:nusp)    _real
@@ -2210,7 +2211,7 @@ tg_ue_rsd(0:nx+1,0:ny+1,nfl)	_real	[#]
 # neutral gas temperature rsd from Monte-Carlo-Neutrals model
 
 sng_ue(0:nx+1,0:ny+1,1:nfl)		_real	[part/m**3-s]	#neutral particle source density (convective only)
-smg_ue(0:nx+1,0:ny+1,1:nfl)		_real	[N/m**3]		#neutral parallel momentum source density 
+smg_ue(0:nx+1,0:ny+1,1:nfl)		_real	[N/m**3]		#neutral parallel momentum source density
 seg_ue(0:nx+1,0:ny+1,1:nfl)		_real	[W/m**3]		#neutral energy source density (convective only)
 
 
@@ -2303,7 +2304,7 @@ fegy_ue_rsd(0:nx+1,0:ny+1,nfl)	 	_real	[#]
 
 
 
- 
+
 
 ### Tensors ###
 
@@ -2532,8 +2533,8 @@ bkcmd  		character*32 	/"./readbackground"/ 	#degas2 readbackground executable
 bkufile		character*32 	/"uedata.u"/		 	#uedge output file for degas2 readbackground
 	#NOTE: the same file(grid) must also be used for readgeometry, as specified in the geufile
 bkdfile 	character*32  	/"bk_uers.nc"/ 			#degas2 readbackground output file
-degas2outcmd character*32   /"./outputbrowser"/     #degas2 outputbrowser executable 
-degas2outscript character*32   /"output.input"/     #degas2 outputbrowser input file 
+degas2outcmd character*32   /"./outputbrowser"/     #degas2 outputbrowser executable
+degas2outscript character*32   /"output.input"/     #degas2 outputbrowser input file
 degas2outsh  character*32   /"seddata.sh *.dat"/          #sed script to clean up output files
 
 mcnflights(1:nstramx) integer /nstramx*500/  		#number of mc pseudo-particle trajectories
@@ -2575,7 +2576,7 @@ pnc_opt		integer			/0/						# specifies choice of plasma-neutral coupling
 pnc_step	integer			/0/						# step count for plasma-neutral coupling
 pnc_maxstep	integer			/10/					# maximum number of coupled plasma+neutral steps
 pnc_time	real			/0/						# time since beginning of coupled run
-#pnc_ftol	real			/1e-4/					# ftol for PNC 
+#pnc_ftol	real			/1e-4/					# ftol for PNC
 dtneut	    real	[s] 	/1.e20/	 				# time step for neutrals
 dtplasma	real	[s]		/1e-6/					# time step for plasma-neutral coupling
 dtold	    real	[s] 	/1.e20/	 				# old time step
@@ -2671,7 +2672,7 @@ del_sni    	real		#maximum absolute change in ion particle source
 del_smor   	real		#maximum absolute change in radial ion momentum source
 del_smophi 	real		#maximum absolute change in toroidal ion momentum source
 del_smoz  	real		#maximum absolute change in vertical ion momentum source
-del_sei  	real		#maximum absolute change in ion energy source 
+del_sei  	real		#maximum absolute change in ion energy source
 del_see    	real		#maximum absolute change in electron energy source
 
 ***** Save_terms:
@@ -2852,7 +2853,7 @@ ziin(1:nispmx)  real  /nispmx*1./    #ion charge read in, used to reset zi in
 znuclin(1:nispmx) integer /nispmx*1./ #total nuclear charge of ion (i.d. isotope)
 isallloc		integer   /0/        #=1 for local process. allocation with mpi
 newaph			integer  /1/ #=1 calls aphread for hyd. atomic data;=0 not
-newapi		integer /1/	     #=1, call readmc for new imp. data;=0, no						
+newapi		integer /1/	     #=1, call readmc for new imp. data;=0, no
 pyrestart_file    character*80 /""/ #Python file that can also be used to restart
 read_diffs		integer /0/	     #=0,a flag to signal whether to read diffusivities
 dif_io		integer /0/	     #=0,a flag to signal whether to read/write dif_use
@@ -3050,7 +3051,7 @@ isrnorm           integer /1/  #=1 causes row normaliza. of Jac. (see normtype)
 jscalcol          integer /0/  #=1 causes column scaling for daspk
 
 ***** Variable_perturbation restart:
-del             real	/1.e-8/		# fractional change for finite diffs
+delperturb      real	/1.e-8/		# fractional change for finite diffs
 delpy           real	/-1.e-8/	# Forthon del; used to set del if > 0
 dylconst        real    /1./            # factor in floor term in dyl
 isjacreset      integer  /1/            # if=1, pandf1 reset for last variable
@@ -3474,14 +3475,14 @@ fit_neteti()                                    subroutine
      # out ix               global poloidal index corresponding to 1D running lindex
      # out iy               global radial index corresponding to 1D running lindex
      # out surfacename      name of bounding surface corresponding to lindex
-###set2dat2dpoint(darray:real,ix:integer,iy:integer,val:real)   subroutine 
+###set2dat2dpoint(darray:real,ix:integer,iy:integer,val:real)   subroutine
      # Sets value of 2D array "darray" at global index point ix,iy to value "val".
      # Assumes that darray is dimensioned (0:nx+1,0:ny+1).
      # out darray(*,*)  global array being set
      # in ix       poloidal index at which darray is set
      # in iy       radial index at which darray is set
      # in val      value to which darray(ix,iy) is set
-###set1dat1dpoint(darray:real,lindex:integer,val:real)   subroutine 
+###set1dat1dpoint(darray:real,lindex:integer,val:real)   subroutine
      # Sets value of 1D array "darray" at global index point ix,iy to value "val".
      # out darray(*)       global array being set
      # in index           poloidal index at which darray is set
@@ -3497,7 +3498,7 @@ fit_neteti()                                    subroutine
      # in darray(*,*)     global darray being set
      # in lindex          poloidal index at which darray is set
 ru_active(amumass:integer,znucleus:integer,charge:integer)  integer function
-     # tests if given mass, charge, znucleus ion is active                  
+     # tests if given mass, charge, znucleus ion is active
      # in amumass is particle mass in AMU
      # in znucleus is the total charge of the atomic nucleus
      # in charge is particle charge in abs value of fundamental charge
@@ -3598,7 +3599,7 @@ mcnblend(out:real,uevar:real,mcvar:real,out_rsd:real,mcrsd:real,alpha:real)	subr
 	# interpolation between fluid and MC kinetic results based on rel. std. dev.
 	# out = mcvar*(1-mcrsd)**alpha + uevar*(1-(1-mcrsd)**alpha)
 
-mult23(var2:real,var3:real,n3:integer)			function	
+mult23(var2:real,var3:real,n3:integer)			function
 	# component-wise multiplication of 2d*3d variable along x and y directions
 
 mult24(var2:real,var4:real,n3:integer,n4:integer)	function
@@ -3848,7 +3849,7 @@ tend             real     /0.1/     # final time
 ndtmax           integer  /10000/   # max number of timesteps allowed
 ntim             integer  /50/      # number of output times
 ito              integer   /1/
-xcz(1:nxx)       _real  
+xcz(1:nxx)       _real
 xfz(1:nxx)       _real
 vrz(1:nxx)       _real
 drz(1:nxx)       _real

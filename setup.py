@@ -10,7 +10,7 @@ import site
 from Forthon.compilers import FCompiler
 import getopt
 
-version='7.0.9.2.0rc1'
+version='7.1.0.0.0'
 
 try:
     os.environ['PATH'] += os.pathsep + site.USER_BASE + '/bin'
@@ -24,13 +24,13 @@ try:
 except:
     raise SystemExit("Distutils problem")
 
-optlist, args = getopt.getopt(sys.argv[1:], 'gt:F:', ['parallel', 'petsc'])
+optlist, args = getopt.getopt(sys.argv[1:], 'gt:F:', ['parallel', 'petsc','omp'])
 machine = sys.platform
 debug = 0
 fcomp = None
 parallel = 0
 petsc = 0
-
+OMP=False
 for o in optlist:
     if o[0] == '-g':
         debug = 1
@@ -42,6 +42,28 @@ for o in optlist:
         parallel = 1
     elif o[0] == '--petsc':
         petsc = 1
+    elif o[0] == '--omp':
+        OMP = True
+
+# OMP add-on        
+OMPpackages=['bbb','com','api']
+OMPlisthtreadprivatevars='../../ListVariableThreadPrivate_final.txt'
+if OMP:
+    FARGSOMP=['-fopenmp']
+    OMPargs=['--omppkg {} --ompvarlistfile {}'.format(','.join(OMPpackages),OMPlisthtreadprivatevars)]
+else:
+    FARGSOMP=[]
+    OMPargs=[]
+OMPFLAGS='OMPFLAGS = {}'.format(' '.join(OMPargs))
+
+# Flags for makefile. Flags are easier to handle from setup.py and it prevents dealing with the makefile.)
+FARGSDEFAULT=['-fmax-errors=15', '-DFORTHON','-cpp','-Wconversion','-fimplicit-none']
+FARGSDEBUG=['-fbacktrace','-ffree-line-length-0', '-fcheck=all','-ffpe-trap=invalid,overflow,underflow -finit-real=snan','-Og']
+FARGSOPT=['-O3','-fstack-arrays']
+CARGS=[]
+FARGS=FARGSDEFAULT+FARGSOPT+FARGSOMP
+FLAGS ='DEBUG = -v --fargs "{}"'.format(' '.join(FARGS))
+#FLAGS ='DEBUG =-v --fargs "-O3 -DFORTHON -cpp -fstack-arrays"'
 
 
 if petsc == 1 and os.getenv('PETSC_DIR') == None:
@@ -69,7 +91,7 @@ class uedgeBuild(build):
             build.run(self)
         else:
             if petsc == 0:
-                call(['make', '-f', 'Makefile.Forthon3'])
+                call(['make',FLAGS,OMPFLAGS, '-f', 'Makefile.Forthon3'])
             else:
                 call(['make', '-f', 'Makefile.PETSc3'])
             build.run(self)
@@ -89,7 +111,7 @@ class uedgeClean(build):
                 call(['make', '-f', 'Makefile.PETSc3', 'clean'])
 
 
-uedgepkgs = ['aph', 'api', 'bbb', 'com', 'flx', 'grd', 'svr', 'wdf']
+uedgepkgs = ['aph', 'api', 'bbb', 'com', 'flx', 'grd', 'svr', 'wdf','ppp']
 
 
 def makeobjects(pkg):
@@ -199,7 +221,7 @@ setup(name="uedge",
                              libraries=libraries,
                              define_macros=define_macros,
                              extra_objects=uedgeobjects,
-                             extra_link_args=['-g','-DFORTHON'] +
+                             extra_link_args=['-fopenmp']+['-g','-DFORTHON'] +
                              fcompiler.extra_link_args,
                              extra_compile_args=fcompiler.extra_compile_args
                              )],
