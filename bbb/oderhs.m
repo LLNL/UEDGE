@@ -8984,7 +8984,7 @@ c ... Call pandf to set terms with yl(neq+1) flag on for Jacobian
 
 c ... Calculate Jacobian matrix.
       tp = 0.
-      call jac_calc (neq, tp, yl, f0, lbw, ubw, wk,
+      call jac_calc_interface (neq, tp, yl, f0, lbw, ubw, wk,
      .               nnzmx, jac, jacj, jaci)
       yl(neq+1) = -1.             # Turn-off Jacobian flag for pandf
       call rhsnk (neq, yl, f0)    # Reset f0 with nufak off
@@ -9360,7 +9360,9 @@ c ... Common blocks:
 c ... Local variables:
       real tp
       integer i
-
+      #Add working array to avoid recursive variable assignment
+      real wk(neq)
+      wk(1:neq)=0.0
 c ... Flag these calls to RHS (pandf) as Jacobian calculations
       yl(neq+1) = 1.  # with ccc, dont include nufak in scaling Jacobian
 
@@ -9369,7 +9371,8 @@ c ... Calculate right-hand sides at unperturbed values of variables.
 
 c ... Calculate Jacobian matrix.
       tp = 0.
-      call jac_calc (neq, tp, yl, yldot0, lbw, ubw, sf,
+      #Working array wk in place of sf in the call to jac_calc
+      call jac_calc_interface (neq, tp, yl, yldot0, lbw, ubw, wk,
      .               nnzmx, jac, jacj, jaci)
 
       yl(neq+1) = -1.      # Turn-off Jacobian flag for pandf
@@ -11799,3 +11802,38 @@ c  The output is the file jacwrite.txt
       write(*,*)"Jacobian written successfully to jacwrite.txt"
       end
 c ***** End of subroutine jacwrite **********
+
+      subroutine jac_calc_interface(neq, t, yl, yldot00, ml, mu, wk,
+     .                     nnzmx, jac, ja, ia)
+
+c ... Interface for Jacobian matrix calculation (by. J.Guterl)
+
+      implicit none
+
+c ... Input arguments:
+      integer neq      # total number of equations (all grid points)
+      real t           # physical time
+      real yl(*)       # dependent variables
+      real yldot00(neq+2) # right-hand sides evaluated at yl
+      integer ml, mu   # lower and upper bandwidths
+      integer nnzmx    # maximum number of nonzeros in Jacobian
+
+c ... Work-array argument:
+      real wk(neq)     # work space available to this subroutine
+
+c ... Output arguments:
+      real jac(nnzmx)     # nonzero Jacobian elements
+      integer ja(nnzmx)   # col indices of nonzero Jacobian elements
+      integer ia(neq+1)   # pointers to beginning of each row in jac,ja
+c!ifdef PARALLELJAC
+      if (ParallelJac.eq.1) then
+      call jac_calc_parallel (neq, t, yl, yldot00, ml, mu, wk,
+     .               nnzmx, jac, ja, ia)
+      else
+c!endif
+      call jac_calc (neq, t, yl, yldot00, ml, mu, wk,
+     .               nnzmx, jac, ja, ia)
+c!ifdef PARALLELJAC
+      endif
+c!endif
+       end subroutine jac_calc_interface
