@@ -3888,3 +3888,25 @@ subroutine jac_write(filename,neq, jac, jaccol, jacrow)
       end do
       close(88)
       end subroutine jac_write
+
+subroutine EvalDumpJac(FileName,neq,yl,yldot00)
+
+    Use ParallelSettings,only:OMPParallelJac,MPIParallelJac
+    Use OMPJacSettings,only:iidebugprint,ivdebugprint,DebugJac,ForceSerialCheck,CheckJac,DumpFullJac, DumpJac
+    Use Cdv,only:exmain_aborted
+    implicit none
+    ! ... Input arguments:
+    character(*)::filename
+    integer,intent(in):: neq      !      total number of equations (all grid points)
+    real,intent(inout)   :: yl(*)          ! dependent variables
+    real,intent(in)   :: yldot00(neq+2) ! right-hand sides evaluated at yl
+
+    real   :: jaccopy(neq*neq)     ! nonzero Jacobian elements
+    integer:: jacopy(neq*neq)   ! col indices of nonzero Jacobian elements
+    integer:: iacopy(neq+1)   ! pointers to beginning of each row in jac,ja
+    real wk(neq)     ! work space available to this subroutine
+    write(*,*) '--- Evaluating full jacobian (serial) for analysis of bandwidth'
+    call jac_calc (neq, 0, yl, yldot00, neq, neq, wk,neq*neq, jaccopy, jacopy, iacopy)
+    write(*,*) '--- Dumping jacobian for analysis of bandwidth'
+    call jac_write(FileName,neq, jaccopy, jacopy, iacopy)
+end subroutine EvalDumpJac
