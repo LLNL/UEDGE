@@ -669,6 +669,7 @@ cnxg      data igs/1/
       Use(Npes_mpi)              # mype
       Use(RZ_grid_info)  		 # bpol
       Use(Interp)				 # ngs, tgs
+      use ParallelEval,only: ParallelJac,ParallelPandf1
 
 *  -- procedures for atomic and molecular rates --
       integer zmax,znuc
@@ -695,6 +696,18 @@ c  Check array sizes
       if (ngsp > nigmx .or. nisp > nigmx) then
          call xerrab("***PANDF in oderhs.m: increase nigmx, recompile")
       endif
+
+c... Roadblockers for  call to pandf through openmp structures (added by J.Guterl)
+      if ((isimpon.gt.0 .and. isimpon.ne.6) .and. (ParallelJac.gt.0 .or. ParallelPandf1.gt.0)) then
+      call xerrab('Only isimpon=0 or 6 is validated with openmp.
+     .Contact the UEDGE team to use other  options with openmp.')
+      endif
+
+      if ((ismcnon.gt.0) .and. (ParallelJac.gt.0 .or. ParallelPandf1.gt.0)) then
+      call xerrab('Only ismcnon=0 is validated with openmp.
+     .Contact the UEDGE team to use other options with openmp.')
+      endif
+
 
 ************************************************************************
 *  -- initialization --
