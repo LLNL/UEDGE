@@ -369,7 +369,7 @@ c++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 c ***** end of subroutines convsr_vo ********
 c-----------------------------------------------------------------------
-      subroutine convsr_aux (ixl, iyl, yl)
+      subroutine convsr_aux (ixl, iyl)
 
 c...  Calculates various plasmas quantities used repeatedly in pandf
 
@@ -377,7 +377,6 @@ c...  Calculates various plasmas quantities used repeatedly in pandf
 
 *  -- input arguments
       integer ixl, iyl, inc
-      real yl(1)
 *  -- local variables
       real ntemp
       integer is, ie, js, je, k, l

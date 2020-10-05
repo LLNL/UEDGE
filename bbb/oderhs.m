@@ -992,7 +992,7 @@ c... First, we convert from the 1-D vector yl to the plasma variables.
 ************************************************************************
 
          call convsr_vo (xc, yc, yl)  # pre 9/30/97 was one call to convsr
-         call convsr_aux (xc, yc, yl)
+         call convsr_aux (xc, yc)
 
 c ... Set variable controlling upper limit of species loops that
 c     involve ion-density sources, fluxes, and/or velocities.
