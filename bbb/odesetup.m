@@ -7326,8 +7326,7 @@ cc        dens(1) = (4.*dens(2) - dens(3))/3.  # 2nd order Boundary condition
      .               vrz(ix-1)*0.5*(dens(ix  )+dens(ix-1))
           drhs(ix) = -( drz(ix  )*(dens(ix+1)-dens(ix  )) -
      .                  drz(ix-1)*(dens(ix  )-dens(ix-1)) )/delx
-          gampz(ix) = vrz(ix)*0.5*(dens(ix+1)+dens(ix)) - \
-                      drz(ix)*(dens(ix+1)-dens(ix  ))/delx
+          gampz(ix) = vrz(ix)*0.5*(dens(ix+1)+dens(ix)) - drz(ix)*(dens(ix+1)-dens(ix  ))/delx
           dens(ix) = dens(ix) + (-vrhs(ix) - drhs(ix) + sp*delx)*dtdx
         enddo
         if (tim > timo(ito)+delto .and. ito<ntim) then   # store solution
