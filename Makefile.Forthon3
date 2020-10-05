@@ -19,8 +19,8 @@ all: mppl2f90 $(BUILDDIR)/compydep $(BUILDDIR)/aphpydep $(BUILDDIR)/apipydep $(B
 mppl2f90:
 	(export PYTHONPATH=.:./pyscripts; $(MYPYTHON) convertor)
 
-$(BUILDDIR)/compydep: com/blasext.F com/brent.F com/comutil.F com/misc.F com/mnbrak.F com/dsum.f com/dummy_py.f com/error.f com/getmsg.f com/ssum.f com/$(PETSC-COM) com/com.v
-	$(FORTHON) -a $(INSTALLARGS) -a $(FCOMP) $(DEBUG) --interfacefile com/com.v -f com/blasext.F com com/brent.F com/comutil.F com/misc.F com/mnbrak.F com/dsum.f com/dummy_py.f com/error.f com/getmsg.f com/ssum.f $(PETSC-COM)
+$(BUILDDIR)/compydep: com/blasext.F com/brent.F com/comutil.F com/SROTMhG.F com/misc.F com/mnbrak.F com/dsum.f com/dummy_py.f com/error.f com/getmsg.f com/ssum.f com/$(PETSC-COM) com/com.v
+	$(FORTHON) -a $(INSTALLARGS) -a $(FCOMP) $(DEBUG) --interfacefile com/com.v -f com/blasext.F com com/brent.F com/comutil.F com/misc.F com/mnbrak.F com/SROTMhG.F com/dsum.f com/dummy_py.f com/error.f com/getmsg.f com/ssum.f $(PETSC-COM)
 	touch $@
 
 
