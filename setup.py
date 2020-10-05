@@ -47,23 +47,30 @@ for o in optlist:
 
 # OMP add-on        
 OMPpackages=['bbb','com','api']
-OMPlisthtreadprivatevars='../../ListVariableThreadPrivate_final.txt'
+OMPlisthtreadprivatevars='../../ppp/ListVariableThreadPrivate_final.txt'
+CARGS=[]
+FARGS=['-fmax-errors=15', '-DFORTHON','-cpp','-Wconversion','-fimplicit-none']
 if OMP:
-    FARGSOMP=['-fopenmp']
+    FARGS=FARGS+['-fopenmp']
+    CARGS=CARGS+['-fopenmp']
     OMPargs=['--omppkg {} --ompvarlistfile {}'.format(','.join(OMPpackages),OMPlisthtreadprivatevars)]
 else:
-    FARGSOMP=[]
     OMPargs=[]
 OMPFLAGS='OMPFLAGS = {}'.format(' '.join(OMPargs))
 
 # Flags for makefile. Flags are easier to handle from setup.py and it prevents dealing with the makefile.)
-FARGSDEFAULT=['-fmax-errors=15', '-DFORTHON','-cpp','-Wconversion','-fimplicit-none']
+
 FARGSDEBUG=['-fbacktrace','-ffree-line-length-0', '-fcheck=all','-ffpe-trap=invalid,overflow,underflow -finit-real=snan','-Og']
 FARGSOPT=['-O3','-fstack-arrays']
-CARGS=[]
-FARGS=FARGSDEFAULT+FARGSOPT+FARGSOMP
+
+if debug==1:
+    FARGS=FARGS+FARGSDEBUG
+else:
+    FARGS=FARGS+FARGSOPT
+    
 FLAGS ='DEBUG = -v --fargs "{}"'.format(' '.join(FARGS))
-#FLAGS ='DEBUG =-v --fargs "-O3 -DFORTHON -cpp -fstack-arrays"'
+if CARGS!=[]:
+    FLAGS =FLAGS+' --cargs={}'.format(' '.join(CARGS))
 
 
 if petsc == 1 and os.getenv('PETSC_DIR') == None:

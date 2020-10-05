@@ -10,6 +10,7 @@ subroutine InitParallel
     Use HybridSettings,only:HybridOMPMPI
     implicit none
     if ((OMPParallelJac==1 .or. OMPParallelPandf1.gt.0) .and. MPIParallelJac==0) then
+
         call InitOMP
         ParallelJac=1
     elseif (OMPParallelJac==0 .and. MPIParallelJac==1) then
@@ -155,7 +156,7 @@ subroutine jac_calc_parallel(neq, t, yl, yldot00, ml, mu, wk,nnzmx, jac, ja, ia)
 
 end subroutine jac_calc_parallel
 !-------------------------------------------------------------------------------------------------
-#ifdef _OPENMP
+
 !subroutine InitPandfOMP()
 !use OMPJacSettings,only: Nthreads
 !use OMPPandf
@@ -191,13 +192,13 @@ subroutine InitOMP()
     implicit none
     integer:: OMP_GET_NUM_THREADS,OMP_GET_THREAD_NUM,OMP_GET_MAX_THREADS
     character*8 :: MPIRankTag
-
+#ifndef _OPENMP
+     call xerrab("UEDGE was not compiled with OpenMP. Cannot use OMP parallel features.")
+#else
     ! prepare MPI/Hybrid stamps for output
     if (HybridOMPMPI>0) then
         write(MPIRankTag,'(I4)') MPIrank
         write(OMPJacStamp,'(a,a,a)') '[',trim(adjustl(trim(MPIRankTag))),'] OMPJac* '
-    else
-        !write(OMPJacStamp,'(a)') '*OMPJac* '
     endif
     if (OMPJacVerbose.gt.1) write(*,*) OMPJacStamp,' Max number of threads available:',OMP_GET_MAX_THREADS()
     call OMP_SET_NUM_THREADS(OMP_GET_MAX_THREADS())
@@ -237,9 +238,10 @@ subroutine InitOMP()
       OMPPandf1FlagVerbose=1
       OMPPandf1FirstRun=1
     endif
-
+#endif
 end subroutine InitOMP
 !-------------------------------------------------------------------------------------------------
+#ifdef _OPENMP
 subroutine OMPCollectJacobian(neq,nnzmx,rcsc,icsc,jcsc,nnzcumout)
 
     use OMPJacobian,only:iJacCol,rJacElem,iJacRow,OMPivmin,OMPivmax,nnz,nnzcum,OMPTimeJacRow
