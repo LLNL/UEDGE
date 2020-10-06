@@ -61,7 +61,7 @@ OMPFLAGS='OMPFLAGS = {}'.format(' '.join(OMPargs))
 # Flags for makefile. Flags are easier to handle from setup.py and it prevents dealing with the makefile.)
 
 FARGSDEBUG=['-fbacktrace','-ffree-line-length-0', '-fcheck=all','-ffpe-trap=invalid,overflow,underflow -finit-real=snan','-Og']
-FARGSOPT=['-O3','-fstack-arrays']
+FARGSOPT=['-Ofast']
 
 if debug==1:
     FARGS=FARGS+FARGSDEBUG
