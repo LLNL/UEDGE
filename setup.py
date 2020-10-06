@@ -10,7 +10,26 @@ import site
 from Forthon.compilers import FCompiler
 import getopt
 
+GitHash=''
+GitRemoteRepo=''
+GitBranch=''
+GitTag=''
+UEDGEfolder=os.getcwd()
+GitRepo=''
+try:
+    import git #gitpython
+    Repo=git.Repo()
+    GitHash=Repo.head.object.hexsha
+    GitBranch=Repo.active_branch.name
+    #GitRepo=Repo.active_branch.repo.name
+except: 
+    pass
+# Getting version from git tag
+#try:
+    #version=Repo.tags[-1].name
+#except:
 version='7.1.0.0.0'
+    
 
 try:
     os.environ['PATH'] += os.pathsep + site.USER_BASE + '/bin'
@@ -193,6 +212,9 @@ if parallel:
 
 with open('pyscripts/__version__.py','w') as ff:
     ff.write("__version__ = '%s'\n"%version)
+    ff.write("GitTag='{}'\n".format(GitTag))
+    ff.write("GitBranch='{}'\n".format(GitBranch))
+    ff.write("GitHash='{}'\n".format(GitHash))
 
 define_macros=[("WITH_NUMERIC", "0"),
                ("FORTHON_PKGNAME", '\"uedgeC\"'),
