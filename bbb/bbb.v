@@ -2811,6 +2811,7 @@ iwkd2(ndiagmx) _integer       # work array used by cdiagsrt
 
 ***** UEint:
 #Auxiliary variables for Ueinit.
+GridFileName   character*200 /"gridue"/ # name of Grid file to be read
 newgeo         integer   /1/  #flag to calculate new grid (1=yes)
 mhdgeo         integer  /-1/  #flag for grid geometry
                               #mhdgeo =  2 ==> toroidal circular limiter
@@ -2818,7 +2819,7 @@ mhdgeo         integer  /-1/  #flag for grid geometry
                               #mhdgeo =  0 ==> cylindrical geometry
                               #mhdgeo = -1 ==> cartesian geometry
                               #mhdgeo = -2 ==> mag mirror (FRC-annulus)
-gengrid        integer   /1/  #flag to generate grid, else read from file gridue
+gengrid        integer   /1/  #flag to generate grid, else read from file GridFileName
 isgindx        integer   /1/  #=1 for interpolating grid based on indices
 nfmax          integer   /10/
 restart        integer   /0/  #flag for restart from previous case(yes=1)

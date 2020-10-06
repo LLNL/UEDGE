@@ -172,7 +172,7 @@ c----------------------------------------------------------------------c
             endif
          endif
          call gchange("Xpoint_indices",0)
-         call readgridpars("gridue",runid)  #define/redefine iysptrx1 etc
+         call readgridpars(trim(GridFileName),runid)  #define/redefine iysptrx1 etc
          nx = nxm - abs(nxomit)
          ny = nym - nyomitmx
       endif	# end if-test on gengrid

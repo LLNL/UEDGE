@@ -8198,7 +8198,7 @@ cc         : Further validation of this statement is needed though.
 cc         : Also, stencil analysis can be performed with the UEDGEToolBox extension.
 
 c... Option added to keep extended Jacobian when phi eq. is on (Added by J.Guterl). See comments above
-       if (ExtendedJacPhi.gt.0) then
+        if (ExtendedJacPhi.gt.0) then
         if(isphion*isnewpot.eq.1 .and. mod(iv,numvar).eq.0) then
             ii1 = max(iv-4*numvar*nx, 1)      # 3*nx may be excessive
             ii2 = min(iv+4*numvar*nx, neq)    # 3*nx may be excessive

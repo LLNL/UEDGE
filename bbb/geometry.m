@@ -461,7 +461,7 @@ c  ---------------------------------------------------------------------
 *  -- local scalars --
       integer nj, ij, ix, iy, jx
       real str, ctr, rm0, zm0, dxc, dz, dacore
-      character*8 fname
+      character*200 fname
       character*60 runid
 
 *=======================================================================
@@ -485,7 +485,7 @@ c            write(6,*) "Calling flxrun in globalmesh."
             call flxrun
             call grdrun
          else
-            fname = 'gridue'
+            fname = trim(GridFileName)
             call readgrid(fname, runid)
             write(*,*) 'Read file "', fname, '" with runid:  ', runid
             write(*,*)
@@ -495,7 +495,7 @@ c            write(6,*) "Calling flxrun in globalmesh."
             call torangrd
             write(*,*) '**** mhdgeo=2: Circ toroidal annulus generated *****'
          else
-            fname = 'gridue'
+            fname = trim(GridFileName)
             call readgrid(fname, runid)
             write(*,*) 'Read file "', fname, '" with runid:  ', runid
             write(*,*)
@@ -511,7 +511,7 @@ c            write(6,*) "Calling flxrun in globalmesh."
          write(*,*) '**** mhdgeo=-2: mag mirror grid generated *****'
       else
          write(*,*) '**** mhdgeo < -1: reading grid from file *****'
-         fname = 'gridue'
+         fname = trim(GridFileName)
          call readgrid(fname, runid)
          write(*,*) 'Read file "', fname, '" with runid:  ', runid
          write(*,*)
@@ -645,7 +645,7 @@ c-----------------------------------------------------------------------
       real dxc, dyc, dz, str, ctr, rm0, zm0, cossr, cossp, s_bphi, rmmax,
      .     lcon_wk1, lcon_wk2
       real bsqrvoltot,voltot,bsqrave,b_yface,b_xface
-      character*8 fname
+      character*200 fname
       character*60 runid
 
 *=======================================================================
@@ -678,7 +678,7 @@ c ...   Need to fix ixpt2(1) modified by grdrun is geometry=isoleg
               nxpt = nxpt_temp
             endif
          else
-            fname = 'gridue'
+            fname = trim(GridFileName)
             call readgrid(fname, runid)
             write(*,*) 'Read file "', fname, '" with runid:  ', runid
 c ...  now that the grid is read in, we can manipulate dnull for nxomit>0
@@ -700,7 +700,7 @@ c ...  now that the grid is read in, we can manipulate dnull for nxomit>0
             call torangrd
             write(*,*) '*** mhdgeo=2: Circ toroidal annulus ***'
          else
-            fname = 'gridue'
+            fname = trim(GridFileName)
             call readgrid(fname, runid)
             write(*,*) 'Read file "', fname, '" with runid:  ', runid
             write(*,*)
@@ -716,7 +716,7 @@ c ...  now that the grid is read in, we can manipulate dnull for nxomit>0
          write(*,*) '**** mhdgeo=-2: mag mirror grid generated *****'
       else
          write(*,*) '**** mhdgeo < -1: reading grid from file *****'
-         fname = 'gridue'
+         fname = trim(GridFileName)
          call readgrid(fname, runid)
          write(*,*) 'Read file "', fname, '" with runid:  ', runid
          write(*,*)
