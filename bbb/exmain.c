@@ -54,6 +54,7 @@ condition=1;
           PyRun_SimpleString("bbb.exmain_aborted = True");
           siglongjmp(ev,1);
        } else if (strncmp(mymyline,"stop",4) == 0) {
+	  PyRun_SimpleString("print(\"Stopping exmain ... Please wait...\")");
           PyRun_SimpleString("bbb.exmain_aborted = True");
           return;
        } else if (strncmp(mymyline,"exit",4) == 0) {
