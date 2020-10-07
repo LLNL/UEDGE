@@ -6,7 +6,7 @@
 subroutine InitParallel
 
     Use ParallelSettings,only:OMPParallelJac,MPIParallelJac,OMPParallelPandf1,ParallelWARNING
-    Use ParallelEval,only:ParallelJac
+    Use ParallelEval,only:ParallelJac,ParallelPandf1
     Use HybridSettings,only:HybridOMPMPI
     implicit none
 
@@ -22,7 +22,11 @@ subroutine InitParallel
 
     endif
         call InitOMP
-        ParallelJac=1
+        if (OMPParallelJac.gt.0) ParallelJac=1
+        if (OMPParallelPandf1.gt.0) ParallelPandf1=1
+        if (OMPParallelJac==0 .and. OMPParallelPandf1.gt.0) then
+        call xerrab('Cannot run omp parallel evaluation of pandf1 without running jacobian omp evaluation.')
+        endif
     elseif (OMPParallelJac==0 .and. MPIParallelJac==1) then
         write(*,'(a)') 'Parallelization of Jacobian evaluation with MPI not available yet'
         call InitMPI
@@ -63,8 +67,9 @@ subroutine jac_calc_parallel(neq, t, yl, yldot00, ml, mu, wk,nnzmx, jac, ja, ia)
     real   :: jaccopy(nnzmx)     ! nonzero Jacobian elements
     integer:: jacopy(nnzmx)   ! col indices of nonzero Jacobian elements
     integer:: iacopy(neq+1)   ! pointers to beginning of each row in jac,ja
-    integer i,iv,t_start
-    real,external::tock
+    integer i,iv
+    real t_start
+    real,external::tick,tock
     ! ... Work-array argument:
     real wk(neq)     ! work space available to this subroutine
     if (exmain_aborted) call xerrab('exmain aborted...')
@@ -118,7 +123,7 @@ subroutine jac_calc_parallel(neq, t, yl, yldot00, ml, mu, wk,nnzmx, jac, ja, ia)
 
       write(*,*) '--- Checking whether parallel and serial evaluations of jacobian are the same...'
        write(*,*) '----- Performing serial Evaluation of jacobian...'
-       call tick(t_start)
+      t_start=tick()
       call jac_calc (neq, t, yl, yldot00, ml, mu, wk,nnzmx, jaccopy, jacopy, iacopy)
       write(*,*) '----- Serial Evaluation of jacobian done in: ',tock(t_start) ,' s'
       write(*,*) '----- Comparing jacobians (nzmax=',ia(neq)-1,')'
@@ -463,23 +468,24 @@ end subroutine LocalJacBuilder
 !end subroutine TestParallelPandf1
 !
 
+
 subroutine Compare(yldot,yldotsave,neq)
 integer:: iv,neq
+integer::istop
 real yldot(neq+2),yldotsave(neq+2)
+istop=0
             do iv=1,neq
                 if (abs(yldotsave(iv)-yldot(iv)).gt.1e-14) then
                     if (max(abs(yldot(iv)),abs(yldotsave(iv)))>0) then
                     if (abs(yldotsave(iv)-yldot(iv))/max(abs(yldot(iv)),abs(yldotsave(iv)))>1e-14) then
                     write(*,*) '>>>>',iv,yldotsave(iv),yldot(iv),abs(yldotsave(iv)-yldot(iv))/max(abs(yldot(iv)),abs(yldotsave(iv)))
-                    call xerrab('stop')
+                    istop=1
                     endif
-                    else
-                    write(*,*) '>>>>',iv,0
                     endif
-                    !call xerrab('diff in rhsnk')
+
                 endif
             enddo
-
+           if (istop.gt.0) call xerrab('diff in rhsnk')
 
 
 end subroutine Compare
@@ -587,22 +593,22 @@ if (isbcwdt .eq. 0) then  ! omit b.c. eqns
         endif
 end subroutine
 
-        subroutine tick(t)
+        real function tick()
         implicit none
-            integer, intent(OUT) :: t
-
-            call system_clock(t)
-        end subroutine tick
+            integer :: now, clock_rate
+            call system_clock(now,clock_rate)
+            tick=real(now)/real(clock_rate)
+        end function tick
 
         real function tock(t)
          implicit none
-            integer, intent(in) :: t
+            real, intent(in) :: t
             integer :: now, clock_rate
-
             call system_clock(now,clock_rate)
 
-            tock = real(now - t)/real(clock_rate)
+            tock = real(now)/real(clock_rate)-t
         end function tock
+
 
 
 

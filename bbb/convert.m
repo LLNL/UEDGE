@@ -223,6 +223,12 @@ c_mpi      integer ierr
          je = iyl
       endif
 
+c... Added the following for OMPPandf1rhs call (added by .J.Guterl)
+      if(ixl .lt. 0 .and. iyl.ge.0) then
+         js = max(1-iymnbcl,iyl-yinc)
+         je = min(ny+iymxbcl,iyl+yinc)
+      endif
+
         do 20 iy = js, je
           do 19 ix = is, ie  # was nx+1
             ne(ix,iy) = 0.0e0
@@ -488,6 +494,12 @@ c                               # interpolate 2-D array with a 5-point stencil
       else
          js = iyl
          je = iyl
+      endif
+
+c... Added the following for OMPPandf1rhs call (added by .J.Guterl)
+      if(ixl .lt. 0 .and. iyl.ge.0) then
+         js = max(0,iyl-yinc)
+         je = min(ny+1,iyl+yinc)
       endif
 
       do iy = js, je

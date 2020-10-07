@@ -518,7 +518,7 @@ imin=istart
 end subroutine OMPSplitIndexyPandf
 
 #ifdef _OPENMP
-subroutine ParallelPandf1(neq,time,yl,yldot)
+subroutine OMPPandf1Rhs(neq,time,yl,yldot)
 
     use omp_lib
     use OmpCopybbb
@@ -631,5 +631,5 @@ Time1=omp_get_wtime()-Time1
   else
        call pandf1 (-1,-1, 0, neq, time, yl, yldot)
 endif
-end subroutine ParallelPandf1
+end subroutine OMPPandf1Rhs
 #endif

@@ -63,6 +63,11 @@ c-----------------------------------------------------------------------
       Use(Selec)   # i1,i4,i5,i8,j1,j4,j5,j8,ixp1
       Use(Noggeo)  # fxm,fx0,fxp,fxmy,fxpy
       Use(Share)   # isnonog,cutlo
+      Use(PandfTiming)
+
+      real tick,tock
+      external tick tock
+
 
 *  -- output arguments --
       real trax(0:nx+1,0:ny+1), tray(0:nx+1,0:ny+1)
@@ -79,6 +84,8 @@ c..   note: dim(a,b) = max((a-b),0)
 *=======================================================================
 *//computation//
 *=======================================================================
+
+      if (TimingPandfOn.gt.0) Timefd2tra=tick()
 *  ---------------------------------------------------------------------
 *  -- auxiliaries --
 *  ---------------------------------------------------------------------
@@ -522,7 +529,7 @@ c..   note: dim(a,b) = max((a-b),0)
      .                                 dify(ix,iy+posy)*(py1-py0)
   282    continue
   283 continue
-
+      if (TimingPandfOn.gt.0) TotTimefd2tra=TotTimefd2tra+tock(Timefd2tra)
       return
       end
 c**  End of subroutine fd2tra ******************
@@ -670,6 +677,7 @@ cnxg      data igs/1/
       Use(RZ_grid_info)  		 # bpol
       Use(Interp)				 # ngs, tgs
       use ParallelEval,only: ParallelJac,ParallelPandf1
+      use PandfTiming
 
 *  -- procedures for atomic and molecular rates --
       integer zmax,znuc
@@ -678,6 +686,8 @@ cnxg      data igs/1/
       real radmc, svdiss, vyiy0, vyiym1, v2ix0, v2ixm1
       external rsa, rra, rqa, rcx, emissbs, erl1, erl2, radneq, radimpmc
       external radmc, svdiss
+      real tick,tock
+      external tick,tock
 
 ccc      save
 
@@ -696,7 +706,14 @@ c  Check array sizes
       if (ngsp > nigmx .or. nisp > nigmx) then
          call xerrab("***PANDF in oderhs.m: increase nigmx, recompile")
       endif
-
+c... Timing of pandf components (added by J. Guterl)
+        if (TimingPandf.gt.0
+     . .and. yl(neq+1) .lt. 0 .and. ParallelPandf1.eq.0) then
+        TimingPandfOn=1
+        else
+        TimingPandfOn=0
+        endif
+        if (TimingPandfOn.gt.0) TimePandf=tick()
 c... Roadblockers for  call to pandf through openmp structures (added by J.Guterl)
       if ((isimpon.gt.0 .and. isimpon.ne.6) .and. (ParallelJac.gt.0 .or. ParallelPandf1.gt.0)) then
       call xerrab('Only isimpon=0 or 6 is validated with openmp.
@@ -1003,9 +1020,12 @@ c...  boundary cells of a mesh region.  Used in subroutine bouncon.
 ************************************************************************
 c... First, we convert from the 1-D vector yl to the plasma variables.
 ************************************************************************
-
+         if (TimingPandfOn.gt.0) TimeConvert0=tick()
          call convsr_vo (xc, yc, yl)  # pre 9/30/97 was one call to convsr
+         if (TimingPandfOn.gt.0) TotTimeConvert0=TotTimeConvert0+tock(TimeConvert0)
+         if (TimingPandfOn.gt.0) TimeConvert1=tick()
          call convsr_aux (xc, yc)
+         if (TimingPandfOn.gt.0) TotTimeConvert1=TotTimeConvert1+tock(TimeConvert1)
 
 c ... Set variable controlling upper limit of species loops that
 c     involve ion-density sources, fluxes, and/or velocities.
@@ -2385,7 +2405,7 @@ c *** Now do the gas
 c In the case of neutral parallel mom, call neudif to get
 c flux fngy, vy and uu, now that we have evaluated nuix etc.
 *****************************************************************
-
+      if (TimingPandfOn.gt.0) TimeNeudif=tick()
 ccc      if (isupgon .eq. 1 .and. zi(ifld) .eq. 0.0) call neudif
       if (ineudif .eq. 1) then
          call neudif
@@ -2400,7 +2420,7 @@ c ..Timing
       else
          call neudifo
       endif
-
+      if (TimingPandfOn.gt.0) TotTimeNeudif=TotTimeNeudif+tock(TimeNeudif)
 *****************************************************************
 *  Other volume sources calculated in old SRCMOD
 *****************************************************************
@@ -4857,7 +4877,7 @@ c ... Accumulate cpu time spent here.
       else
          ttotjf = ttotjf + gettime(sec4) - tsjf
       endif
-
+      if (TimingPandfOn.gt.0) TotTimePandf=TotTimePandf+tock(TimePandf)
       return
       end
 c****** end of subroutine pandf ************
@@ -8078,7 +8098,7 @@ c ... Beginning of execution for call rhsnk (by nksol).
 c ... Calculate right-hand sides for interior and boundary points.
 ccc 10   call convsr_vo (-1,-1, yl)  # test new convsr placement
 ccc      call convsr_aux (-1,-1, yl) # test new convsr placement
- 10   call pandf1 (-1, -1, 0, neq, tloc, yl, yldot)
+ 10   call pandf1rhs_interface ( neq, tloc, yl, yldot)
 
  20   continue
       return
@@ -11840,7 +11860,7 @@ c ***** End of subroutine jacwrite **********
       subroutine jac_calc_interface(neq, t, yl, yldot00, ml, mu, wk,
      .                     nnzmx, jac, ja, ia)
 
-c ... Interface for Jacobian matrix calculation (added by. J.Guterl)
+c ... Interface for Jacobian matrix calculation for nksol only(added by. J.Guterl)
 
       implicit none
 
@@ -11871,3 +11891,32 @@ c ... Output arguments:
      .               nnzmx, jac, ja, ia)
       endif
        end subroutine jac_calc_interface
+
+      subroutine Pandf1rhs_interface(neq, time, yl, yldot)
+c ... Interface for pandf1 rhs calculation for nksol only (added by. J.Guterl)
+          Use(Math_problem_size),only: neqmx
+          use ParallelEval,only: ParallelPandf1
+          implicit none
+          integer neq
+          real time, yl(neqmx),yldot(neq)
+
+          if (ParallelPandf1.gt.0) then
+            call OMPPandf1Rhs(neq, time, yl, yldot)
+          else
+            call pandf1(-1, -1, 0, neq, time, yl, yldot)
+          endif
+
+      end subroutine pandf1rhs_interface
+
+        subroutine PrintTimingPandf()
+            use PandfTiming
+            write(*,*) '----- Timing Pandf as eval rhs ----'
+            write(*,*) ' - TimePandf:',TotTimePandf
+            if (TotTimePandf.gt.0) then
+            write(*,*) ' - Convert0:', TotTimeConvert0,TotTimeConvert0/TotTimePandf
+            write(*,*) ' - Convert1:', TotTimeConvert1,TotTimeConvert1/TotTimePandf
+            write(*,*) ' - Neudif:', TotTimeNeudif,TotTimeNeudif/TotTimePandf
+            write(*,*) ' - fd2tra:', TotTimefd2tra,TotTimefd2tra/TotTimePandf
+            write(*,*) '-----------------------------------'
+            endif
+        end subroutine PrintTimingPandf
