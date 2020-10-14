@@ -6420,6 +6420,9 @@ c ---------------------------------------------------------------------c
       Use(UEint)               # isallloc
       Use(Rccoef)              # isoutwall
 c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
+      Use(PandfTiming)
+      real tick,tock
+      external tick tock
 
       integer ifake  #forces Forthon scripts to put implicit none above here
       integer my_pe, n_pes, ixx, icall
@@ -6427,7 +6430,7 @@ CC c_mpi      integer ierr, ireturn
 c_mpi      integer ireturn
 c_mpi      integer(int4) :: ierr, myfoo
       data icall/0/
-
+      TimeExmain=tick()
       call exmain_prelims
 
 c=======================================================================
@@ -6515,7 +6518,7 @@ c ...    If a parallel run, send and gather data to PE0 first
   100 continue
 
       igrid = min(igrid, ngrid)  # prevents igrid>1 problem for ngrid=1
-
+      TotTimeExmain=TotTimeExmain+tock(TimeExmain)
       return
       end
 c --** End of subroutine exmain *********************************

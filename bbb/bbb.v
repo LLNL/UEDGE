@@ -65,7 +65,10 @@ ingb      integer         /2/     #background gas source=nuiz*ngbackg*
                                   #                  (.9+.1*(ngbackg/ng)**ingb)
 inflbg    integer         /4/     #expon to force flalfg large near ng~ngback
 				  #ex:flalfgx,y*(1.+(cflgb*ngbackg/ng)**inflbg)
-cflbg     real            /10./   #scaling fac for flalfgx,y using inflbg
+###cflbg     real            /10./   #scaling fac for flalfgx,y using inflbg
+cflbgflalfgx real            /0./   #scaling fac for flalfgx using inflbg
+cflbgflalfgy real            /0./   #scaling fac for flalfgx,y using inflbg
+cflbgflalfgxy real           /0./   #scaling fac for flalfgxy using inflbg
 facngbackg2ngs(ngspmx) real /ngspmx*1.e-8/
                                   #fraction of ngbackg add to initial ngs
 nzbackg(nispmx) real [1/m**3] /nispmx*1.e9/ #background impurity density
@@ -361,6 +364,7 @@ cfcvti	  real  [ ] /1.0/   #coef mult ion & neut pol convect(~5/2) energy flow
 cfcvtg	  real  [ ] /1.0/   #coef mult gas pol convect(~5/2) energy flow
 cfloxiplt real  [ ] /.0/    #coef mult neutral convect engy from plates
 cfloygwall real [ ] /.0/    #coef mult neutral convect engy from walls
+
 cftgdiss(ngspmx)  real  [ ] /ngspmx*1./ # coef mult tg*nu_diss eng loss
 exjbdry   real  [ ] /10./   #exponent pwr to limit fqp < fqpsat at plates
 cfgpijr   real  [ ] /1./    #scalar factor for grad_Pi term in fqya
@@ -3882,5 +3886,16 @@ TimeElecVel1 real /0.0/
 TotTimeElecVel1 real /0.0/
 Timemombalni real /0.0/
 TotTimemombalni real /0.0/
+TimeExmain real /0.0/
+TotTimeExmain real /0.0/
+TimePandf1rhs real /0.0/
+TotTimePandf1rhs real /0.0/
+TimeJac real /0.0/
+TotTimeJac real /0.0/
+Timenksol real /0.0/
+TotTimenksol real /0.0/
+RemoveNeutPwrPlt integer /0/ #flag for removing power
+Impbohmcond integer /0/ #flag for generalizeds bohm condition
+Fixfmixydxnog integer /1/
 PrintTimingPandf() subroutine
 

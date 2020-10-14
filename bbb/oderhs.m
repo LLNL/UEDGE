@@ -64,7 +64,6 @@ c-----------------------------------------------------------------------
       Use(Noggeo)  # fxm,fx0,fxp,fxmy,fxpy
       Use(Share)   # isnonog,cutlo
       Use(PandfTiming)
-
       real tick,tock
       external tick tock
 
@@ -606,6 +605,7 @@ c    yldot is the RHS of ODE solver or RHS=0 for Newton solver (NKSOL)
       # former Aux module variables
       integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
       real tv,t0,t1,t2,a
+      real length
 cnxg      data igs/1/
 
       Use(Dim)      # nx,ny,nhsp,nusp,nzspt,nzsp,nisp,ngsp,nxpt
@@ -1686,7 +1686,7 @@ c     to those from parallel flow.
 
 c...  If upi not from full ||mom eq (e.g.,isimpon=6), set impurity
 c...  uu(ixrb,,) & upi(ixrb,,) via generalized Bohm cond.
-      if(isimpon > 0) then
+      if(isimpon > 0 .and. Impbohmcond.gt.0) then
         do jx = 1, nxpt
 	  ixt0 = ixlb(jx)
           ixt = ixrb(jx)+1
@@ -3452,6 +3452,12 @@ c     The density-stencil dxnog has to be averaged as well.
                ix1 = ixm1(ix,iy)
                ix3 = ixm1(ix,iy1)
                ix5 = ixm1(ix,iy+1)
+               if (Fixfmixydxnog.gt.0) then
+               length=2/(dxnog(ix,iy)+dxnog(ix1,iy))
+               else
+               length=1/( 2*dxnog(ix,iy)*dxnog(ix1,iy) /
+     .                       (dxnog(ix,iy)+dxnog(ix1,iy)) )
+               endif
                grdnv = (
      .                  fymv (ix,iy,1)*up(ix ,iy1 ,ifld)+
      .                  fy0v (ix,iy,1)*up(ix ,iy  ,ifld)+
@@ -3462,9 +3468,11 @@ c     The density-stencil dxnog has to be averaged as well.
      .                  fy0v (ix,iy,0)*up(ix1,iy  ,ifld)-
      .                  fypv (ix,iy,0)*up(ix5,iy+1,ifld)-
      .                  fymxv(ix,iy,0)*up(ix ,iy1 ,ifld)-
-     .                  fypxv(ix,iy,0)*up(ix ,iy+1,ifld) ) /
-     .                     ( 2*dxnog(ix,iy)*dxnog(ix1,iy) /
-     .                       (dxnog(ix,iy)+dxnog(ix1,iy)) )
+     .                  fypxv(ix,iy,0)*up(ix ,iy+1,ifld) )
+     .                   *length
+c.... Fix by J.Guterl:
+c     .
+c.... end fix by J.Guterl
                if (isgxvon .eq. 0) then
                   fmixy(ix,iy,ifld) = cfvisxy(ifld)*visy(ix,iy,ifld) *
      .              ( grdnv/cos(0.5*(angfx(ix1,iy)+angfx(ix,iy))) -
@@ -5954,8 +5962,9 @@ c ..Timing;initialize
             nu1 = nuix(ix,iy,igsp) + vtn/lgmax(igsp)
             nu2 = nuix(ix2,iy,igsp) + vtnp/lgmax(igsp)
 	    tgf = 0.5*(tg(ix,iy,igsp)+tg(ix2,iy,igsp))
+c... cflbgflalfgx added for validation prupose only.
             flalfgx_adj = flalfgxa(ix,igsp)*( 1. +
-     .                    (cflbg*ngbackg(igsp)/ng(ix,iy,igsp))**inflbg )
+     .                    (cflbgflalfgx*ngbackg(igsp)/ng(ix,iy,igsp))**inflbg )
             qfl = flalfgx_adj * sx(ix,iy) * (vtn + vtnp)*rt8opi*
      .           (ng(ix,iy,igsp)*gx(ix,iy) + ng(ix2,iy,igsp)*gx(ix2,iy))
      .                                      / (8*(gx(ix,iy)+gx(ix2,iy)))
@@ -6061,8 +6070,9 @@ c ..Timing; initiate time for y-direction calc
             nu1 = nuix(ix,iy,igsp) + vtn/lgmax(igsp)
             nu2 = nuix(ix,iy+1,igsp) + vtnp/lgmax(igsp)
 	    tgf = 0.5*(tg(ix,iy,igsp)+tg(ix,iy+1,igsp))
+c.. cflbgflalfgy added by J.Guterl for validation purpose
             flalfgy_adj = flalfgya(iy,igsp)*( 1. +
-     .                   (cflbg*ngbackg(igsp)/ng(ix,iy,igsp))**inflbg )
+     .                   (cflbgflalfgy*ngbackg(igsp)/ng(ix,iy,igsp))**inflbg )
             qfl = flalfgy_adj * sy(ix,iy) * (vtn + vtnp)*rt8opi*
      .                              ( ngy0(ix,iy,igsp)*gy(ix,iy) +
      .                                ngy1(ix,iy,igsp)*gy(ix,iy+1) ) /
@@ -6241,7 +6251,7 @@ c...  Now flux limit with flalfgxy
                vtn = sqrt( t0/mg(igsp) )
                vtnp = sqrt( t1/mg(igsp) )
                flalfgxy_adj = flalfgxya(ix,igsp)*( 1. +
-     .                     (cflbg*ngbackg(igsp)/ng(ix,iy,igsp))**inflbg )
+     .                     (cflbgflalfgxy*ngbackg(igsp)/ng(ix,iy,igsp))**inflbg )
                qfl = flalfgxy_adj*sx(ix,iy) * (vtn + vtnp)*rt8opi*
      .           (ng(ix,iy,igsp)*gx(ix,iy) + ng(ix2,iy,igsp)*gx(ix2,iy))
      .                                      / (8*(gx(ix,iy)+gx(ix2,iy)))
@@ -7350,6 +7360,7 @@ c --------------------------------------------------------------------------
       Use(Wkspace)  # w0,w1,etc
       Use(MCN_dim)  #
       Use(MCN_sources)   # cfneutsor_ei
+      Use(PandfTiming)
 
 
 *  -- initialize some arrays to 0 --
@@ -7413,7 +7424,8 @@ c... flux-limit occurs in building hcxg - do not flux-limit 2nd time
           floxge(nx+1,iy,igsp) = 0.
         enddo
       enddo
-
+c... Flag RemoveNeutPwrPlt added by J.Guterl
+       if (RemoveNeutPwrPlt.gt.0) then
 *  -- Correct bdry:remove any inward power from plates; ok in parallel
       do igsp = 1, ngsp
         do iy = j4, j8
@@ -7436,6 +7448,7 @@ c... flux-limit occurs in building hcxg - do not flux-limit 2nd time
           enddo
         enddo
       enddo
+      endif
 
 *  -- compute floyge --
 
@@ -8107,6 +8120,7 @@ c ... Beginning of execution for call rhsnk (by nksol).
 c ... Calculate right-hand sides for interior and boundary points.
 ccc 10   call convsr_vo (-1,-1, yl)  # test new convsr placement
 ccc      call convsr_aux (-1,-1, yl) # test new convsr placement
+
  10   call pandf1rhs_interface ( neq, tloc, yl, yldot)
 
  20   continue
@@ -11911,7 +11925,10 @@ c ... Output arguments:
       integer ia(neq+1)   # pointers to beginning of each row in jac,ja
 
       use ParallelEval,only: ParallelJac
-
+      use PandfTiming
+       real tick,tock
+       external tick tock
+       TimeJac=tick()
       if (ParallelJac.eq.1) then
       call jac_calc_parallel (neq, t, yl, yldot00, ml, mu, wk,
      .               nnzmx, jac, ja, ia)
@@ -11920,6 +11937,7 @@ c ... Output arguments:
       call jac_calc (neq, t, yl, yldot00, ml, mu, wk,
      .               nnzmx, jac, ja, ia)
       endif
+       TotTimeJac=TotTimeJac+tock(TimeJac)
        end subroutine jac_calc_interface
 
       subroutine Pandf1rhs_interface(neq, time, yl, yldot)
@@ -11929,12 +11947,16 @@ c ... Interface for pandf1 rhs calculation for nksol only (added by. J.Guterl)
           implicit none
           integer neq
           real time, yl(neqmx),yldot(neq)
-
+          use PandfTiming
+          real tick,tock
+           external tick tock
+          TimePandf1Rhs=tick()
           if (ParallelPandf1.gt.0) then
             call OMPPandf1Rhs(neq, time, yl, yldot)
           else
             call pandf1(-1, -1, 0, neq, time, yl, yldot)
           endif
+          TotTimePandf1Rhs=TotTimePandf1Rhs+tock(TimePandf1Rhs)
 
       end subroutine pandf1rhs_interface
 
@@ -11952,3 +11974,12 @@ c ... Interface for pandf1 rhs calculation for nksol only (added by. J.Guterl)
             write(*,*) '-----------------------------------'
             endif
         end subroutine PrintTimingPandf
+
+         subroutine PrintTimingExmain()
+            use PandfTiming
+            write(*,*) '----- Timing Exmain: ----'
+            write(*,*) ' - Time in exmain:',TotTimeExmain, '|' ,TimeExmain
+            write(*,*) ' - Time in nksol:',TotTimenksol, '(', Timenksol,')','|',Timenksol/TimeExmain
+            write(*,*) ' - Time in Jac:',   TotTimeJac, '|' ,TimeJac
+            write(*,*) ' - Time in Pandf1 rhs',TotTimepandf1rhs, '|' ,Timepandf1rhs
+        end subroutine PrintTimingExmain

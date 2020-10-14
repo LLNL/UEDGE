@@ -602,11 +602,12 @@ end subroutine
 
         real function tock(t)
          implicit none
-            real, intent(in) :: t
+            real, intent(inout) :: t
             integer :: now, clock_rate
             call system_clock(now,clock_rate)
 
             tock = real(now)/real(clock_rate)-t
+            t=tock
         end function tock
 
 

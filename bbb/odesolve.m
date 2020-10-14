@@ -49,6 +49,9 @@ c Diagnostic data
       Use(Indices_domain_dcl) # ivloc2sdgl
       Use(Xpoint_indices)
       Use(Indices_domain_dcg)
+      Use(PandfTiming)
+      real tick,tock
+      external tick ,tock
 c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
 
 
@@ -362,12 +365,14 @@ cpetsc      endif
 
 cpetsc      if ((svrpkg.eq.'nksol' .and. npes.eq.1) .or. (snesdebug. eq. 1)) then
 *-------------------------------------------------------------------------
-
+            Timenksol=tick()
             call nksol(neq,yl,yldot,rhsnk,jacvnk,suscal,sfscal,ftol,
      .                 stptol,rwork,
      .                 lrw,iwork,liw,iopts,iterm,psetnk,psolnk,mfnksol,
      .                 mdif,ipflag,icflag,icnstr,rlx,epscon1,epscon2,
      .                 icntnunk,adjf1)
+            TotTimenksol=TotTimeNksol+tock(Timenksol)
+
 *-------------------------------------------------------------------------
 cpetsc      endif
 cpetsc      if (snesdebug. eq. 1) then

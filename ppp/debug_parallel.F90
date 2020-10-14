@@ -1916,158 +1916,158 @@ vey(:,j6)=0
       endif
 end subroutine compute_electron_vel
 
-        subroutine compute_electron_vel2
-              Use(Dim)      # nx,ny,nhsp,nusp,nzspt,nzsp,nisp,ngsp,nxpt
-      Use(Xpoint_indices)      # ixlb,ixpt1,ixpt2,ixrb,iysptrx1,iysptrx2
-                               # iysptrx
-      Use(Math_problem_size)   # neqmx,numvar
-      Use(Timing)   # istimingon,ttotfe,ttotjf,ttimpfe,ttimpjf,ttnpg
-      Use(Share)    # nxpt,nxomit,geometry,nxc,cutlo,islimon,ix_lim,iy_lims
-                    # istabon,isudsym
-      Use(Phyvar)   # pi,me,mp,ev,qe,rt8opi
-      Use(UEpar)    # methe,methu,methn,methi,methg,concap,lnlam,
-                    # convis,icnuiz,icnucx,cnuiz,cnucx,isrecmon,
-                    # ngbackg,ingb,eion,ediss,afix,coef,ce,ci,
-                    # dp1,qfl,csh,qsh,mfl,msh,cs,fxe,ctaue,fxi,ctaui,
-                    # zcoef,coef1,nurlxu,isphiofft,isintlog,isgxvon
-                    # isgpye,frnnuiz,nzbackg,inzb,nlimix,nlimiy,
-                    # isofric,isteaven
-                    # isnionxy,isuponxy,isteonxy,istionxy,isngonxy,isphionxy,
-                    # isupon,isteon,istion,isphion
-      Use(Aux),only: ixmp
-      Use(Coefeq)
-      Use(Bcond)    # albedoo,albedoi,isfixlb,isfixrb
-                    # xcnearlb,xcnearrb,openbox
-      Use(Parallv)  # nxg,nyg
-      Use(Rccoef)   # recylb,recyrb,recycw,recycz,sputtr
-      Use(Fixsrc)
-      Use(Selec)    # i1,i2,i3,i4,i5,i6,i7,i8,xlinc,xrinc,ixs1,
-                    # j1,j1p,j2,j2p,j3,j4,j5,j6,j5p,j6p,j7,j8,j5m
-      Use(Comgeo)   # isxptx,isxpty
-      Use(Noggeo)   # fym,fy0,fyp,fymx,fypx,angfx,fxm,fx0,fxp,fxmy,fxpy
-      Use(Compla)   # znucl,rtaux,rtauy,rtau,rt_scal
-      Use(Comflo)
-      Use(Conduc)   # lmfplim
-      Use(Rhsides)
-      Use(Save_terms)   # psorold,psorxrold
-      Use(Indexes)
-      Use(Ynorm)    # isflxvar,nnorm,ennorm,fnorm,n0,n0g
-      Use(Poten)    # bcee,bcei,cthe,cthi
-      Use(Comtra)   # parvis,travis,difni,difnit,difpr,difni2,
-                    # difpr2,vcony,flalfe,flalfi,flgam,kxe,kxecore,
-                    # kye,kyet,kxi,kxicore,kxn,kyi,kyit,kyn,feqp,
-                    # flalfgx,flalfgy,flalfv,flalfvgx,flalfvgy,
-                    # flalftgx,flalftgy,alfeqp,facbni,facbni2,facbee,
-                    # facbei,isbohmcalc,diffusivity,diffusivwrk,
-                    # diffusivloc,isdifxg_aug,isdifyg_aug,sigvi_floor,
-                    # facbup
-      Use(Bfield)   # btot,rbfbt,rbfbt2
-      Use(Locflux)
-      Use(Wkspace)
-      Use(Gradients)
-      Use(Imprad)   # isimpon,nzloc,impradloc,prad,pradz,na,ntau,nratio,
-                    # afrac,atau,ismctab,rcxighg,pwrze
-
-      Use(Volsrc)   # pwrsore,pwrsori,volpsor
-      Use(Model_choice)   # iondenseqn
-      Use(Time_dep_nwt)   # ylodt
-      Use(Cfric)          # frice,frici
-      Use(Turbulence)     # isturbnloc,isturbcons,diffuslimit,diffuswgts
-      Use(Turbulence_diagnostics)   # chinorml,chinormh
-      Use(MCN_dim)
-      Use(MCN_sources)	  # uesor_ni,uesor_up,uesor_ti,uesor_te
-      Use(Ext_neutrals)          # isextneuton, extneutopt
-      Use(PNC_params)            # dtneut, dtold
-      Use(PNC_data)              # ni_pnc, etc.
-      Use(Reduced_ion_interface) # misotope,natomic
-      Use(Indices_domain_dcl)    # ixmxbcl
-      Use(Indices_domain_dcg)    # ndomain
-      Use(Npes_mpi)              # mype
-      Use(RZ_grid_info)  		 # bpol
-      Use(Interp)				 # ngs, tgs
-      use ParallelEval,only: ParallelJac,ParallelPandf1
-      use PandfTiming
-        integer ix,iy,ifld,ix1
-        real afqp
-
-        do 25 iy = j1, j6
-              do 24 ix = i1, i6
-                vex(ix,iy) = 0.
-                vey(ix,iy) = 0.
-   24    continue
-   25 continue
-
-      !if (isimpon.eq.5) goto 29    # have upe from mombal
-
-      do iy = j1, j6    #iys1, iyf6
-         do ix = i1, i6
-            upe(ix,iy) = 0.
-         enddo
-      enddo
-
-      do 27 ifld = 1, nfsp
-         do iy = j1, j6    #iys1, iyf6
-	    do ix = i1, i6
-               ix1 = ixp1(ix,iy)
-	       upe(ix,iy) = upe(ix,iy) + upi(ix,iy,ifld)*zi(ifld)*0.5*
-     .                      ( ni(ix,iy,ifld)+ni(ix1,iy,ifld) )
-            enddo
-         enddo
-   27 continue
-      afqp = 1.
-      if (isimpon.eq.6 .or. isimpon.eq.7) afqp = fupe_cur  #allows gradual fix for old cases
-      do iy = j1, j6    #iys1, iyf6
-         do ix = i1, i6
-            ix1 = ixp1(ix,iy)
-	    upe(ix,iy) = (upe(ix,iy) -afqp*fqp(ix,iy)/
-     .                               (rrv(ix,iy)*sx(ix,iy)*qe))/
-     .                             (0.5*( ne(ix,iy)+ne(ix1,iy) ))
-         enddo
-      enddo
-
-  29  continue
-
-      do 731 iy = j1, j6   # ExB same all species;if cf2dd=1, no imp yet
-	 do 730 ix = i1, i6
-            ix1 = ixp1(ix,iy)
-            vex(ix,iy) = upe(ix,iy)*rrv(ix,iy) +
-     .                   (cf2ef*v2ce(ix,iy,1) + cf2bf*ve2cb(ix,iy) +
-     .                         cf2dd*bfacxrozh(ix,iy)*ve2cd(ix,iy,1) ) *
-     .                           0.5*(rbfbt(ix,iy) + rbfbt(ix1,iy)) -
-     .                                               vytan(ix,iy,1)
-
-  730    continue
-  731 continue
-
-      do 734 ifld = 1, nfsp
-	 do 733 iy = j1, j5
-	    do 732 ix = i1, i6   # grad_B will be ok as next fqy is subtr.
-	       vey(ix,iy) = vey(ix,iy) + vy(ix,iy,ifld)*zi(ifld)*0.5*
-     .                      ( niy0(ix,iy,ifld)+niy1(ix,iy,ifld) )
-  732       continue
-  733    continue
-  734 continue
-
-      do 36 iy = j1, j5
-	 do 35 ix = i1, i6
-	    vey(ix,iy) = (vey(ix,iy)-cfjve*fqy(ix,iy)/(sy(ix,iy)*qe))/
-     .                    (0.5*( ney0(ix,iy)+ney1(ix,iy) ))
-   35    continue
-   36 continue
-
-c ... if isnewpot=0, vey(,0) needs to be redone since fqy(,0)=0
-      if (isnewpot==1) then
-        do ix = i1, i6  # ExB vyce same all species
-          vey(ix,0) = cfybf*veycb(ix,0) + vydd(ix,0,1) +
-     .                cfyef*vyce(ix,0,1)
-        enddo
-      endif
-
-c ... If isybdrywd = 1, make vey diffusive, just like vy
-      if (isybdrywd == 1) then  #make vy diffusive in wall cells
-        do ix = i1, i6
-          if (matwalli(ix) > 0) vey(ix,0)  = vydd(ix,0,1)
-          if (matwallo(ix) > 0) vey(ix,ny) = vydd(ix,ny,1)
-        enddo
-      endif
-        end subroutine compute_electron_vel2
+!        subroutine compute_electron_vel2
+!              Use(Dim)      # nx,ny,nhsp,nusp,nzspt,nzsp,nisp,ngsp,nxpt
+!      Use(Xpoint_indices)      # ixlb,ixpt1,ixpt2,ixrb,iysptrx1,iysptrx2
+!                               # iysptrx
+!      Use(Math_problem_size)   # neqmx,numvar
+!      Use(Timing)   # istimingon,ttotfe,ttotjf,ttimpfe,ttimpjf,ttnpg
+!      Use(Share)    # nxpt,nxomit,geometry,nxc,cutlo,islimon,ix_lim,iy_lims
+!                    # istabon,isudsym
+!      Use(Phyvar)   # pi,me,mp,ev,qe,rt8opi
+!      Use(UEpar)    # methe,methu,methn,methi,methg,concap,lnlam,
+!                    # convis,icnuiz,icnucx,cnuiz,cnucx,isrecmon,
+!                    # ngbackg,ingb,eion,ediss,afix,coef,ce,ci,
+!                    # dp1,qfl,csh,qsh,mfl,msh,cs,fxe,ctaue,fxi,ctaui,
+!                    # zcoef,coef1,nurlxu,isphiofft,isintlog,isgxvon
+!                    # isgpye,frnnuiz,nzbackg,inzb,nlimix,nlimiy,
+!                    # isofric,isteaven
+!                    # isnionxy,isuponxy,isteonxy,istionxy,isngonxy,isphionxy,
+!                    # isupon,isteon,istion,isphion
+!      Use(Aux),only: ixmp
+!      Use(Coefeq)
+!      Use(Bcond)    # albedoo,albedoi,isfixlb,isfixrb
+!                    # xcnearlb,xcnearrb,openbox
+!      Use(Parallv)  # nxg,nyg
+!      Use(Rccoef)   # recylb,recyrb,recycw,recycz,sputtr
+!      Use(Fixsrc)
+!      Use(Selec)    # i1,i2,i3,i4,i5,i6,i7,i8,xlinc,xrinc,ixs1,
+!                    # j1,j1p,j2,j2p,j3,j4,j5,j6,j5p,j6p,j7,j8,j5m
+!      Use(Comgeo)   # isxptx,isxpty
+!      Use(Noggeo)   # fym,fy0,fyp,fymx,fypx,angfx,fxm,fx0,fxp,fxmy,fxpy
+!      Use(Compla)   # znucl,rtaux,rtauy,rtau,rt_scal
+!      Use(Comflo)
+!      Use(Conduc)   # lmfplim
+!      Use(Rhsides)
+!      Use(Save_terms)   # psorold,psorxrold
+!      Use(Indexes)
+!      Use(Ynorm)    # isflxvar,nnorm,ennorm,fnorm,n0,n0g
+!      Use(Poten)    # bcee,bcei,cthe,cthi
+!      Use(Comtra)   # parvis,travis,difni,difnit,difpr,difni2,
+!                    # difpr2,vcony,flalfe,flalfi,flgam,kxe,kxecore,
+!                    # kye,kyet,kxi,kxicore,kxn,kyi,kyit,kyn,feqp,
+!                    # flalfgx,flalfgy,flalfv,flalfvgx,flalfvgy,
+!                    # flalftgx,flalftgy,alfeqp,facbni,facbni2,facbee,
+!                    # facbei,isbohmcalc,diffusivity,diffusivwrk,
+!                    # diffusivloc,isdifxg_aug,isdifyg_aug,sigvi_floor,
+!                    # facbup
+!      Use(Bfield)   # btot,rbfbt,rbfbt2
+!      Use(Locflux)
+!      Use(Wkspace)
+!      Use(Gradients)
+!      Use(Imprad)   # isimpon,nzloc,impradloc,prad,pradz,na,ntau,nratio,
+!                    # afrac,atau,ismctab,rcxighg,pwrze
+!
+!      Use(Volsrc)   # pwrsore,pwrsori,volpsor
+!      Use(Model_choice)   # iondenseqn
+!      Use(Time_dep_nwt)   # ylodt
+!      Use(Cfric)          # frice,frici
+!      Use(Turbulence)     # isturbnloc,isturbcons,diffuslimit,diffuswgts
+!      Use(Turbulence_diagnostics)   # chinorml,chinormh
+!      Use(MCN_dim)
+!      Use(MCN_sources)	  # uesor_ni,uesor_up,uesor_ti,uesor_te
+!      Use(Ext_neutrals)          # isextneuton, extneutopt
+!      Use(PNC_params)            # dtneut, dtold
+!      Use(PNC_data)              # ni_pnc, etc.
+!      Use(Reduced_ion_interface) # misotope,natomic
+!      Use(Indices_domain_dcl)    # ixmxbcl
+!      Use(Indices_domain_dcg)    # ndomain
+!      Use(Npes_mpi)              # mype
+!      Use(RZ_grid_info)  		 # bpol
+!      Use(Interp)				 # ngs, tgs
+!      use ParallelEval,only: ParallelJac,ParallelPandf1
+!      use PandfTiming
+!        integer ix,iy,ifld,ix1
+!        real afqp
+!
+!        do 25 iy = j1, j6
+!              do 24 ix = i1, i6
+!                vex(ix,iy) = 0.
+!                vey(ix,iy) = 0.
+!   24    continue
+!   25 continue
+!
+!      !if (isimpon.eq.5) goto 29    # have upe from mombal
+!
+!      do iy = j1, j6    #iys1, iyf6
+!         do ix = i1, i6
+!            upe(ix,iy) = 0.
+!         enddo
+!      enddo
+!
+!      do 27 ifld = 1, nfsp
+!         do iy = j1, j6    #iys1, iyf6
+!	    do ix = i1, i6
+!               ix1 = ixp1(ix,iy)
+!	       upe(ix,iy) = upe(ix,iy) + upi(ix,iy,ifld)*zi(ifld)*0.5*
+!     .                      ( ni(ix,iy,ifld)+ni(ix1,iy,ifld) )
+!            enddo
+!         enddo
+!   27 continue
+!      afqp = 1.
+!      if (isimpon.eq.6 .or. isimpon.eq.7) afqp = fupe_cur  #allows gradual fix for old cases
+!      do iy = j1, j6    #iys1, iyf6
+!         do ix = i1, i6
+!            ix1 = ixp1(ix,iy)
+!	    upe(ix,iy) = (upe(ix,iy) -afqp*fqp(ix,iy)/
+!     .                               (rrv(ix,iy)*sx(ix,iy)*qe))/
+!     .                             (0.5*( ne(ix,iy)+ne(ix1,iy) ))
+!         enddo
+!      enddo
+!
+!  29  continue
+!
+!      do 731 iy = j1, j6   # ExB same all species;if cf2dd=1, no imp yet
+!	 do 730 ix = i1, i6
+!            ix1 = ixp1(ix,iy)
+!            vex(ix,iy) = upe(ix,iy)*rrv(ix,iy) +
+!     .                   (cf2ef*v2ce(ix,iy,1) + cf2bf*ve2cb(ix,iy) +
+!     .                         cf2dd*bfacxrozh(ix,iy)*ve2cd(ix,iy,1) ) *
+!     .                           0.5*(rbfbt(ix,iy) + rbfbt(ix1,iy)) -
+!     .                                               vytan(ix,iy,1)
+!
+!  730    continue
+!  731 continue
+!
+!      do 734 ifld = 1, nfsp
+!	 do 733 iy = j1, j5
+!	    do 732 ix = i1, i6   # grad_B will be ok as next fqy is subtr.
+!	       vey(ix,iy) = vey(ix,iy) + vy(ix,iy,ifld)*zi(ifld)*0.5*
+!     .                      ( niy0(ix,iy,ifld)+niy1(ix,iy,ifld) )
+!  732       continue
+!  733    continue
+!  734 continue
+!
+!      do 36 iy = j1, j5
+!	 do 35 ix = i1, i6
+!	    vey(ix,iy) = (vey(ix,iy)-cfjve*fqy(ix,iy)/(sy(ix,iy)*qe))/
+!     .                    (0.5*( ney0(ix,iy)+ney1(ix,iy) ))
+!   35    continue
+!   36 continue
+!
+!c ... if isnewpot=0, vey(,0) needs to be redone since fqy(,0)=0
+!      if (isnewpot==1) then
+!        do ix = i1, i6  # ExB vyce same all species
+!          vey(ix,0) = cfybf*veycb(ix,0) + vydd(ix,0,1) +
+!     .                cfyef*vyce(ix,0,1)
+!        enddo
+!      endif
+!
+!c ... If isybdrywd = 1, make vey diffusive, just like vy
+!      if (isybdrywd == 1) then  #make vy diffusive in wall cells
+!        do ix = i1, i6
+!          if (matwalli(ix) > 0) vey(ix,0)  = vydd(ix,0,1)
+!          if (matwallo(ix) > 0) vey(ix,ny) = vydd(ix,ny,1)
+!        enddo
+!      endif
+!        end subroutine compute_electron_vel2
