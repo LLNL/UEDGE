@@ -2766,8 +2766,15 @@ ireorder	integer	    /1/ # Flag used to determine if a reordering
 #Jacobian matrix in full storage format
 jacfull(neq,neq) _real
 
+***** lapackLU:
+CheckBandedPrecond integer /0/
+BandedPrecondVerbose integer /0/
+
 ***** Preconditioning:
 #Parameters for type of preconditioning and sizes of matrices
+premethbanded character*20 /"old"/ #='bandedfast'': dgbfa_u
+                                  #='lapack': DGBTRF
+                                  #='old': sgbco
 premeth character*8 /"ilut"/  # type of preconditioning used in the
                               # linear iteration:
                               # ="banded" means use full banded jacobian as
@@ -3869,5 +3876,11 @@ TimeNeudif real /0.0/
 TotTimeNeudif real /0.0/
 Timefd2tra real /0.0/
 TotTimefd2tra real /0.0/
+TimeElecVel0 real /0.0/
+TotTimeElecVel0 real /0.0/
+TimeElecVel1 real /0.0/
+TotTimeElecVel1 real /0.0/
+Timemombalni real /0.0/
+TotTimemombalni real /0.0/
 PrintTimingPandf() subroutine
 
