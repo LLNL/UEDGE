@@ -89,7 +89,7 @@ else:
     
 FLAGS ='DEBUG = -v --fargs "{}"'.format(' '.join(FARGS))
 if CARGS!=[]:
-    FLAGS =FLAGS+' --cargs={}'.format(' '.join(CARGS))
+    FLAGS =FLAGS+' --cargs="{}"'.format(' '.join(CARGS))
 
 
 if petsc == 1 and os.getenv('PETSC_DIR') == None:
@@ -250,7 +250,7 @@ setup(name="uedge",
                              libraries=libraries,
                              define_macros=define_macros,
                              extra_objects=uedgeobjects,
-                             extra_link_args=['-fopenmp']+['-g','-DFORTHON'] +
+                             extra_link_args=CARGS+['-g','-DFORTHON'] +
                              fcompiler.extra_link_args,
                              extra_compile_args=fcompiler.extra_compile_args
                              )],
