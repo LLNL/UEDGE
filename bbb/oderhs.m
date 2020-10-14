@@ -1578,7 +1578,11 @@ c     saved here so they can be restored below.
                if (istimingon .eq. 1) call timimpfj (tsimp, xc)
             elseif(isimpon .eq. 6 .or. isimpon .eq. 7) then # Force balance without inertia
                if (istimingon .eq. 1) tsimp = gettime(sec4)
-               call mombalni (ix1,ix,iy)
+               if (TimingPandfOn.gt.0) Timemombalni=tick()
+                call mombalni (ix1,ix,iy)
+          if (TimingPandfOn.gt.0) then
+          TotTimemombalni=TotTimemombalni+tock(Timemombalni)
+                endif
                if (istimingon .eq. 1) call timimpfj (tsimp, xc)
             endif
             do ifld = 1, nfsp
@@ -1610,7 +1614,12 @@ c     saved here so they can be restored below.
                if (istimingon .eq. 1) call timimpfj (tsimp, xc)
             elseif(isimpon .eq. 6 .or. isimpon .eq. 7) then # Force balance without inertia
                if (istimingon .eq. 1) tsimp = gettime(sec4)
-               call mombalni (ix,ix2,iy)
+
+               if (TimingPandfOn.gt.0) Timemombalni=tick()
+                call mombalni (ix,ix2,iy)
+          if (TimingPandfOn.gt.0) then
+          TotTimemombalni=TotTimemombalni+tock(Timemombalni)
+                endif
                if (istimingon .eq. 1) call timimpfj (tsimp, xc)
             endif
             do ifld = 1, nfsp
@@ -1720,8 +1729,9 @@ ccc      if(isphion+isphiofft .eq. 1)  call calc_currents
 ************************************************************************
 *     Calculate the electron velocities, vex, upe, ve2, vey
 ************************************************************************
+
       do 25 iy = j1, j6
-	 do 24 ix = i1, i6
+	  do 24 ix = i1, i6
 	    vex(ix,iy) = 0.
 	    vey(ix,iy) = 0.
    24    continue
@@ -1800,7 +1810,6 @@ c ... If isybdrywd = 1, make vey diffusive, just like vy
           if (matwallo(ix) > 0) vey(ix,ny) = vydd(ix,ny,1)
         enddo
       endif
-
 
 ************************************************************************
 *   We Calculate the source terms now.
@@ -8369,9 +8378,13 @@ c ... Local variables:
       real rcond, dum(1)
       real(Size4) sec4
       real tsmatfac
-
+      real tick,tock,TimeLU,TimeFac
+      external tick,tock
+      character*80 premethinfo
+      integer info
 c ... Convert compressed sparse row to banded format and use exact
 c     factorization routine sgbco from Linpack/SLATEC.
+      TimeLU=tick()
       if (premeth .eq. 'banded') then
          lowd = 2 * lbw + ubw + 1
          call csrbnd (neq, jac, ja, ia, 0, wp, lowd, lowd,
@@ -8382,7 +8395,16 @@ c     factorization routine sgbco from Linpack/SLATEC.
             call xerrab("")
          endif
          tsmatfac = gettime(sec4)
+         if (premethbanded.eq.'lapack') then
+         call lapacksgbco(wp, lowd, neq, lbw, ubw, iwp(4), rcond, rwk1)
+         elseif (premethbanded.eq.'bandedfast') then
+           call dgbfa_u(wp,lowd,neq,lbw,ubw,iwp(4),info)
+         elseif (premethbanded.eq.'old')
          call sgbco (wp, lowd, neq, lbw, ubw, iwp(4), rcond, rwk1)
+         else
+         call xerrab('Unknow premethbanded')
+         endif
+
          iwp(1) = lowd
          iwp(2) = lbw
          iwp(3) = ubw
@@ -8457,6 +8479,14 @@ c ... Finally, calculate approximate LU decomposition.
 
 c ... Accumulate cpu time spent here.
  99   ttmatfac = ttmatfac + (gettime(sec4) - tsmatfac)
+      if (premeth.eq.'banded') then
+      write(premethinfo,*) premeth,'|',premethbanded
+      else
+      write(premethinfo,*) premeth
+      endif
+
+      TimeLU=tock(TimeLU)
+      write(*,*) '**** Time in jac_lu_decomp:', TimeLU,'[',trim(premethinfo),']'
       return
       end
 c-----------------------------------------------------------------------
@@ -11917,6 +11947,8 @@ c ... Interface for pandf1 rhs calculation for nksol only (added by. J.Guterl)
             write(*,*) ' - Convert1:', TotTimeConvert1,TotTimeConvert1/TotTimePandf
             write(*,*) ' - Neudif:', TotTimeNeudif,TotTimeNeudif/TotTimePandf
             write(*,*) ' - fd2tra:', TotTimefd2tra,TotTimefd2tra/TotTimePandf
+            write(*,*) ' - TotTimeMombalni:', TotTimeMombalni,TotTimeMombalni/TotTimePandf
+            write(*,*) ' - TotTimeElecVel1:', TotTimeElecVel1
             write(*,*) '-----------------------------------'
             endif
         end subroutine PrintTimingPandf

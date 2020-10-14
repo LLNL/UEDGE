@@ -1801,3 +1801,117 @@ subroutine EvalDumpJac(FileName,neq,yl,yldot00)
     write(*,*) '--- Dumping jacobian for analysis of bandwidth'
     call jac_write(FileName,neq, jaccopy, jacopy, iacopy)
 end subroutine EvalDumpJac
+
+subroutine compute_electron_vel!***********************************************************************
+!     Calculate the electron velocities, vex, upe, ve2, vey
+!***********************************************************************
+Use Dim
+      Use Xpoint_indices
+
+      Use Math_problem_size
+      Use Timing
+      Use Share
+
+      Use Phyvar
+      Use UEpar
+
+      Use Aux ,only: ixmp
+      Use Coefeq
+      Use Bcond    ! albedoo,albedoi,isfixlb,isfixrb
+                    ! xcnearlb,xcnearrb,openbox
+      Use Parallv  ! nxg,nyg
+      Use Rccoef   ! recylb,recyrb,recycw,recycz,sputtr
+      Use Fixsrc
+      Use Selec    ! i1,i2,i3,i4,i5,i6,i7,i8,xlinc,xrinc,ixs1,
+                    ! j1,j1p,j2,j2p,j3,j4,j5,j6,j5p,j6p,j7,j8,j5m
+      Use Comgeo   ! isxptx,isxpty
+      Use Noggeo   ! fym,fy0,fyp,fymx,fypx,angfx,fxm,fx0,fxp,fxmy,fxpy
+      Use Compla   ! znucl,rtaux,rtauy,rtau,rt_scal
+      Use Comflo
+      Use Conduc   ! lmfplim
+      Use Rhsides
+      Use Save_terms   ! psorold,psorxrold
+      Use Indexes
+      Use Ynorm   ! isflxvar,nnorm,ennorm,fnorm,n0,n0g
+      Use Poten    ! bcee,bcei,cthe,cthi
+      Use Comtra   ! parvis,travis,difni,difnit,difpr,difni2,
+                    ! difpr2,vcony,flalfe,flalfi,flgam,kxe,kxecore,
+                    ! kye,kyet,kxi,kxicore,kxn,kyi,kyit,kyn,feqp,
+                    ! flalfgx,flalfgy,flalfv,flalfvgx,flalfvgy,
+                    ! flalftgx,flalftgy,alfeqp,facbni,facbni2,facbee,
+                    ! facbei,isbohmcalc,diffusivity,diffusivwrk,
+                    ! diffusivloc,isdifxg_aug,isdifyg_aug,sigvi_floor,
+                    ! facbup
+      Use Bfield   ! btot,rbfbt,rbfbt2
+      Use Locflux
+      Use Wkspace
+      Use Gradients
+      Use Imprad   ! isimpon,nzloc,impradloc,prad,pradz,na,ntau,nratio,
+                    ! afrac,atau,ismctab,rcxighg,pwrze
+
+      Use Volsrc  ! pwrsore,pwrsori,volpsor
+      Use Model_choice   ! iondenseqn
+      Use Time_dep_nwt   ! ylodt
+      Use Cfric          ! frice,frici
+      Use Turbulence     ! isturbnloc,isturbcons,diffuslimit,diffuswgts
+      Use Turbulence_diagnostics   ! chinorml,chinormh
+      Use MCN_dim
+      Use MCN_sources	  ! uesor_ni,uesor_up,uesor_ti,uesor_te
+      Use Ext_neutrals          ! isextneuton, extneutopt
+      Use PNC_params            ! dtneut, dtold
+      Use PNC_data             ! ni_pnc, etc.
+      Use Reduced_ion_interface ! misotope,natomic
+      Use Indices_domain_dcl    ! ixmxbcl
+      Use Indices_domain_dcg    ! ndomain
+      Use Npes_mpi             ! mype
+      Use RZ_grid_info  		 ! bpol
+      Use Interp				 ! ngs, tgs
+integer ix,iy,ifld,ix1
+real afqp
+
+vex(i1:i6,j1:j6) = 0.
+vey(i1:i6,j1:j6) = 0.
+upe(i1:i6,j1:j6) = 0
+     ! if (isimpon.eq.5) goto 29    ! have upe from mombal
+
+
+     afqp = 1.
+      if (isimpon.eq.6 .or. isimpon.eq.7) afqp = fupe_cur  !allows gradual fix for old cases
+do ifld = 1, nfsp
+do iy = j1, j6
+do ix = i1, i6
+         !iys1, iyf6
+
+	    ix1 = ixp1(ix,iy)
+
+     upe(ix,iy) = upe(ix,iy) + upi(ix,iy,ifld)*zi(ifld)*0.5*( ni(ix,iy,ifld)+ni(ix1,iy,ifld) )
+     vey(ix,iy) = vey(ix,iy) + vy(ix,iy,ifld)*zi(ifld)*0.5*( niy0(ix,iy,ifld)+niy1(ix,iy,ifld) )
+        enddo
+        enddo
+        enddo
+do iy = j1, j6
+do ix = i1, i6
+ix1 = ixp1(ix,iy)
+	    upe(ix,iy) = (upe(ix,iy) -afqp*fqp(ix,iy)/(rrv(ix,iy)*sx(ix,iy)*qe))/(0.5*( ne(ix,iy)+ne(ix1,iy) ))
+        vey(ix,iy) = (vey(ix,iy)-cfjve*fqy(ix,iy)/(sy(ix,iy)*qe))/(0.5*( ney0(ix,iy)+ney1(ix,iy) ))
+        vex(ix,iy) = upe(ix,iy)*rrv(ix,iy) +&
+        (cf2ef*v2ce(ix,iy,1) + cf2bf*ve2cb(ix,iy)+cf2dd*bfacxrozh(ix,iy)*ve2cd(ix,iy,1) ) *0.5*(rbfbt(ix,iy) + rbfbt(ix1,iy))&
+         -vytan(ix,iy,1)
+         enddo
+   enddo
+vey(:,j6)=0
+! ... if isnewpot=0, vey(,0) needs to be redone since fqy(,0)=0
+      if (isnewpot==1) then
+        do ix = i1, i6  ! ExB vyce same all species
+          vey(ix,0) = cfybf*veycb(ix,0) + vydd(ix,0,1) +cfyef*vyce(ix,0,1)
+        enddo
+      endif
+
+! ... If isybdrywd = 1, make vey diffusive, just like vy
+      if (isybdrywd == 1) then  !make vy diffusive in wall cells
+        do ix = i1, i6
+          if (matwalli(ix) > 0) vey(ix,0)  = vydd(ix,0,1)
+          if (matwallo(ix) > 0) vey(ix,ny) = vydd(ix,ny,1)
+        enddo
+      endif
+end subroutine compute_electron_vel
