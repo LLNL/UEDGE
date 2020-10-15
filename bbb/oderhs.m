@@ -7791,8 +7791,13 @@ c ....            Fix limiter case with algebraic eqns, not ODEs
                endif
 	       if(istionxy(ix,iy).eq.1 .and. iseqalg(iv1).eq.0) then
                  if(isupgon(1)==1) then  #atom dens included in nbidot
+        if (FixRscal.gt.0) then
+                 yldot(iv1) = ( yldot(iv1)*nnorm - yl(iv1)*(nbidot+nbgdot)  ) /
+     .                                       (nit(ix,iy)+ ni(ix,iy,2))
+        else
                    yldot(iv1) = ( yldot(iv1)*nnorm - yl(iv1)*nbidot  ) /
      .                                       (nit(ix,iy)+ ni(ix,iy,2))
+        endif
                  else      #atom dens not included in nbidot
                    yldot(iv1) = ( yldot(iv1)*nnorm - yl(iv1)*
      .                             ( nbidot + cngtgx(1)*nbg2dot(1) ) ) /
@@ -8241,12 +8246,17 @@ cc         : Further validation of this statement is needed though.
 cc         : Also, stencil analysis can be performed with the UEDGEToolBox extension.
 
 c... Option added to keep extended Jacobian when phi eq. is on (Added by J.Guterl). See comments above
-        if (ExtendedJacPhi.gt.0) then
+        if (ExtendedJacPhi.eq.1) then
         if(isphion*isnewpot.eq.1 .and. mod(iv,numvar).eq.0) then
             ii1 = max(iv-4*numvar*nx, 1)      # 3*nx may be excessive
             ii2 = min(iv+4*numvar*nx, neq)    # 3*nx may be excessive
         endif
-       endif
+        else if (ExtendedJacPhi.eq.2) then
+        if(isphion*isnewpot.eq.1) then
+            ii1 = max(iv-4*numvar*nx, 1)      # 3*nx may be excessive
+            ii2 = min(iv+4*numvar*nx, neq)    # 3*nx may be excessive
+        endif
+        endif
 
 c ... Reset range if extrapolation boundary conditions are used
 cc  This reset of ii1,2 may also cause storage prob.; see just above
@@ -8493,6 +8503,7 @@ c ... Finally, calculate approximate LU decomposition.
 
 c ... Accumulate cpu time spent here.
  99   ttmatfac = ttmatfac + (gettime(sec4) - tsmatfac)
+      premethinfo='nothing'
       if (premeth.eq.'banded') then
       write(premethinfo,*) premeth,'|',premethbanded
       else

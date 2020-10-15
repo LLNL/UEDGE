@@ -1409,7 +1409,7 @@ c...  Also reset gyf, so we need the gy calc. after call to nonorthg
 
 c...  Reset fym, fy0, fyp around the x-point - only orthogonal coupling
         do ik = 0, 1
-          do ij = 0, 1  #was -1,1; changed 12/13/19
+          do ij = -1, 1  #J.Guterl: one should verify the correctness of changes before making them official....was -1,1; changed 12/13/19
             do jx = 1, nxpt
               fym(ixpt1(jx),iysptrx1(jx)+ij,ik)  = 0.
               fy0(ixpt1(jx),iysptrx1(jx)+ij,ik)  = 1.

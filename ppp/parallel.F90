@@ -238,9 +238,16 @@ end subroutine jac_calc_parallel
         ii2 = min(iv+ml, neq)
         ! ... Reset range if this is a potential perturbation with isnewpot=1
         !         if (isphion*isnewpot.eq.1 .and. mod(iv,numvar).eq.0) then
-        if (ExtendedJacPhi.gt.0 .and. isphion*isnewpot.eq.1 .and. mod(iv,numvar).eq.0) then
+        if (ExtendedJacPhi.eq.1) then
+        if  (isphion*isnewpot.eq.1 .and. mod(iv,numvar).eq.0) then
             ii1 = max(iv-4*numvar*nx, 1)      ! 3*nx may be excessive
             ii2 = min(iv+4*numvar*nx, neq)    ! 3*nx may be excessive
+        endif
+        else if (ExtendedJacPhi.eq.2) then
+        if(isphion*isnewpot.eq.1) then
+            ii1 = max(iv-4*numvar*nx, 1)      ! 3*nx may be excessive
+            ii2 = min(iv+4*numvar*nx, neq)   ! 3*nx may be excessive
+        endif
         endif
 
         ! ... Reset range if extrapolation boundary conditions are used
