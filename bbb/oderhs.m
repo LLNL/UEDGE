@@ -3477,11 +3477,9 @@ c     The density-stencil dxnog has to be averaged as well.
      .                  fy0v (ix,iy,0)*up(ix1,iy  ,ifld)-
      .                  fypv (ix,iy,0)*up(ix5,iy+1,ifld)-
      .                  fymxv(ix,iy,0)*up(ix ,iy1 ,ifld)-
-     .                  fypxv(ix,iy,0)*up(ix ,iy+1,ifld) )
-     .                   *length
-c.... Fix by J.Guterl:
-c     .
-c.... end fix by J.Guterl
+     .                  fypxv(ix,iy,0)*up(ix ,iy+1,ifld) )*
+     .                  2/(dxnog(ix,iy)+dxnog(ix1,iy))
+
                if (isgxvon .eq. 0) then
                   fmixy(ix,iy,ifld) = cfvisxy(ifld)*visy(ix,iy,ifld) *
      .              ( grdnv/cos(0.5*(angfx(ix1,iy)+angfx(ix,iy))) -
@@ -5973,9 +5971,8 @@ c ..Timing;initialize
             nu1 = nuix(ix,iy,igsp) + vtn/lgmax(igsp)
             nu2 = nuix(ix2,iy,igsp) + vtnp/lgmax(igsp)
 	    tgf = 0.5*(tg(ix,iy,igsp)+tg(ix2,iy,igsp))
-c... cflbgflalfgx added for validation prupose only.
             flalfgx_adj = flalfgxa(ix,igsp)*( 1. +
-     .                    (cflbgflalfgx*ngbackg(igsp)/ng(ix,iy,igsp))**inflbg )
+     .                    (cflbg*ngbackg(igsp)/ng(ix,iy,igsp))**inflbg )
             qfl = flalfgx_adj * sx(ix,iy) * (vtn + vtnp)*rt8opi*
      .           (ng(ix,iy,igsp)*gx(ix,iy) + ng(ix2,iy,igsp)*gx(ix2,iy))
      .                                      / (8*(gx(ix,iy)+gx(ix2,iy)))
@@ -6081,9 +6078,8 @@ c ..Timing; initiate time for y-direction calc
             nu1 = nuix(ix,iy,igsp) + vtn/lgmax(igsp)
             nu2 = nuix(ix,iy+1,igsp) + vtnp/lgmax(igsp)
 	    tgf = 0.5*(tg(ix,iy,igsp)+tg(ix,iy+1,igsp))
-c.. cflbgflalfgy added by J.Guterl for validation purpose
             flalfgy_adj = flalfgya(iy,igsp)*( 1. +
-     .                   (cflbgflalfgy*ngbackg(igsp)/ng(ix,iy,igsp))**inflbg )
+     .                   (cflbg*ngbackg(igsp)/ng(ix,iy,igsp))**inflbg )
             qfl = flalfgy_adj * sy(ix,iy) * (vtn + vtnp)*rt8opi*
      .                              ( ngy0(ix,iy,igsp)*gy(ix,iy) +
      .                                ngy1(ix,iy,igsp)*gy(ix,iy+1) ) /
@@ -6262,7 +6258,7 @@ c...  Now flux limit with flalfgxy
                vtn = sqrt( t0/mg(igsp) )
                vtnp = sqrt( t1/mg(igsp) )
                flalfgxy_adj = flalfgxya(ix,igsp)*( 1. +
-     .                     (cflbgflalfgxy*ngbackg(igsp)/ng(ix,iy,igsp))**inflbg )
+     .                     (cflbg*ngbackg(igsp)/ng(ix,iy,igsp))**inflbg )
                qfl = flalfgxy_adj*sx(ix,iy) * (vtn + vtnp)*rt8opi*
      .           (ng(ix,iy,igsp)*gx(ix,iy) + ng(ix2,iy,igsp)*gx(ix2,iy))
      .                                      / (8*(gx(ix,iy)+gx(ix2,iy)))
@@ -8510,9 +8506,9 @@ c ... Accumulate cpu time spent here.
  99   ttmatfac = ttmatfac + (gettime(sec4) - tsmatfac)
       premethinfo='nothing'
       if (premeth.eq.'banded') then
-      write(premethinfo,*) premeth,'|',premethbanded
+      premethinfo= premeth // '|' // premethbanded
       else
-      write(premethinfo,*) premeth
+      premethinfo =  premeth
       endif
 
       TimeLU=tock(TimeLU)

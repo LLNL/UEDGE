@@ -65,10 +65,7 @@ ingb      integer         /2/     #background gas source=nuiz*ngbackg*
                                   #                  (.9+.1*(ngbackg/ng)**ingb)
 inflbg    integer         /4/     #expon to force flalfg large near ng~ngback
 				  #ex:flalfgx,y*(1.+(cflgb*ngbackg/ng)**inflbg)
-###cflbg     real            /10./   #scaling fac for flalfgx,y using inflbg
-cflbgflalfgx real            /0./   #scaling fac for flalfgx using inflbg
-cflbgflalfgy real            /0./   #scaling fac for flalfgx,y using inflbg
-cflbgflalfgxy real           /0./   #scaling fac for flalfgxy using inflbg
+cflbg     real            /10./   #scaling fac for flalfgx,y using inflbg
 facngbackg2ngs(ngspmx) real /ngspmx*1.e-8/
                                   #fraction of ngbackg add to initial ngs
 nzbackg(nispmx) real [1/m**3] /nispmx*1.e9/ #background impurity density
@@ -3894,7 +3891,6 @@ TotTimeJac real /0.0/
 Timenksol real /0.0/
 TotTimenksol real /0.0/
 RemoveNeutPwrPlt integer /0/ #flag for removing power
-bbb integer /0/ #flag for generalizeds bohm condition
 Fixfmixydxnog integer /1/
 
 PrintTimingPandf() subroutine
