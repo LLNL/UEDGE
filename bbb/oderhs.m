@@ -3460,13 +3460,6 @@ c     The density-stencil dxnog has to be averaged as well.
             do 97 ix = i2, i5+1    # ixp1(i5,iy)
                ix1 = ixm1(ix,iy)
                ix3 = ixm1(ix,iy1)
-               ix5 = ixm1(ix,iy+1)
-               if (Fixfmixydxnog.gt.0) then
-               length=2/(dxnog(ix,iy)+dxnog(ix1,iy))
-               else
-               length=1/( 2*dxnog(ix,iy)*dxnog(ix1,iy) /
-     .                       (dxnog(ix,iy)+dxnog(ix1,iy)) )
-               endif
                grdnv = (
      .                  fymv (ix,iy,1)*up(ix ,iy1 ,ifld)+
      .                  fy0v (ix,iy,1)*up(ix ,iy  ,ifld)+
