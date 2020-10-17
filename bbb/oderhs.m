@@ -1464,15 +1464,15 @@ c             non-physical interface between upper target plates for dnull
             vy(ix,ny+1,ifld) = 0.0
  21      continue
         else    # test on zi > 1.e-10 to skip whole loop
-                  vy(:,:,ifld)=0
-                  vytan(:,:,ifld)=0
-                  v2cb(:,:,ifld)=0
-                  v2cd(:,:,ifld)=0
-                  v2ce(:,:,ifld)=0
-                  ve2cd(:,:,ifld)=0
-                  q2cd(:,:,ifld)=0
-                  v2rd(:,:,ifld)=0
-                  vygp(:,:,ifld)=0
+c                  vy(:,:,ifld)=0
+c                  vytan(:,:,ifld)=0
+c                  v2cb(:,:,ifld)=0
+c                  v2cd(:,:,ifld)=0
+c                  v2ce(:,:,ifld)=0
+c                  ve2cd(:,:,ifld)=0
+c                  q2cd(:,:,ifld)=0
+c                  v2rd(:,:,ifld)=0
+c                  vygp(:,:,ifld)=0
         endif
   100 continue  # Giant loop over ifld (species)
 
@@ -4019,8 +4019,8 @@ cccMER For full double-null configuration, iysptrx is last closed flux surface.
      .                           ( ni(ix,iy,ifld) + ni(ix1,iy,ifld) ) *
      .                           ( rbfbt2(ix,iy) + rbfbt2(ix1,iy) ) *
      .                            temp1
-             else
-                 floxibgt(ix,iy,ifld)=0.0
+c             else
+c                 floxibgt(ix,iy,ifld)=0.0
              endif
              floxi(ix,iy) = floxi(ix,iy) + cfbgt*floxibgt(ix,iy,ifld)
   131      continue
