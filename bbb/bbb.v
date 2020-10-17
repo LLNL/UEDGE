@@ -3040,7 +3040,7 @@ fnormnw(neqmx)   _real
 issfon            integer /1/  #=1 calc sfscal for row scaling (norml.) by nksol
 isrnorm           integer /1/  #=1 causes row normaliza. of Jac. (see normtype)
 jscalcol          integer /0/  #=1 causes column scaling for daspk
-ExtendedJacPhi  integer /1/    #=1 extend bandwith for jacobian calculation when isphion=1
+ExtendedJacPhi  integer /2/    #=1 extend bandwith for jacobian calculation when isphion=1
 
 ***** Variable_perturbation restart:
 delperturb      real	/1.e-8/		# fractional change for finite diffs
@@ -3890,8 +3890,7 @@ TimeJac real /0.0/
 TotTimeJac real /0.0/
 Timenksol real /0.0/
 TotTimenksol real /0.0/
-RemoveNeutPwrPlt integer /0/ #flag for removing power
-Fixfmixydxnog integer /1/
+
 
 PrintTimingPandf() subroutine
 PrintTimingExmain() subroutine
