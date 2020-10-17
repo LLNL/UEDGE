@@ -1464,6 +1464,15 @@ c             non-physical interface between upper target plates for dnull
             vy(ix,ny+1,ifld) = 0.0
  21      continue
         else    # test on zi > 1.e-10 to skip whole loop
+                  vy(:,:,ifld)=0
+                  vytan(:,:,ifld)=0
+                  v2cb(:,:,ifld)=0
+                  v2cd(:,:,ifld)=0
+                  v2ce(:,:,ifld)=0
+                  ve2cd(:,:,ifld)=0
+                  q2cd(:,:,ifld)=0
+                  v2rd(:,:,ifld)=0
+                  vygp(:,:,ifld)=0
         endif
   100 continue  # Giant loop over ifld (species)
 
@@ -1686,7 +1695,7 @@ c     to those from parallel flow.
 
 c...  If upi not from full ||mom eq (e.g.,isimpon=6), set impurity
 c...  uu(ixrb,,) & upi(ixrb,,) via generalized Bohm cond.
-      if(isimpon > 0 .and. Impbohmcond.gt.0) then
+      if(isimpon > 0) then
         do jx = 1, nxpt
 	  ixt0 = ixlb(jx)
           ixt = ixrb(jx)+1
@@ -4018,6 +4027,8 @@ cccMER For full double-null configuration, iysptrx is last closed flux surface.
      .                           ( ni(ix,iy,ifld) + ni(ix1,iy,ifld) ) *
      .                           ( rbfbt2(ix,iy) + rbfbt2(ix1,iy) ) *
      .                            temp1
+             else
+                 floxibgt(ix,iy,ifld)=0.0
              endif
              floxi(ix,iy) = floxi(ix,iy) + cfbgt*floxibgt(ix,iy,ifld)
   131      continue
@@ -7424,8 +7435,7 @@ c... flux-limit occurs in building hcxg - do not flux-limit 2nd time
           floxge(nx+1,iy,igsp) = 0.
         enddo
       enddo
-c... Flag RemoveNeutPwrPlt added by J.Guterl
-       if (RemoveNeutPwrPlt.gt.0) then
+
 *  -- Correct bdry:remove any inward power from plates; ok in parallel
       do igsp = 1, ngsp
         do iy = j4, j8
@@ -7448,7 +7458,6 @@ c... Flag RemoveNeutPwrPlt added by J.Guterl
           enddo
         enddo
       enddo
-      endif
 
 *  -- compute floyge --
 
@@ -7791,13 +7800,9 @@ c ....            Fix limiter case with algebraic eqns, not ODEs
                endif
 	       if(istionxy(ix,iy).eq.1 .and. iseqalg(iv1).eq.0) then
                  if(isupgon(1)==1) then  #atom dens included in nbidot
-        if (FixRscal.gt.0) then
-                 yldot(iv1) = ( yldot(iv1)*nnorm - yl(iv1)*(nbidot+nbgdot)  ) /
-     .                                       (nit(ix,iy)+ ni(ix,iy,2))
-        else
                    yldot(iv1) = ( yldot(iv1)*nnorm - yl(iv1)*nbidot  ) /
      .                                       (nit(ix,iy)+ ni(ix,iy,2))
-        endif
+
                  else      #atom dens not included in nbidot
                    yldot(iv1) = ( yldot(iv1)*nnorm - yl(iv1)*
      .                             ( nbidot + cngtgx(1)*nbg2dot(1) ) ) /
@@ -11754,6 +11759,7 @@ c ... neoclassical effects
       Use(Compla)   # ni,up,te,ti,ng,phi,v2cd,
       Use(Comflo)   # qipar
       Use(Conduc)   # visxneo,nuii,alfneo,visvol_v,visvol_q
+
 
       do ifld = 1, nfsp
        if(zi(ifld) > 0.) then

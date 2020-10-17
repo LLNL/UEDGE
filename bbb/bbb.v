@@ -380,7 +380,6 @@ cfhcxgc(ngspmx) real /ngspmx*0./ # Coef constant pol heat conduct (chixg_use)
 cfhcygc(ngspmx) real /ngspmx*0./ # Coef constant rad heat conduct (chiyg_use)
 cftgcond  real      /1./    #Coef for gas thermal cond (usually molecules)
 cftgeqp  real       /1.5/   #Coef for gas thermal equipartion (usually molecules)
-Fixrscal integer /1/
 
 ***** Bcond restart:
 #Variables for setting the boundary conditions.
@@ -3895,8 +3894,9 @@ TotTimeJac real /0.0/
 Timenksol real /0.0/
 TotTimenksol real /0.0/
 RemoveNeutPwrPlt integer /0/ #flag for removing power
-Impbohmcond integer /0/ #flag for generalizeds bohm condition
+bbb integer /0/ #flag for generalizeds bohm condition
 Fixfmixydxnog integer /1/
 
 PrintTimingPandf() subroutine
+PrintTimingExmain() subroutine
 
