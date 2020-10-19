@@ -1269,7 +1269,7 @@ c check for maximum number of iterates exceeded.
         go to 999
         endif
       if (nfe.gt.nfemax) then
-      iterm = 6
+      iterm = 11
       go to 999
       endif
 c check for consecutive number of steps taken of size stepmx.
@@ -3700,6 +3700,10 @@ c
         write(iunit,9080)
         return
         endif
+      if (iterm .eq. 10) then
+        write(iunit,9090)
+        return
+        endif
 c-----------------------------------------------------------------------
 c     formats.
 c-----------------------------------------------------------------------
@@ -3767,6 +3771,11 @@ c-----------------------------------------------------------------------
  9080   format(//
      * ' nksol ---  iterm = 9.'
      */'            there was a nonrecoverable error in psol'
+     */'            causing the iteration to halt.'
+     *)
+ 9090   format(//
+     * ' nksol ---  iterm = 10.'
+     */'            nfe>nfemax '
      */'            causing the iteration to halt.'
      *)
       return
