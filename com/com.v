@@ -329,7 +329,7 @@ istabon	integer	/7/ +restart
 
 reset_core_og			integer /0/
         # flag to force diff stencil orthog in core; use if isupstreamx=1
-
+NewGridFormat integer /0/ # 0: use old header grid format with 5i4 header format 1: use new header grid with 5i4,2f16.10 format.
 ***** Xpoint_indices:
 # target plate, x-point and separatrix indices
 ixlb(1:nxpt)	_integer	# ix index of left boundary

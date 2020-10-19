@@ -174,8 +174,12 @@ c     Read mesh parameters from a UEDGE code grid data file
          read(nuno,1999) ixlb(2),ixpt1(2),ixmdp(2),ixpt2(2),ixrb(2)
 	 if (geometry=="dnXtarget") nxc = ixmdp(1)
       else
+         if (NewGridFormat.gt.0) then
+	       read(nuno,'(5i4,f16.10,f16.10)' ) nxm,nym,ixpt1(1),ixpt2(1),iysptrx1(1), simagxs_tmp, sibdrys_tmp
+		 else
          read(nuno,1999) nxm,nym,ixpt1(1),ixpt2(1),iysptrx1(1)
-c         read(nuno,'(5i4,:,f16.10,f16.10)') nxm,nym,ixpt1(1),ixpt2(1),iysptrx1(1), simagxs_tmp, sibdrys_tmp
+         endif
+
          simagxs = simagxs_tmp
          sibdrys = sibdrys_tmp
          ixlb(1)=0
@@ -223,8 +227,11 @@ c     Read a UEDGE code grid data file
          read(nuno,1999) ixlb(2),ixpt1(2),ixmdp(2),ixpt2(2),ixrb(2)
 	 if (geometry=="dnXtarget") nxc = ixmdp(1)
       else
-         read(nuno,1999) nxm,nym,ixpt1(1),ixpt2(1),iysptrx1(1)
-c         read(nuno,'(5i4,:,f16.10,f16.10 )' ) nxm,nym,ixpt1(1),ixpt2(1),iysptrx1(1), simagxs_tmp, sibdrys_tmp
+         if (NewGridFormat.gt.0) then
+	       read(nuno,'(5i4,f16.10,f16.10 )' ) nxm,nym,ixpt1(1),ixpt2(1),iysptrx1(1), simagxs_tmp, sibdrys_tmp
+		 else
+           read(nuno,1999) nxm,nym,ixpt1(1),ixpt2(1),iysptrx1(1)
+         endif
          simagxs = simagxs_tmp
          sibdrys = sibdrys_tmp
          ixlb(1)=0
