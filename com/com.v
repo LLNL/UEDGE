@@ -25,7 +25,7 @@ nzspt   integer /1/     # total number of impurity species
 nzspmx  integer	   /10/	# maximum of nzsp(igsp) used for storage allocation
 nisp	integer	/1/	# number of ion species
 nusp	integer		# number of parallel momentum equations
-nfsp	integer		 +threadprivate # number of cont. eqns or flux species (calc internal)
+nfsp	integer	    # number of cont. eqns or flux species (calc internal)
 ngsp	integer	/1/ +restart +regrid	# number of gas species
 nhgsp   integer /1/     # number of hydrogen gas species (prepare for tritium)
 imx     integer /50/    # size in x of Zagorski arrays
