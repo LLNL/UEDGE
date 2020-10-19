@@ -1702,7 +1702,7 @@ c     First, the density equations --
               iv1 = idxn(ixt,iy,ifld)
               if (isupgon(1)==1 .and. zi(ifld)==0.0) then   ## neutrals
                 if (recylb(iy,1,jx) .gt. 0.) then           # recycling
-                  t0 = max(ti(ixt1,iy),temin*ev)
+                  t0 = max(tg(ixt1,iy,1),temin*ev)
                   vxn = 0.25 * sqrt( 8*t0/(pi*mi(ifld)) )
                   yldot(iv1) = -nurlxg *
      .             (fnix(ixt,iy,ifld) + recylb(iy,1,jx)*fnix(ixt,iy,1) -
@@ -1711,7 +1711,7 @@ c     First, the density equations --
      .                 fngxslb(iy,1,jx) ) / (vpnorm*n0(ifld)*sx(ixt,iy))
                 elseif (recylb(iy,1,jx) <=  0. .and.
      .                  recylb(iy,1,jx) >= -1.) then  # recylb is albedo
-                  t0 = max(ti(ixt,iy),temin*ev)
+                  t0 = max(tg(ixt,iy,1),temin*ev)
                   vyn = sqrt( 0.5*t0/(pi*mi(1)) )
                   yldot(iv1) = -nurlxg * ( fnix(ixt,iy,ifld) +
      .             (1+recylb(iy,1,jx))*ni(ixt,iy,ifld)*vyn*sx(ixt,iy) )/
@@ -2311,7 +2311,7 @@ c     First, the density equations --
               iv1 = idxn(ixt,iy,ifld)
               if (isupgon(1)==1 .and. zi(ifld)==0.0) then   ## neutrals
                 if (recyrb(iy,1,jx) .gt. 0.) then           # recycling
-                  t0 = max(ti(ixt1,iy),temin*ev)
+                  t0 = max(tg(ixt1,iy,1),temin*ev)
                   vxn = 0.25 * sqrt( 8*t0/(pi*mi(ifld)) )
                   yldot(iv1) = nurlxg *
      .               (fnix(ixt1,iy,ifld) + recyrb(iy,1,jx)*fnix(ixt1,iy,1) +
@@ -2320,7 +2320,7 @@ c     First, the density equations --
      .                - fngxsrb(iy,1,jx) ) / (vpnorm*n0(ifld)*sx(ixt1,iy))
                 elseif (recyrb(iy,1,jx) <=  0. .and.
      .                  recyrb(iy,1,jx) >= -1.) then   # recyrb is albedo
-                  t0 = max(ti(ixt1,iy),temin*ev)
+                  t0 = max(tg(ixt1,iy,1),temin*ev)
                   vyn = sqrt( 0.5*t0/(pi*mi(1)) )
                   yldot(iv1) = nurlxg * ( fnix(ixt1,iy,ifld) -
      .                 (1+recyrb(iy,1,jx))*ni(ixt,iy,ifld)*vyn*sx(ixt1,iy) )/
