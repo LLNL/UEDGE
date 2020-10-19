@@ -108,23 +108,23 @@ ci        real            /3.9/   #factor for ion thermal conductivity
                 #The zeff dependence of ce has been explicitly added in zcoef,
                 #thus ce should always be left as 3.16 even if zeff is not 1,
                 #provided zeff is less than or equal to 4.
-ncrhs     integer +threadprivate
+ncrhs     integer
 istep     integer
 iter      integer
-dp1       real +threadprivate
-qfl       real +threadprivate
-csh       real +threadprivate
-qsh       real +threadprivate
-mfl       real +threadprivate
-msh       real +threadprivate
+dp1       real
+qfl       real
+csh       real
+qsh       real
+mfl       real
+msh       real
 ro        real
-cs        real +threadprivate
-ctaue(0:nx+1,0:ny+1,nisp)  _real   +threadprivate #calc factor for elec Coulomb coll
-ctaui(0:nx+1,0:ny+1,nisp)  _real   +threadprivate #calc factor for ion Coulomb coll
-fxe       real +threadprivate
-fxi       real +threadprivate
-zcoef     real           +threadprivate #factor (calc) give zeff dependence of elec thermal c.
-coef1     real           +threadprivate #factor (calc) for energy equipartion rate
+cs        real
+ctaue(0:nx+1,0:ny+1,nisp)  _real  #calc factor for elec Coulomb coll
+ctaui(0:nx+1,0:ny+1,nisp)  _real  #calc factor for ion Coulomb coll
+fxe       real
+fxi       real
+zcoef     real          #factor (calc) give zeff dependence of elec thermal c.
+coef1     real          #factor (calc) for energy equipartion rate
 cnurn     real    /1./  #scales nurlx rate for ion continuity eqn.
 cnuru     real    /1./  #scales nurlx rate for ion mom. eqn.
 cnure     real    /1./  #scales nurlx rate for elec. eng. eqn.
@@ -252,13 +252,13 @@ iondenseqn	character*8	/"llnl"/	# ion continuity equation
 cnfx      real      /1./    #X-flux coef for conv. in n-eq.
 cnfy      real      /1./    #Y-flux coef for conv. in n-eq.
 cnsor     real      /1./    #Coef for particle src. in n-eq.
-cfneut    real      /1./     +threadprivate #Coef for fluid neutrals contrib's to resid's
+cfneut    real      /1./    #Coef for fluid neutrals contrib's to resid's
 cfnidh    real      /1./    #Coef for neutral-ion drift heating
 cfupcx    real      /1./    #Coef for nucx*(up_ion - up_gas) momentum coupling
 cfticx    real      /1./    #Coef for nucx*(up_ion-up_gas)**2 heating in Ti Eq
 cfupimpg  real      /0./    #Coef for impur up Cx/elast drag on up=0 imp gas
 cftiimpg  real      /0./    #Coef for Ti cooling CX/elast loss to cold imp gas
-cmneut    real      /0./     +threadprivate #Coef for Monte Carlo neutrals contrib's to resid's
+cmneut    real      /0./    #Coef for Monte Carlo neutrals contrib's to resid's
 cnflux(ngspmx) real /ngspmx*1./ #coef for particle flux in n-eq. (resco)
 chradi    real      /1./    #Coef for hyd. ioniz. rad. loss in elec. eng. eq.
 chradr    real      /1./    #Coef for hyd. recomb. rad. loss in elec. eng. eq.
@@ -302,14 +302,14 @@ cfvisxy(1:nispmx) real /nispmx*1./    #Coef. mult fmixy(ifld)
 isvisxn_old integer /0/     #=1 uses sigcx,rrfac=1; =0 uses kelhihg, rrfac=rr**2
 cfvxnrr   real      /1./    #=1 gives rr**2 in visx gas; =0 gives old 1 factor
 cfvisyn   real      /1./    #Coef. for neutral y-visc. in up(,,iispg) eqn
-cfvcsx(1:nispmx) real /nispmx*1./   +threadprivate #Coefs for x-visc. in ti-eq. with ismcnon>0
-cfvcsy(1:nispmx) real /nispmx*1./   +threadprivate #Coefs for y-visc. in ti-eq. with ismcnon>0
+cfvcsx(1:nispmx) real /nispmx*1./  #Coefs for x-visc. in ti-eq. with ismcnon>0
+cfvcsy(1:nispmx) real /nispmx*1./  #Coefs for y-visc. in ti-eq. with ismcnon>0
 isvhyha   integer   /0/     #switch (=1) for harmonic y-ave of up in visc heat
 upvhflr   real      /1.e2/  #min denom for up harmc ave (isvhyha=1); visc heat
 vboost    real      /1./    #previously scaled eqp; no longer in use
 cvgp      real      /1./    #Coef for v.Grad(p) terms.
-cfvgpx(1:nispmx) real /nispmx*1./  +threadprivate #Coefs for x components of v.grad(p) in ti-eq
-cfvgpy(1:nispmx) real /nispmx*1./  +threadprivate #Coefs for y components of v.grad(p) in ti-eq
+cfvgpx(1:nispmx) real /nispmx*1./ #Coefs for x components of v.grad(p) in ti-eq
+cfvgpy(1:nispmx) real /nispmx*1./ #Coefs for y components of v.grad(p) in ti-eq
 cfbgt     real      /0./    #Coef for the B x Grad(T) terms.
 cfjhf     real      /1./    #Coef for convective cur (fqp) heat flow
 jhswitch  integer   /0/     #Coef for the Joule-heating terms
@@ -351,7 +351,7 @@ cfupjr    real  [ ] /0./    #coef to include u_par in Jr calc.
 cfcximp1  real  [ ] /1./    #coef multi. kcxrz for imp(+1)+D(0)->imp(0)+D(+1)
 cfcximp2  real  [ ] /1./    #coef mult. kcxrz;imp(+p)+D(0)->imp(p-1)+D(+1),p>1
 cfnetap   real  [ ] /1./    #coef mult. netap*fqp term in frice express.
-fcdif     real  [ ] /1./     +threadprivate #coef mult all constant anomal diff coef
+fcdif     real  [ ] /1./    #coef mult all constant anomal diff coef
 cfmsor    real  [ ] /1./    #coef mult msor and msorxr in up eqn.
 cpiup(nispmx) real /nispmx*1./ #mult. press. grad term in up eqn
 cfloyi    real  [ ] /2.5/   #coef mult ion radial convective energy flow
@@ -602,8 +602,8 @@ issori(10) integer  /10*0/   #starting ix cell index for inner source
 iesori(10) integer  /10*0/   #ending ix cell index for inner source
 issoro(10) integer  /10*0/   #starting ix cell index for outer source
 iesoro(10) integer  /10*0/   #ending ix cell index for outer source
-iwalli(10) real     /10*0./   +threadprivate #current from inner source region isor for coupling
-iwallo(10) real     /10*0./   +threadprivate #current from outer source region isor for coupling
+iwalli(10) real     /10*0./  #current from inner source region isor for coupling
+iwallo(10) real     /10*0./  #current from outer source region isor for coupling
 ncpli(10)  integer  /10*0/   #flag for coupling between inner srce isor & ncpli
 ncplo(10)  integer  /10*0/   #flag for coupling between outer srce isor & ncpli
 cplsori(10)  real   /10*0./  #coeff. giving coupling from inner isor to ncpli
@@ -612,11 +612,11 @@ iscpli(0:nx+1)      _integer #(=1) => ix pt involved in inner bndry coupling
 iscplo(0:nx+1)      _integer #(=1) => ix pt involved in outer bndry coupling
 fwsori(0:nx+1,10)    _real   #profile of inner wall source isor (missing igasi)
 fwsoro(0:nx+1,10)    _real   #profile of outer wall source isor (missing igasi)
-fngysi(0:nx+1,ngsp)  _real -restart +threadprivate
+fngysi(0:nx+1,ngsp)  _real -restart
                              #gas input flux from igasi on inner wall (calc)
 fngyi_use(0:nx+1,ngsp) _real [1/m**3s] #user supplied gas input flux*area
 fngysig(0:nxg+1,ngsp) _real  #global value of fngysi if domain decomp (parll)
-fngyso(0:nx+1,ngsp)  _real -restart +threadprivate
+fngyso(0:nx+1,ngsp)  _real -restart
                              #gas input flux from igaso on outer wall (calc)
 fngyo_use(0:nx+1,ngsp) _real [1/m**3s] #user supplied gas input flux*area
 fngysog(0:nxg+1,ngsp) _real  #global value of fngyso if domain-decomp (parll)
@@ -714,8 +714,8 @@ tvplatlb(0:ny+1,nxptmx) _real /300./ [K] #user left plate temp if isplttempc=0
 tvplatrb(0:ny+1,nxptmx) _real /300./ [K] #user left plate temp if isplttempc=0
 flux_in   real        [1/m**2s] #incident ion or neutral flux for chem sputt
 ychem     real                  #chem sputt. yield output from sputchem
-yld_carbi(0:nx+1) _real          +threadprivate #chem sputt. yield, inner wall if isch_sput=5,6
-yld_carbo(0:nx+1) _real          +threadprivate #chem sputt. yield, outer wall if isch_sput=5,6
+yld_carbi(0:nx+1) _real         #chem sputt. yield, inner wall if isch_sput=5,6
+yld_carbo(0:nx+1) _real         #chem sputt. yield, outer wall if isch_sput=5,6
 fchemywi            real   /1./ #deprecated var; use fchemygwi; no harm if=1
 fchemywo            real   /1./ #deprecated var; use fchemygwo; no harm if=1
 fchemygwi(ngspmx) _real   /1./ #fac mult pf wall gas chem yield if isch_sput>0
@@ -729,13 +729,13 @@ fchemyrb(ngspmx,nxptmx) _real /1./ #fac*outer plt gas chem yield; isch_sput>0
 fphysylb(ngspmx,nxptmx) _real /1./ #fac*inner plt ion phys sp yield;isch_sput>0
 fphysyrb(ngspmx,nxptmx) _real /1./ #fac*outer plt ion phys sp yield;isch_sput>0
 isexunif  integer      /0/      #=1 forces ex ~ uniform at div. plates
-xcnearlb  logical    /FALSE/     +threadprivate #=TRUE if Jac'n "box" overlaps a left boundary
-xcnearrb  logical    /FALSE/     +threadprivate #=TRUE if Jac'n "box" overlaps a right boundary
-openbox   logical    /FALSE/     +threadprivate #=TRUE if Jac'n "box" is wide open
+xcnearlb  logical    /FALSE/    #=TRUE if Jac'n "box" overlaps a left boundary
+xcnearrb  logical    /FALSE/    #=TRUE if Jac'n "box" overlaps a right boundary
+openbox   logical    /FALSE/    #=TRUE if Jac'n "box" is wide open
 kappa0	  real       /3.0/	#modified sheath drop (allows j>jsat) for kappa > kappa0
 kappamx   real       /10.0/	#maximum kappa value
-fqpsatlb(0:ny+1,nxptmx)	_real	 +threadprivate #ion saturation current at left boundary
-fqpsatrb(0:ny+1,nxptmx)	_real	 +threadprivate #ion saturation current at right boundary
+fqpsatlb(0:ny+1,nxptmx)	_real	#ion saturation current at left boundary
+fqpsatrb(0:ny+1,nxptmx)	_real	#ion saturation current at right boundary
 cfueb		real	/1./	#scale factor for ueb in plate b.c.'s
 ikapmod   integer	/0/	#=1 for new kappa model; =0 for qpfac model
 fvapi(10) real		/10*0./	#scale factor for inner evap vapor source
@@ -747,10 +747,10 @@ bvapo(10) real		/10*1./ #exponent coeff. for outer evap vapor source
 tvapi(0:nx+1) _real [K]   	#inner wall temp for evap; input after alloc
 tvapo(0:nx+1) _real [K]   	#outer wall temp for evap; input after alloc
 cfvytanbc real          /1./    #factor for adding vytan to plate B.C.
-totfeexl(0:ny+1,nxpt) _real [W]  +threadprivate #elec polod energy flux*area on "left" plate
-totfeexr(0:ny+1,nxpt) _real [W]  +threadprivate #elec polod energy flux*area on "right" plate
-totfeixl(0:ny+1,nxpt) _real [W]  +threadprivate #elec polod energy flux*area on "left" plate
-totfeixr(0:ny+1,nxpt) _real [W]  +threadprivate #elec polod energy flux*area on "right" plate
+totfeexl(0:ny+1,nxpt) _real [W] #elec polod energy flux*area on "left" plate
+totfeexr(0:ny+1,nxpt) _real [W] #elec polod energy flux*area on "right" plate
+totfeixl(0:ny+1,nxpt) _real [W] #elec polod energy flux*area on "left" plate
+totfeixr(0:ny+1,nxpt) _real [W] #elec polod energy flux*area on "right" plate
 cgpl      real           /0./   #scale fac atom eng plate loss; experim.
 cgpld     real           /0./   #scale fac disso eng loss; experim.
 cgengpl   real		 /0./   #new scale fac atom eng plate loss; old cgpl
@@ -860,10 +860,10 @@ gamsec           real       /0./         #secondary elec emiss coeff on plates
 sputtr           real       /0./         #sputtering coef. at plates
 sputtlb(0:ny+1,ngspmx,nxptmx)    _real   #set sputt coef. inner plate (iy,igsp)
 sputtrb(0:ny+1,ngspmx,nxptmx)    _real   #set sputt coef. outer plate (iy,igsp)
-sputflxlb(0:ny+1,ngspmx,nxptmx)  _real    +threadprivate #calc sput flux inner plate (iy,igsp)
-sputflxrb(0:ny+1,ngspmx,nxptmx)  _real    +threadprivate #calc sput flux outer plate (iy,igsp)
-sputflxw(0:nx+1,ngspmx)          _real    +threadprivate #calc sput flux outer wall (ix,igsp)
-sputflxpf(0:nx+1,ngspmx)         _real    +threadprivate #calc sput flux PF wall (ix,igsp)
+sputflxlb(0:ny+1,ngspmx,nxptmx)  _real   #calc sput flux inner plate (iy,igsp)
+sputflxrb(0:ny+1,ngspmx,nxptmx)  _real   #calc sput flux outer plate (iy,igsp)
+sputflxw(0:nx+1,ngspmx)          _real   #calc sput flux outer wall (ix,igsp)
+sputflxpf(0:nx+1,ngspmx)         _real   #calc sput flux PF wall (ix,igsp)
 ngplatlb(ngspmx,nxptmx)          _real   #ng on inner plate if sputti < -9.9
 ngplatrb(ngspmx,nxptmx)          _real   #ng on outer plate if sputto < -9.9
 ipsputt_s		integer /1/      #start dens-index phys sputt species
@@ -917,36 +917,36 @@ b1i         real            /.1111/
 
 ***** Selec:
 #Variables for the calculation of the Jacobian locally.
-i1          integer +threadprivate
-i2          integer +threadprivate
-i2p         integer     +threadprivate #used for 4th-order diffusion in x
-i3          integer +threadprivate
-i4          integer +threadprivate
-i5          integer +threadprivate
-i5m         integer     +threadprivate #same as i5, except restricted to ix<nx
-i6          integer +threadprivate
-i7          integer +threadprivate
-i8          integer +threadprivate
-j1          integer +threadprivate
-j2          integer +threadprivate
-j3          integer +threadprivate
-j4          integer +threadprivate
-j5          integer +threadprivate
-j5m         integer	 +threadprivate #same as j5, except restricted to iy<ny
-j6          integer +threadprivate
-j7          integer +threadprivate
-j8          integer +threadprivate
-j1p         integer	 +threadprivate #y-index lower range for potential eqn
-j2p         integer	 +threadprivate #y-index lower range for potential eqn
-j5p         integer	 +threadprivate #y-index upper range for potential eqn
-j6p         integer	 +threadprivate #y-index upper range for potential eqn
-ixs1        integer +threadprivate
-ixf6        integer +threadprivate
-iys1        integer +threadprivate
-iyf6        integer +threadprivate
+i1          integer
+i2          integer
+i2p         integer    #used for 4th-order diffusion in x
+i3          integer
+i4          integer
+i5          integer
+i5m         integer    #same as i5, except restricted to ix<nx
+i6          integer
+i7          integer
+i8          integer
+j1          integer
+j2          integer
+j3          integer
+j4          integer
+j5          integer
+j5m         integer	#same as j5, except restricted to iy<ny
+j6          integer
+j7          integer
+j8          integer
+j1p         integer	#y-index lower range for potential eqn
+j2p         integer	#y-index lower range for potential eqn
+j5p         integer	#y-index upper range for potential eqn
+j6p         integer	#y-index upper range for potential eqn
+ixs1        integer
+ixf6        integer
+iys1        integer
+iyf6        integer
 xlinc       integer         /2/
 xrinc       integer         /1/
-yinc        integer         /2/ +threadprivate
+yinc        integer         /2/
 isjaccorall integer         /1/ #if=1 uses all ix cells for iy=0 Jac
 ixm1(0:nx+1,0:ny+1)       _integer
 ixp1(0:nx+1,0:ny+1)       _integer
@@ -1275,14 +1275,14 @@ sigvi_floor   real [m**3/s]  /0./       #minimum of ioniz. rates allowed(1e-18)
 fupe_cur      real []        /1./       #=1 fixes cur err to upe for isimpon=6
 diffusivity(0:nx+1,0:ny+1)  _real -restart
    # anomalous (turbulent) diffusivity (calculated during rhs eval)
-diffusivwrk(0:nx+1,0:ny+1)  _real -restart +threadprivate
+diffusivwrk(0:nx+1,0:ny+1)  _real -restart
    # anomalous (turbulent) diffusivity (mixed w/difni using cdifnit)
 diffusivloc(0:nx+1,0:ny+1)  _real -restart
    # anomalous (turbulent) diffusivity (local values for isturbcons=2)
 cfnus_e         real      /1.e20/ # factor mult nu_star_e for elec coll_fe
 cfnus_i         real      /1.e20/ # factor mult nu_star_i for ion coll_fi
-coll_fe(0:nx+1,0:ny+1) _real       +threadprivate # nu_star_e/(1+nu_star_e) for elec CF drifts
-coll_fi(0:nx+1,0:ny+1) _real       +threadprivate # nu_star_i/(1+nu_star_i) for ion CF drifts
+coll_fe(0:nx+1,0:ny+1) _real      # nu_star_e/(1+nu_star_e) for elec CF drifts
+coll_fi(0:nx+1,0:ny+1) _real      # nu_star_i/(1+nu_star_i) for ion CF drifts
 tibsep	 	[eV] real /100./  # Ion temp on sep for banana width in lconi
 tebsep	 	[eV] real /100./  # Elec temp on sep for banana width in lcone
 cfelecbwd	     real /10./	  # Factor for elec banana width in lcone; makes
@@ -1460,106 +1460,106 @@ zi(1:nisp)         _real [ ]  /1./       #ion charge number, calc. from ziin
 mg(1:ngsp)         _real [kg] /1.67e-27/ #gas species mass, calc. fr minu
 facmg(1:nispmx)        real /nispmx*1./  #scale factor for mg to recov old case
 znucl(1:nisp)              _integer [ ]   #tot. nucl. charge, calc. from znuclin
-ni(0:nx+1,0:ny+1,1:nisp)   _real  [m^-3]   +threadprivate #ion density in primary cell (ix,iy)
+ni(0:nx+1,0:ny+1,1:nisp)   _real  [m^-3]  #ion density in primary cell (ix,iy)
 lni(0:nx+1,0:ny+1,1:nisp)  _real  [m^-3]  #log(ion dens) in prim. cell (ix,iy)
-nm(0:nx+1,0:ny+1,1:nisp)   _real [kg*m^-3] +threadprivate #mass density [nm(,,1) is sum, exclud.
+nm(0:nx+1,0:ny+1,1:nisp)   _real [kg*m^-3]#mass density [nm(,,1) is sum, exclud.
                                           #gas, if nusp=1, isimpon=5] in cell
-nz2(0:nx+1,0:ny+1)         _real  [m^-3]   +threadprivate #sum of ni*zi**2 over all ion species
-uu(0:nx+1,0:ny+1,1:nisp)   _real  [m/s]    +threadprivate #ratio ion-flux/density at x-face;
+nz2(0:nx+1,0:ny+1)         _real  [m^-3]  #sum of ni*zi**2 over all ion species
+uu(0:nx+1,0:ny+1,1:nisp)   _real  [m/s]   #ratio ion-flux/density at x-face;
                                           #if orthog mesh, poloidal ion velocity
-uup(0:nx+1,0:ny+1,1:nisp)  _real  [m/s]    +threadprivate #poloidal ion vel (|| flow contrib)
-up(0:nx+1,0:ny+1,1:nisp)   _real  [m/s]    +threadprivate #par ion vel if full mom eqn on
+uup(0:nx+1,0:ny+1,1:nisp)  _real  [m/s]   #poloidal ion vel (|| flow contrib)
+up(0:nx+1,0:ny+1,1:nisp)   _real  [m/s]   #par ion vel if full mom eqn on
                                           # (mass-dens. avg if isimpon = 5)
-upi(0:nx+1,0:ny+1,1:nisp)  _real  [m/s]    +threadprivate #inter. par ion vel even if force bal
+upi(0:nx+1,0:ny+1,1:nisp)  _real  [m/s]   #inter. par ion vel even if force bal
 upifmb(0:nx+1,0:ny+1,1:nisp) _real [m/s]  #par ion vel fmombal if isimpon=5
-uz(0:nx+1,0:ny+1,1:nisp)   _real  [m/s]    +threadprivate #toroidal ion vel in pol X rad direct
-v2(0:nx+1,0:ny+1,1:nisp)   _real  [m/s]    +threadprivate #vel normal to parallel & rad. direc.
-v2xgp(0:nx+1,0:ny+1,1:nisp) _real [m/s]    +threadprivate #v2 ion vel for v2x_gradx_P eng terms
-v2ce(0:nx+1,0:ny+1,1:nisp) _real  [m/s]    +threadprivate #portion of v2 from ExB
-v2cb(0:nx+1,0:ny+1,1:nisp) _real  [m/s]    +threadprivate #portion of v2 from grad_B
-ve2cb(0:nx+1,0:ny+1)       _real  [m/s]    +threadprivate #electron v2 from grad_B
-v2cd(0:nx+1,0:ny+1,1:nisp) _real  [m/s]    +threadprivate #portion of ion v2 from grad_PxB
-ve2cd(0:nx+1,0:ny+1,1:nisp) _real [m/s]    +threadprivate #portion of elec v2 from grad_PxB
-q2cd(0:nx+1,0:ny+1,1:nisp) _real  [m/s]    +threadprivate #ion heat flux from grad_PxB
-v2rd(0:nx+1,0:ny+1,1:nisp) _real  [m/s]    +threadprivate #portion of v2 from resistive drift
-v2dd(0:nx+1,0:ny+1,1:nisp) _real  [m/s]    +threadprivate #portion of v2 from anomalous drift
-vy(0:nx+1,0:ny+1,1:nisp)   _real  [m/s]    +threadprivate #radial ion velocity
-vygp(0:nx+1,0:ny+1,1:nisp) _real  [m/s]    +threadprivate #radial ion vel for vy_grady_P eng terms
-vytan(0:nx+1,0:ny+1,1:nisp)_real  [m/s]    +threadprivate #radial ion vel.*tan(vtag) on x-face
-vygtan(0:nx+1,0:ny+1,1:ngsp)_real [m/s]    +threadprivate #radial gas grad-T vel.*tan(vtag) on
+uz(0:nx+1,0:ny+1,1:nisp)   _real  [m/s]   #toroidal ion vel in pol X rad direct
+v2(0:nx+1,0:ny+1,1:nisp)   _real  [m/s]   #vel normal to parallel & rad. direc.
+v2xgp(0:nx+1,0:ny+1,1:nisp) _real [m/s]   #v2 ion vel for v2x_gradx_P eng terms
+v2ce(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #portion of v2 from ExB
+v2cb(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #portion of v2 from grad_B
+ve2cb(0:nx+1,0:ny+1)       _real  [m/s]   #electron v2 from grad_B
+v2cd(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #portion of ion v2 from grad_PxB
+ve2cd(0:nx+1,0:ny+1,1:nisp) _real [m/s]   #portion of elec v2 from grad_PxB
+q2cd(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #ion heat flux from grad_PxB
+v2rd(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #portion of v2 from resistive drift
+v2dd(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #portion of v2 from anomalous drift
+vy(0:nx+1,0:ny+1,1:nisp)   _real  [m/s]   #radial ion velocity
+vygp(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #radial ion vel for vy_grady_P eng terms
+vytan(0:nx+1,0:ny+1,1:nisp)_real  [m/s]   #radial ion vel.*tan(vtag) on x-face
+vygtan(0:nx+1,0:ny+1,1:ngsp)_real [m/s]   #radial gas grad-T vel.*tan(vtag) on
 					  #x-face
-vyce(0:nx+1,0:ny+1,1:nisp) _real  [m/s]    +threadprivate #portion of vy from ExB
-vycb(0:nx+1,0:ny+1,1:nisp) _real  [m/s]    +threadprivate #portion of vy from grad_B
-veycb(0:nx+1,0:ny+1)       _real  [m/s]    +threadprivate #electron vy from grad_B
-vycp(0:nx+1,0:ny+1,1:nisp) _real  [m/s]    +threadprivate #ion vy from grad_PixB
-veycp(0:nx+1,0:ny+1)       _real  [m/s]    +threadprivate #electron vy from grad_PeXB
-vyrd(0:nx+1,0:ny+1,1:nisp) _real  [m/s]    +threadprivate #portion of vy from resistive drift
-vydd(0:nx+1,0:ny+1,1:nisp) _real  [m/s]    +threadprivate #portion of vy from anomalous drift
-vyavis(0:nx+1,0:ny+1,1:nisp) _real [m/s]   +threadprivate #rad vel from anom perp vis (ExB,P)
-vex(0:nx+1,0:ny+1)         _real  [m/s]    +threadprivate #Poloidal electron velocity
-upe(0:nx+1,0:ny+1)         _real  [m/s]    +threadprivate #parallel electron velocity
+vyce(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #portion of vy from ExB
+vycb(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #portion of vy from grad_B
+veycb(0:nx+1,0:ny+1)       _real  [m/s]   #electron vy from grad_B
+vycp(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #ion vy from grad_PixB
+veycp(0:nx+1,0:ny+1)       _real  [m/s]   #electron vy from grad_PeXB
+vyrd(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #portion of vy from resistive drift
+vydd(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #portion of vy from anomalous drift
+vyavis(0:nx+1,0:ny+1,1:nisp) _real [m/s]  #rad vel from anom perp vis (ExB,P)
+vex(0:nx+1,0:ny+1)         _real  [m/s]   #Poloidal electron velocity
+upe(0:nx+1,0:ny+1)         _real  [m/s]   #parallel electron velocity
 vep(0:nx+1,0:ny+1)         _real  [m/s]   #old parallel electron velocity-remove
 ve2(0:nx+1,0:ny+1)         _real  [m/s]   #old "2" electron velocity-remove
-vey(0:nx+1,0:ny+1)         _real  [m/s]    +threadprivate #Radial electron velocity
-vycf(0:nx+1,0:ny+1)	   _real  [m/s]    +threadprivate #radial vel from class. viscosity
-vycr(0:nx+1,0:ny+1)	   _real  [m/s]    +threadprivate #radial vel from class. thermal force
-te(0:nx+1,0:ny+1)          _real  [J]	   +threadprivate #electron temperature in primary cell
-ti(0:nx+1,0:ny+1)          _real  [J]	   +threadprivate #ion temperature in primary cell
-ng(0:nx+1,0:ny+1,1:ngsp)   _real  [m^-3]   +threadprivate #gas density in primary cell (ix,iy)
-lng(0:nx+1,0:ny+1,1:ngsp)  _real  [m^-3]   +threadprivate #log(gas dens) in prim. cell (ix,iy)
-uug(0:nx+1,0:ny+1,1:ngsp)  _real  [m/s]    +threadprivate #ratio gas-flux/density at x-face;
+vey(0:nx+1,0:ny+1)         _real  [m/s]   #Radial electron velocity
+vycf(0:nx+1,0:ny+1)	   _real  [m/s]   #radial vel from class. viscosity
+vycr(0:nx+1,0:ny+1)	   _real  [m/s]   #radial vel from class. thermal force
+te(0:nx+1,0:ny+1)          _real  [J]	  #electron temperature in primary cell
+ti(0:nx+1,0:ny+1)          _real  [J]	  #ion temperature in primary cell
+ng(0:nx+1,0:ny+1,1:ngsp)   _real  [m^-3]  #gas density in primary cell (ix,iy)
+lng(0:nx+1,0:ny+1,1:ngsp)  _real  [m^-3]  #log(gas dens) in prim. cell (ix,iy)
+uug(0:nx+1,0:ny+1,1:ngsp)  _real  [m/s]   #ratio gas-flux/density at x-face;
                                           #if orthog mesh, poloidal gas velocity
-vyg(0:nx+1,0:ny+1,1:ngsp)  _real  [m/s]    +threadprivate #radial gas velocity
-tg(0:nx+1,0:ny+1,1:ngsp)   _real  [J]	   +threadprivate #gas temperature in primary cell
+vyg(0:nx+1,0:ny+1,1:ngsp)  _real  [m/s]   #radial gas velocity
+tg(0:nx+1,0:ny+1,1:ngsp)   _real  [J]	  #gas temperature in primary cell
 istgcon(ngspmx)       real /ngspmx*0/ #=0, set tg(,,i)=rtg2ti*ti; if >0, set
                                       #tg=(1-istgcon)*rtg2ti*ti+istgcon*tgas*ev
-tev(0:nx+1,0:ny+1)         _real  [J]	   +threadprivate #ion temperature at vertex of cell
+tev(0:nx+1,0:ny+1)         _real  [J]	  #ion temperature at vertex of cell
 niv(0:nx+1,0:ny+1,1:nisp)  _real  [m^-3]  #ion dens up-right vert[rm,zm(,,4)]
 upv(0:nx+1,0:ny+1,1:nisp)  _real  [m/s]   #ion par vel up-right vert[rm,zm(,,4)]
 ngv(0:nx+1,0:ny+1,1:ngsp)  _real  [m^-3]  #gas dens up-right vert[rm,zm(,,4)]
-tiv(0:nx+1,0:ny+1)         _real  [J]	   +threadprivate #ion temperature at vertex of cell
-niy0(0:nx+1,0:ny+1,1:nisp) _real  [m^-3]   +threadprivate #ion density below y-face center
-niy1(0:nx+1,0:ny+1,1:nisp) _real  [m^-3]   +threadprivate #ion density above y-face center
-niy0s(0:nx+1,0:ny+1,1:nisp) _real [m^-3]   +threadprivate #old ion density below y-face center
-niy1s(0:nx+1,0:ny+1,1:nisp) _real [m^-3]   +threadprivate #old ion density above y-face center
-ney0(0:nx+1,0:ny+1)        _real  [m^-3]   +threadprivate #elec density below y-face center
-ney1(0:nx+1,0:ny+1)        _real  [m^-3]   +threadprivate #elec density above y-face center
-nity0(0:nx+1,0:ny+1)       _real  [m^-3]   +threadprivate #total ion density below y-face center
-nity1(0:nx+1,0:ny+1)       _real  [m^-3]   +threadprivate #total ion density above y-face center
-tey0(0:nx+1,0:ny+1)        _real  [eV]     +threadprivate #elec temp below y-face center
-tey1(0:nx+1,0:ny+1)        _real  [eV]     +threadprivate #elec temp above y-face center
-tiy0(0:nx+1,0:ny+1)        _real  [eV]     +threadprivate #ion temp below y-face center
-tiy1(0:nx+1,0:ny+1)        _real  [eV]     +threadprivate #ion temp above y-face center
-tiy0s(0:nx+1,0:ny+1)       _real  [eV]     +threadprivate #old ion temp below y-face center
-tiy1s(0:nx+1,0:ny+1)       _real  [eV]     +threadprivate #old ion temp above y-face center
-tgy0(0:nx+1,0:ny+1,1:ngsp) _real  [eV]     +threadprivate #atom temp below y-face center
-tgy1(0:nx+1,0:ny+1,1:ngsp) _real  [eV]     +threadprivate #atom temp above y-face center
-ngy0(0:nx+1,0:ny+1,1:ngsp) _real  [m^-3]   +threadprivate #gas density below y-face center
-ngy1(0:nx+1,0:ny+1,1:ngsp) _real  [m^-3]   +threadprivate #gas density above y-face center
-pgy0(0:nx+1,0:ny+1,1:ngsp) _real  [J/m^3]  +threadprivate #gas pressure below y-face center
-pgy1(0:nx+1,0:ny+1,1:ngsp) _real  [J/m^3]  +threadprivate #gas pressure above y-face center
-pg(0:nx+1,0:ny+1,1:ngsp)   _real  [J/m^3]  +threadprivate #gas pressure at cell center
-phiy0(0:nx+1,0:ny+1)       _real  [V]      +threadprivate #potential below y-face center
-phiy1(0:nx+1,0:ny+1)       _real  [V]      +threadprivate #potential above y-face center
-phiy0s(0:nx+1,0:ny+1)      _real  [V]      +threadprivate #old potential below y-face center
-phiy1s(0:nx+1,0:ny+1)      _real  [V]      +threadprivate #old potential above y-face center
-pr(0:nx+1,0:ny+1)          _real  [J/m^3]  +threadprivate #total pressure at center of cell
-prev(0:nx+1,0:ny+1)        _real  [J/m^3]  +threadprivate #elec pressure at vertex of cell
-prtv(0:nx+1,0:ny+1)        _real  [J/m^3]  +threadprivate #total pressure at vertex of cell
-pri(0:nx+1,0:ny+1,1:nisp)  _real  [J/m^3]  +threadprivate #ion plasma pressure
-priv(0:nx+1,0:ny+1,1:nisp) _real  [J/m^3]  +threadprivate #ion pressure at vertex of cells
-priy0(0:nx+1,0:ny+1,1:nisp) _real [J/m^3]  +threadprivate #ion pressure below y-face center
-priy1(0:nx+1,0:ny+1,1:nisp) _real [J/m^3]  +threadprivate #ion pressure above y-face center
-pre(0:nx+1,0:ny+1)         _real  [J/m^3]  +threadprivate #el. plasma pressure
-ne(0:nx+1,0:ny+1)          _real  [m^-3]   +threadprivate #electron dens in primary cell (ix,iy)
-nit(0:nx+1,0:ny+1)         _real  [m^-3]   +threadprivate #tot ion dens in primary cell (ix,iy)
+tiv(0:nx+1,0:ny+1)         _real  [J]	  #ion temperature at vertex of cell
+niy0(0:nx+1,0:ny+1,1:nisp) _real  [m^-3]  #ion density below y-face center
+niy1(0:nx+1,0:ny+1,1:nisp) _real  [m^-3]  #ion density above y-face center
+niy0s(0:nx+1,0:ny+1,1:nisp) _real [m^-3]  #old ion density below y-face center
+niy1s(0:nx+1,0:ny+1,1:nisp) _real [m^-3]  #old ion density above y-face center
+ney0(0:nx+1,0:ny+1)        _real  [m^-3]  #elec density below y-face center
+ney1(0:nx+1,0:ny+1)        _real  [m^-3]  #elec density above y-face center
+nity0(0:nx+1,0:ny+1)       _real  [m^-3]  #total ion density below y-face center
+nity1(0:nx+1,0:ny+1)       _real  [m^-3]  #total ion density above y-face center
+tey0(0:nx+1,0:ny+1)        _real  [eV]    #elec temp below y-face center
+tey1(0:nx+1,0:ny+1)        _real  [eV]    #elec temp above y-face center
+tiy0(0:nx+1,0:ny+1)        _real  [eV]    #ion temp below y-face center
+tiy1(0:nx+1,0:ny+1)        _real  [eV]    #ion temp above y-face center
+tiy0s(0:nx+1,0:ny+1)       _real  [eV]    #old ion temp below y-face center
+tiy1s(0:nx+1,0:ny+1)       _real  [eV]    #old ion temp above y-face center
+tgy0(0:nx+1,0:ny+1,1:ngsp) _real  [eV]    #atom temp below y-face center
+tgy1(0:nx+1,0:ny+1,1:ngsp) _real  [eV]    #atom temp above y-face center
+ngy0(0:nx+1,0:ny+1,1:ngsp) _real  [m^-3]  #gas density below y-face center
+ngy1(0:nx+1,0:ny+1,1:ngsp) _real  [m^-3]  #gas density above y-face center
+pgy0(0:nx+1,0:ny+1,1:ngsp) _real  [J/m^3] #gas pressure below y-face center
+pgy1(0:nx+1,0:ny+1,1:ngsp) _real  [J/m^3] #gas pressure above y-face center
+pg(0:nx+1,0:ny+1,1:ngsp)   _real  [J/m^3] #gas pressure at cell center
+phiy0(0:nx+1,0:ny+1)       _real  [V]     #potential below y-face center
+phiy1(0:nx+1,0:ny+1)       _real  [V]     #potential above y-face center
+phiy0s(0:nx+1,0:ny+1)      _real  [V]     #old potential below y-face center
+phiy1s(0:nx+1,0:ny+1)      _real  [V]     #old potential above y-face center
+pr(0:nx+1,0:ny+1)          _real  [J/m^3] #total pressure at center of cell
+prev(0:nx+1,0:ny+1)        _real  [J/m^3] #elec pressure at vertex of cell
+prtv(0:nx+1,0:ny+1)        _real  [J/m^3] #total pressure at vertex of cell
+pri(0:nx+1,0:ny+1,1:nisp)  _real  [J/m^3] #ion plasma pressure
+priv(0:nx+1,0:ny+1,1:nisp) _real  [J/m^3] #ion pressure at vertex of cells
+priy0(0:nx+1,0:ny+1,1:nisp) _real [J/m^3] #ion pressure below y-face center
+priy1(0:nx+1,0:ny+1,1:nisp) _real [J/m^3] #ion pressure above y-face center
+pre(0:nx+1,0:ny+1)         _real  [J/m^3] #el. plasma pressure
+ne(0:nx+1,0:ny+1)          _real  [m^-3]  #electron dens in primary cell (ix,iy)
+nit(0:nx+1,0:ny+1)         _real  [m^-3]  #tot ion dens in primary cell (ix,iy)
 nginit(0:nx+1,0:ny+1)      _real  [m^-3]  #init gas dens in primary cell (ix,iy)
-phi(0:nx+1,0:ny+1)         _real  [V]      +threadprivate #potential in primary cell (ix,iy)
-phiv(0:nx+1,0:ny+1)        _real  [V]      +threadprivate #potential at vertex of cell
-zeff(0:nx+1,0:ny+1)        _real  [ ]      +threadprivate #Z_effective charge in cell (ix,iy)
-loglambda(0:nx+1,0:ny+1)   _real  [ ]      +threadprivate #Coulomb logarithm
-netap(0:nx+1,0:ny+1)       _real  [ ]      +threadprivate #ne*parallel resistivity
-znot(0:nx+1,0:ny+1)        _real  [ ]      +threadprivate #=Sum(n_z * Z^2)/n_i in cell
+phi(0:nx+1,0:ny+1)         _real  [V]     #potential in primary cell (ix,iy)
+phiv(0:nx+1,0:ny+1)        _real  [V]     #potential at vertex of cell
+zeff(0:nx+1,0:ny+1)        _real  [ ]     #Z_effective charge in cell (ix,iy)
+loglambda(0:nx+1,0:ny+1)   _real  [ ]     #Coulomb logarithm
+netap(0:nx+1,0:ny+1)       _real  [ ]     #ne*parallel resistivity
+znot(0:nx+1,0:ny+1)        _real  [ ]     #=Sum(n_z * Z^2)/n_i in cell
 zimpc(0:nx+1,0:ny+1)       _real  [ ]     #Zimp (avg-ion model) in cell (ix,iy)
 nil(0:nx+1,0:ny+1,1:nisp)  _real  [m^-3]  #ion density at last output
 upl(0:nx+1,0:ny+1,1:nisp)  _real  [m/s]   #parallel ion velocity at last output
@@ -1567,24 +1567,24 @@ tel(0:nx+1,0:ny+1)         _real  [J]	  #electron temperature at last output
 til(0:nx+1,0:ny+1)         _real  [J]	  #ion temperature at last output
 ngl(0:nx+1,0:ny+1,1:ngsp)  _real  [m^-3]  #gas density at last output
 phil(0:nx+1,0:ny+1)        _real  [V]     #potential at last output
-upxpt(1:nusp,1:nxpt)       _real  [m/s]    +threadprivate #parallel velocity at x-point
-nixpt(1:nusp,1:nxpt)       _real  [m^-3]   +threadprivate #ion density at x-point
-visyxpt(1:nusp,1:nxpt)     _real           +threadprivate #ion viscosity at x-point
-vyhxpt(1:nusp,1:nxpt)      _real  [m/s]    +threadprivate #horiz. ion drift vel. at x-point
-vyvxpt(1:nusp,1:nxpt)      _real  [m/s]    +threadprivate #vert. ion drift vel. at x-point
-fmihxpt(1:nusp,1:nxpt)     _real  [Nwt]    +threadprivate #horiz. mom. flux at x-point
-fmivxpt(1:nusp,1:nxpt)     _real  [Nwt]    +threadprivate #vert. mom. flux at x-point
+upxpt(1:nusp,1:nxpt)       _real  [m/s]   #parallel velocity at x-point
+nixpt(1:nusp,1:nxpt)       _real  [m^-3]  #ion density at x-point
+visyxpt(1:nusp,1:nxpt)     _real          #ion viscosity at x-point
+vyhxpt(1:nusp,1:nxpt)      _real  [m/s]   #horiz. ion drift vel. at x-point
+vyvxpt(1:nusp,1:nxpt)      _real  [m/s]   #vert. ion drift vel. at x-point
+fmihxpt(1:nusp,1:nxpt)     _real  [Nwt]   #horiz. mom. flux at x-point
+fmivxpt(1:nusp,1:nxpt)     _real  [Nwt]   #vert. mom. flux at x-point
 rtauxfac                    real  /0./    #fac*rtaux, Ly-a optic depth to plate
 					  #=1 standard; <=0 skips rtau calc.
 rtauyfac                    real  /1./    #fac*rtauy, Ly-a optic depth to wall
 rt_scal			    real  /1.e-16/#factor to scale rtaux,y & thus rtau
-rtaux(0:nx+1,0:ny+1) _real [1e-16 m^-2]/0./  +threadprivate #Norm. poloidal neutral line-dens.,
+rtaux(0:nx+1,0:ny+1) _real [1e-16 m^-2]/0./ #Norm. poloidal neutral line-dens.,
 					    #Ly-a opacity to plates
-rtauy(0:nx+1,0:ny+1) _real [1e-16 m^-2]/0./  +threadprivate #Norm. radial neutral line-dens.,
+rtauy(0:nx+1,0:ny+1) _real [1e-16 m^-2]/0./ #Norm. radial neutral line-dens.,
 					    #norm. Ly-a opacity to radial wall
-rtau(0:nx+1,0:ny+1)  _real [1e-16 m^-2]/0./  +threadprivate #Min. norm neutral line-dens.,
+rtau(0:nx+1,0:ny+1)  _real [1e-16 m^-2]/0./ #Min. norm neutral line-dens.,
 					    #min. Ly-a  opacity; min(rtaux,rtauy)
-betap(0:nx+1,0:ny+1) _real        /0./       +threadprivate #poloidal plasma beta
+betap(0:nx+1,0:ny+1) _real        /0./      #poloidal plasma beta
 fracvgpgp             real        /1./      #frac of vgp in vgradp eng terms
 
 ***** Postproc:
@@ -1727,74 +1727,74 @@ vy0(0:nx+1,0:ny+1,1:nisp)  _real [m/s]   #old radial velocity
 
 ***** Comflo:
 #Variables in common -- flows
-fqp(0:nx+1,0:ny+1)         _real [Amp]   +threadprivate #pol proj of par cur, east face
+fqp(0:nx+1,0:ny+1)         _real [Amp]  #pol proj of par cur, east face
 cfparcur                    real /0./   #scale fac fqp=cfparcur*parcurrent if
                                         #isimpon=5 (fmombal from Hirshman)
-fq2(0:nx+1,0:ny+1)         _real [Amp]   +threadprivate #pol proj of 2 cur, east face
-fqx(0:nx+1,0:ny+1)         _real [Amp]   +threadprivate #net poloidal current, east face
-fqxb(0:nx+1,0:ny+1)        _real [Amp]   +threadprivate #poloidal cur from grad_B, east face
-fdiaxlb(0:ny+1,1:nxpt)     _real [Amp]   +threadprivate #left boundary Dia current for bc
-fdiaxrb(0:ny+1,1:nxpt)     _real [Amp]   +threadprivate #right boundary Dia current for bc
-floxebgt(0:nx+1,0:ny+1)    _real [W]     +threadprivate #BxgradTe diamag part floxe (-> feex)
-floxibgt(0:nx+1,0:ny+1,1:nisp) _real [W] +threadprivate #BxgradTi diamag part floxi (-> feex)
-fqy(0:nx+1,0:ny+1)         _real [Amp]   +threadprivate #net radial current, north face
-fqyb(0:nx+1,0:ny+1)        _real [Amp]   +threadprivate #radial current from grad_B, north face
-fqyn(0:nx+1,0:ny+1)        _real [Amp]   +threadprivate #radial cur from cx coll, north face
-fqym(0:nx+1,0:ny+1)        _real [Amp]   +threadprivate #radial cur from inertia, north face
-fqymi(0:nx+1,0:ny+1,1:nisp) _real [Amp]  +threadprivate #spec rad cur from inertia, north face
-fqya(0:nx+1,0:ny+1)        _real [Amp]   +threadprivate #anomalous visc rad cur, north face
-fqydt(0:nx+1,0:ny+1)       _real [Amp]   +threadprivate #time-dep inertial rad cur, north face
-fqydti(0:nx+1,0:ny+1,1:nisp) _real [Amp] +threadprivate #spec time-dep inert rad cur, north face
-fqyao(0:nx+1,0:ny+1)       _real [Amp]   +threadprivate #old anom mobil rad current, north face
-fqyae(0:nx+1,0:ny+1)       _real [Amp]   +threadprivate #anom mobil rad current for electrons, north face
-fqyai(0:nx+1,0:ny+1)       _real [Amp]   +threadprivate #anom mobil rad current for ions, north face
-fqyd(0:nx+1,0:ny+1)        _real [Amp]   +threadprivate #diamag radial current; north face
-fqygp(0:nx+1,0:ny+1)       _real [Amp]   +threadprivate #net radial curr. uses grad_P, north face
-fq2d(0:nx+1,0:ny+1)        _real [Amp]   +threadprivate #diamag 2-current; east face
+fq2(0:nx+1,0:ny+1)         _real [Amp]  #pol proj of 2 cur, east face
+fqx(0:nx+1,0:ny+1)         _real [Amp]  #net poloidal current, east face
+fqxb(0:nx+1,0:ny+1)        _real [Amp]  #poloidal cur from grad_B, east face
+fdiaxlb(0:ny+1,1:nxpt)     _real [Amp]  #left boundary Dia current for bc
+fdiaxrb(0:ny+1,1:nxpt)     _real [Amp]  #right boundary Dia current for bc
+floxebgt(0:nx+1,0:ny+1)    _real [W]    #BxgradTe diamag part floxe (-> feex)
+floxibgt(0:nx+1,0:ny+1,1:nisp) _real [W]#BxgradTi diamag part floxi (-> feex)
+fqy(0:nx+1,0:ny+1)         _real [Amp]  #net radial current, north face
+fqyb(0:nx+1,0:ny+1)        _real [Amp]  #radial current from grad_B, north face
+fqyn(0:nx+1,0:ny+1)        _real [Amp]  #radial cur from cx coll, north face
+fqym(0:nx+1,0:ny+1)        _real [Amp]  #radial cur from inertia, north face
+fqymi(0:nx+1,0:ny+1,1:nisp) _real [Amp] #spec rad cur from inertia, north face
+fqya(0:nx+1,0:ny+1)        _real [Amp]  #anomalous visc rad cur, north face
+fqydt(0:nx+1,0:ny+1)       _real [Amp]  #time-dep inertial rad cur, north face
+fqydti(0:nx+1,0:ny+1,1:nisp) _real [Amp]#spec time-dep inert rad cur, north face
+fqyao(0:nx+1,0:ny+1)       _real [Amp]  #old anom mobil rad current, north face
+fqyae(0:nx+1,0:ny+1)       _real [Amp]  #anom mobil rad current for electrons, north face
+fqyai(0:nx+1,0:ny+1)       _real [Amp]  #anom mobil rad current for ions, north face
+fqyd(0:nx+1,0:ny+1)        _real [Amp]  #diamag radial current; north face
+fqygp(0:nx+1,0:ny+1)       _real [Amp]  #net radial curr. uses grad_P, north face
+fq2d(0:nx+1,0:ny+1)        _real [Amp]  #diamag 2-current; east face
 fqypneo(0:nx+1,0:ny+1)     _real [Amp]  #rad-cur from neo particle flux
 fq2pneo(0:nx+1,0:ny+1)     _real [Amp]  #2-cur from neo particle flux
 fqyqneo(0:nx+1,0:ny+1)     _real [Amp]  #rad-cur from neo heat flux
 fq2qneo(0:nx+1,0:ny+1)     _real [Amp]  #2-cur from neo heat flux
-fnix(0:nx+1,0:ny+1,1:nisp) _real [1/s]   +threadprivate #ion poloidal current, east face
-fnixcb(0:nx+1,0:ny+1,1:nisp) _real [1/s]   +threadprivate #ion grad-B pol. current, east face
-fniy(0:nx+1,0:ny+1,1:nisp) _real [1/s]   +threadprivate #ion radial current, north face
-fniy4ord(0:nx+1,0:ny+1,1:nisp) _real [1/s]  +threadprivate #4th ord ion radial current, north face
-fniycb(0:nx+1,0:ny+1,1:nisp) _real [1/s]   +threadprivate #ion  grad-B rad. current, north face
+fnix(0:nx+1,0:ny+1,1:nisp) _real [1/s]  #ion poloidal current, east face
+fnixcb(0:nx+1,0:ny+1,1:nisp) _real [1/s]  #ion grad-B pol. current, east face
+fniy(0:nx+1,0:ny+1,1:nisp) _real [1/s]  #ion radial current, north face
+fniy4ord(0:nx+1,0:ny+1,1:nisp) _real [1/s] #4th ord ion radial current, north face
+fniycb(0:nx+1,0:ny+1,1:nisp) _real [1/s]  #ion  grad-B rad. current, north face
 flnix(0:nx+1,0:ny+1,1:nisp) _real [1/s] #ion poloidal log-current, east face
 flniy(0:nx+1,0:ny+1,1:nisp) _real [1/s] #ion radial log-current, north face
-fmix(0:nx+1,0:ny+1,1:nusp) _real [Nwt]   +threadprivate #ion poloidal momentum current,east face
-fmiy(0:nx+1,0:ny+1,1:nusp) _real [Nwt]   +threadprivate #ion radial momentum current, north face
-fmixy(0:nx+1,0:ny+1,1:nusp) _real [Nwt]  +threadprivate #nonorthog ion pol. mom. curr., east f.
-fmity(0:nx+1,0:ny+1,1:nisp) _real [ ]    +threadprivate #rad flux of cross-field tor. mom*R/Bp;
+fmix(0:nx+1,0:ny+1,1:nusp) _real [Nwt]  #ion poloidal momentum current,east face
+fmiy(0:nx+1,0:ny+1,1:nusp) _real [Nwt]  #ion radial momentum current, north face
+fmixy(0:nx+1,0:ny+1,1:nusp) _real [Nwt] #nonorthog ion pol. mom. curr., east f.
+fmity(0:nx+1,0:ny+1,1:nisp) _real [ ]   #rad flux of cross-field tor. mom*R/Bp;
                                         #nisp dimen, not nusp as for pot eqn
 fmgx(0:nx+1,0:ny+1,ngsp)   _real [Nwt]  #pol. neutral mom. current, east face ### IJ 2016/10/11
 fmgy(0:nx+1,0:ny+1,ngsp)   _real [Nwt]  #rad. neutral mom. current, north face  ### IJ 2016/10/11
-feex(0:nx+1,0:ny+1)        _real [J/s]   +threadprivate #poloidal electron thermal current,
+feex(0:nx+1,0:ny+1)        _real [J/s]  #poloidal electron thermal current,
                                          #east face
-feey(0:nx+1,0:ny+1)        _real [J/s]   +threadprivate #radial electron thermal current,
+feey(0:nx+1,0:ny+1)        _real [J/s]  #radial electron thermal current,
                                          #north face
-feexy(0:nx+1,0:ny+1)       _real [J/s]   +threadprivate #nonorthog elec. pol. therm cur, east f.
-feey4ord(0:nx+1,0:ny+1)    _real [J/s]   +threadprivate #elec. pol. kye4order therm cur, east f.
-feix(0:nx+1,0:ny+1)        _real [J/s]   +threadprivate #poloidal ion thermal current, east face
-feiy(0:nx+1,0:ny+1)        _real [J/s]   +threadprivate #radial ion thermal current, north face
-fegx(0:nx+1,0:ny+1,ngsp)   _real [J/s]   +threadprivate #poloidal neutral thermal current, east face ### IJ 2016/09/22
-fegy(0:nx+1,0:ny+1,ngsp)   _real [J/s]   +threadprivate #radial neutral thermal current, north face  ### IJ 2016/09/22
-qipar(0:nx+1,0:ny+1,nisp)  _real [J/m**2s]  +threadprivate #parallel conductive ion heat flux
+feexy(0:nx+1,0:ny+1)       _real [J/s]  #nonorthog elec. pol. therm cur, east f.
+feey4ord(0:nx+1,0:ny+1)    _real [J/s]  #elec. pol. kye4order therm cur, east f.
+feix(0:nx+1,0:ny+1)        _real [J/s]  #poloidal ion thermal current, east face
+feiy(0:nx+1,0:ny+1)        _real [J/s]  #radial ion thermal current, north face
+fegx(0:nx+1,0:ny+1,ngsp)   _real [J/s]  #poloidal neutral thermal current, east face ### IJ 2016/09/22
+fegy(0:nx+1,0:ny+1,ngsp)   _real [J/s]  #radial neutral thermal current, north face  ### IJ 2016/09/22
+qipar(0:nx+1,0:ny+1,nisp)  _real [J/m**2s] #parallel conductive ion heat flux
 qgpar(0:nx+1,0:ny+1,ngsp)  _real [J/m**2s] #parallel conductive gas heat flux
-fniycbo(0:nx+1,1:nisp)     _real [1/s]   +threadprivate #fniy cor. iy=0 bdry for grad_B, grad_P
-feiycbo(0:nx+1)            _real [J/s]   +threadprivate #feiy cor. iy=0 bdry for grad_B, grad_P
-feeycbo(0:nx+1)            _real [J/s]   +threadprivate #feey cor. iy=0 bdry for grad_B, grad_P
-feixy(0:nx+1,0:ny+1)       _real [J/s]   +threadprivate #nonorthog ion pol. thermal cur, east f.
-feiy4ord(0:nx+1,0:ny+1)    _real [J/s]   +threadprivate #ion pol. kyi4order therm cur, east f.
-fngx(0:nx+1,0:ny+1,1:ngsp)  _real [1/s]  +threadprivate #neutral polodial current, east face
-fngx4ord(0:nx+1,0:ny+1,1:ngsp) _real [1/s]  +threadprivate #4th ord gas radial current, north face
-flngx(0:nx+1,0:ny+1,1:ngsp) _real [1/s]  +threadprivate #neutral pol. log-current, east face
+fniycbo(0:nx+1,1:nisp)     _real [1/s]  #fniy cor. iy=0 bdry for grad_B, grad_P
+feiycbo(0:nx+1)            _real [J/s]  #feiy cor. iy=0 bdry for grad_B, grad_P
+feeycbo(0:nx+1)            _real [J/s]  #feey cor. iy=0 bdry for grad_B, grad_P
+feixy(0:nx+1,0:ny+1)       _real [J/s]  #nonorthog ion pol. thermal cur, east f.
+feiy4ord(0:nx+1,0:ny+1)    _real [J/s]  #ion pol. kyi4order therm cur, east f.
+fngx(0:nx+1,0:ny+1,1:ngsp)  _real [1/s] #neutral polodial current, east face
+fngx4ord(0:nx+1,0:ny+1,1:ngsp) _real [1/s] #4th ord gas radial current, north face
+flngx(0:nx+1,0:ny+1,1:ngsp) _real [1/s] #neutral pol. log-current, east face
 fngxs(0:nx+1,0:ny+1,1:ngsp) _real [1/s] #neutral pol cur w/o fngxy, east face
-fngy(0:nx+1,0:ny+1,1:ngsp)  _real [1/s]  +threadprivate #neutral radial current, north face
-fngy4ord(0:nx+1,0:ny+1,1:ngsp) _real [1/s]  +threadprivate #4th ord gas radial current, north face
-flngy(0:nx+1,0:ny+1,1:ngsp) _real [1/s]  +threadprivate #neutral radial log-current, north face
-fngxy(0:nx+1,0:ny+1,1:ngsp) _real [1/s]  +threadprivate #nonorthog gas pol. cur., east face
-flngxy(0:nx+1,0:ny+1,1:ngsp) _real [1/s]  +threadprivate #nonorthog gas pol.log-cur., east face
+fngy(0:nx+1,0:ny+1,1:ngsp)  _real [1/s] #neutral radial current, north face
+fngy4ord(0:nx+1,0:ny+1,1:ngsp) _real [1/s] #4th ord gas radial current, north face
+flngy(0:nx+1,0:ny+1,1:ngsp) _real [1/s] #neutral radial log-current, north face
+fngxy(0:nx+1,0:ny+1,1:ngsp) _real [1/s] #nonorthog gas pol. cur., east face
+flngxy(0:nx+1,0:ny+1,1:ngsp) _real [1/s] #nonorthog gas pol.log-cur., east face
 fngyx(0:nx+1,0:ny+1,1:ngsp) _real [1/s] #nonorthog gas rad. cur., north face
 fnixtot(0:nx+1,0:ny+1)      _real [1/s] #total poloidal ion cur.
 fniytot(0:nx+1,0:ny+1)      _real [1/s] #total radial ion cur.
@@ -1860,56 +1860,56 @@ cfsigm		   real   /1./  #scale factor for parallel cond. sigma1
 rsigpl             real  /0./   #ad hoc radial electrical conductivity - global
 rsigplcore         real  /0./   #ad hoc radial electrical conduct - core only
                                 #ratio of perp to parallel conductivity
-bcel(0:ny+1,nxpt)      _real  [ ]    +threadprivate #electron sheath energy transmission factor
+bcel(0:ny+1,nxpt)      _real  [ ]   #electron sheath energy transmission factor
                                     #on the left boundary
-bcer(0:ny+1,nxpt)      _real  [ ]    +threadprivate #electron sheath energy transmission factor
+bcer(0:ny+1,nxpt)      _real  [ ]   #electron sheath energy transmission factor
                                     #on the right boundary
-bcil(0:ny+1,nxpt)      _real  [ ]    +threadprivate #ion sheath energy transmission factor
+bcil(0:ny+1,nxpt)      _real  [ ]   #ion sheath energy transmission factor
                                     #on the left boundary
-bcir(0:ny+1,nxpt)      _real  [ ]    +threadprivate #ion sheath energy transmission factor
+bcir(0:ny+1,nxpt)      _real  [ ]   #ion sheath energy transmission factor
                                     #on the right boundary
-kappal(0:ny+1,nxpt)  _real  [ ]	 +threadprivate #sheath pot'l drop on left  boundary, phi/Te
-kappar(0:ny+1,nxpt)  _real  [ ]	 +threadprivate #sheath pot'l drop on right boundary, phi/Te
+kappal(0:ny+1,nxpt)  _real  [ ]	#sheath pot'l drop on left  boundary, phi/Te
+kappar(0:ny+1,nxpt)  _real  [ ]	#sheath pot'l drop on right boundary, phi/Te
 bctype(0:ny+1)    _integer #/0,ny*0,0/
 phi0r(0:ny+1,nxpt)	_real [V] /0./ #plate pot'l at right poloidal boundary
 phi0l(0:ny+1,nxpt)	_real [V] /0./ #plate pot'l at left  poloidal boundary
 capx(1:ny)        _real    #/ny*0.0/
-dphi_iy1(0:nx+1)  _real [V]  +threadprivate #/(nx+2)*0./  #incremental phi at iy=1 to have
+dphi_iy1(0:nx+1)  _real [V] #/(nx+2)*0./  #incremental phi at iy=1 to have
                                           #Te=constant for second phi BC
-kincorlb(0:ny+1,nxpt)   _real [ ]    +threadprivate # kinetic corr. factor for elec part. loss, left b
-kincorrb(0:ny+1,nxpt)   _real [ ]    +threadprivate # kinetic corr. factor for elec part. loss, right b
+kincorlb(0:ny+1,nxpt)   _real [ ]   # kinetic corr. factor for elec part. loss, left b
+kincorrb(0:ny+1,nxpt)   _real [ ]   # kinetic corr. factor for elec part. loss, right b
 cfkincor            real     [ ] /0.5/ # factor for kincorlb,rb denom. factor
 #Variables for the grid-sequencing.
 #yet to be defined?
 
 ***** Gradients:
 #Gradients of the different physical quantities.
-ex(0:nx+1,0:ny+1)           _real  [V/m]   +threadprivate #poloidal electric field
-ey(0:nx+1,0:ny+1)           _real  [V/m]   +threadprivate #radial electric field
+ex(0:nx+1,0:ny+1)           _real  [V/m]  #poloidal electric field
+ey(0:nx+1,0:ny+1)           _real  [V/m]  #radial electric field
 einduc			     real  [V/m]  #inductive tor. E-field - input
-gpix(0:nx+1,0:ny+1,1:nisp)  _real  [Pa/m]  +threadprivate #X-gradient of ion pressure
-gpiy(0:nx+1,0:ny+1,1:nisp)  _real  [Pa/m]  +threadprivate #Y-gradient of ion pressure
-gpex(0:nx+1,0:ny+1)         _real  [Pa/m]  +threadprivate #X-gradient of el. pressure
-gpey(0:nx+1,0:ny+1)         _real  [Pa/m]  +threadprivate #Y-gradient of el. pressure
-gprx(0:nx+1,0:ny+1)         _real  [Pa/m]  +threadprivate #X-gradient of total pressure
-gpry(0:nx+1,0:ny+1)         _real  [Pa/m]  +threadprivate #Y-gradient of total pressure
-gtex(0:nx+1,0:ny+1)         _real  [J/m]   +threadprivate #X-gradient of el. temperature
-gtey(0:nx+1,0:ny+1)         _real  [J/m]   +threadprivate #Y-gradient of el. temperature
-gtix(0:nx+1,0:ny+1)         _real  [J/m]   +threadprivate #X-gradient of ion temperature
-gtiy(0:nx+1,0:ny+1)         _real  [J/m]   +threadprivate #Y-gradient of ion temperature
+gpix(0:nx+1,0:ny+1,1:nisp)  _real  [Pa/m] #X-gradient of ion pressure
+gpiy(0:nx+1,0:ny+1,1:nisp)  _real  [Pa/m] #Y-gradient of ion pressure
+gpex(0:nx+1,0:ny+1)         _real  [Pa/m] #X-gradient of el. pressure
+gpey(0:nx+1,0:ny+1)         _real  [Pa/m] #Y-gradient of el. pressure
+gprx(0:nx+1,0:ny+1)         _real  [Pa/m] #X-gradient of total pressure
+gpry(0:nx+1,0:ny+1)         _real  [Pa/m] #Y-gradient of total pressure
+gtex(0:nx+1,0:ny+1)         _real  [J/m]  #X-gradient of el. temperature
+gtey(0:nx+1,0:ny+1)         _real  [J/m]  #Y-gradient of el. temperature
+gtix(0:nx+1,0:ny+1)         _real  [J/m]  #X-gradient of ion temperature
+gtiy(0:nx+1,0:ny+1)         _real  [J/m]  #Y-gradient of ion temperature
 
 ***** Cfric:
 #Coulomb friction terms for parallel transport
-frice(0:nx+1,0:ny+1)      _real [J/m**4]   +threadprivate #Electron parallel Coulomb friction
-frici(0:nx+1,0:ny+1,nisp) _real [J/m**4]   +threadprivate #Ion parallel Coulomb friction
-fricnrl(0:nx+1,0:ny+1,nusp) _real [J/m**4]  +threadprivate #NRL ion par fric ni*mi*nu*(up1-up2)
+frice(0:nx+1,0:ny+1)      _real [J/m**4]  #Electron parallel Coulomb friction
+frici(0:nx+1,0:ny+1,nisp) _real [J/m**4]  #Ion parallel Coulomb friction
+fricnrl(0:nx+1,0:ny+1,nusp) _real [J/m**4] #NRL ion par fric ni*mi*nu*(up1-up2)
 cfgti             /1./     real           #scale factor for ion thermal force
 cfgte             /1./     real           #scale factor for elec. thermal force
 cftaud            /1./     real           #scale factor for ion-ion drag time
 isalfecalc(1:nisp) /1/    _integer        #=1 for internal calc of alfe
 isbetaicalc(1:nisp)/1/    _integer        #=1 for internal calc of betai
-alfe(1:nisp)       /1./   _real          +threadprivate #grad_Te thm force coeff isalfecalc=0
-betai(1:nisp)      /1./   _real          +threadprivate #grad_Ti thm force coeff isbetaicalc=0
+alfe(1:nisp)       /1./   _real         #grad_Te thm force coeff isalfecalc=0
+betai(1:nisp)      /1./   _real         #grad_Ti thm force coeff isbetaicalc=0
 
 ***** Grid:
 ngrid          /1/	 integer +regrid
@@ -1923,170 +1923,170 @@ ijactot          /0/     integer  # tot Jac calcs, used as check when icntnunk=1
 
 ***** Wkspace:
 #Workspace arrays
-w(0:nx+1,0:ny+1)        _real +threadprivate
-w0(0:nx+1,0:ny+1)       _real +threadprivate
-w1(0:nx+1,0:ny+1)       _real +threadprivate
-w2(0:nx+1,0:ny+1)       _real +threadprivate
-w3(0:nx+1,0:ny+1)       _real +threadprivate
-wvh(0:nx+1,0:ny+1,1:2)  _real	 +threadprivate #species dependent viscous heating
+w(0:nx+1,0:ny+1)        _real
+w0(0:nx+1,0:ny+1)       _real
+w1(0:nx+1,0:ny+1)       _real
+w2(0:nx+1,0:ny+1)       _real
+w3(0:nx+1,0:ny+1)       _real
+wvh(0:nx+1,0:ny+1,1:2)  _real	#species dependent viscous heating
 
 ***** Locflux:
 #Local arrays for the calculation of the fluxes and other quantities.
-flox(0:nx+1,0:ny+1)     _real +threadprivate
-floy(0:nx+1,0:ny+1)     _real +threadprivate
-conx(0:nx+1,0:ny+1)     _real +threadprivate
-cony(0:nx+1,0:ny+1)     _real +threadprivate
-floxe(0:nx+1,0:ny+1)    _real +threadprivate
-floye(0:nx+1,0:ny+1)    _real +threadprivate
-floxi(0:nx+1,0:ny+1)    _real +threadprivate
-floyi(0:nx+1,0:ny+1)    _real +threadprivate
-floxg(0:nx+1,0:ny+1)    _real +threadprivate
-floyg(0:nx+1,0:ny+1)    _real +threadprivate
+flox(0:nx+1,0:ny+1)     _real
+floy(0:nx+1,0:ny+1)     _real
+conx(0:nx+1,0:ny+1)     _real
+cony(0:nx+1,0:ny+1)     _real
+floxe(0:nx+1,0:ny+1)    _real
+floye(0:nx+1,0:ny+1)    _real
+floxi(0:nx+1,0:ny+1)    _real
+floyi(0:nx+1,0:ny+1)    _real
+floxg(0:nx+1,0:ny+1)    _real
+floyg(0:nx+1,0:ny+1)    _real
 fgtdx(0:nx+1)		_real	#scale factor for gas grad-x T vel
 fgtdy(0:ny+1)		_real	#scale factor for gas grad-x T vel
-conxe(0:nx+1,0:ny+1)    _real +threadprivate
-conye(0:nx+1,0:ny+1)    _real +threadprivate
-conxi(0:nx+1,0:ny+1)    _real +threadprivate
-conyi(0:nx+1,0:ny+1)    _real +threadprivate
-conxg(0:nx+1,0:ny+1)    _real +threadprivate
-conyg(0:nx+1,0:ny+1)    _real +threadprivate
-floxge(0:nx+1,0:ny+1,1:ngsp) _real +threadprivate
-floyge(0:nx+1,0:ny+1,1:ngsp) _real +threadprivate
-conxge(0:nx+1,0:ny+1,1:ngsp) _real +threadprivate
-conyge(0:nx+1,0:ny+1,1:ngsp) _real +threadprivate
+conxe(0:nx+1,0:ny+1)    _real
+conye(0:nx+1,0:ny+1)    _real
+conxi(0:nx+1,0:ny+1)    _real
+conyi(0:nx+1,0:ny+1)    _real
+conxg(0:nx+1,0:ny+1)    _real
+conyg(0:nx+1,0:ny+1)    _real
+floxge(0:nx+1,0:ny+1,1:ngsp) _real
+floyge(0:nx+1,0:ny+1,1:ngsp) _real
+conxge(0:nx+1,0:ny+1,1:ngsp) _real
+conyge(0:nx+1,0:ny+1,1:ngsp) _real
 
 ***** Conduc:
 #Variables for the common -- conduc
-visx(0:nx+1,0:ny+1,1:nisp)  _real [kg/m s] +threadprivate #poloidal viscosity coeff.
-visy(0:nx+1,0:ny+1,1:nisp)  _real [kg/m s] +threadprivate #radial viscosity coeff.
-hcxe(0:nx+1,0:ny+1)         _real [1/m s]  +threadprivate #poloidal elec. therm. conduct.
-hcye(0:nx+1,0:ny+1)         _real [1/m s]  +threadprivate #radial elec. therm. conduct.
-hcxij(0:nx+1,0:ny+1,1:nisp) _real [1/m s]  +threadprivate #j-species pol. ion therm. conduct.
-hcyij(0:nx+1,0:ny+1,1:nisp) _real [1/m s]  +threadprivate #j-species rad. ion therm. conduct.
-hcxg(0:nx+1,0:ny+1,1:ngsp)  _real [1/m s]  +threadprivate #j-species pol. gas therm. conduct.
-hcyg(0:nx+1,0:ny+1,1:ngsp)  _real [1/m s]  +threadprivate #j-species rad. gas therm. conduct.
-hcxi(0:nx+1,0:ny+1)         _real [1/m s]  +threadprivate #summed pol. ion+neut therm. conduct.
-hcxineo(0:nx+1,0:ny+1)      _real [1/m s]  +threadprivate #neocl. pol. ion+neut therm. conduct.
-hcyi(0:nx+1,0:ny+1)         _real [1/m s]  +threadprivate #summed rad. ion+neut therm. conduct.
-hcxn(0:nx+1,0:ny+1)         _real [1/m s]  +threadprivate #poloidal neutral therm. conduct.
-hcyn(0:nx+1,0:ny+1)         _real [1/m s]  +threadprivate #radial neutral therm. conduct.
-kxbohm(0:nx+1,0:ny+1)	    _real [m**2/s] +threadprivate #spatially depend. diff. on x-face
+visx(0:nx+1,0:ny+1,1:nisp)  _real [kg/m s]#poloidal viscosity coeff.
+visy(0:nx+1,0:ny+1,1:nisp)  _real [kg/m s]#radial viscosity coeff.
+hcxe(0:nx+1,0:ny+1)         _real [1/m s] #poloidal elec. therm. conduct.
+hcye(0:nx+1,0:ny+1)         _real [1/m s] #radial elec. therm. conduct.
+hcxij(0:nx+1,0:ny+1,1:nisp) _real [1/m s] #j-species pol. ion therm. conduct.
+hcyij(0:nx+1,0:ny+1,1:nisp) _real [1/m s] #j-species rad. ion therm. conduct.
+hcxg(0:nx+1,0:ny+1,1:ngsp)  _real [1/m s] #j-species pol. gas therm. conduct.
+hcyg(0:nx+1,0:ny+1,1:ngsp)  _real [1/m s] #j-species rad. gas therm. conduct.
+hcxi(0:nx+1,0:ny+1)         _real [1/m s] #summed pol. ion+neut therm. conduct.
+hcxineo(0:nx+1,0:ny+1)      _real [1/m s] #neocl. pol. ion+neut therm. conduct.
+hcyi(0:nx+1,0:ny+1)         _real [1/m s] #summed rad. ion+neut therm. conduct.
+hcxn(0:nx+1,0:ny+1)         _real [1/m s] #poloidal neutral therm. conduct.
+hcyn(0:nx+1,0:ny+1)         _real [1/m s] #radial neutral therm. conduct.
+kxbohm(0:nx+1,0:ny+1)	    _real [m**2/s]#spatially depend. diff. on x-face
 					  #set by user; Bohm if isbohmcalc=1
-kybohm(0:nx+1,0:ny+1)	    _real [m**2/s] +threadprivate #spatially depend. diff. on y-face
+kybohm(0:nx+1,0:ny+1)	    _real [m**2/s]#spatially depend. diff. on y-face
 					  #set by user; Bohm if isbohmcalc=1
 vybohm(0:nx+1,0:ny+1)       _real [m/s]   #spatially depend. convect. y-vel
 					  #set user if isbohmcalc=0; else =0
-dif_use(0:nx+1,0:ny+1,1:nisp) _real [m**2/s] +threadprivate #spatially depend. diff; if
+dif_use(0:nx+1,0:ny+1,1:nisp) _real [m**2/s]#spatially depend. diff; if
 					  #isbohmcalc=1, user input if all
 					  #facbni+facbup+facbee+facbei =0,
 					  # or kybohm if facbni, etc. > 0;
 					  # if isbohmcalc=2, then
 					  # D = difni*kybohm/(difni+kybohm)
-difp_use(0:nx+1,0:ny+1,1:nisp) _real [m**2/s] +threadprivate #for gen pr diff; see dif_use comment
-dif2_use(0:nx+1,0:ny+1,1:nisp) _real [m**2/s] +threadprivate #for dif2; see dif_use comment
-tray_use(0:nx+1,0:ny+1,1:nisp) _real [m**2/s] +threadprivate #for travis; see dif_use comment
-trax_use(0:nx+1,0:ny+1,1:nisp) _real [m**2/s] +threadprivate #pol. analog to tra_use
-kye_use(0:nx+1,0:ny+1)        _real [m**2/s] +threadprivate #for kye; see dif_use comment
-kyi_use(0:nx+1,0:ny+1)        _real [m**2/s] +threadprivate #for kyi; see dif_use comment
-kxe_use(0:nx+1,0:ny+1)        _real [m**2/s] +threadprivate #user elec pol. heat cond
-kxi_use(0:nx+1,0:ny+1)        _real [m**2/s] +threadprivate #user ion pol. heat cond.
+difp_use(0:nx+1,0:ny+1,1:nisp) _real [m**2/s]#for gen pr diff; see dif_use comment
+dif2_use(0:nx+1,0:ny+1,1:nisp) _real [m**2/s]#for dif2; see dif_use comment
+tray_use(0:nx+1,0:ny+1,1:nisp) _real [m**2/s]#for travis; see dif_use comment
+trax_use(0:nx+1,0:ny+1,1:nisp) _real [m**2/s]#pol. analog to tra_use
+kye_use(0:nx+1,0:ny+1)        _real [m**2/s]#for kye; see dif_use comment
+kyi_use(0:nx+1,0:ny+1)        _real [m**2/s]#for kyi; see dif_use comment
+kxe_use(0:nx+1,0:ny+1)        _real [m**2/s]#user elec pol. heat cond
+kxi_use(0:nx+1,0:ny+1)        _real [m**2/s]#user ion pol. heat cond.
 kxg_use(0:nx+1,0:ny+1,1:ngsp) _real [m**2/s]#user gas pol. heat cond.
 kyg_use(0:nx+1,0:ny+1,1:ngsp) _real [m**2/s]#user gas rad. heat cond.
-dutm_use(0:nx+1,0:ny+1,1:nisp) _real [m**2/s] +threadprivate #for difutm; see dif_use comment
-vy_use(0:nx+1,0:ny+1,1:nisp) _real [m/s]   +threadprivate #user-set rad vel;for isbohmcalc=0
+dutm_use(0:nx+1,0:ny+1,1:nisp) _real [m**2/s]#for difutm; see dif_use comment
+vy_use(0:nx+1,0:ny+1,1:nisp) _real [m/s]  #user-set rad vel;for isbohmcalc=0
 vyup_use(0:nx+1,0:ny+1)     _real  [m/s]  #user-set conv vel of ion || vel, up
 vyte_use(0:nx+1,0:ny+1)     _real  [m/s]  #user-set rad elec eng vel
 vyti_use(0:nx+1,0:ny+1)     _real  [m/s]  #user-set rad ion eng vel
 fniyos_use(0:nx+1,0:ny+1,1:nisp) _real [1/s m**2] #user-set particle flux
 feeyosn_use(0:nx+1,0:ny+1)    _real  [J/s m**2]    #user-set Te energy flux
 feiyosn_use(0:nx+1,0:ny+1)    _real  [J/s m**2]    #user-set Ti energy flux
-vy_cft(0:nx+1,0:ny+1,1:nisp) _real [m/s]   +threadprivate #calc vy from fniyos_use (fix flux)
-vyte_cft(0:nx+1,0:ny+1)     _real  [m/s]   +threadprivate #calc vyte from feeyos_use (fix flux)
-vyti_cft(0:nx+1,0:ny+1)     _real  [m/s]   +threadprivate #calc vyte from feiyos_use (fix flux)
-nuiz(0:nx+1,0:ny+1,ngsp)    _real  [1/s]   +threadprivate #ionization rate (=ne*sigma*v)
-nucx(0:nx+1,0:ny+1,ngsp)    _real  [1/s]   +threadprivate #charge-exchg rate for neut(sigv*ni)
-nucxi(0:nx+1,0:ny+1,nisp)   _real  [1/s]   +threadprivate #charge-exchg rate for ion (sigv*ng)
-nueli(0:nx+1,0:ny+1,nisp)   _real  [1/s]   +threadprivate #elast scatt rate for ion (sigv*ng)
-nuelg(0:nx+1,0:ny+1,ngsp)   _real  [1/s]   +threadprivate #elast scatt rate for gas (sigv*nimp)
-nuix(0:nx+1,0:ny+1,ngsp)    _real  [1/s]   +threadprivate #fnuizx*nuiz+fnucxx*nucx
+vy_cft(0:nx+1,0:ny+1,1:nisp) _real [m/s]  #calc vy from fniyos_use (fix flux)
+vyte_cft(0:nx+1,0:ny+1)     _real  [m/s]  #calc vyte from feeyos_use (fix flux)
+vyti_cft(0:nx+1,0:ny+1)     _real  [m/s]  #calc vyte from feiyos_use (fix flux)
+nuiz(0:nx+1,0:ny+1,ngsp)    _real  [1/s]  #ionization rate (=ne*sigma*v)
+nucx(0:nx+1,0:ny+1,ngsp)    _real  [1/s]  #charge-exchg rate for neut(sigv*ni)
+nucxi(0:nx+1,0:ny+1,nisp)   _real  [1/s]  #charge-exchg rate for ion (sigv*ng)
+nueli(0:nx+1,0:ny+1,nisp)   _real  [1/s]  #elast scatt rate for ion (sigv*ng)
+nuelg(0:nx+1,0:ny+1,ngsp)   _real  [1/s]  #elast scatt rate for gas (sigv*nimp)
+nuix(0:nx+1,0:ny+1,ngsp)    _real  [1/s]  #fnuizx*nuiz+fnucxx*nucx
 fnuizx                       real    /0./ #fraction of nuiz in nuix (see nuix)
 fnucxx                       real    /1./ #fraction of nucx in nuix (see nuix)
-nurc(0:nx+1,0:ny+1,ngsp)    _real  [1/s]   +threadprivate #recombination rate
-nuvl(0:nx+1,0:ny+1,nisp)    _real  [1/s]   +threadprivate #vol loss rate, ~cs/l_parloss for 1-D
+nurc(0:nx+1,0:ny+1,ngsp)    _real  [1/s]  #recombination rate
+nuvl(0:nx+1,0:ny+1,nisp)    _real  [1/s]  #vol loss rate, ~cs/l_parloss for 1-D
 cfvlh			     real         #scal fac for hyd rate in nuvl
 cfvli(nisp)		    _real #/nisp*0./#scal fac for individ ion rate nuvl
 l_parloss		     real [m] /1.e20/ #parall length for nuvl loss rate
-eqp(0:nx+1,0:ny+1)          _real [1/m**3] +threadprivate #Te,i equipart. fact; needs *(Te-Ti)*vol
-eqpg(0:nx+1,0:ny+1,ngsp)    _real [1/m**3] +threadprivate #Tg,i equipart. fact; needs *(Tg-Ti)*vol
+eqp(0:nx+1,0:ny+1)          _real [1/m**3]#Te,i equipart. fact; needs *(Te-Ti)*vol
+eqpg(0:nx+1,0:ny+1,ngsp)    _real [1/m**3]#Tg,i equipart. fact; needs *(Tg-Ti)*vol
 engcoolm(0:nx+1,0:ny+1)     _real [J/s]   #cool rate ion/atoms by mols if ishymol=1
-eeli(0:nx+1,0:ny+1)         _real  [J]     +threadprivate #electron energy loss per ionization
-pradhyd(0:nx+1,0:ny+1)      _real [W/m**3] /0./ +threadprivate #power radiated by hydrogen
+eeli(0:nx+1,0:ny+1)         _real  [J]    #electron energy loss per ionization
+pradhyd(0:nx+1,0:ny+1)      _real [W/m**3] /0./#power radiated by hydrogen
 tdiflim                      real [s] /0./ #lim on hcxe/ne; reduces hcxe if >0
 lmfplim			     real [m] /1.e20/#hcxe,i -> hcxe,i/(1+lmfp/lmfelim)
-eta1(0:nx+1,0:ny+1)	    _real [J-s/m**3]  +threadprivate #Braginskii ion visc coeff eta_1
+eta1(0:nx+1,0:ny+1)	    _real [J-s/m**3] #Braginskii ion visc coeff eta_1
 cfeta1                       real   /0./  # scale factor for eta1
-rtaue(0:nx+1,0:ny+1)        _real [s/kg]   +threadprivate #Brag. R coeff (t_e/me)/(w_ce*t_e)**2
+rtaue(0:nx+1,0:ny+1)        _real [s/kg]  #Brag. R coeff (t_e/me)/(w_ce*t_e)**2
 cfrtaue			     real   /0./  # scale factor for cfrtaue
-dclass_e(0:nx+1,0:ny+1)     _real [m**2/s] +threadprivate #classical elec perp heat conduc.
-dclass_i(0:nx+1,0:ny+1)     _real [m**2/s] +threadprivate #classical ion perp heat conduc.
+dclass_e(0:nx+1,0:ny+1)     _real [m**2/s]#classical elec perp heat conduc.
+dclass_i(0:nx+1,0:ny+1)     _real [m**2/s]#classical ion perp heat conduc.
 cfcl_e	                     real  /0./   #scale fac for dclass_e
 cfcl_i	                     real  /0./   #scale fac for dclass_i
 omgci_taui		     real  /10./  #ion gy_freq*coll_rate for cl_model
 omgce_taue		     real  /10./  #elec gy_freq*coll_rate for cl_model
 nuneo			     real  /0./   #neoclass pol. damping rate; for fqyn
-visxneo(0:nx+1,0:ny+1,1:nisp) _real [kg/m s]  +threadprivate #Braginskii eta_0 neo-modified
-visvol_v(0:nx+1,0:ny+1,1:nisp) _real  +threadprivate #vel-based viscosity in (n*m*up)^dot eqn
-visvol_q(0:nx+1,0:ny+1,1:nisp) _real  +threadprivate #heat-flux-based viscosity (n*m*up)^dot eqn
-nuii(0:nx+1,0:ny+1,1:nisp)    _real   +threadprivate #Braginski nuii coll freq.
-nuiistar(0:nx+1,0:ny+1,1:nisp)_real   +threadprivate #neoclassical nuii coll freq.
-alfneo(0:nx+1,0:ny+1,1:nisp)  _real   +threadprivate #neoclassical factor for q-based visc.
-k2neo(0:nx+1,0:ny+1,1:nisp)   _real   +threadprivate #neoclassical coeff reducing therm cond
-ktneo(0:nx+1,0:ny+1,1:nisp)   _real   +threadprivate #neoclassical coeff of grad Ti
+visxneo(0:nx+1,0:ny+1,1:nisp) _real [kg/m s] #Braginskii eta_0 neo-modified
+visvol_v(0:nx+1,0:ny+1,1:nisp) _real #vel-based viscosity in (n*m*up)^dot eqn
+visvol_q(0:nx+1,0:ny+1,1:nisp) _real #heat-flux-based viscosity (n*m*up)^dot eqn
+nuii(0:nx+1,0:ny+1,1:nisp)    _real  #Braginski nuii coll freq.
+nuiistar(0:nx+1,0:ny+1,1:nisp)_real  #neoclassical nuii coll freq.
+alfneo(0:nx+1,0:ny+1,1:nisp)  _real  #neoclassical factor for q-based visc.
+k2neo(0:nx+1,0:ny+1,1:nisp)   _real  #neoclassical coeff reducing therm cond
+ktneo(0:nx+1,0:ny+1,1:nisp)   _real  #neoclassical coeff of grad Ti
 
 ***** Rhsides:
 #Variables to evaluate the sources and RHS's.
-snic(0:nx+1,0:ny+1,1:nisp)    _real +threadprivate
-sniv(0:nx+1,0:ny+1,1:nisp)    _real +threadprivate
-psorc(0:nx+1,0:ny+1,1:nisp)   _real  [part/s]   +threadprivate # cell ctr ioniz. sor plasma (>0)
-psor(0:nx+1,0:ny+1,1:nisp)    _real  [part/s]   +threadprivate # cell ave ioniz. sor plasma (>0)
+snic(0:nx+1,0:ny+1,1:nisp)    _real
+sniv(0:nx+1,0:ny+1,1:nisp)    _real
+psorc(0:nx+1,0:ny+1,1:nisp)   _real  [part/s]  # cell ctr ioniz. sor plasma (>0)
+psor(0:nx+1,0:ny+1,1:nisp)    _real  [part/s]  # cell ave ioniz. sor plasma (>0)
 psort(0:nx+1,0:ny+1,1:nisp)   _real  [part/s]  # ioniz. source for plasma (>0)
-psorxrc(0:nx+1,0:ny+1,1:nisp) _real  [part/s]   +threadprivate # cell ctr cx &recomb. for ions (<0)
-psorxr(0:nx+1,0:ny+1,1:nisp)  _real  [part/s]   +threadprivate # cell ave cx &recomb. for ions (<0)
-psor_tmpov(0:nx+1,0:ny+1)     _real  [part/s]   +threadprivate # work array for psor,etc for ave
-psorgc(0:nx+1,0:ny+1,1:ngsp)  _real  [part/s]   +threadprivate # cell ctr ioniz. sor neutral (<0)
-psorg(0:nx+1,0:ny+1,1:ngsp)   _real  [part/s]   +threadprivate # cell ave ioniz. sor neutral (<0)
-psorrgc(0:nx+1,0:ny+1,1:ngsp) _real  [part/s]   +threadprivate # cell ctr recomb. source for neutrals
-psorrg(0:nx+1,0:ny+1,1:ngsp)  _real  [part/s]   +threadprivate # cell ave recomb. source for neutrals
-psorcxgc(0:nx+1,0:ny+1,1:ngsp) _real [part/s]   +threadprivate # cell ctr cx source for neutrals
-psorcxg(0:nx+1,0:ny+1,1:ngsp) _real  [part/s]   +threadprivate # cell ave cx source for neutrals
-psori(0:nx+1,0:ny+1,1:nisp)   _real  [part/s]   +threadprivate # impurity gas source
-psordis(0:nx+1,0:ny+1)        _real  [part/s]   +threadprivate # diss. source of hydrogen
-psorbgg(0:nx+1,0:ny+1,1:ngsp) _real  [part/s]   +threadprivate # diag artific neut backg source
-psorbgz(0:nx+1,0:ny+1)        _real  [part/s]   +threadprivate # diag artific impur backg source
-erliz(0:nx+1,0:ny+1)          _real  [J/s]      +threadprivate # H rad'n loss for ioniz'n
-erlrc(0:nx+1,0:ny+1)          _real  [J/s]      +threadprivate # H rad'n loss for recom'n
-vsoreec(0:nx+1,0:ny+1)	      _real  [J/s]      +threadprivate # cell ctr tot elec vol eng source
-vsoree(0:nx+1,0:ny+1)	      _real  [J/s]      +threadprivate # cell ave tot elec vol eng source
-pwrebkg(0:nx+1,0:ny+1)	      _real  [W/m**3] +threadprivate
+psorxrc(0:nx+1,0:ny+1,1:nisp) _real  [part/s]  # cell ctr cx &recomb. for ions (<0)
+psorxr(0:nx+1,0:ny+1,1:nisp)  _real  [part/s]  # cell ave cx &recomb. for ions (<0)
+psor_tmpov(0:nx+1,0:ny+1)     _real  [part/s]  # work array for psor,etc for ave
+psorgc(0:nx+1,0:ny+1,1:ngsp)  _real  [part/s]  # cell ctr ioniz. sor neutral (<0)
+psorg(0:nx+1,0:ny+1,1:ngsp)   _real  [part/s]  # cell ave ioniz. sor neutral (<0)
+psorrgc(0:nx+1,0:ny+1,1:ngsp) _real  [part/s]  # cell ctr recomb. source for neutrals
+psorrg(0:nx+1,0:ny+1,1:ngsp)  _real  [part/s]  # cell ave recomb. source for neutrals
+psorcxgc(0:nx+1,0:ny+1,1:ngsp) _real [part/s]  # cell ctr cx source for neutrals
+psorcxg(0:nx+1,0:ny+1,1:ngsp) _real  [part/s]  # cell ave cx source for neutrals
+psori(0:nx+1,0:ny+1,1:nisp)   _real  [part/s]  # impurity gas source
+psordis(0:nx+1,0:ny+1)        _real  [part/s]  # diss. source of hydrogen
+psorbgg(0:nx+1,0:ny+1,1:ngsp) _real  [part/s]  # diag artific neut backg source
+psorbgz(0:nx+1,0:ny+1)        _real  [part/s]  # diag artific impur backg source
+erliz(0:nx+1,0:ny+1)          _real  [J/s]     # H rad'n loss for ioniz'n
+erlrc(0:nx+1,0:ny+1)          _real  [J/s]     # H rad'n loss for recom'n
+vsoreec(0:nx+1,0:ny+1)	      _real  [J/s]     # cell ctr tot elec vol eng source
+vsoree(0:nx+1,0:ny+1)	      _real  [J/s]     # cell ave tot elec vol eng source
+pwrebkg(0:nx+1,0:ny+1)	      _real  [W/m**3]
                                # elec energy backgrd source; limits te~tebg
-pwribkg(0:nx+1,0:ny+1)	      _real  [W/m**3] +threadprivate
+pwribkg(0:nx+1,0:ny+1)	      _real  [W/m**3]
                                # ion energy backgrd source; limits ti~tibg
-wjdote(0:nx+1,0:ny+1)         _real  [J/s]      +threadprivate # Joule heating rate
-smoc(0:nx+1,0:ny+1,1:nusp)    _real +threadprivate
-smov(0:nx+1,0:ny+1,1:nusp)    _real +threadprivate
-msor(0:nx+1,0:ny+1,1:nisp)    _real [kg-m/s**2] +threadprivate # ioniz. mom. source for ions
-msorxr(0:nx+1,0:ny+1,1:nisp)  _real [kg-m/s**2] +threadprivate # cx&recomb. mom. sink for ions
-seec(0:nx+1,0:ny+1)           _real +threadprivate
-seev(0:nx+1,0:ny+1)           _real +threadprivate
-seic(0:nx+1,0:ny+1)           _real +threadprivate
-seiv(0:nx+1,0:ny+1)           _real +threadprivate
-resco(0:nx+1,0:ny+1,1:nisp)   _real +threadprivate
-resng(0:nx+1,0:ny+1,1:ngsp)   _real +threadprivate
-reseg(0:nx+1,0:ny+1,1:ngsp)   _real +threadprivate
-resmo(0:nx+1,0:ny+1,1:nusp)   _real +threadprivate
-resee(0:nx+1,0:ny+1)          _real +threadprivate
-resei(0:nx+1,0:ny+1)          _real +threadprivate
-resphi(0:nx+1,0:ny+1)         _real +threadprivate
+wjdote(0:nx+1,0:ny+1)         _real  [J/s]     # Joule heating rate
+smoc(0:nx+1,0:ny+1,1:nusp)    _real
+smov(0:nx+1,0:ny+1,1:nusp)    _real
+msor(0:nx+1,0:ny+1,1:nisp)    _real [kg-m/s**2]# ioniz. mom. source for ions
+msorxr(0:nx+1,0:ny+1,1:nisp)  _real [kg-m/s**2]# cx&recomb. mom. sink for ions
+seec(0:nx+1,0:ny+1)           _real
+seev(0:nx+1,0:ny+1)           _real
+seic(0:nx+1,0:ny+1)           _real
+seiv(0:nx+1,0:ny+1)           _real
+resco(0:nx+1,0:ny+1,1:nisp)   _real
+resng(0:nx+1,0:ny+1,1:ngsp)   _real
+reseg(0:nx+1,0:ny+1,1:ngsp)   _real
+resmo(0:nx+1,0:ny+1,1:nusp)   _real
+resee(0:nx+1,0:ny+1)          _real
+resei(0:nx+1,0:ny+1)          _real
+resphi(0:nx+1,0:ny+1)         _real
 
 ***** MCN_dim:
 # array bounds used in connection with Monte Carlo Neutrals
@@ -2145,12 +2145,12 @@ cmneutsor_mi	real /1/	#coeff. for MC neutral momentum source in resmo
 cmneutsor_ei	real /1/	#coeff. for MC neutral energy source in resei
 cmneutsor_ee	real /1/	#coeff. for MC neutral energy source in resee
 
-cfneutdiv		real /1/	 +threadprivate #coeff. to turn on divergence of all fluid neutral fluxes
+cfneutdiv		real /1/	#coeff. to turn on divergence of all fluid neutral fluxes
 cfneutdiv_fng	real /1/	#coeff. for div. fluid neutral particle flux in resng
 cfneutdiv_fmg	real /1/	#coeff. for div. fluid neutral momentum flux in resmo
 cfneutdiv_feg	real /1/	#coeff. for div. fluid neutral energy flux in resei
 
-cmneutdiv		real /0/	 +threadprivate #coeff. to turn on divergence of all MC neutral fluxes
+cmneutdiv		real /0/	#coeff. to turn on divergence of all MC neutral fluxes
 cmneutdiv_fng	real /1/	#coeff. for div. fluid neutral particle flux in resng
 cmneutdiv_fmg	real /1/	#coeff. for div. fluid neutral momentum flux in resmo
 cmneutdiv_feg	real /1/	#coeff. for div. fluid neutral energy flux in resei
@@ -2193,9 +2193,9 @@ tg_ue(0:nx+1,0:ny+1,nfl)		_real	[J]
 tg_ue_rsd(0:nx+1,0:ny+1,nfl)	_real	[#]
 # neutral gas temperature rsd from Monte-Carlo-Neutrals model
 
-sng_ue(0:nx+1,0:ny+1,1:nfl)		_real	[part/m**3-s]	 +threadprivate #neutral particle source density (convective only)
+sng_ue(0:nx+1,0:ny+1,1:nfl)		_real	[part/m**3-s]	#neutral particle source density (convective only)
 smg_ue(0:nx+1,0:ny+1,1:nfl)		_real	[N/m**3]		#neutral parallel momentum source density
-seg_ue(0:nx+1,0:ny+1,1:nfl)		_real	[W/m**3]		 +threadprivate #neutral energy source density (convective only)
+seg_ue(0:nx+1,0:ny+1,1:nfl)		_real	[W/m**3]		#neutral energy source density (convective only)
 
 
 ### Vectors ###
@@ -2562,7 +2562,7 @@ pnc_time	real			/0/						# time since beginning of coupled run
 #pnc_ftol	real			/1e-4/					# ftol for PNC
 dtneut	    real	[s] 	/1.e20/	 				# time step for neutrals
 dtplasma	real	[s]		/1e-6/					# time step for plasma-neutral coupling
-dtold	    real	[s] 	/1.e20/	 				 +threadprivate # old time step
+dtold	    real	[s] 	/1.e20/	 				# old time step
 relax_p     real            /1./					# relaxation parameter for plasma
 relax_g     real            /1./					# relaxation parameter for neutral gas
 
@@ -2660,10 +2660,10 @@ del_see    	real		#maximum absolute change in electron energy source
 
 ***** Save_terms:
 #Arrays to hold unperturbed values of particle-source terms
-psorold(1:nisp)		_real	[part/s]   +threadprivate # unpert. ioniz. sources
-psorxrold(1:nisp)	_real	[part/s]   +threadprivate # unpert. recom. & cx sources
-msorold(1:nisp)		_real	[kg-m/s**2]   +threadprivate # unpert. ioniz. mom. sources
-msorxrold(1:nisp)	_real	[kg-m/s**2]   +threadprivate # unpert. recom. & cx mom. sources
+psorold(1:nisp)		_real	[part/s]  # unpert. ioniz. sources
+psorxrold(1:nisp)	_real	[part/s]  # unpert. recom. & cx sources
+msorold(1:nisp)		_real	[kg-m/s**2]  # unpert. ioniz. mom. sources
+msorxrold(1:nisp)	_real	[kg-m/s**2]  # unpert. recom. & cx mom. sources
 
 ***** Time_dep_nwt:
 #Old variables and time step for Newton iteration
@@ -2727,7 +2727,7 @@ jcsc(neq+1)	_integer	# Nonzero structure of Jacobian matrix rcsc.
 				# jcsc(j+1) - jcsc(j) = no. of nonzeros
 				# in column j of rcsc.
 icsc(nnzmx)	_integer	# Row indices of nonzero entries in rcsc.
-yldot_pert(neqmx) _real          +threadprivate # Perturbed yldot within Jac_calc (diagnostic)
+yldot_pert(neqmx) _real         # Perturbed yldot within Jac_calc (diagnostic)
 yldot_unpt(neqmx) _real		# Initial yldot with Jac_calc (diagnostic)
 
 
@@ -3022,7 +3022,7 @@ ivloc2sdgl(nvisendl) _integer   #maps loc-var to glob-var, single domain
 ivloc2mdgl(nvisendl) _integer   #maps loc-var to glob-var, mult domain
 ivl2gstnll(neq_locl,9*numvarl) _integer /0/ # 1st arg loc-eqn number;
                                             # 2nd arg poss Jac vars-global-mp
-ispwrbcl        integer   /1/    +threadprivate #=1 if domain has cell for core power BC
+ispwrbcl        integer   /1/   #=1 if domain has cell for core power BC
 ixpt1l          integer   /0/   #local ixpt1 before par_data gather
 ixpt2l          integer   /1/   #local ixpt2 before par_data gather
 iysptrx1l       integer   /1/   #local iysptrx1 before par_data gather
@@ -3630,29 +3630,29 @@ ismctab		integer		/1/	+restart
 #	=2  tables generated by code from B. Braams,
 #	    data file name is specified by mcfilename=...,
 #	    corresponding rate evaluation routines are mcrates and radmc.
-nzloc(0:nzspmx)		_real	[/m**3] +threadprivate
+nzloc(0:nzspmx)		_real	[/m**3]
                                # imp. dens. for each Z at one grid cell
-impradloc(0:nzspmx)	_real	[Watts/m**3] +threadprivate
+impradloc(0:nzspmx)	_real	[Watts/m**3]
                   # rad. power loss density for each Z at one grid cell
-pwrzec(0:nx+1,0:ny+1)	_real	[Watts/m**3] +threadprivate
+pwrzec(0:nx+1,0:ny+1)	_real	[Watts/m**3]
                                # elec energy loss via impurities at cell-cntr
-pwrze(0:nx+1,0:ny+1)	_real	[Watts/m**3] +threadprivate
+pwrze(0:nx+1,0:ny+1)	_real	[Watts/m**3]
                                # elec energy loss via impurities; cell-ave
-pradc(0:nx+1,0:ny+1)	_real	[Watts/m**3] +threadprivate
+pradc(0:nx+1,0:ny+1)	_real	[Watts/m**3]
                                # cell ctr total impurity radiation
-pradcff(0:nx+1,0:ny+1)	_real	[Watts/m**3] +threadprivate
+pradcff(0:nx+1,0:ny+1)	_real	[Watts/m**3]
                                # cell ctr impurity radiation (fixed-fraction)
-prad(0:nx+1,0:ny+1)	_real	[Watts/m**3] +threadprivate
+prad(0:nx+1,0:ny+1)	_real	[Watts/m**3]
                                # cell ave total impurity radiation
-pradzc(0:nx+1,0:ny+1,0:nzspmx,1:ngsp-1)	_real	[Watts/m**3] +threadprivate
+pradzc(0:nx+1,0:ny+1,0:nzspmx,1:ngsp-1)	_real	[Watts/m**3]
                                # cell ctr imp rad due to each imp. ch. state
-pradz(0:nx+1,0:ny+1,0:nzspmx,1:ngsp-1)	_real	[Watts/m**3] +threadprivate
+pradz(0:nx+1,0:ny+1,0:nzspmx,1:ngsp-1)	_real	[Watts/m**3]
                                # cell ave imp rad due to each imp. ch. state
-na(0:nx+1,0:ny+1)	_real	[/m**3] +threadprivate
+na(0:nx+1,0:ny+1)	_real	[/m**3]
                                # atomic density of impurity (=afrac*ne)
-ntau(0:nx+1,0:ny+1)	_real	[sec/m**3] +threadprivate
+ntau(0:nx+1,0:ny+1)	_real	[sec/m**3]
                                # confinement parameter for impurity (=atau*ne)
-nratio(0:nx+1,0:ny+1)	_real +threadprivate
+nratio(0:nx+1,0:ny+1)	_real
                                # ratio of neutrals to electrons
 afrac(0:nx+1,0:ny+1)	_real	/.00/ +restart
                                # atomic impur conc; set internally to afracs
@@ -3672,12 +3672,12 @@ misotope		integer  # number of isotopes (including electrons)
 nchstate		integer  # maximum charge state among all isotopes
 natomic(1:MXMISO)	integer  # maximum charge state of each isotope
 amu(1:misotope)		_real	[none]     # atomic mass, relative to proton
-tempa(1:misotope)	_real	[J]         +threadprivate # temperature
+tempa(1:misotope)	_real	[J]        # temperature
 qneut(1:misotope)	_real	[J/m**2-s] # parallel heat flux of neutral
 uneut(1:misotope)	_real	[m/s]      # parallel flow speed of neutral
-den(1:misotope,0:nchstate)	_real	[1/m**3]  +threadprivate # density
-gradp(1:misotope,1:nchstate)	_real	[J/m**4]  +threadprivate # parallel pressure grad
-gradt(1:misotope,1:nchstate)	_real	[J/m**4]  +threadprivate # parallel temp gradient
+den(1:misotope,0:nchstate)	_real	[1/m**3] # density
+gradp(1:misotope,1:nchstate)	_real	[J/m**4] # parallel pressure grad
+gradt(1:misotope,1:nchstate)	_real	[J/m**4] # parallel temp gradient
 friction(1:misotope,1:nchstate)	_real	[J/m**4] # parallel friction force
 friccomp(1:misotope,1:nchstate,1:5) _real [J/m**4] # par friction components
 						 #friccomp(,,1)~ upi-upj
@@ -3689,7 +3689,7 @@ nuion(1:misotope,0:nchstate)	_real	[1/s]    # ionization rate
 nurec(1:misotope,1:nchstate)	_real	[1/s]    # recombination rate
 qcond(1:misotope,1:nchstate)	_real	[J/m**2-s] # parallel heat flux
 ucond(1:misotope,1:nchstate)	_real	[m/s]      # parallel flow speed
-dztot(1:misotope)               _real   [1/m**3]  +threadprivate # total local isotope density
+dztot(1:misotope)               _real   [1/m**3] # total local isotope density
 
 ***** Bdy_indexlims:
 # Limits of running index that goes around boundary

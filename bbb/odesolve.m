@@ -312,6 +312,7 @@ c     iwork(3) & iwork(4) were set in sub. allocate; allocate prob., lwp, liwp
             iwork(7) = 1-errmsgflag
             iwork(8) = itermx
             iwork(9) = incpset
+            iwork(10)= nfemax
             rwork(1) = stepmx
             rwork(2) = del2nksol
             rwork(3) = taunksol

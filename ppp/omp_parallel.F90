@@ -61,6 +61,14 @@ subroutine InitOMP()
 #endif
 end subroutine InitOMP
 !-------------------------------------------------------------------------------------------------
+
+subroutine InitZeroOMP
+#ifdef _OPENMP
+call OmpInitZerobbb
+call OmpInitZeroapi
+call OmpInitZerocom
+#endif
+end subroutine InitZeroOMP
 #ifdef _OPENMP
 subroutine OMPCollectJacobian(neq,nnzmx,rcsc,icsc,jcsc,nnzcumout)
 

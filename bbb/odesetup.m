@@ -525,7 +525,7 @@ cc      endif
 
 c	  Allocate PNC_data group
       call gchange("PNC_data",0)
-
+      call InitZeroOMP
       iallcall = 1 # indicates allocate called at least once; nis allocated
       return
       end

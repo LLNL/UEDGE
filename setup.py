@@ -65,14 +65,14 @@ for o in optlist:
         OMP = True
 
 # OMP add-on        
-OMPpackages=['bbb','com','api']
-OMPlisthtreadprivatevars='../../ppp/ListVariableThreadPrivate_final.txt'
+#OMPpackages=['bbb','com','api']
+#OMPlisthtreadprivatevars='../../ppp/ListVariableThreadPrivate_final.txt'
 CARGS=[]
 FARGS=['-fmax-errors=15', '-DFORTHON','-cpp','-Wconversion','-fimplicit-none']
 if OMP:
-    FARGS=FARGS+['-fopenmp']
+    #FARGS=FARGS+['-fopenmp']
     CARGS=CARGS+['-fopenmp']
-    OMPargs=['--omppkg {} --ompvarlistfile {}'.format(','.join(OMPpackages),OMPlisthtreadprivatevars)]
+    OMPargs=['--omp']
 else:
     OMPargs=[]
 OMPFLAGS='OMPFLAGS = {}'.format(' '.join(OMPargs))

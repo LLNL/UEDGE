@@ -45,7 +45,7 @@ methimp         integer /33/   # specifies interp. for finite diff. for (y,x)
                                # otherwise linear interp.
 csexpn		real    /0./   # exponent for reducing impurity || vel from
 			       # being too supersonic (1+x**(4-csexpn))/(1+x**4)
-                               # with x=v||/cs; range should be 0->1, with 0.3
+                               # with x=v||/cs; range should be 0->1, with 0.3 
 
 ***** Impurity_source:
 # array for impurity source
@@ -59,13 +59,13 @@ jxzsori(nzspt,nzsor)    _integer /1/	# ximpi=0. is located at left boundary
                                         # of mesh region jxzsori for iszsorlb=1
 jxzsoro(nzspt,nzsor)    _integer /1/ 	# ximpo=0. is located at left boundary
                                         # of mesh region jxzsori for iszsorlb=1
-ixzbegi(nzspt,nzsor)    _integer        # ximpi=0. is located at cell index
+ixzbegi(nzspt,nzsor)    _integer        # ximpi=0. is located at cell index 
                                         # ix=ixzbegi for iszsorlb=1
-ixzendi(nzspt,nzsor)    _integer        # ximpi=0. is located at cell index
+ixzendi(nzspt,nzsor)    _integer        # ximpi=0. is located at cell index 
                                         # ix=ixzendi for iszsorlb=0
-ixzbego(nzspt,nzsor)    _integer        # ximpo=0. is located at cell index
+ixzbego(nzspt,nzsor)    _integer        # ximpo=0. is located at cell index 
                                         # ix=ixzbego for iszsorlb=1
-ixzendo(nzspt,nzsor)    _integer        # ximpo=0. is located at cell index
+ixzendo(nzspt,nzsor)    _integer        # ximpo=0. is located at cell index 
                                         # ix=ixzendo for iszsorlb=0
 ximpi(nzspt,nzsor)	_real	[m]	# center of source profile (inner wall)
 ximpo(nzspt,nzsor)	_real	[m]	# center of source profile (outer wall)
@@ -96,7 +96,7 @@ avgz2(NCASET,NCASENO,NCASENT)	real
 ***** Impdata:
 # name of directory containing impurity atomic rate data
 apidir character*120 /"."/  # name of directory containing impurity data files
-
+  
 
 ***** MC_subs:
 readmc(nzdf:integer,mcfilename:string)		subroutine
@@ -153,7 +153,7 @@ work2(nwork2)	_real		# work array for B3VAL
 nwork3	integer			# size of array work3
 work3(nwork3)	_real		# work array for B3INT
 iworki(10)	integer		# work array for B3VAL
-icont		integer	/0/	 +threadprivate  # input flag for B3VAL
+icont		integer	/0/	# input flag for B3VAL
 kxords	integer	/4/	# order of spline fit versus x
 #	kxords=4 (default) is cubic interpolation
 kyords	integer	/4/	# order of spline fit versus y
@@ -163,7 +163,7 @@ kzords	integer	/4/	# order of spline fit versus z
 xknots(1:nxdata+kxords)	_real
 yknots(1:nydata+kyords)	_real
 zknots(1:nzdata+kzords)	_real
-emcoef(1:nxdata,1:nydata,1:nzdata)	_real	# spline coeff's for emissivity
+emcoef(1:nxdata,1:nydata,1:nzdata)	_real	# spline coeff's for emissivity 
 z1coef(1:nxdata,1:nydata,1:nzdata)	_real	# spline coeff's for average-Z
 z2coef(1:nxdata,1:nydata,1:nzdata)	_real	# spline coeff's for average-Z**2
 
@@ -199,36 +199,36 @@ z2avgbs(te:real,nratio:real,ntau:real)	real function
  one		real	[none]	# Unity
  pi0		real	[none]	# Pi
  zero		real	[none]	# Zero
- sumforce	real	#
- totmass	real	#
- anorm		real	#
- acci		real	#
- acci0		real	#
- al32(3)	real	#
- miso		integer	#
- nzch		integer	#
+ sumforce	real	# 
+ totmass	real	# 
+ anorm		real	# 
+ acci		real	# 
+ acci0		real	# 
+ al32(3)	real	# 
+ miso		integer	# 
+ nzch		integer	# 
  mise		integer	# "isotope number" for electrons (=1)
  ilam1		integer	# =1
  ilam2		integer	# =2
  ilam3		integer	# =3
  iacci		integer	# =4
  iforc		integer	# =5
- natom(MXMISO)	integer	#
+ natom(MXMISO)	integer	# 
 
 ***** Reduced_ion_variables:
 # Variables used within reduced-ion routines
- capm(KXA*MXMISO*KXA*MXMISO)	real	#
- capn(KXA*MXMISO*KXA*MXMISO)	real	#
- caplam(KXA*MXMISO)		real	#
- fmomenta(KMXZ)			real	#
- denz(MXMISO*MXNZCH)		real	#
- denmass(MXMISO*(MXNZCH+1))	real	#
- ela(KXA*KXA*MXMISO)		real	#
- elab(KXA*MXMISO*KXA*MXMISO)	real	#
- mntau(MXMISO*MXMISO)		real	#
- usol(KXA*MXNZCH*MXMISO)	real	#
- sbar(KXA*MXMISO1)		real	#
- zi(MXMISO*MXNZCH)		real	#
+ capm(KXA*MXMISO*KXA*MXMISO)	real	# 
+ capn(KXA*MXMISO*KXA*MXMISO)	real	# 
+ caplam(KXA*MXMISO)		real	# 
+ fmomenta(KMXZ)			real	# 
+ denz(MXMISO*MXNZCH)		real	# 
+ denmass(MXMISO*(MXNZCH+1))	real	# 
+ ela(KXA*KXA*MXMISO)		real	# 
+ elab(KXA*MXMISO*KXA*MXMISO)	real	# 
+ mntau(MXMISO*MXMISO)		real	# 
+ usol(KXA*MXNZCH*MXMISO)	real	# 
+ sbar(KXA*MXMISO1)		real	# 
+ zi(MXMISO*MXNZCH)		real	# 
 
 ***** Cyield:
 # Variables used for DIVIMP physical sputtering models
@@ -237,7 +237,7 @@ cetf(7,12)	real [eV]	# Thomas-Fermi potential
 cq(7,12)	real 		# yield factor for phys. sputt. (atoms/ion)
 ntars		integer		# number of target materials
 cidata(7,12)	logical		# flag indicating avaiability of data
-redf_haas	real /0.2/	# low-energy reduction of Haas97 chem sput
+redf_haas	real /0.2/	# low-energy reduction of Haas97 chem sput 
 			        # for IOPTCHEM=7
 
 ***** Sputt_subs:

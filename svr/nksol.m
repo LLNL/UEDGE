@@ -733,6 +733,7 @@ c- icntnu change
       real rlx, epscon1, epscon2, adjf1
       integer icflag, icnstr, ivar
       dimension icnstr(n)
+      integer nfemax
 c
       real zero,one,two,three
       logical mxtkn
@@ -920,6 +921,7 @@ c first check for illegal values.
         if (iwork(7) .gt. 0) iermsg = iwork(7)
         if (iwork(8) .gt. 0) itermx = iwork(8)
         if (iwork(9) .gt. 0) incpset = iwork(9)
+        if (iwork(10) .gt. 0) nfemax = iwork(10)
         if (rwork(1) .gt. zero) stepmx = rwork(1)
         if (rwork(2) .gt. zero) sqteta = sqrt(rwork(2))
         if (rwork(3) .gt. zero) tau = rwork(3)
@@ -1087,7 +1089,7 @@ cpetsc      endif
       # we add here a trap for aborted exmain when 'stop' is called. Added by J.Guterl
       if (exmain_aborted) call xerrab('exmain aborted...')
       call nkstop(n,u,rwork(lup),savf,fnrm,su,sf,stptol,rwork(lx),
-     *            ftol,iret,iter,itermx,mxtkn,ncscmx,iterm)
+     *            ftol,iret,iter,itermx,mxtkn,ncscmx,iterm,nfemax)
 c
       do 300 i = 1,n
         u(i) = rwork(i+lup-1)
@@ -1101,7 +1103,7 @@ c     load optional outputs into iwork array and return.
 c-----------------------------------------------------------------------
  500  continue
       call infgen (iterm,zero,zero,0,0)
-      iwork(10) = nni
+c      iwork(10) = nni
       iwork(11) = nli
       iwork(12) = nfe
       iwork(13) = nje
@@ -1119,7 +1121,7 @@ c-----------------------------------------------------------------------
 c----------------------- end of subroutine nksol -----------------------
       end
       subroutine nkstop(n, u, unew, savf, fnorm, su, sf, stptol, wk,
-     *    ftol, iret, iter, itermx, mxtkn, ncscmx, iterm)
+     *    ftol, iret, iter, itermx, mxtkn, ncscmx, iterm,nfemax)
 c-----------------------------------------------------------------------
 c this routine decides whether to terminate nksol based on one of
 c several stopping criteria described below.  (see description of
@@ -1200,13 +1202,14 @@ c
 c-----------------------------------------------------------------------
       implicit none
       integer n, iret, iter, itermx, ncscmx, iterm, locwmp, locimp
-      integer iersl, kmp, mmax, methn, methk, ipflg, mfdif, nfe, nje
+      integer iersl, kmp, mmax, methn, methk, ipflg, mfdif, nje
       integer nni, nli, npe, nps, ncfl, nbcf, ipcur, nnipset
       integer incpset, i
       real u,unew,savf,fnorm,su,sf,stptol,ftol
       real fmax,rlngth,wk,thsnd,two
       dimension u(*),unew(n),savf(n),su(n),sf(n),wk(n)
       logical mxtkn
+      integer nfe,nfemax
 c-----------------------------------------------------------------------
 c     nks001 common block.
 c-----------------------------------------------------------------------
@@ -1265,6 +1268,10 @@ c check for maximum number of iterates exceeded.
         iterm = 4
         go to 999
         endif
+      if (nfe.gt.nfemax) then
+      iterm = 6
+      go to 999
+      endif
 c check for consecutive number of steps taken of size stepmx.
 c if mstkn=.false., set ncscmx = 0.
       if (mxtkn) then
