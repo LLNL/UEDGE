@@ -70,7 +70,7 @@ for o in optlist:
 CARGS=[]
 FARGS=['-fmax-errors=15', '-DFORTHON','-cpp','-Wconversion','-fimplicit-none']
 if OMP:
-    #FARGS=FARGS+['-fopenmp']
+    FARGS=FARGS+['-fopenmp']
     CARGS=CARGS+['-fopenmp']
     OMPargs=['--omp']
 else:
