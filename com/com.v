@@ -361,10 +361,8 @@ gy(0:nx+1,0:ny+1)   _real   [m^-1]  #1/(y-diameter) of the (ix,iy) primary cell
 dx(0:nx+1,0:ny+1)   _real   [m]     # x-distance of (ix,iy) primary cell;=1/gx
 dxvf(0:nx+1,0:ny+1) _real   [m]     # x-distance of between vel cell ctrs
 dy(0:nx+1,0:ny+1)   _real   [m]     # y-distance of (ix,iy) primary cell;=1/gy
-dynog(0:nx+1,0:ny+1) _real  [m]     #sep btwn nonog interp pts normal to y-face
 gxf(0:nx+1,0:ny+1)  _real   [m^-1]  #1/(x-distance) between density centers
-##gxfn(0:nx+1,0:ny+1) _real   [m^-1]  #1/dist. btwn interp. pts, normal to x-face
-dxnog(0:nx+1,0:ny+1) _real  [m]     #sep btwn nonog interp pts normal to x-face
+gxfn(0:nx+1,0:ny+1) _real   [m^-1]  #1/dist. btwn interp. pts, normal to x-face
 gyf(0:nx+1,0:ny+1)  _real   [m^-1]  #1/(y-distance) perp to y-face between
                                     #niy0 and niy1 variables, etc.
 gxc(0:nx+1,0:ny+1)  _real   [m^-1]  #1/(x-distance) between density vertices
