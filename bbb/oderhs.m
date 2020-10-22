@@ -692,7 +692,7 @@ ccc      save
 *  -- procedures --
       real ave, etaper, interp_yf, interp_xf
       ave(t0,t1) = 2*t0*t1 / (cutlo+t0+t1)
-      etaper(ix,iy) = 3.234e-9*loglambda(ix,iy)/(max(te(ix,iy),temin*ev)
+      etaper(ix,iy) = 3.234e-9*lnlam/(max(te(ix,iy),temin*ev)
      .                                          /(1000.*ev))**(1.5)
       interp_yf(ix,iy,t0,t1) = (t0*gy(ix,iy) + t1*gy(ix,iy+1)) /
      .                                       (gy(ix,iy)+gy(ix,iy+1))
