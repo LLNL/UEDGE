@@ -9444,7 +9444,7 @@ c ... Calculate right-hand sides at unperturbed values of variables.
 
 c ... Calculate Jacobian matrix.
       tp = 0.
-      call jac_calc (neq, tp, yl, yldot0, lbw, ubw, sf,
+      call jac_calc_interface (neq, tp, yl, yldot0, lbw, ubw, wk,
      .               nnzmx, jac, jacj, jaci)
 
       yl(neq+1) = -1.      # Turn-off Jacobian flag for pandf
@@ -11905,6 +11905,7 @@ c ... Output arguments:
        real tick,tock
        external tick tock
        TimeJac=tick()
+	    
       if (ParallelJac.eq.1) then
       call jac_calc_parallel (neq, t, yl, yldot00, ml, mu, wk,
      .               nnzmx, jac, ja, ia)
