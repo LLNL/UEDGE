@@ -682,16 +682,18 @@ c ...   Need to fix ixpt2(1) modified by grdrun is geometry=isoleg
             call readgrid(fname, runid)
             write(*,*) 'Read file "', fname, '" with runid:  ', runid
 c ...  now that the grid is read in, we can manipulate dnull for nxomit>0
-            if (geometry=="dnull" .and. nxomit >= ixlb(2)) then
-              call remark("*** nxomit>0: do outer quad as single-null")
+            if (geometry=="dnull" .and. nxpt==2) then
+              if (nxomit >= ixlb(2)) then
+                call remark("*** nxomit>0: do outer quad as single-null")
                 geometry = "snull"
                 nxpt = 1
 	        write(*,*) "ixpt1, ixpt2 = ", ixpt1, ixpt2
+                write(*,*)
                 ixpt1(1) = ixpt1(1)   # ixpt1,2 are shifted by nxomit later
                 ixpt2(1) = ixpt2(2)
                 ixlb(1) = 0
               endif
-            write(*,*)
+            endif
          endif
       elseif (mhdgeo .eq. 2) then
          if (gengrid == 1) then
@@ -1870,7 +1872,7 @@ c-----------------------------------------------------------------------
       integer ixu1, iyu1,ixu2, iyu2, ishy, ishx, iym1, isht, jx
       real aa, bb, cc, cos1, cos4, ang1, ang4
       real x1, x2, x3, f1, f2, f3, tantx, tanty
-      real slp1, zmid, rmid, zint, rint, d1, d2, d3
+      real slp1, slp0, zmid, rmid, zint, rint, d1, d2, d3
       real slpfs, angfs1, angfs2, denomf
       real rints(0:1), zints(0:1), dyf, dxf, errlim, bigslp, eps
       real z4, r4, delrm, delzm, thetax, thetay
@@ -2070,6 +2072,12 @@ c ...       Search for intersection btwn (ixu1,iyu1) & (ixu2,iyu2)
             isht = 1 - ishy
  15         call lindis(ixu1,iyu1,ixu2,iyu2,3,isht,rmid,zmid,slp1,
      .                                               rint,zint,d1,d2,d3)
+ccc      if(ix==ixpt1(1)+1 .and. iy==1) then
+ccc        write(*,*) "ixu1,iyu1,ixu2,iyu2 = ",ixu1,iyu1,ixu2,iyu2
+ccc        write(*,*) "isht,rmid,zmid,slp1 = ",isht,rmid,zmid,slp1
+ccc        write(*,*) "rint,zint = ",rint,zint
+ccc        write(*,*) "d1,d2,d3 = ",d1,d2,d3
+ccc      endif
             if (d1.le.d3*1.0001 .and. d2.le.d3*1.0001) then
                rints(ishy) = rint
                zints(ishy) = zint
@@ -2198,20 +2206,6 @@ c...  fix possible divide-by-zero
                iyu2 = iy-1
                ixu2 = ishx*ix + (1-ishx)*ixp1(ix,iyu2)
             endif
-ccc            if (ishx .eq. 0) then
-ccc               denomf = (rmid - rm(ix+nj,iy,0))
-ccc               if (abs(denomf) .lt. 1.e-9) denomf=1.e-9
-ccc               slpfs = (zmid - zm(ix+nj,iy,0)) / denomf
-ccc               angfs1 = atan2( zmid-zm(ix+nj,iy,0), rmid-rm(ix+nj,iy,0) )
-ccc            else
-ccc               denomf = (rmid - rm(ixp1(ix,iy)+nj,iy,0))
-ccc               if (abs(denomf) .lt. 1.e-9) denomf=1.e-9
-ccc               slpfs = (zmid - zm(ixp1(ix,iy)+nj,iy,0)) / denomf
-ccc               angfs2 = atan2( zm(ixp1(ix,iy)+nj,iy,0)-zmid,
-ccc     .                         rm(ixp1(ix,iy)+nj,iy,0)-rmid )
-ccc            endif
-ccc            slp1 = -(1-slpfs*tan(angfx(ix,iy))) /
-ccc     .                (slpfs+tan(angfx(ix,iy)))
 
 c ...       Search for intersection btwn (ixu1,iyu1) & (ixu2,iyu2)
             isht = 1 - ishx

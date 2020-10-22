@@ -24,6 +24,7 @@ csfacti   real            /1./  #Bohm speed = sqrt((te+csfacti*ti)/mi)
 cslim     real            /1./  #frac of cs used for limiter Bohm sheath b.c.
 dcslim    real            /0./  #reduce sonic flow at limiter by the factor
                                 #cslim*[1-exp(-(iy-iy_lims+1)/dcslim)]
+islnlamcon integer        /0/   #=0, loglambda=Braginskii;if=1,loglambda=lnlam
 lnlam     real            /12./ #Coulomb log;shouldn't be constant
 methe     integer         /33/  #elec. eng. eqn: 22-cd, 33-uw, 44-hyb, 55-p-law
 methu     integer         /33/  #ion mom. eqn: 22-cd, 33-uw, 44-hyb, 55-p-law
@@ -399,7 +400,8 @@ iphibcc 	integer /0/	#core BC at iy=1 when isnewpot=1;iy=0
                                 #=1, d^2(ey)/dy^2=0
                                 #=2, te=constant & ey(ixmp,0)=eycore
                                 #=3, phi=constant & ey(ixmp,0)=eycore
-                                #>3, dphi(ix,1)=dphi_iy1,isutcore ctrls ix=ixmp
+                                #>3 or < 1 now unavailable, previously
+				#dphi(ix,1)=dphi_iy1,isutcore ctrls ix=ixmp
 iphibcwi        integer /0/     #=0, d(ey)/dy=0
 				#=1, phi(ix,0) = phintewi*te(ix,0)/ev
 				#=3, d(phi)/dy/phi = 1/lyphi(1)
@@ -1049,6 +1051,7 @@ ipflag       integer /1/ #nksol flag to precondition (1=yes)
 mfnksol      integer /-3/#nksol method flag; =1 means dogleg strategy,
                          #=2 means linesearch with Arnoldi method,
                          #=3 means linesearch with GMRES method.
+			 #=4 full direct solve by RSmirnov;set premeth=banded
                          #negative mfnksol ignores global constaints
 iprint       integer /1/ #nksol optional statistics flag.
                          #=0 means no optional statistics are printed.
@@ -1192,8 +1195,8 @@ facbei	      real [ ]      /0./	#factor for Bohm Ti diff. coeff.
 vcony(1:nispmx) real [m/s] /nispmx*0./  #value of constant radial velocity
 difcng	      real [m**2/s] /50./       #constant gas diff. coeff if isgasdc=1
 isgasdc       integer       /0/         #switch to turn on constant gas dif coef
-flalfe        real          /1e20/      #|| heat flux limit factor for elec.
-flalfi        real          /1.e+10/    #|| heat flux limit factor for ions
+flalfe        real          /0.21/      #|| heat flux limit factor for elec.
+flalfi        real          /0.21/    #|| heat flux limit factor for ions
 lxtemax       real [m]      /1.e10/	#max pol. scale len of elec heat-flux lim
 lxtimax       real [m]      /1.e10/	#max pol. scale len of ion heat-flux lim
 lxtgmax       real [m]      /1.e10/	#max pol. scale len of gas heat-flux lim
@@ -1207,8 +1210,9 @@ fricflf       real          /1./        #flux-limiting factor for inputs to
                                         #multispecies friction (and upi) calc
 isflxlde      integer       /0/         #=1,elec flux limit diff;=0, conv/diff
 isflxldi      integer       /2/         #=1,ion flux limit diff;=0, conv/diff
-                                        #=2, diff on individ hxci
-kxe           real          /1.35/      #pol elec heat conduc factor; 1.35->Balescu
+                                        #=2, diff on individ hxcij
+kxe           real          /1./        #pol Braginsk elec heat conduc factor;
+                                        #prev 1.35->Balescu explain by M.Zhao
 alfkxi        real          /0./        #reduces ion thermal conduc, K_||, if
                                         #|ti(ix+1)-ti(ix)|<alfkxi*ti(ix)
 alfkxe        real          /0./        #reduces elec thermal conduc, K_||, if
@@ -1240,7 +1244,7 @@ gcfacgtx      real	    /0./	#mult grad Ti conv gas x-flux ix=0 & nx
 gcfacgty      real	    /0./	#mult grad Ti conv gas y-flux iy=0 & ny
 isdifxg_aug   integer       /0/         #=1 enhances D_xgas with flx-lim factor
 isdifyg_aug   integer       /0/         #=1 enhances D_ygas with flx-lim factor
-flalfv        real          /1.e+10/    #parallel velocity flux limit factor
+flalfv        real          /0.5/    #parallel velocity flux limit factor
 isupdrag      integer       /0/         #=1 adds nonunif B-field drag on v_||
 con_leng      real          /1e20/ [m]  #connect length used for coll trans fac
 frac_pt       real          /0.3/       #invers aspect ratio for colliless drag
@@ -2774,7 +2778,7 @@ premethbanded character*20 /"old"/ #='bandedfast'': dgbfa_u
 premeth character*8 /"ilut"/  # type of preconditioning used in the
                               # linear iteration:
                               # ="banded" means use full banded jacobian as
-                              #  preconditioner.
+                              #  preconditioner. Also used with mfnksol=4
                               # ="ilut" means use ilut preconditioning.
                               # ="inel" means use INEL ILU preconditioning
 lenpfac        integer   /60/ # fudge factor to multiply neq by to get an
@@ -3075,9 +3079,8 @@ ifexmain           integer /0/  #scalar to indicate if subroutine allocate
                                 #is called by exmain.
                                 #=1 means allocate is called by exmain,
                                 #=0 means it is not.
-
+exmain_aborted logical /.false./ # Set to .true. in Python version on control-C abort
 iallcall	   integer /0/  #flag to signal first call to allocate
-exmain_aborted integer /.false./ # Set to .true. in Python version on control-C abort
 
 ***** RZ_cell_info:
 # RZ grid-cell center and face locations
