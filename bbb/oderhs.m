@@ -3033,9 +3033,8 @@ c..   Now radial direction
      .                 naavey*kelhmhg
             qfly = flalftmy*sqrt(tgavey/mg(igsp))*noavey*tgavey
             cshy = cftgcond*noavey*tgavey/(mg(igsp)*nuelmoly)  #assume Kel_s not fcn Tg
-            qshy = cshy*(tgy0(ix,iy1,igsp)-tgy1(ix,iy1,igsp))/
-     .                                                  dynog(ix,iy)
-            hcyg(ix,iy,igsp) = cshy /
+            qshy = cshy*(tgy0(ix,iy1,igsp)-tgy1(ix,iy1,igsp))*gyf(ix,iy)
+           hcyg(ix,iy,igsp) = cshy /
      .                     (1 + (abs(qshy/qfly))**flgamtg)**(1./flgamtg)
             hcyg(ix,iy,igsp)=(1-cfhcygc(igsp))*hcyg(ix,iy,igsp)+
      .                     cfhcygc(igsp)*noavey*kyg_use(ix,iy,igsp)
@@ -3840,8 +3839,8 @@ c.... Now do the ions (hcxi is flux-limited previously when it is built)
 
       do 123 iy = j1, j5
          do 122 ix = i4, i8
-            conye(ix,iy) = sy(ix,iy) * hcye(ix,iy) / dynog(ix,iy)
-            conyi(ix,iy) = sy(ix,iy) * hcyi(ix,iy) / dynog(ix,iy)
+            conye(ix,iy) = sy(ix,iy) * hcye(ix,iy) * gyf(ix,iy)
+            conyi(ix,iy) = sy(ix,iy) * hcyi(ix,iy) * gyf(ix,iy)
   122    continue
   123 continue
 
@@ -4706,20 +4705,8 @@ c******************************************************************
                  dupdy = 0.5*( upi(ix,iy+1,ifld)+upi(ix2,iy+1,ifld) -
      .                         upi(ix,iy  ,ifld)-upi(ix1,iy  ,ifld) )*
      .                                                    gyf(ix,iy)
-               elseif (isxpty(ix,iy)==1.and.isvhyha==1) then
-                                 #use harm y-ave for up face-values
-                                 #take abs() to avoid near-zero denomin;
-                                 #small err in wvh because up then small
-                 upxavep1 = 0.5*(upi(ix,iy+1,ifld)+upi(ix2,iy+1,ifld))
-                 upxave0 =  0.5*(upi(ix,iy  ,ifld)+upi(ix1,iy  ,ifld))
-                 upxavem1 = 0.5*(upi(ix,iy-1,ifld)+upi(ix3,iy-1,ifld))
-                 upf0  = 2.*upxavep1*upxave0*(upxavep1+upxave0) /
-     .                           ( (upxavep1+upxave0)**2 + upvhflr**2 )
-                 upfm1 = 2.*upxave0*upxavem1*(upxave0+upxavem1) /
-     .                           ( (upxave0+upxavem1)**2 + upvhflr**2 )
-                 dupdy = (upf0 - upfm1)*gy(ix,iy)
-               else	#V7.08.04 option - linear ave in y-direction
-		 dupdy = 0.25*( (upi(ix,iy+1,ifld)+upi(ix2,iy+1,ifld) -
+               else
+		 dupdy = 0.25*( (upi(ix,iy+1,ifld)+upi(ix2,iy+1,ifld) - 
      .                           upi(ix,iy  ,ifld)-upi(ix1,iy  ,ifld))*
      .                                                     gyf(ix,iy) +
      .                          (upi(ix,iy  ,ifld)+upi(ix1,iy  ,ifld) -
