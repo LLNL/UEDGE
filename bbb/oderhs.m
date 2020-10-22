@@ -7679,8 +7679,10 @@ c...  variables are used, i.e., n,nv,nT, or n,v,T, or n,v,nT
 
 *  -- Local variables
       integer ifld
+      #Former Aux module variables
+      integer ix,iy,iv,iv1,iv2,ix1,igsp
       real nbv, nbvdot, nbidot, nbedot, nbgdot, yldot_np1, nbg2dot(ngsp)
-
+      
 c...  If isflxvar=0, we use ni,v,Te,Ti,ng as variables, and the ODEs need
 c...  to be modified as original equations are for d(nv)/dt, etc
 c...  If isflxvar=2, variables are ni,v,nTe,nTi,ng.  Boundary eqns and
@@ -7809,7 +7811,8 @@ c   -------------------------------------------------------------------------
      &     ivolcurgt, mvolcurt
       real argr, argz
       integer isxjcsor, iexjcsor, isyjcsor, ieyjcsor, ifld, nj
-
+      #Former Aux module variables
+      integer ix,iy,igsp
 
 c...  Initialize values and arrays
       nj = nxomit
