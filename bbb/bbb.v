@@ -119,10 +119,10 @@ mfl       real +threadprivate
 msh       real +threadprivate
 ro        real
 cs        real +threadprivate
+ctaue(0:nx+1,0:ny+1,nisp)  _real +threadprivate  #calc factor for elec Coulomb coll
+ctaui(0:nx+1,0:ny+1,nisp)  _real +threadprivate  #calc factor for ion Coulomb coll
 fxe       real +threadprivate
-ctaue     real +threadprivate
 fxi       real +threadprivate
-ctaui     real +threadprivate
 zcoef     real +threadprivate         #factor (calc) give zeff dependence of elec thermal c.
 coef1     real +threadprivate         #factor (calc) for energy equipartion rate
 cnurn     real    /1./  #scales nurlx rate for ion continuity eqn.
