@@ -563,26 +563,28 @@ c    yldot is the RHS of ODE solver or RHS=0 for Newton solver (NKSOL)
 *  -- local variables
       integer ifld, jfld, zn, k, k1, k2, jx, ixt, ixt1, ixr, ixr1, iixt,
      .        ixt0
-      real fxet, fxit, qr, vt0, vt1, vtn, vtn2, pradold, eeliold,
+      real fxet, fxit, qr, vt0, vt1, vtn, vtn2, pradold, eeliold, 
      .     erlizold, erlrcold, psorrgold(nigmx), psorcxgold(nigmx),
      .     nuizold(nigmx), nucxold(nigmx), nurcold(nigmx), nuixold(nigmx),
      .     psorgold(nigmx), tsfe, tsjf, niavex, niavey, teave, tiave, tgavex,
-     .     zeffave, noavex, noavey, tiavey, tgavey, psordisold,
+     .     zeffave, noavex, noavey, tiavey, tgavey, psordisold, 
      .     nucxiold(nigmx), nueliold(nigmx), nuelgold(nigmx), rrfac, visxtmp,
      .     vttn, vttp, neavex, pwrebkgold, pwribkgold, feexflr, feixflr,
      .     naavex,naavey,nuelmolx,nuelmoly
-      real fqpo, fqpom, friceo, friceom, upeo, upeom, fricio(100),
+      real fqpo, fqpom, friceo, friceom, upeo, upeom, fricio(100), 
      .     friciom(100), upio(100), upiom(100), uupo(100), uupom(100)
       real nevol, ngvol, kionz, krecz, kcxrz, kionm, krecm, kcxrm, nzbg,
      .     niz_floor, hflux, zflux, psorv, kionz0, pscx0, pxri, kcxrzig,
      .     nizm_floor, argx, massfac, ae, geyym, geyy0, geyyp, dgeyy0,
      .     dgeyy1, te_diss, wallfac, z1fac, bpolmin, rt2nus, epstmp, tv2
+      real awoll,awll
       integer izch, ihyd, iimp, jg, jz, nsm1, ifld_fcs, ifld_lcs
       real uuv, ne_sgvi, nbarx, argth, fac_rad, ffyi, ffyo
       real grdnv, qflx, qfly, cshx, cshy, qshx, qshy, lxtec, lxtic
       real lmfpn, lmfppar, lmfpperp
       real temp1, temp2, temp3, temp4, cutlo3, lambd_ci, lambd_ce
-cgrs  real teyc, glte   # used in commented-out code, and never computed
+      real upxavep1,upxave0,upxavem1,upf0,upfm1
+      real teev
       logical xccuts, xcturb
       integer iy1, ixmp2, iyp1, iyp2, iym1, ixs, ixf, iys, iyf,
      .        methnx, methny, iy2, i2pwr, i5pwr, j2pwr, j5pwr,

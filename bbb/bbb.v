@@ -66,16 +66,16 @@ ingb      integer         /2/     #background gas source=nuiz*ngbackg*
 inflbg    integer         /4/     #expon to force flalfg large near ng~ngback
 				  #ex:flalfgx,y*(1.+(cflgb*ngbackg/ng)**inflbg)
 cflbg     real            /10./   #scaling fac for flalfgx,y using inflbg
-facngbackg2ngs(ngspmx) real /ngspmx*1.e-8/
+facngbackg2ngs(ngspmx) real /ngspmx*1.e-8/ 
                                   #fraction of ngbackg add to initial ngs
 nzbackg(nispmx) real [1/m**3] /nispmx*1.e9/ #background impurity density
 inzb      integer         /2/     #background impurity source=nuiz*nzbackg*
                                   #                 (.9+.1*(nzbackg/nzi)**ingb)
-facnzbackg2nis(nispmx) real /nispmx*1.e-8/
+facnzbackg2nis(nispmx) real /nispmx*1.e-8/ 
                                   #fraction of nzbackg add to initial nis
-upclng(nispmx) real [m/s] /nispmx*1.e8/
+upclng(nispmx) real [m/s] /nispmx*1.e8/ 
                                   #max ion vel at beginning of iteration
-facupclng2ups(nispmx) real /nispmx*1.e-8/
+facupclng2ups(nispmx) real /nispmx*1.e-8/ 
                                   #fraction of upclng subtract from initial ups
 tebg      real [eV]    /1.e-20/   #backgrd elec eng sor to limit te~tebg
 tibg      real [eV]    /1.e-20/   #backgrd ion eng sor to limit te~tebg
