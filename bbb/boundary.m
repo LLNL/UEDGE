@@ -224,7 +224,7 @@ c
 		  elseif (isnicore(ifld) .eq. 3) then # const ni; flux set to
                                                       # curcore-recycc*fngy
                      yldot(iv1) = -nurlxn*( ni(ix,0,ifld) -
-     .                                ni(ixp1(ix,0),0,ifld) ) / n0(ifld)
+     .                                 ni(ixp1(ix,0),0,ifld) ) / n0(ifld)
                      if (ix.eq.ix_fl_bc) then
                         ii=max(0,ixpt1(1)+1)
                         fniytotc=fniy(ii,0,ifld)-fniycbo(ii,ifld)
@@ -303,7 +303,7 @@ c...  Reset density at corners
 
   274 continue  # ifld loop over ion species
 
-c...  Now do the parallel velocity BC at iy = 0 for full mom eqn species
+c...  Now do the parallel velocity BC at iy = 0
       do ifld = 1, nusp
          do ix = i4+1-ixmnbcl, i8-1+ixmxbcl  #large ix-loop for up
             if (isuponxy(ix,0,ifld) .eq. 1) then
@@ -952,11 +952,6 @@ c         Next set phi at iy=1 depending on iphibcc flag
 c  ######################################################################
 c  ### First core phi BC at iy=0 & 1 over full ixcore range; then ix=ixmp
 c  ######################################################################
-cc     First check that iphibcc=1,2, or 3; othewise abort with message
-               if (iphibcc < 1 .or. iphibcc > 3) then
-                 call xerrab("**INPUT ERROR: only iphibcc=1,2,3 available")
-               endif
-
                  if (iphibcc==1) then
                    yldot(iv1) = -nurlxp*( (ey(ix,1)-ey(ix,0))*gy(ix,1) -
      .                                  (ey(ix,2)-ey(ix,1))*gy(ix,2) )/
@@ -966,7 +961,7 @@ cc     First check that iphibcc=1,2, or 3; othewise abort with message
      .                                                          (ev*temp0)
                  elseif (iphibcc==3) then
                    yldot(iv1)= -nurlxp*(phi(ix,1)-phi(ixp1(ix,1),1))/temp0
-                 else  # no longer allowed; need to reconsider
+                 else
                    yldot(iv1)= -nurlxp*( phi(ix,1)-phi(ixp1(ix,1),1) +
      .                                      dphi_iy1(ix) ) / temp0
                    if (isteon.eq.0) yldot(iv1)=nurlxp*
@@ -1702,7 +1697,7 @@ c     First, the density equations --
               iv1 = idxn(ixt,iy,ifld)
               if (isupgon(1)==1 .and. zi(ifld)==0.0) then   ## neutrals
                 if (recylb(iy,1,jx) .gt. 0.) then           # recycling
-                  t0 = max(tg(ixt1,iy,1),temin*ev)
+                  t0 = max(ti(ixt1,iy),temin*ev)
                   vxn = 0.25 * sqrt( 8*t0/(pi*mi(ifld)) )
                   yldot(iv1) = -nurlxg *
      .             (fnix(ixt,iy,ifld) + recylb(iy,1,jx)*fnix(ixt,iy,1) -
@@ -1711,7 +1706,7 @@ c     First, the density equations --
      .                 fngxslb(iy,1,jx) ) / (vpnorm*n0(ifld)*sx(ixt,iy))
                 elseif (recylb(iy,1,jx) <=  0. .and.
      .                  recylb(iy,1,jx) >= -1.) then  # recylb is albedo
-                  t0 = max(tg(ixt,iy,1),temin*ev)
+                  t0 = max(ti(ixt,iy),temin*ev)
                   vyn = sqrt( 0.5*t0/(pi*mi(1)) )
                   yldot(iv1) = -nurlxg * ( fnix(ixt,iy,ifld) +
      .             (1+recylb(iy,1,jx))*ni(ixt,iy,ifld)*vyn*sx(ixt,iy) )/
@@ -2311,7 +2306,7 @@ c     First, the density equations --
               iv1 = idxn(ixt,iy,ifld)
               if (isupgon(1)==1 .and. zi(ifld)==0.0) then   ## neutrals
                 if (recyrb(iy,1,jx) .gt. 0.) then           # recycling
-                  t0 = max(tg(ixt1,iy,1),temin*ev)
+                  t0 = max(ti(ixt1,iy),temin*ev)
                   vxn = 0.25 * sqrt( 8*t0/(pi*mi(ifld)) )
                   yldot(iv1) = nurlxg *
      .               (fnix(ixt1,iy,ifld) + recyrb(iy,1,jx)*fnix(ixt1,iy,1) +
@@ -2320,7 +2315,7 @@ c     First, the density equations --
      .                - fngxsrb(iy,1,jx) ) / (vpnorm*n0(ifld)*sx(ixt1,iy))
                 elseif (recyrb(iy,1,jx) <=  0. .and.
      .                  recyrb(iy,1,jx) >= -1.) then   # recyrb is albedo
-                  t0 = max(tg(ixt1,iy,1),temin*ev)
+                  t0 = max(ti(ixt1,iy),temin*ev)
                   vyn = sqrt( 0.5*t0/(pi*mi(1)) )
                   yldot(iv1) = nurlxg * ( fnix(ixt1,iy,ifld) -
      .                 (1+recyrb(iy,1,jx))*ni(ixt,iy,ifld)*vyn*sx(ixt1,iy) )/
@@ -2805,9 +2800,9 @@ c...  First do the ion density
                    if (.not. ((isnicore(ifld)==3).and.(iy==0))) then
                      # do not over-write corner cell b.c. from iy=0
                      # because it connects inboard and outboard core te
-		     # force ni(nxc+1,,) = ni(nxc,,) if isnicore(ifld)=3
                      iv = idxn(nxc,iy,ifld)
                      iv2 = idxn(nxc+1,iy,ifld)
+<<<<<<< ours
                      if(isnicore(ifld)==3 .and. iy==0) then #ni=ni(nxc+1
                        yldot(iv) = nurlxn*( ni(nxc+1,iy,ifld) -
      .                                        ni(nxc,iy,ifld) )/n0(ifld)
@@ -2815,8 +2810,12 @@ c...  First do the ion density
                        yldot(iv) = nurlxn*( ni(nxc-1,iy,ifld) -
      .                                        ni(nxc,iy,ifld) )/n0(ifld)
                      endif
+=======
+                     yldot(iv) = nurlxn *
+     .                    (ni(nxc-1,iy,ifld)-ni(nxc,iy,ifld))/n0(ifld)
+>>>>>>> theirs
                      yldot(iv2) = nurlxn *
-     .                    (ni(nxc+2,iy,ifld)-ni(nxc+1,iy,ifld))/n0(ifld)
+     .                  (ni(nxc+2,iy,ifld)-ni(nxc+1,iy,ifld))/n0(ifld)
                    endif
                  endif
  192           continue
@@ -2890,6 +2889,7 @@ c...  Do boundary condition for impurities along ix=nxc
      .                      isnionxy(nxc+1,iy,nhsp+ifld) .eq. 1 ) then
                      iv  = idxn(nxc  ,iy,nhsp+ifld)
                      iv2 = idxn(nxc+1,iy,nhsp+ifld)
+<<<<<<< ours
                      if(isnicore(nhsp+ifld)==3 .and. iy==0) then #ni=ni(nxc+1
                        yldot(iv) = nurlxn*( ni(nxc+1,iy,nhsp+ifld) -
      .                                         ni(nxc,iy,nhsp+ifld) )
@@ -2897,8 +2897,11 @@ c...  Do boundary condition for impurities along ix=nxc
                      else                                   #ni=ni(nxc-1
                        yldot(iv) = nurlxn*( ni(nxc-1,iy,nhsp+ifld) -
      .                                         ni(nxc,iy,nhsp+ifld) )
+=======
+                     yldot(iv ) = nurlxn*( ni(nxc-1,iy,nhsp+ifld) -
+     .                                     ni(nxc  ,iy,nhsp+ifld) )
+>>>>>>> theirs
      .                                                 /n0(nhsp+ifld)
-                     endif
                      yldot(iv2) = nurlxn*( ni(nxc+2,iy,nhsp+ifld) -
      .                                     ni(nxc+1,iy,nhsp+ifld) )
      .                                                 /n0(nhsp+ifld)
@@ -4157,6 +4160,7 @@ c...  Instead use data arrays on inner plt recycling coeff., albedo if ndatlb>0
                   endif
                 endif
               endif
+c_Pigarov            if (iy = 2) write(*,*) "recompute recylb", recylb(2,1,1)
             enddo
           enddo
         enddo
@@ -4183,6 +4187,7 @@ c...  Instead use data arrays on outer plt recycling coeff., albedo if ndatrb>0
                   endif
                 endif
               endif
+c_Pigarov            if (iy = 2) write(*,*) "recompute recyrb", recyrb(2,1,1)
             enddo
           enddo
         enddo
