@@ -5870,6 +5870,9 @@ c
       integer iym1,iyp1,iyp2,ixm1b,ixp1b,ixp2b
       logical isxyfl
       real(Size4) sec4, gettime
+      # Former Aux module variables
+      integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
+      real t,t0,t1,t2,a
 
       Use(Dim)      # nx,ny,nhsp,nisp,ngsp,nxpt
       Use(Xpoint_indices)      # ixlb,ixpt1,ixpt2,ixrb,iysptrx1
