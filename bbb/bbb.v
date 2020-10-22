@@ -118,13 +118,13 @@ qsh       real +threadprivate
 mfl       real +threadprivate
 msh       real +threadprivate
 ro        real
-cs        real
-fxe       real
+cs        real +threadprivate
+fxe       real +threadprivate
 ctaue     real +threadprivate
 fxi       real +threadprivate
-ctaui     real
-zcoef     real          #factor (calc) give zeff dependence of elec thermal c.
-coef1     real          #factor (calc) for energy equipartion rate
+ctaui     real +threadprivate
+zcoef     real +threadprivate         #factor (calc) give zeff dependence of elec thermal c.
+coef1     real +threadprivate         #factor (calc) for energy equipartion rate
 cnurn     real    /1./  #scales nurlx rate for ion continuity eqn.
 cnuru     real    /1./  #scales nurlx rate for ion mom. eqn.
 cnure     real    /1./  #scales nurlx rate for elec. eng. eqn.

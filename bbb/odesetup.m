@@ -1617,7 +1617,7 @@ c...  Construct first intermediate velocity grid (xvnrmox,yvnrmnox)
 
 c...  Construct second intermediate velocity grid (xvnrmnx,yvnrmnx)
       do ir = 1, 3*nxpt
-        call grdintpy(ixsto(ir),ixendo(i),ixst(ir),ixend(ir),
+        call grdintpy(ixsto(ir),ixendo(ir),ixst(ir),ixend(ir),
      .                0,ny+1,0,ny+1,nxold,ny,nx,ny,
      .                xvnrmox,yvnrmox,xvnrm,yvnrm,xvnrmnx,yvnrmnx,
      .                ixv2g,iyv2g)
@@ -6407,7 +6407,7 @@ c ---------------------------------------------------------------------c
                     # nurlxn,nurlxu,nurlxe,nurlxi,nurlxg,nurlxp,
                     # label,svrpkg
       Use(Ident_vars)          # uedge_ver
-      Use(Lsode)    # iterm
+      Use(Lsode)    # iterm,icntnunk
       Use(Grid)     # ngrid,inewton,imeth,nurlx,ijac,ijactot
       Use(Decomp)   # ubw,lbw
       Use(Share)    # igrid
@@ -6468,8 +6468,12 @@ c_mpi         call MPI_BARRIER(uedgeComm, myfoo)
 *     -- For the continuation mode (icntnunk=1), be sure a Jacobian was
 *     -- calculated on the previous step, i.e., ijac > 0
          if (icntnunk==1 .and. ijactot<=1 .and. svrpkg=='nksol') then
-            call xerrab('**Error: need initial Jacobian for icntnunk=1')
+            call xerrab('**Error: need initial Jacobian-pair for icntnunk=1')
          endif
+
+c     -- Reinitialize ijactot if icntnunk = 0; prevents ijactot=2 by 2 exmain
+c     .. nksol issue
+         if (icntnunk == 0) ijactot = 0
 
 c     -- call principal driver routine --
 c_mpi         call MPI_BARRIER(uedgeComm, ierr)
