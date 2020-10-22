@@ -2958,7 +2958,7 @@ c          Now for the radial flux limit - good for nonorthog grid too
                lmfpn = 1./(sigcx * (niavey + rnn2cx*noavey))
                cshy = lmfpn*sqrt(tgavey/mi(iigsp))*noavey * 
      .                         lgtmax(iigsp)/(lmfpn + lgtmax(iigsp))
-               qshy = cshy * (tgy0(ix,iy1,1)-tgy1(ix,iy1,1))/dynog(ix,iy)
+               qshy = cshy * (tgy0(ix,iy1,1)-tgy1(ix,iy1,1)) * gyf(ix,iy)
                hcyn(ix,iy) = cshy / 
      .                      (1 + (abs(qshy/qfly))**flgamtg)**(1./flgamtg)
                hcyi(ix,iy) = hcyi(ix,iy) + cfneut*cfneutsor_ei*hcyn(ix,iy)
