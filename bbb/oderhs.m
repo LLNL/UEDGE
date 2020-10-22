@@ -583,7 +583,6 @@ c    yldot is the RHS of ODE solver or RHS=0 for Newton solver (NKSOL)
       real grdnv, qflx, qfly, cshx, cshy, qshx, qshy, lxtec, lxtic
       real lmfpn, lmfppar, lmfpperp
       real temp1, temp2, temp3, temp4, cutlo3, lambd_ci, lambd_ce
-      real upxavep1,upxave0,upxavem1,upf0,upfm1
       real teev
       logical xccuts, xcturb
       integer iy1, ixmp2, iyp1, iyp2, iym1, ixs, ixf, iys, iyf,
@@ -686,6 +685,8 @@ cnxg      data igs/1/
       real radmc, svdiss, vyiy0, vyiym1, v2ix0, v2ixm1
       external rsa, rra, rqa, rcx, emissbs, erl1, erl2, radneq, radimpmc
       external radmc, svdiss
+      real tick,tock
+      external tick,tock
 	  
 ccc      save
 
