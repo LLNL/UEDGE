@@ -9444,6 +9444,7 @@ c ... Calculate right-hand sides at unperturbed values of variables.
 
 c ... Calculate Jacobian matrix.
       tp = 0.
+      #Working array wk in place of sf in the call to jac_calc (J.Guterl) 
       call jac_calc_interface (neq, tp, yl, yldot0, lbw, ubw, wk,
      .               nnzmx, jac, jacj, jaci)
 
@@ -11712,8 +11713,6 @@ c ... neoclassical effects
       Use(RZ_grid_info)  # bpol,b12,b32,bsqr
       Use(Bfield)   #rbfbt
       Use(Share)    # nxpt,geometry,nxc,cutlo
-      Use(Aux)      # ix,iy,igsp,iv,iv1,iv2,iv3,
-                    # ix1,ix2,ix3,ix4,ix5,ix6,tv,t0,t1,t2,a
       Use(Selec)    # i1,i2,i3,i4,i5,i6,i7,i8,xlinc,xrinc,ixs1,
                     # j1,j1p,j2,j2p,j3,j4,j5,j6,j5p,j6p,j7,j8,
       Use(Compla)   # ni,up,te,ti,ng,phi,v2cd,
