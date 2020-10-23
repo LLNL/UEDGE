@@ -113,10 +113,10 @@ end subroutine WriteArrayInteger
       call WriteArrayReal(conyi,size(conyi),iunit)
       write(iunit,*) "cs"
       write(iunit,*) cs
-      !write(iunit,*) "ctaue"
-      !call WriteArrayReal(ctaue,size(ctaue),iunit)
-      !rite(iunit,*) "ctaui"
-      !call WriteArrayReal(ctaui,size(ctaui),iunit)
+      write(iunit,*) "ctaue"
+      call WriteArrayReal(ctaue,size(ctaue),iunit)
+      write(iunit,*) "ctaui"
+      call WriteArrayReal(ctaui,size(ctaui),iunit)
       write(iunit,*) "dclass_e"
       call WriteArrayReal(dclass_e,size(dclass_e),iunit)
       write(iunit,*) "dclass_i"

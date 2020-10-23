@@ -66,16 +66,16 @@ ingb      integer         /2/     #background gas source=nuiz*ngbackg*
 inflbg    integer         /4/     #expon to force flalfg large near ng~ngback
 				  #ex:flalfgx,y*(1.+(cflgb*ngbackg/ng)**inflbg)
 cflbg     real            /10./   #scaling fac for flalfgx,y using inflbg
-facngbackg2ngs(ngspmx) real /ngspmx*1.e-8/ 
+facngbackg2ngs(ngspmx) real /ngspmx*1.e-8/
                                   #fraction of ngbackg add to initial ngs
 nzbackg(nispmx) real [1/m**3] /nispmx*1.e9/ #background impurity density
 inzb      integer         /2/     #background impurity source=nuiz*nzbackg*
                                   #                 (.9+.1*(nzbackg/nzi)**ingb)
-facnzbackg2nis(nispmx) real /nispmx*1.e-8/ 
+facnzbackg2nis(nispmx) real /nispmx*1.e-8/
                                   #fraction of nzbackg add to initial nis
-upclng(nispmx) real [m/s] /nispmx*1.e8/ 
+upclng(nispmx) real [m/s] /nispmx*1.e8/
                                   #max ion vel at beginning of iteration
-facupclng2ups(nispmx) real /nispmx*1.e-8/ 
+facupclng2ups(nispmx) real /nispmx*1.e-8/
                                   #fraction of upclng subtract from initial ups
 tebg      real [eV]    /1.e-20/   #backgrd elec eng sor to limit te~tebg
 tibg      real [eV]    /1.e-20/   #backgrd ion eng sor to limit te~tebg
@@ -177,17 +177,17 @@ rrmin     real    /0./ #min rr used in calc of u_tor & fqy for potential calc.
 isdtsfscal integer /0/ #if=1, dt is included in sfscal Jac scaling factor
 frfqpn    real    /1./ #frac. of new fqp at ix=0,nx using grad at ix=1,nx-1
 cffqpsat  real    /1./ #factor by which fqp can exceed fqpsatlb,rb (sat. cur)
-isplflxl  integer /1/  #=0, flalfe,i not active at ix=0 & nx;=1 active all ix
-isplflxlv integer /1/  #=0, flalfv not active at ix=0 & nx;=1 active all ix
-isplflxlgx integer /1/ #=0, flalfgx not active at ix=0 & nx;=1 active all ix
-isplflxlgxy integer /1/ #=0, flalfgxy not active at ix=0 & nx;=1 active all ix
+isplflxl  integer /0/  #=0, flalfe,i not active at ix=0 & nx;=1 active all ix
+isplflxlv integer /0/  #=0, flalfv not active at ix=0 & nx;=1 active all ix
+isplflxlgx integer /0/ #=0, flalfgx not active at ix=0 & nx;=1 active all ix
+isplflxlgxy integer /0/ #=0, flalfgxy not active at ix=0 & nx;=1 active all ix
 iswflxlgy   integer /0/ #=0, flalfgy not active at iy=0 & ny;=1 active all iy
-isplflxlvgx integer /1/ #=0, flalfvgx not active at ix=0 & nx;=1 active all ix
-isplflxlvgxy integer /1/ #=0, flalfvgxy not active at ix=0 & nx;=1 active all ix
-iswflxlvgy  integer /1/ #=0, flalfvgy not active at iy=0 & ny;=1 active all iy
-isplflxltgx integer /1/ #=0, flalfvgx not active at ix=0 & nx;=1 active all ix
-isplflxltgxy integer /1/ #=0, flalfvgxy not active at ix=0 & nx;=1 active all ix
-iswflxltgy  integer /1/ #=0, flalfvgy not active at iy=0 & ny;=1 active all iy
+isplflxlvgx integer /0/ #=0, flalfvgx not active at ix=0 & nx;=1 active all ix
+isplflxlvgxy integer /0/ #=0, flalfvgxy not active at ix=0 & nx;=1 active all ix
+iswflxlvgy  integer /0/ #=0, flalfvgy not active at iy=0 & ny;=1 active all iy
+isplflxltgx integer /0/ #=0, flalfvgx not active at ix=0 & nx;=1 active all ix
+isplflxltgxy integer /0/ #=0, flalfvgxy not active at ix=0 & nx;=1 active all ix
+iswflxltgy  integer /0/ #=0, flalfvgy not active at iy=0 & ny;=1 active all iy
 flalfipl  real /1.e20/ #ion therm flux lim factor on plates when isplflxl=0
 flalfepl  real /1.e20/ #elec therm flux lim factor on plates when isplflxl=0
 isfeexpl0 integer  /0/ #if=1, feex cannot be out of inner/outer plates
@@ -279,7 +279,7 @@ sxgpr     real      /1./    #stretches x-coord. for gas in private flux region
 xstscal   real  [m] /1./    #scale-length with stretch-coord decays from plates
 rld2dxg(ngspmx) real /ngspmx*0./ #ratio of gas decay-length to dx via artificial diff.
 rld2dyg(ngspmx) real /ngspmx*0./ #ratio of gas decay-length to dy via artificial diff.
-cngflox(ngspmx) real /ngspmx*1./ #fac for x-flux from convection in ng-eqn.
+cngflox(ngspmx) real /ngspmx*0./ #fac for x-flux from convection in ng-eqn.
 cngfloy(ngspmx) real /ngspmx*1./ #fac for y-flux from convection in ng-eqn.
 cngniflox(nispmx,ngspmx) real /nispmxngspmx*0./ #fac for rel ion-neut x-vel in ng-eqn
 cngnifloy(nispmx,ngspmx) real /nispmxngspmx*0./ #fac for rel ion-neut y-vel in ng-eqn
@@ -396,7 +396,7 @@ isphilbc	integer	/0/     #Switch for ix=0 b.c. on phi
 isphirbc	integer	/0/     #Switch for ix=nx+1 b.c. on phi
 				#=0, phi = phi0r + kappar * te
 				#=1, phi = phi0r
-iphibcc 	integer /0/	#core BC at iy=1 when isnewpot=1;iy=0
+iphibcc 	integer /3/	#core BC at iy=1 when isnewpot=1;iy=0
                                 #=1, d^2(ey)/dy^2=0
                                 #=2, te=constant & ey(ixmp,0)=eycore
                                 #=3, phi=constant & ey(ixmp,0)=eycore
@@ -661,11 +661,11 @@ isutcore  integer      /0/      #Used for ix=ixcore phi BC ONLY IF iphibcc > 3
 				#=0, tor mom=lzcore on core;
                                 #=1, d<uz>/dy=0;
 				#>1, d^2(Ey)/dy^2=0 at outer midplane
-isupwi(nispmx) integer /nispmx*1/ #=0 sets up=0 on inner wall
+isupwi(nispmx) integer /nispmx*2/ #=0 sets up=0 on inner wall
                                 #=1 sets fmiy=0 (parallel mom-dens y-flux)
               			#=2 sets dup/dy=0 on inner wall
               			#=3 sets (1/up)dup/dy=1/lyup(1) scale length
-isupwo(nispmx) integer /nispmx*1/ #=0 sets up=0 on outer wall
+isupwo(nispmx) integer /nispmx*2/ #=0 sets up=0 on outer wall
                                 #=1 sets fmiy=0 (parallel mom-dens y-flux)
               			#=2 sets dup/dy=0 on outer wall
               			#=3 sets (1/up)dup/dy=1/lyup(2) scale length

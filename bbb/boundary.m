@@ -1702,7 +1702,7 @@ c     First, the density equations --
               iv1 = idxn(ixt,iy,ifld)
               if (isupgon(1)==1 .and. zi(ifld)==0.0) then   ## neutrals
                 if (recylb(iy,1,jx) .gt. 0.) then           # recycling
-                  t0 = max(ti(ixt1,iy),temin*ev)
+                  t0 = max(tg(ixt1,iy,1),temin*ev)
                   vxn = 0.25 * sqrt( 8*t0/(pi*mi(ifld)) )
                   yldot(iv1) = -nurlxg *
      .             (fnix(ixt,iy,ifld) + recylb(iy,1,jx)*fnix(ixt,iy,1) -
@@ -1711,7 +1711,7 @@ c     First, the density equations --
      .                 fngxslb(iy,1,jx) ) / (vpnorm*n0(ifld)*sx(ixt,iy))
                 elseif (recylb(iy,1,jx) <=  0. .and.
      .                  recylb(iy,1,jx) >= -1.) then  # recylb is albedo
-                  t0 = max(ti(ixt,iy),temin*ev)
+                  t0 = max(tg(ixt,iy,1),temin*ev)
                   vyn = sqrt( 0.5*t0/(pi*mi(1)) )
                   yldot(iv1) = -nurlxg * ( fnix(ixt,iy,ifld) +
      .             (1+recylb(iy,1,jx))*ni(ixt,iy,ifld)*vyn*sx(ixt,iy) )/
@@ -2311,7 +2311,7 @@ c     First, the density equations --
               iv1 = idxn(ixt,iy,ifld)
               if (isupgon(1)==1 .and. zi(ifld)==0.0) then   ## neutrals
                 if (recyrb(iy,1,jx) .gt. 0.) then           # recycling
-                  t0 = max(ti(ixt1,iy),temin*ev)
+                  t0 = max(tg(ixt1,iy,1),temin*ev)
                   vxn = 0.25 * sqrt( 8*t0/(pi*mi(ifld)) )
                   yldot(iv1) = nurlxg *
      .               (fnix(ixt1,iy,ifld) + recyrb(iy,1,jx)*fnix(ixt1,iy,1) +
@@ -2320,7 +2320,7 @@ c     First, the density equations --
      .                - fngxsrb(iy,1,jx) ) / (vpnorm*n0(ifld)*sx(ixt1,iy))
                 elseif (recyrb(iy,1,jx) <=  0. .and.
      .                  recyrb(iy,1,jx) >= -1.) then   # recyrb is albedo
-                  t0 = max(ti(ixt1,iy),temin*ev)
+                  t0 = max(tg(ixt1,iy,1),temin*ev)
                   vyn = sqrt( 0.5*t0/(pi*mi(1)) )
                   yldot(iv1) = nurlxg * ( fnix(ixt1,iy,ifld) -
      .                 (1+recyrb(iy,1,jx))*ni(ixt,iy,ifld)*vyn*sx(ixt1,iy) )/
@@ -2805,12 +2805,18 @@ c...  First do the ion density
                    if (.not. ((isnicore(ifld)==3).and.(iy==0))) then
                      # do not over-write corner cell b.c. from iy=0
                      # because it connects inboard and outboard core te
+		     # force ni(nxc+1,,) = ni(nxc,,) if isnicore(ifld)=3
                      iv = idxn(nxc,iy,ifld)
                      iv2 = idxn(nxc+1,iy,ifld)
-                     yldot(iv) = nurlxn *
-     .                    (ni(nxc-1,iy,ifld)-ni(nxc,iy,ifld))/n0(ifld)
+                     if(isnicore(ifld)==3 .and. iy==0) then #ni=ni(nxc+1
+                       yldot(iv) = nurlxn*( ni(nxc+1,iy,ifld) -
+     .                                        ni(nxc,iy,ifld) )/n0(ifld)
+                     else                                   #ni=ni(nxc-1
+                       yldot(iv) = nurlxn*( ni(nxc-1,iy,ifld) -
+     .                                        ni(nxc,iy,ifld) )/n0(ifld)
+                     endif
                      yldot(iv2) = nurlxn *
-     .                  (ni(nxc+2,iy,ifld)-ni(nxc+1,iy,ifld))/n0(ifld)
+     .                    (ni(nxc+2,iy,ifld)-ni(nxc+1,iy,ifld))/n0(ifld)
                    endif
                  endif
  192           continue
@@ -2884,9 +2890,15 @@ c...  Do boundary condition for impurities along ix=nxc
      .                      isnionxy(nxc+1,iy,nhsp+ifld) .eq. 1 ) then
                      iv  = idxn(nxc  ,iy,nhsp+ifld)
                      iv2 = idxn(nxc+1,iy,nhsp+ifld)
-                     yldot(iv ) = nurlxn*( ni(nxc-1,iy,nhsp+ifld) -
-     .                                     ni(nxc  ,iy,nhsp+ifld) )
+                     if(isnicore(nhsp+ifld)==3 .and. iy==0) then #ni=ni(nxc+1
+                       yldot(iv) = nurlxn*( ni(nxc+1,iy,nhsp+ifld) -
+     .                                         ni(nxc,iy,nhsp+ifld) )
      .                                                 /n0(nhsp+ifld)
+                     else                                   #ni=ni(nxc-1
+                       yldot(iv) = nurlxn*( ni(nxc-1,iy,nhsp+ifld) -
+     .                                         ni(nxc,iy,nhsp+ifld) )
+     .                                                 /n0(nhsp+ifld)
+                     endif
                      yldot(iv2) = nurlxn*( ni(nxc+2,iy,nhsp+ifld) -
      .                                     ni(nxc+1,iy,nhsp+ifld) )
      .                                                 /n0(nhsp+ifld)

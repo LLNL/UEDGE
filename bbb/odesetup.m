@@ -1,5 +1,5 @@
 c-----------------------------------------------------------------------
-c $Id: odesetup.m,v 7.17 2019/12/02 17:29:13 meyer8 Exp $
+c $Id: odesetup.m,v 7.19 2020/05/26 02:44:34 rognlien1 Exp $
 c
 c!include "bbb.h"
 c!include "../com/com.h"

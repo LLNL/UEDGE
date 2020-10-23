@@ -5,7 +5,7 @@ c ... Return true if cell (ix,iy) is a guard cell, otherwise false.
 
       Use(Dim)   # nx,ny
 
-      integer ix, iy
+      integer ix,iy
 
       if (ix .lt. 1 .or. ix .gt. nx .or. iy .lt. 1 .or. iy .gt. ny) then
          tstguardc = .true.
