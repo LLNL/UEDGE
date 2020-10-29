@@ -482,7 +482,7 @@ cc      call gallot("Rccoef",0)
       call gallot("Save_terms",0)
       call gchange("Conduc",0)   # preserves nuiz, eeli, etc for icnuiz=2
       call gallot("Locflux",0)
-      call gallot("Gradients",0)
+      call gchange("Gradients",0)
       call gallot("Condition_number",0)
       call gchange("Jacobian",0) # preserves Jacobian values for icntnunk=1
       call gchange("Jacobian_csc",0) # preserves Jacobian values for icntnunk=1
