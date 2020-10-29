@@ -191,6 +191,7 @@ c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
       Use(Comgeo)
       Use(Noggeo)      # fxm,fx0,fxp,fxmy,fxpy
       Use(Gradients)
+      Use(Lsode),only:iterm
       Use(Phyvar)      # pi,ev
       Use(Coefeq)      # cngtgx
       Use(Imprad)      # isimpon
@@ -316,12 +317,14 @@ c... Added the following for OMPPandf1rhs call (added by .J.Guterl)
 
       if (inegni .gt. 0 .and. itrap_negni.eq.1) then
          call remark("***  ni is negative - calculation stopped")
-	 write(*,*) 'At  ix =', ixneg, ' iy =', iyneg, ' ifld =', ifldneg
+	  write(*,*) 'At  ix =', ixneg, ' iy =', iyneg, ' ifld =', ifldneg
+	  iterm=-100
          call xerrab("")
       endif
       if (inegng .gt. 0 .and. itrap_negng.eq.1) then
          call remark("***  ng is negative - calculation stopped")
 	 write(*,*) 'At  ix =', ixneg, ' iy =', iyneg, ' igsp =', igspneg
+	  iterm=-100
          call xerrab("")
       endif
 cc Since Te and Ti have temin eV floors, this not used
