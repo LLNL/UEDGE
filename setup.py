@@ -68,7 +68,7 @@ for o in optlist:
 #OMPpackages=['bbb','com','api']
 #OMPlisthtreadprivatevars='../../ppp/ListVariableThreadPrivate_final.txt'
 CARGS=[]
-FARGS=['-fmax-errors=15', '-DFORTHON','-cpp','-Wconversion','-fimplicit-none']
+FARGS=['-g -fmax-errors=15', '-DFORTHON','-cpp','-Wconversion','-fimplicit-none']
 if OMP:
     FARGS=FARGS+['-fopenmp']
     CARGS=CARGS+['-fopenmp']
