@@ -577,6 +577,7 @@ c    yldot is the RHS of ODE solver or RHS=0 for Newton solver (NKSOL)
      .     niz_floor, hflux, zflux, psorv, kionz0, pscx0, pxri, kcxrzig,
      .     nizm_floor, argx, massfac, ae, geyym, geyy0, geyyp, dgeyy0,
      .     dgeyy1, te_diss, wallfac, z1fac, bpolmin, rt2nus, epstmp, tv2
+      real erliztmp
       real awoll,awll
       integer izch, ihyd, iimp, jg, jz, nsm1, ifld_fcs, ifld_lcs
       real uuv, ne_sgvi, nbarx, argth, fac_rad, ffyi, ffyo
@@ -1978,7 +1979,8 @@ c     Ionization of neutral hydrogen by electrons and recombination--
                psorbgg(ix,iy,igsp) = ngbackg(igsp)*( (0.9 + 0.1*
      .                            (ngbackg(igsp)/ng(ix,iy,igsp))**ingb) ) *
      .                             nuiz(ix,iy,igsp) * vol(ix,iy)
-               psorgc(ix,iy,igsp) = -ng(ix,iy,igsp)*nuiz(ix,iy,igsp)*vol(ix,iy) +
+               psorgc(ix,iy,igsp) = -ng(ix,iy,igsp)*nuiz(ix,iy,igsp)*vol(ix,iy)*
+     .	     (1-angbg+angbg*exp(-bngbg*ngbackg(igsp)/ng(ix,iy,igsp))) +
      .                              psorbgg(ix,iy,igsp)
                psorc(ix,iy,ifld) = - psorgc(ix,iy,igsp)
                psordis(ix,iy) = psorc(ix,iy,1)  # changed below if ishymol=1
@@ -2129,7 +2131,8 @@ c              +n_(z+1)[ne K^r_(z+1)+ng K^cx_(z+1)]  # cx/r gain to z from z+1
 			 psorbgg(ix,iy,jg)= ngbackg(jg)*
      .                     (0.9+0.1*(ngbackg(jg)/ng(ix,iy,jg))**ingb) *
      .                                                      nevol*kionz0
-                         psorg(ix,iy,jg) = -ng(ix,iy,jg)*nevol*kionz0 +
+                         psorg(ix,iy,jg) = -ng(ix,iy,jg)*nevol*kionz0*
+     .	     (1-angbg+angbg*exp(-bngbg*ngbackg(jg)/ng(ix,iy,jg))) +
      .                                      psorbgg(ix,iy,jg)
                          psor(ix,iy,ifld_fcs) = - psorg(ix,iy,jg)
                          msor(ix,iy,ifld_fcs)= 0.  # zero gas mom. assumed
@@ -2349,7 +2352,8 @@ c ...  molecule-molecule collisions would enter viscosity, not nuix
            psorbgg(ix,iy,2) = ngbackg(2)*
      .                     (0.9+0.1*(ngbackg(2)/ng(ix,iy,2))**ingb ) *
      .                                        nuiz(ix,iy,2) * vol(ix,iy)
-           psorgc(ix,iy,2) = - ng(ix,iy,2)*nuiz(ix,iy,2)*vol(ix,iy) +
+           psorgc(ix,iy,2) = - ng(ix,iy,2)*nuiz(ix,iy,2)*vol(ix,iy)*
+     .	     (1-angbg+angbg*exp(-bngbg*ngbackg(2)/ng(ix,iy,2))) +
      .                        psorbgg(ix,iy,2)
            psorg(ix,iy,2) = psorgc(ix,iy,2)  # no mol sor averaging
            psordis(ix,iy) = -2*psorgc(ix,iy,2)  # 2 atoms per molecule
@@ -4365,11 +4369,12 @@ c...  Electron radiation loss -- ionization and recombination
                      erliz(ix,iy)=chradi*radz(0)*vol(ix,iy)
                      if (isrecmon .ne. 0) erlrc(ix,iy)=chradr*radz(1)*vol(ix,iy)
                   else                       # compute from other data files
-                     erliz(ix,iy) = chradi *
-     .                           erl1(te(ix,iy),ne_sgvi,rtau(ix,iy))
-     .                                  * (ng(ix,iy,1)-ngbackg(1)*
-     .                    (0.9+0.1*(ngbackg(1)/ng(ix,iy,1))**ingb) ) *
-     .                                                       vol(ix,iy)
+		     erliztmp=chradi *erl1(te(ix,iy),ne_sgvi,rtau(ix,iy))*vol(ix,iy)
+		     erlizbg(ix,iy) = erliztmp*ngbackg(1)*
+     .                    (0.9+0.1*(ngbackg(1)/ng(ix,iy,1))**ingb)	       
+                     erliz(ix,iy) = erliztmp* ng(ix,iy,1)*
+     .	     (1-angbg+angbg*exp(-bngbg*ngbackg(1)/ng(ix,iy,1)))
+     .					       -erlizbg(ix,iy)
                      if (isrecmon .ne. 0) erlrc(ix,iy) = chradr *
      .                               erl2(te(ix,iy),ne_sgvi,rtau(ix,iy))
      .                             * fac2sp*ni(ix,iy,1) * vol(ix,iy)
