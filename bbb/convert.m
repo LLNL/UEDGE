@@ -11,7 +11,6 @@ c-----------------------------------------------------------------------
       Use(UEpar)       # cniatol,cngatol,cupatol,cteatol,ctiatol,cphiatol,
                        # tolbf,isnionxy,isuponxy,isteonxy,istionxy,isngonxy,
                        # isphionxy
-      Use(Aux)         # ix,iy,igsp,iv,ix1,ix2
       Use(Lsode)       # rtolv,rtol,atol,yl
       Use(Compla)
       Use(Indexes)     # igyl
@@ -26,6 +25,8 @@ c-----------------------------------------------------------------------
 c...  local variables
       real bfac, ntemp
       integer ifld,isfirstvar
+      #Former Aux module variables
+      integer ix,iy,igsp,iv,ix1,ix2
 
       isfirstvar = 0   #flag signals first var at ix,iy found
       iv = 0
@@ -62,7 +63,7 @@ c...  local variables
                   rtol(iv) = rtolv(igrid)*bfac
                   atol(iv) = cupatol*rtol(iv)*bfac*sqrt(te(ix,iy)/
      .                                     mi(ifld))*ntemp/fnorm(ifld)
-                  idxu(ix,iy,ifld) = iv 
+                  idxu(ix,iy,ifld) = iv
                   if (isfirstvar==0) ivfirst(ix,iy) = iv
                   isfirstvar = 1
                   igyl(iv,1) = ix
@@ -172,6 +173,9 @@ c ... The other variables are added in the routine convr_auxo
       integer is, ie, js, je
       integer ifld, id
       integer inegt, inegng, inegni, ixneg, iyneg, ifldneg, igspneg
+      #Former Aux module variables
+      integer ix,iy,igsp,ix1,ix2
+      real t1,t2
 
 c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
       Use(Dim)                 # nx,ny,nhsp,nzsp,nisp,nusp,ngsp
@@ -182,12 +186,12 @@ c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
       Use(UEpar)       # itrap_negt,itrap_negng,
                        # isnionxy,isuponxy,isteonxy,istionxy,
                        # isngonxy,isphionxy
-      Use(Aux)         # ix,iy,igsp,ix1,ix2,t1,t2
       Use(Selec)       # yinc,ixm1,ixp1
       Use(Indexes)
       Use(Comgeo)
       Use(Noggeo)      # fxm,fx0,fxp,fxmy,fxpy
       Use(Gradients)
+      Use(Lsode),only:iterm
       Use(Phyvar)      # pi,ev
       Use(Coefeq)      # cngtgx
       Use(Imprad)      # isimpon
@@ -195,7 +199,7 @@ c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
                                 #typebdy,typecn,iv_totbdy
       Use(Indices_domain_dcg)   #isddcon
       Use(Npes_mpi)             #mype
- 
+
       integer ifake  #forces Forthon scripts to put implicit none above here
 
 c ... Set mpi indices, etc
@@ -218,6 +222,12 @@ c_mpi      integer ierr
       else
          js = iyl
          je = iyl
+      endif
+
+c... Added the following for OMPPandf1rhs call (added by .J.Guterl)
+      if(ixl .lt. 0 .and. iyl.ge.0) then
+         js = max(1-iymnbcl,iyl-yinc)
+         je = min(ny+iymxbcl,iyl+yinc)
       endif
 
         do 20 iy = js, je
@@ -254,8 +264,8 @@ c_mpi      integer ierr
                   if (ineudif .eq. 3) lng(ix,iy,1)=log(ng(ix,iy,1))
                else
                   nit(ix,iy) = nit(ix,iy) + ni(ix,iy,ifld)
-                  if (isimpon.ge.5 .and. nusp_imp.eq.0) 
-     .                 nm(ix,iy,1)=nm(ix,iy,1)+ni(ix,iy,ifld)*mi(ifld) 
+                  if (isimpon.ge.5 .and. nusp_imp.eq.0)
+     .                 nm(ix,iy,1)=nm(ix,iy,1)+ni(ix,iy,ifld)*mi(ifld)
                   nz2(ix,iy) = nz2(ix,iy) + ni(ix,iy,ifld)*zi(ifld)**2
                endif
                nm(ix,iy,ifld) = ni(ix,iy,ifld)*mi(ifld)
@@ -305,23 +315,25 @@ c_mpi      integer ierr
     6    continue
     7 continue
 
-      if (inegni .gt. 0 .and. itrap_negni.eq.1) then 
+      if (inegni .gt. 0 .and. itrap_negni.eq.1) then
          call remark("***  ni is negative - calculation stopped")
-	 write(*,*) 'At  ix =', ixneg, ' iy =', iyneg, ' ifld =', ifldneg
+	  write(*,*) 'At  ix =', ixneg, ' iy =', iyneg, ' ifld =', ifldneg
+	  iterm=-100
          call xerrab("")
       endif
-      if (inegng .gt. 0 .and. itrap_negng.eq.1) then 
+      if (inegng .gt. 0 .and. itrap_negng.eq.1) then
          call remark("***  ng is negative - calculation stopped")
 	 write(*,*) 'At  ix =', ixneg, ' iy =', iyneg, ' igsp =', igspneg
+	  iterm=-100
          call xerrab("")
       endif
 cc Since Te and Ti have temin eV floors, this not used
-cc      if (inegt .gt. 0 .and. itrap_negt.eq.1) then 
+cc      if (inegt .gt. 0 .and. itrap_negt.eq.1) then
 cc         call xerrab("***  Te or Ti is negative - calculation stopped")
 cc      endif
 
 C the message passing is done twice here to get nm for up - very inefficient
-c *** Mpi message passing if this is a parallel calculation - only need for 
+c *** Mpi message passing if this is a parallel calculation - only need for
 c *** isflxvar.ne.0
 c++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       if (isddcon .ge. 1 .and. ixl .lt. 0) then
@@ -348,7 +360,7 @@ c++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                   up(ix2,iy,2) = rup21*up(ix2,iy,1)
                   up(ix,iy,2) = rup21*up(ix,iy,1)
                 endif
-              endif  
+              endif
  8          continue
  9       continue
  10   continue
@@ -366,7 +378,7 @@ c++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 c ***** end of subroutines convsr_vo ********
 c-----------------------------------------------------------------------
-      subroutine convsr_aux (ixl, iyl, yl)
+      subroutine convsr_aux (ixl, iyl)
 
 c...  Calculates various plasmas quantities used repeatedly in pandf
 
@@ -374,13 +386,15 @@ c...  Calculates various plasmas quantities used repeatedly in pandf
 
 *  -- input arguments
       integer ixl, iyl, inc
-      real yl(1)
 *  -- local variables
       real ntemp
       integer is, ie, js, je, k, l
       integer ifld, id
       integer impflag, inegt, inegng
       integer jx,ixlp1,ixlp2,ixrm1
+      #Former Aux module variables
+      integer ix,iy,igsp,ix1,ix2
+      real t1,t2
 *  -- external functions
       real zimp, rnec, zeffc, intpnog
 
@@ -390,7 +404,6 @@ c...  Calculates various plasmas quantities used repeatedly in pandf
       Use(Compla)      # ,zi,zeff,zimpc
       Use(Ynorm)       # isflxvar,temp0,nnorm,ennorm,fnorm,n0,n0g
       Use(UEpar)       # itrap_negt,itrap_negng
-      Use(Aux)         # ix,iy,igsp,ix1,ix2,t1,t2
       Use(Selec)       # yinc,ixm1,ixp1
       Use(Indexes)
       Use(Comgeo)      # xcs, yyc
@@ -401,74 +414,74 @@ c...  Calculates various plasmas quantities used repeatedly in pandf
       Use(Imprad)      # isimpon
       Use(Interp)      # nis,tis,phis,nxold,nyold
       Use(Share)       # nysol,nyomitmx
-      Use(RZ_grid_info)   # rm,zm      
+      Use(RZ_grid_info)   # rm,zm
 
 *  -- procedures --
       real interpte,interpti,interpphi,interpni,interppri,interpng,
      .     interpnis,interptis,interpphis,interppg,interptg
 c                               # interpolate 2-D array with a 5-point stencil
-      interpte(ix,iy,k) = fxm (ix,iy,k)*te(ixm1(ix,iy+k)  ,iy+k  ) + 
+      interpte(ix,iy,k) = fxm (ix,iy,k)*te(ixm1(ix,iy+k)  ,iy+k  ) +
      .                    fx0 (ix,iy,k)*te(ix             ,iy+k  ) +
      .                    fxp (ix,iy,k)*te(ixp1(ix,iy+k)  ,iy+k  ) +
      .                    fxmy(ix,iy,k)*te(ixm1(ix,iy+1-k),iy+1-k) +
-     .                    fxpy(ix,iy,k)*te(ixp1(ix,iy+1-k),iy+1-k) 
-      interpti(ix,iy,k) = fxm (ix,iy,k)*ti(ixm1(ix,iy+k)  ,iy+k  ) + 
+     .                    fxpy(ix,iy,k)*te(ixp1(ix,iy+1-k),iy+1-k)
+      interpti(ix,iy,k) = fxm (ix,iy,k)*ti(ixm1(ix,iy+k)  ,iy+k  ) +
      .                    fx0 (ix,iy,k)*ti(ix             ,iy+k  ) +
      .                    fxp (ix,iy,k)*ti(ixp1(ix,iy+k)  ,iy+k  ) +
      .                    fxmy(ix,iy,k)*ti(ixm1(ix,iy+1-k),iy+1-k) +
-     .                    fxpy(ix,iy,k)*ti(ixp1(ix,iy+1-k),iy+1-k) 
-      interptis(ix,iy,k)=fxm (ix,iy,k)*tis(ixm1(ix,iy+k)  ,iy+k  ) + 
+     .                    fxpy(ix,iy,k)*ti(ixp1(ix,iy+1-k),iy+1-k)
+      interptis(ix,iy,k)=fxm (ix,iy,k)*tis(ixm1(ix,iy+k)  ,iy+k  ) +
      .                   fx0 (ix,iy,k)*tis(ix             ,iy+k  ) +
      .                   fxp (ix,iy,k)*tis(ixp1(ix,iy+k)  ,iy+k  ) +
      .                   fxmy(ix,iy,k)*tis(ixm1(ix,iy+1-k),iy+1-k) +
-     .                   fxpy(ix,iy,k)*tis(ixp1(ix,iy+1-k),iy+1-k) 
+     .                   fxpy(ix,iy,k)*tis(ixp1(ix,iy+1-k),iy+1-k)
       interptg(ix,iy,k,l) = (
-     .                   fxm (ix,iy,k)*tg(ixm1(ix,iy+k)  ,iy+k  ,l) + 
+     .                   fxm (ix,iy,k)*tg(ixm1(ix,iy+k)  ,iy+k  ,l) +
      .                   fx0 (ix,iy,k)*tg(ix             ,iy+k  ,l) +
      .                   fxp (ix,iy,k)*tg(ixp1(ix,iy+k)  ,iy+k  ,l) +
      .                   fxmy(ix,iy,k)*tg(ixm1(ix,iy+1-k),iy+1-k,l) +
      .                   fxpy(ix,iy,k)*tg(ixp1(ix,iy+1-k),iy+1-k,l) )
-      interpphi(ix,iy,k)= fxm (ix,iy,k)*phi(ixm1(ix,iy+k)  ,iy+k  ) + 
+      interpphi(ix,iy,k)= fxm (ix,iy,k)*phi(ixm1(ix,iy+k)  ,iy+k  ) +
      .                    fx0 (ix,iy,k)*phi(ix             ,iy+k  ) +
      .                    fxp (ix,iy,k)*phi(ixp1(ix,iy+k)  ,iy+k  ) +
      .                    fxmy(ix,iy,k)*phi(ixm1(ix,iy+1-k),iy+1-k) +
-     .                    fxpy(ix,iy,k)*phi(ixp1(ix,iy+1-k),iy+1-k) 
-      interpphis(ix,iy,k)=fxm (ix,iy,k)*phis(ixm1(ix,iy+k)  ,iy+k  ) + 
+     .                    fxpy(ix,iy,k)*phi(ixp1(ix,iy+1-k),iy+1-k)
+      interpphis(ix,iy,k)=fxm (ix,iy,k)*phis(ixm1(ix,iy+k)  ,iy+k  ) +
      .                    fx0 (ix,iy,k)*phis(ix             ,iy+k  ) +
      .                    fxp (ix,iy,k)*phis(ixp1(ix,iy+k)  ,iy+k  ) +
      .                    fxmy(ix,iy,k)*phis(ixm1(ix,iy+1-k),iy+1-k) +
-     .                    fxpy(ix,iy,k)*phis(ixp1(ix,iy+1-k),iy+1-k) 
+     .                    fxpy(ix,iy,k)*phis(ixp1(ix,iy+1-k),iy+1-k)
       interpni(ix,iy,k,l) = exp (
-     .                  fxm (ix,iy,k)*log(ni(ixm1(ix,iy+k)  ,iy+k  ,l)) + 
+     .                  fxm (ix,iy,k)*log(ni(ixm1(ix,iy+k)  ,iy+k  ,l)) +
      .                  fx0 (ix,iy,k)*log(ni(ix             ,iy+k  ,l)) +
      .                  fxp (ix,iy,k)*log(ni(ixp1(ix,iy+k)  ,iy+k  ,l)) +
      .                  fxmy(ix,iy,k)*log(ni(ixm1(ix,iy+1-k),iy+1-k,l)) +
      .                  fxpy(ix,iy,k)*log(ni(ixp1(ix,iy+1-k),iy+1-k,l)) )
       interpnis(ix,iy,k,l) = exp (
-     .                 fxm (ix,iy,k)*log(nis(ixm1(ix,iy+k)  ,iy+k  ,l)) + 
+     .                 fxm (ix,iy,k)*log(nis(ixm1(ix,iy+k)  ,iy+k  ,l)) +
      .                 fx0 (ix,iy,k)*log(nis(ix             ,iy+k  ,l)) +
      .                 fxp (ix,iy,k)*log(nis(ixp1(ix,iy+k)  ,iy+k  ,l)) +
      .                 fxmy(ix,iy,k)*log(nis(ixm1(ix,iy+1-k),iy+1-k,l)) +
      .                 fxpy(ix,iy,k)*log(nis(ixp1(ix,iy+1-k),iy+1-k,l)) )
       interppri(ix,iy,k,l) = exp (
-     .                 fxm (ix,iy,k)*log(pri(ixm1(ix,iy+k)  ,iy+k  ,l)) + 
+     .                 fxm (ix,iy,k)*log(pri(ixm1(ix,iy+k)  ,iy+k  ,l)) +
      .                 fx0 (ix,iy,k)*log(pri(ix             ,iy+k  ,l)) +
      .                 fxp (ix,iy,k)*log(pri(ixp1(ix,iy+k)  ,iy+k  ,l)) +
      .                 fxmy(ix,iy,k)*log(pri(ixm1(ix,iy+1-k),iy+1-k,l)) +
      .                 fxpy(ix,iy,k)*log(pri(ixp1(ix,iy+1-k),iy+1-k,l)) )
       interpng(ix,iy,k,l) = exp (
-     .                  fxm (ix,iy,k)*log(ng(ixm1(ix,iy+k)  ,iy+k  ,l)) + 
+     .                  fxm (ix,iy,k)*log(ng(ixm1(ix,iy+k)  ,iy+k  ,l)) +
      .                  fx0 (ix,iy,k)*log(ng(ix             ,iy+k  ,l)) +
      .                  fxp (ix,iy,k)*log(ng(ixp1(ix,iy+k)  ,iy+k  ,l)) +
      .                  fxmy(ix,iy,k)*log(ng(ixm1(ix,iy+1-k),iy+1-k,l)) +
      .                  fxpy(ix,iy,k)*log(ng(ixp1(ix,iy+1-k),iy+1-k,l)) )
       interppg(ix,iy,k,l) = exp (
-     .                  fxm (ix,iy,k)*log(pg(ixm1(ix,iy+k)  ,iy+k  ,l)) + 
+     .                  fxm (ix,iy,k)*log(pg(ixm1(ix,iy+k)  ,iy+k  ,l)) +
      .                  fx0 (ix,iy,k)*log(pg(ix             ,iy+k  ,l)) +
      .                  fxp (ix,iy,k)*log(pg(ixp1(ix,iy+k)  ,iy+k  ,l)) +
      .                  fxmy(ix,iy,k)*log(pg(ixm1(ix,iy+1-k),iy+1-k,l)) +
      .                  fxpy(ix,iy,k)*log(pg(ixp1(ix,iy+1-k),iy+1-k,l)) )
- 
+
       id = 1
       if(ixl .lt. 0 .or. yinc .ge. 6) then
          is = 0
@@ -484,6 +497,12 @@ c                               # interpolate 2-D array with a 5-point stencil
       else
          js = iyl
          je = iyl
+      endif
+
+c... Added the following for OMPPandf1rhs call (added by .J.Guterl)
+      if(ixl .lt. 0 .and. iyl.ge.0) then
+         js = max(0,iyl-yinc)
+         je = min(ny+1,iyl+yinc)
       endif
 
       do iy = js, je
@@ -528,8 +547,8 @@ ccc         enddo
             zeff(ix,iy) = zeff(ix,iy) / ne(ix,iy)
             znot(ix,iy) = ne(ix,iy)*zeff(ix,iy)/ni(ix,iy,1) - 1
             do igsp = 1, ngsp
-               if(istgcon(igsp) > -1.e-20) tg(ix,iy,igsp) = 
-     .                       (1-istgcon(igsp))*rtg2ti(igsp)*ti(ix,iy) + 
+               if(istgcon(igsp) > -1.e-20) tg(ix,iy,igsp) =
+     .                       (1-istgcon(igsp))*rtg2ti(igsp)*ti(ix,iy) +
      .                          istgcon(igsp)*tgas(igsp)*ev
 	       pg(ix,iy,igsp) = ng(ix,iy,igsp)*tg(ix,iy,igsp)
            enddo
@@ -565,7 +584,7 @@ ccc      endif
 	    gprx(ix,iy) = 0.0
    17    continue
    18 continue
-     
+
 c Tom:  add comments here to explain the indices used on do 20 and 19
       do 20 iy = max(js-1,0), min(ny,je)
 	 inc = isign(max(1,iabs(ie-ixm1(ie,js))),ie-ixm1(ie,js))
@@ -610,7 +629,7 @@ c Tom:  add comments here to explain the indices used on do 25 and 24
             do 24 ix = ixm1(is,js), min(nx,ie), inc
                niy0(ix,iy,ifld) = interpni(ix,iy,0,ifld)
                niy1(ix,iy,ifld) = interpni(ix,iy,1,ifld)
-               if (nx==nxold .and. ny==nyold .and. 
+               if (nx==nxold .and. ny==nyold .and.
      .                                       nis(1,1,1).ne.0.) then
                   niy0s(ix,iy,ifld) = interpnis(ix,iy,0,ifld)
                   niy1s(ix,iy,ifld) = interpnis(ix,iy,1,ifld)
@@ -620,28 +639,28 @@ c Tom:  add comments here to explain the indices used on do 25 and 24
                ney0(ix,iy) = ney0(ix,iy) + zi(ifld)*niy0(ix,iy,ifld)
                ney1(ix,iy) = ney1(ix,iy) + zi(ifld)*niy1(ix,iy,ifld)
                priy0(ix,iy,ifld) = interppri(ix,iy,0,ifld)
-               priy1(ix,iy,ifld) = interppri(ix,iy,1,ifld) 
+               priy1(ix,iy,ifld) = interppri(ix,iy,1,ifld)
                gpiy(ix,iy,ifld) = (priy1(ix,iy,ifld) -
-     .                             priy0(ix,iy,ifld))/dynog(ix,iy)
+     .                             priy0(ix,iy,ifld)) * gyf(ix,iy)
                if (zi(ifld).ne.0.) gpry(ix,iy) = gpry(ix,iy) +
      .            gpiy(ix,iy,ifld)
    24       continue
             ix = ixp1(ie,iy)
             niy0(ix,iy,ifld) = interpni(ix,iy,0,ifld)
-            niy1(ix,iy,ifld) = interpni(ix,iy,1,ifld) 
-            if (nx==nxold .and. ny==nyold .and. 
+            niy1(ix,iy,ifld) = interpni(ix,iy,1,ifld)
+            if (nx==nxold .and. ny==nyold .and.
      .                                     nis(1,1,1).ne.0.) then
                niy0s(ix,iy,ifld) = interpnis(ix,iy,0,ifld)
-               niy1s(ix,iy,ifld) = interpnis(ix,iy,1,ifld) 
+               niy1s(ix,iy,ifld) = interpnis(ix,iy,1,ifld)
             endif
             nity0(ix,iy) = nity0(ix,iy) + niy0(ix,iy,ifld)
             nity1(ix,iy) = nity1(ix,iy) + niy1(ix,iy,ifld)
             ney0(ix,iy) = ney0(ix,iy) + zi(ifld)*niy0(ix,iy,ifld)
             ney1(ix,iy) = ney1(ix,iy) + zi(ifld)*niy1(ix,iy,ifld)
             priy0(ix,iy,ifld) = interppri(ix,iy,0,ifld)
-            priy1(ix,iy,ifld) = interppri(ix,iy,1,ifld) 
+            priy1(ix,iy,ifld) = interppri(ix,iy,1,ifld)
             gpiy(ix,iy,ifld) = (priy1(ix,iy,ifld) -
-     .                          priy0(ix,iy,ifld))/dynog(ix,iy)
+     .                          priy0(ix,iy,ifld)) * gyf(ix,iy)
             if (zi(ifld).ne.0.) gpry(ix,iy) = gpry(ix,iy) +
      .            gpiy(ix,iy,ifld)
    25    continue
@@ -655,13 +674,13 @@ c Tom:  add comments here to explain the indices used on do 264 and 263
             tey1(ix,iy) = interpte(ix,iy,1)
             tiy0(ix,iy) = interpti(ix,iy,0)
             tiy1(ix,iy) = interpti(ix,iy,1)
-            phiy0(ix,iy) =interpphi(ix,iy,0) 
-            phiy1(ix,iy) =interpphi(ix,iy,1) 
+            phiy0(ix,iy) =interpphi(ix,iy,0)
+            phiy1(ix,iy) =interpphi(ix,iy,1)
             if (nx==nxold .and. ny==nyold) then
-              tiy0s(ix,iy) =interptis(ix,iy,0) 
-              tiy1s(ix,iy) =interptis(ix,iy,1) 
-              phiy0s(ix,iy) =interpphis(ix,iy,0) 
-              phiy1s(ix,iy) =interpphis(ix,iy,1) 
+              tiy0s(ix,iy) =interptis(ix,iy,0)
+              tiy1s(ix,iy) =interptis(ix,iy,1)
+              phiy0s(ix,iy) =interpphis(ix,iy,0)
+              phiy1s(ix,iy) =interpphis(ix,iy,1)
             endif
   263   continue
          ix = ixp1(ie,iy)
@@ -696,7 +715,7 @@ c Tom:  add comments here to explain the indices used on do 266 and 265
             tgy1(ix,iy,igsp) = interptg(ix,iy,1,igsp)
   266    continue
   267 continue
-      
+
 C ... Calculate pgy0,1 only if ineudif=2, i.e. grad_pg option
       if (ineudif == 2) then
         do igsp = 1, ngsp
@@ -711,7 +730,7 @@ C ... Calculate pgy0,1 only if ineudif=2, i.e. grad_pg option
             pgy1(ix,iy,igsp) = interppg(ix,iy,1,igsp)
           enddo
         enddo
-      endif        
+      endif
 
       do iy = js, je    # inc index gives stride for jac perturb at cuts
          inc = isign(max(1,iabs(ie-ixm1(ie,iy))),ie-ixm1(ie,iy))
@@ -722,13 +741,13 @@ C ... Calculate pgy0,1 only if ineudif=2, i.e. grad_pg option
             gtix(ix,iy) = (ti(ix1,iy)-ti(ix,iy))*gxf(ix,iy)
             gprx(ix,iy) = gprx(ix,iy) + gpex(ix,iy)
 cccmer Replaced isphion->isphion+isphiofft below to correct Jacobian problem
-            if (isphion+isphiofft .eq. 1) then  
+            if (isphion+isphiofft .eq. 1) then
                ex(ix,iy) = (phi(ix,iy)-phi(ix1,iy))*gxf(ix,iy)
             endif
          enddo
       ##   reset ex(ixlb,), ex(ixrb,) to avoid using sheath phi(0,) & phi(nx+1,)
 	 if (iysptrx < ny) then  # Otherwise this is core-only case w/o plates
-	   do jx = 1, nxpt 
+	   do jx = 1, nxpt
              ex(ixlb(jx),iy) = ex(ixlb(jx)+1,iy)
              ex(ixrb(jx),iy) = ex(ixrb(jx)-1,iy)
            enddo
@@ -745,18 +764,18 @@ c Tom:  add comments here to explain the indices used on do 30 and 29
          inc = isign(max(1,iabs(ie-ixm1(ie,js))),ie-ixm1(ie,js))
 	 do 29 ix = ixm1(is,js), min(nx,ie), inc
             gpey(ix,iy) = (ney1(ix,iy)*tey1(ix,iy) - 
-     .                     ney0(ix,iy)*tey0(ix,iy)) / dynog(ix,iy)
-            gtey(ix,iy) = (tey1(ix,iy) - tey0(ix,iy)) / dynog(ix,iy)
-            gtiy(ix,iy) = (tiy1(ix,iy) - tiy0(ix,iy)) / dynog(ix,iy)
-            ey(ix,iy) = - (phiy1(ix,iy) - phiy0(ix,iy)) / dynog(ix,iy)
+     .                     ney0(ix,iy)*tey0(ix,iy)) * gyf(ix,iy)
+            gtey(ix,iy) = (tey1(ix,iy) - tey0(ix,iy)) * gyf(ix,iy)
+            gtiy(ix,iy) = (tiy1(ix,iy) - tiy0(ix,iy)) * gyf(ix,iy)
+            ey(ix,iy) = - (phiy1(ix,iy) - phiy0(ix,iy)) * gyf(ix,iy)
             gpry(ix,iy) = gpry(ix,iy) + gpey(ix,iy)
    29    continue
          ix = ixp1(ie,iy)
          gpey(ix,iy) = (ney1(ix,iy)*tey1(ix,iy) - 
-     .                  ney0(ix,iy)*tey0(ix,iy)) / dynog(ix,iy)
-         gtey(ix,iy) = (tey1(ix,iy) - tey0(ix,iy)) / dynog(ix,iy)
-         gtiy(ix,iy) = (tiy1(ix,iy) - tiy0(ix,iy)) / dynog(ix,iy)
-         ey(ix,iy) = - (phiy1(ix,iy) - phiy0(ix,iy)) / dynog(ix,iy)
+     .                  ney0(ix,iy)*tey0(ix,iy)) * gyf(ix,iy)
+         gtey(ix,iy) = (tey1(ix,iy) - tey0(ix,iy)) * gyf(ix,iy)
+         gtiy(ix,iy) = (tiy1(ix,iy) - tiy0(ix,iy)) * gyf(ix,iy)
+         ey(ix,iy) = - (phiy1(ix,iy) - phiy0(ix,iy)) * gyf(ix,iy)
          gpry(ix,iy) = gpry(ix,iy) + gpey(ix,iy)
  30   continue
 
@@ -790,10 +809,10 @@ c...  add electron contribution to prtv; ion contribution added below
             do 38 ix = ixm1(is,iy), min(nx,ie), inc
                ix1 = ixp1(ix,iy)
                ix2 = ixp1(ix,iy+1)
-               priv(ix,iy,ifld) = 0.25*( pri(ix,iy,ifld) + 
-     .                           pri(ix1,iy,ifld) + pri(ix,iy+1,ifld) + 
+               priv(ix,iy,ifld) = 0.25*( pri(ix,iy,ifld) +
+     .                           pri(ix1,iy,ifld) + pri(ix,iy+1,ifld) +
      .                           pri(ix2,iy+1,ifld) )
-               if (zi(ifld).ne.0.) prtv(ix,iy) = prtv(ix,iy) + 
+               if (zi(ifld).ne.0.) prtv(ix,iy) = prtv(ix,iy) +
      .                                                 priv(ix,iy,ifld)
 
  38         continue
@@ -815,26 +834,26 @@ c.... cheaper than checking
          endif
       if (is.lt.0 .or. ie.lt.0 .or. ie.gt.nx) goto 45
 c ... Last test (ie.gt.nx) to fix parallel version with mpi - check
-      phiv(is,js) = 0.125*( 
+      phiv(is,js) = 0.125*(
      .              phi(is,js)+phi(is+1,js)+phi(is,js+1)+phi(is+1,js+1)+
      .              phi(ie,js)+phi(ie+1,js)+phi(ie,js+1)+phi(ie+1,js+1) )
       phiv(ie,js) = phiv(is,js)
       tiv(is,js) = 0.125*(
-     .              ti(is,js)+ti(is+1,js)+ti(is,js+1)+ti(is+1,js+1)+ 
+     .              ti(is,js)+ti(is+1,js)+ti(is,js+1)+ti(is+1,js+1)+
      .              ti(ie,js)+ti(ie+1,js)+ti(ie,js+1)+ti(ie+1,js+1) )
       tiv(ie,js) = tiv(is,js)
       tev(is,js) = 0.125*(
-     .              te(is,js)+te(is+1,js)+te(is,js+1)+te(is+1,js+1)+ 
+     .              te(is,js)+te(is+1,js)+te(is,js+1)+te(is+1,js+1)+
      .              te(ie,js)+te(ie+1,js)+te(ie,js+1)+te(ie+1,js+1) )
       tev(ie,js) = tev(is,js)
       prev(is,js) = 0.125*(
-     .              pre(is,js)+pre(is+1,js)+pre(is,js+1)+pre(is+1,js+1)+ 
+     .              pre(is,js)+pre(is+1,js)+pre(is,js+1)+pre(is+1,js+1)+
      .              pre(ie,js)+pre(ie+1,js)+pre(ie,js+1)+pre(ie+1,js+1) )
       prev(ie,js) = prev(is,js)
       prtv(is,js) = prev(is,js)
 
       do 43 ifld = 1, nisp
-      priv(is,js,ifld) = 0.125*(pri(is,js  ,ifld) + pri(is+1,js  ,ifld) 
+      priv(is,js,ifld) = 0.125*(pri(is,js  ,ifld) + pri(is+1,js  ,ifld)
      .                        + pri(is,js+1,ifld) + pri(is+1,js+1,ifld)
      .                        + pri(ie,js  ,ifld) + pri(ie+1,js  ,ifld)
      .                        + pri(ie,js+1,ifld) + pri(ie+1,js+1,ifld) )
@@ -867,7 +886,7 @@ c ... fxm, fx0, fxp, fxmy, fxpy
       Use(Noggeo)             # fxm,fx0,fxp,fxmy,fxpy
       Use(Selec)              # ixp1,ixm1
 
-      intpnog =  fxm (i,j,k)*ary(ixm1(i,j+k)  ,j+k  ) + 
+      intpnog =  fxm (i,j,k)*ary(ixm1(i,j+k)  ,j+k  ) +
      .           fx0 (i,j,k)*ary(i            ,j+k  ) +
      .           fxp (i,j,k)*ary(ixp1(i,j+k)  ,j+k  ) +
      .           fxmy(i,j,k)*ary(ixm1(i,j+1-k),j+1-k) +
@@ -887,16 +906,17 @@ c...  Simple averages are used
 
 *  -- local variables
       integer is,ie,js,je,jx,ifld
+      #Former Aux module variables
+      integer ix,iy,igsp,ix1,ix2
 
       Use(Dim)            # nx,ny,nhsp,nzsp,nisp,nusp,ngsp
       Use(Xpoint_indices) # ixpt1,ixpt2,iysptrx1
       Use(Compla)         # ni,up,..,niv,upv,
-      Use(Aux)            # ix,iy,igsp,ix1,ix2
       Use(Selec)          # ixp1
       Use(Share)          # nysol,nyomitmx
-      
+
 c.. Do all interior cells as 4-pt ave to upper vertex; reset X-point below
-      do ix = 1, nx   
+      do ix = 1, nx
         do iy = 1, ny
           ix1 = ixp1(ix,iy)
           ix2 = ixp1(ix,iy+1)
@@ -922,7 +942,7 @@ c.. Do all interior cells as 4-pt ave to upper vertex; reset X-point below
       enddo
 
 c.. Do all x-bdry cells as 2-pt y-ave to upper vertex
-      do ix = 0, nx+1, nx+1   
+      do ix = 0, nx+1, nx+1
         do iy = 1, ny    # note: corner cells relegated to y-bdry here
           ix1 = ixp1(ix,iy)
           ix2 = ixp1(ix,iy+1)
@@ -940,7 +960,7 @@ c.. Do all x-bdry cells as 2-pt y-ave to upper vertex
       enddo
 
 c.. Do all y-bdry cells as 2-pt x-ave to upper vertex
-      do ix = 0, nx+1  
+      do ix = 0, nx+1
         do iy = 0, ny+1, ny+1
           ix1 = ixp1(ix,iy)
           tev(ix,iy) = 0.5*( te(ix,iy) + te(ix1,iy) )
@@ -970,21 +990,21 @@ c.. Now reset x-point values; mostly 8-pt ave
           if (is.lt.0 .or. ie.lt.0 .or. ie.gt.nx) return
 c ... Last test (ie.gt.nx) to fix parallel version with mpi - check
           tev(is,js) = 0.125*(
-     .              te(is,js)+te(is+1,js)+te(is,js+1)+te(is+1,js+1)+ 
+     .              te(is,js)+te(is+1,js)+te(is,js+1)+te(is+1,js+1)+
      .              te(ie,js)+te(ie+1,js)+te(ie,js+1)+te(ie+1,js+1) )
           tev(ie,js) = tev(is,js)
           tiv(is,js) = 0.125*(
-     .              ti(is,js)+ti(is+1,js)+ti(is,js+1)+ti(is+1,js+1)+ 
+     .              ti(is,js)+ti(is+1,js)+ti(is,js+1)+ti(is+1,js+1)+
      .              ti(ie,js)+ti(ie+1,js)+ti(ie,js+1)+ti(ie+1,js+1) )
           tiv(ie,js) = tiv(is,js)
-          phiv(is,js) = 0.125*( 
+          phiv(is,js) = 0.125*(
      .              phi(is,js)+phi(is+1,js)+phi(is,js+1)+phi(is+1,js+1)+
      .              phi(ie,js)+phi(ie+1,js)+phi(ie,js+1)+phi(ie+1,js+1) )
           phiv(ie,js) = phiv(is,js)
-         
+
           do ifld = 1, nisp
             niv(is,js,ifld) = 0.125*( ni(is,js,ifld)+ni(is+1,js,ifld)+
-     .                                ni(is,js+1,ifld)+ni(is+1,js+1,ifld)+ 
+     .                                ni(is,js+1,ifld)+ni(is+1,js+1,ifld)+
      .                                ni(ie,js,ifld)+ni(ie+1,js,ifld)+
      .                                ni(ie,js+1,ifld)+ni(ie+1,js+1,ifld) )
             niv(ie,js,ifld) = niv(is,js,ifld)
@@ -994,12 +1014,12 @@ c ... Last test (ie.gt.nx) to fix parallel version with mpi - check
 
           do igsp = 1, ngsp
             ngv(is,js,igsp) = 0.125*( ng(is,js,igsp)+ng(is+1,js,igsp)+
-     .                                ng(is,js+1,igsp)+ng(is+1,js+1,igsp)+ 
+     .                                ng(is,js+1,igsp)+ng(is+1,js+1,igsp)+
      .                                ng(ie,js,igsp)+ng(ie+1,js,igsp)+
      .                                ng(ie,js+1,igsp)+ng(ie+1,js+1,igsp) )
             ngv(ie,js,igsp) = ngv(is,js,igsp)
           enddo
-            
+
         enddo
       endif
 

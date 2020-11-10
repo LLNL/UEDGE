@@ -10,7 +10,26 @@ import site
 from Forthon.compilers import FCompiler
 import getopt
 
-version='7.0.9.2.0rc1'
+GitHash=''
+GitRemoteRepo=''
+GitBranch=''
+GitTag=''
+UEDGEfolder=os.getcwd()
+GitRepo=''
+try:
+    import git #gitpython
+    Repo=git.Repo()
+    GitHash=Repo.head.object.hexsha
+    GitBranch=Repo.active_branch.name
+    #GitRepo=Repo.active_branch.repo.name
+except: 
+    pass
+# Getting version from git tag
+#try:
+    #version=Repo.tags[-1].name
+#except:
+version='7.1.0.0.0'
+    
 
 try:
     os.environ['PATH'] += os.pathsep + site.USER_BASE + '/bin'
@@ -24,13 +43,13 @@ try:
 except:
     raise SystemExit("Distutils problem")
 
-optlist, args = getopt.getopt(sys.argv[1:], 'gt:F:', ['parallel', 'petsc'])
+optlist, args = getopt.getopt(sys.argv[1:], 'gt:F:', ['parallel', 'petsc','omp'])
 machine = sys.platform
 debug = 0
 fcomp = None
 parallel = 0
 petsc = 0
-
+OMP=False
 for o in optlist:
     if o[0] == '-g':
         debug = 1
@@ -42,6 +61,35 @@ for o in optlist:
         parallel = 1
     elif o[0] == '--petsc':
         petsc = 1
+    elif o[0] == '--omp':
+        OMP = True
+
+# OMP add-on        
+#OMPpackages=['bbb','com','api']
+#OMPlisthtreadprivatevars='../../ppp/ListVariableThreadPrivate_final.txt'
+CARGS=[]
+FARGS=['-g -fmax-errors=15', '-DFORTHON','-cpp','-Wconversion','-fimplicit-none']
+if OMP:
+    FARGS=FARGS+['-fopenmp']
+    CARGS=CARGS+['-fopenmp']
+    OMPargs=['--omp']
+else:
+    OMPargs=[]
+OMPFLAGS='OMPFLAGS = {}'.format(' '.join(OMPargs))
+
+# Flags for makefile. Flags are easier to handle from setup.py and it prevents dealing with the makefile.)
+
+FARGSDEBUG=['-fbacktrace','-ffree-line-length-0', '-fcheck=all','-ffpe-trap=invalid,overflow,underflow -finit-real=snan','-Og']
+FARGSOPT=['-Ofast']
+
+if debug==1:
+    FARGS=FARGS+FARGSDEBUG
+else:
+    FARGS=FARGS+FARGSOPT
+    
+FLAGS ='DEBUG = -v --fargs "{}"'.format(' '.join(FARGS))
+if CARGS!=[]:
+    FLAGS =FLAGS+' --cargs="{}"'.format(' '.join(CARGS))
 
 
 if petsc == 1 and os.getenv('PETSC_DIR') == None:
@@ -69,7 +117,7 @@ class uedgeBuild(build):
             build.run(self)
         else:
             if petsc == 0:
-                call(['make', '-f', 'Makefile.Forthon3'])
+                call(['make',FLAGS,OMPFLAGS, '-f', 'Makefile.Forthon3'])
             else:
                 call(['make', '-f', 'Makefile.PETSc3'])
             build.run(self)
@@ -89,7 +137,7 @@ class uedgeClean(build):
                 call(['make', '-f', 'Makefile.PETSc3', 'clean'])
 
 
-uedgepkgs = ['aph', 'api', 'bbb', 'com', 'flx', 'grd', 'svr', 'wdf']
+uedgepkgs = ['aph', 'api', 'bbb', 'com', 'flx', 'grd', 'svr', 'wdf','ppp']
 
 
 def makeobjects(pkg):
@@ -164,6 +212,9 @@ if parallel:
 
 with open('pyscripts/__version__.py','w') as ff:
     ff.write("__version__ = '%s'\n"%version)
+    ff.write("GitTag='{}'\n".format(GitTag))
+    ff.write("GitBranch='{}'\n".format(GitBranch))
+    ff.write("GitHash='{}'\n".format(GitHash))
 
 define_macros=[("WITH_NUMERIC", "0"),
                ("FORTHON_PKGNAME", '\"uedgeC\"'),
@@ -199,7 +250,7 @@ setup(name="uedge",
                              libraries=libraries,
                              define_macros=define_macros,
                              extra_objects=uedgeobjects,
-                             extra_link_args=['-g','-DFORTHON'] +
+                             extra_link_args=CARGS+['-g','-DFORTHON'] +
                              fcompiler.extra_link_args,
                              extra_compile_args=fcompiler.extra_compile_args
                              )],

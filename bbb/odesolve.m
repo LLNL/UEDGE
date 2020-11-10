@@ -14,7 +14,6 @@
       Use(Math_problem_size)   # neqmx
       Use(Timing)
       Use(UEpar)    # istep,iter,svrpkg,isdtsfscal
-      Use(Aux)      # ix,iy,igsp,iv
       Use(Lsode)    # mmaxu,dtmax,dtinit,maxpoly,yl,yldot
       Use(Solver_work_arrays)   # liw,lrp,iwork,rwork
       Use(Jac_work_arrays)      # lwp, liwp
@@ -50,6 +49,9 @@ c Diagnostic data
       Use(Indices_domain_dcl) # ivloc2sdgl
       Use(Xpoint_indices)
       Use(Indices_domain_dcg)
+      Use(PandfTiming)
+      real tick,tock
+      external tick ,tock
 c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
 
 
@@ -73,6 +75,8 @@ c     local variables
       real tbout, dtreal_sav, initguess(neq), snesans(neq), snesminusnksol
       real fnrm, fnew
       integer i,ifld,lid,ilg
+      #Former Aux module variables
+      integer ix,iy,igsp,iv
 
       real(Size4) gettime, sec4
 
@@ -90,7 +94,7 @@ c ... Save initial time and set accumulated times to zero.
       ttjstor = 0.
       ttjrnorm = 0.
       ttjreorder = 0.
-	  
+
 c ... Set switch to time other packages if this one is being timed.
       call sapitim (istimingon)
 
@@ -109,7 +113,7 @@ c...  time-dependent solvers(imeth=0) and Newton solvers(imeth=1)
       endif
       istep_nk = 0   # not inside if test for switching from nksol to daspk
       iter = 0
-	  
+
 *  -- initialize the system --
       if (ismpion.eq.0) then  # Serial version
         call ueinit
@@ -123,7 +127,7 @@ c_mpicvode        call fcvspgmr2 (jpre, igs, maxkd, delt_pv)
 *  -- continue looping until istep=nsteps, then go to resetting parameters --
    10 continue
       if (istep .ge. nsteps .or. istep_nk .ge. nsteps_nk) goto 200
-       
+
 *    -- set old-time values -- but only if mesh size not changing
         if(nxold == nx .and. nyold == ny) then
           do ifld = 1, nisp
@@ -247,7 +251,7 @@ c_mpicvode          CALL FCVODE (tout, ts, yl, itask, istate)
          write(*,*)
          call xerrab("")
        endif
-	   
+
        if (svrpkg.eq.'daspk') then # gather some data
          hu(istep+1,igrid) = rwork(3)
          nst(istep+1,igrid) = iwork(11)
@@ -291,7 +295,7 @@ c_mpicvode          CALL FCVODE (tout, ts, yl, itask, istate)
            endif
          else
             call sfill (neq, 1., sfscal(1), 1)
-         endif        
+         endif
          if((svrpkg .eq. 'nksol') .or.(svrpkg .eq. 'petsc') ) then  #not above issfon because newton poss
             call set_dt(neq, yl, yldot)  # sets dtuse for time-step models
             if (isdtsfscal.eq.1) call sfsetnk (neq, yl, suscal, sfscal)
@@ -308,6 +312,7 @@ c     iwork(3) & iwork(4) were set in sub. allocate; allocate prob., lwp, liwp
             iwork(7) = 1-errmsgflag
             iwork(8) = itermx
             iwork(9) = incpset
+            iwork(10)= nfemax
             rwork(1) = stepmx
             rwork(2) = del2nksol
             rwork(3) = taunksol
@@ -361,12 +366,14 @@ cpetsc      endif
 
 cpetsc      if ((svrpkg.eq.'nksol' .and. npes.eq.1) .or. (snesdebug. eq. 1)) then
 *-------------------------------------------------------------------------
-
+            Timenksol=tick()
             call nksol(neq,yl,yldot,rhsnk,jacvnk,suscal,sfscal,ftol,
      .                 stptol,rwork,
      .                 lrw,iwork,liw,iopts,iterm,psetnk,psolnk,mfnksol,
      .                 mdif,ipflag,icflag,icnstr,rlx,epscon1,epscon2,
      .                 icntnunk,adjf1)
+            TotTimenksol=TotTimeNksol+tock(Timenksol)
+
 *-------------------------------------------------------------------------
 cpetsc      endif
 cpetsc      if (snesdebug. eq. 1) then
@@ -1004,7 +1011,6 @@ c***************************************************
 
       Use(Dim)              # nx,ny,nisp,ngsp
       Use(Npes_mpi)         # mype,ismpion
-      Use(Aux)              # ix,iy,ifld,igsp
       Use(Math_problem_size) # neqmx to dimension some arrays
       Use(Grid)             # ngrid to dimension some arrays
       Use(Interp)           # nis,ups,tes,tis,ngs,phis
@@ -1022,6 +1028,8 @@ c...  Local variables
       integer ir,i_stor,nfe_tot,ii1,ii2,ifld,inorm_exit
       real fnrm_old,dt_stor,deldt_0,dtreal_sav
       real psum
+      #Former Aux module variables
+      integer ix,iy,igsp,iv
 
 c...  Look at calling parameters
 c      if (mype .eq. 0) then
@@ -1035,13 +1043,13 @@ c ... Set initial timestep based on dt_init_rundt
       dtreal = min(dtreal, dt_init_rundt)
 
 c ... Now initial value large to disable for subsequent calls
-      dt_init_rundt = 1.e30  
+      dt_init_rundt = 1.e30
 
 c ... If a parallel run, call rundt means mesh already calc
       if(ismpion == 1) then
         newgeo = 0
       endif
-      
+
 c ... Some initialization
       if (n_stor > 1) dt_stor = (tstor_e - tstor_s)/(n_stor - 1)
       i_stor = 1
@@ -1242,15 +1250,15 @@ c-----------------------------------------------------------------c
 c ... Routine calculates flux surface averages particle and
 c ... energy sources for the UEDGE interpretive mode.
 c ... Note in SOL, averages are from X-point to X-point; divertor
-c ... omitted. Also, in the SOL, poloidal fluxes are ignored 
-c ... (model inaccurate); in core, average to 0. First, read input 
+c ... omitted. Also, in the SOL, poloidal fluxes are ignored
+c ... (model inaccurate); in core, average to 0. First, read input
 c ... file, then read rdfitdata_new, then execute once with
 c ... issfon=0 and ftol=1e20, and finally read this file.
 
       implicit none
       Use(Dim)            # nx,ny
       Use(Xpoint_indices) # ixpt1,ixpt2
-      Use(Aux)            # ix,iy,ixmp
+      Use(Aux),only:ixmp
       Use(Interprettrans) # del_wicv,del_wecv,... for interpolation
       Use(Comgeo)         # gyf
       Use(Bcond)          # curcore,pcoree,pcorei
@@ -1286,6 +1294,9 @@ c ... Local variables
       real fracl,fracr,gamrecycc,sycore0
       real sycore(0:ny+1),sycoregyf(0:ny+1),vtoty(0:ny+1)
       integer ncells,ifld
+      #Former Aux module variables
+      integer ix,iy
+
 
 
 c ... ##########################################################
@@ -1316,7 +1327,7 @@ c ... ##########################################################
       call exmain
       issfon = 1
       ftol = 1.e-8
-      
+
 c ... ##########################################################
 c ... # Calculate terms in eqns; 1st particle source/radial flux
 c ... ##########################################################
@@ -1334,7 +1345,7 @@ c ... # For testing with UEDGE solution, compute curcore(1)
 
       pfmpg(0) = gyf(ixmp,0)*sycore(0)/sycoregyf(0)
       gamp(0) = (curcore(1)/qe - gamrecycc)/sycore(0)
- 
+
       do iy = 1, ny   # inclu
         vtoty(iy) = 0.
 	sycore(iy) = 0.
@@ -1350,14 +1361,14 @@ c ... # For testing with UEDGE solution, compute curcore(1)
         enddo
         do ix = ixpt1(1)+1, ixpt2(1)
 	  del_sp(iy) = del_sp(iy) + psor(ix,iy,1)/vtoty(iy)
-          del_dndt(iy) = del_dndt(iy) + ni(ix,iy,1)*vol(ix,iy) / 
+          del_dndt(iy) = del_dndt(iy) + ni(ix,iy,1)*vol(ix,iy) /
      .                                         (taudndt(iy)*vtoty(iy))
           del_deedt(iy) = del_deedt(iy) + 1.5*te(ix,iy)*ni(ix,iy,1)*
      .                           vol(ix,iy) / (taudeedt(iy)*vtoty(iy))
           del_deidt(iy) = del_deidt(iy) + 1.5*ti(ix,iy)*ni(ix,iy,1)*
      .                           vol(ix,iy) / (taudeidt(iy)*vtoty(iy))
         enddo
-        gamp(iy) = gamp(iy-1)*sycore(iy-1)/sycore(iy) + 
+        gamp(iy) = gamp(iy-1)*sycore(iy-1)/sycore(iy) +
      .               (del_sp(iy)-del_dndt(iy))*vtoty(iy)/sycore(iy)
         pfmpg(iy) = gyf(ixmp,iy)*sycore(iy)/sycoregyf(iy)
         do ix = ixpt1(1)+1, ixpt2(1)
@@ -1552,7 +1563,7 @@ c ...   Set values over SOL and PF; core reset next
             if (ziin(ifld) > 0.) then
               vy_use(ix,iy,ifld) = 0.
                 # now for PF and SOL regions
-                if(iy<=iysptrx .and. (ix<=ixpt1(1).or.ix>=ixpt2(1))) 
+                if(iy<=iysptrx .and. (ix<=ixpt1(1).or.ix>=ixpt2(1)))
      .                                                       then
                   dif_use(ix,iy,ifld) = dif_int(iysptrx) + difni_pf
                 elseif(iy > iysptrx) then
@@ -1560,7 +1571,7 @@ c ...   Set values over SOL and PF; core reset next
                 endif
               endif
             enddo
-              if(iy<=iysptrx .and. (ix<=ixpt1(1).or.ix>=ixpt2(1))) 
+              if(iy<=iysptrx .and. (ix<=ixpt1(1).or.ix>=ixpt2(1)))
      .                                                       then
                 kye_use(ix,iy) = kye_int(iysptrx) + kye_pf
                 kyi_use(ix,iy) = kyi_int(iysptrx) + kyi_pf
@@ -1762,7 +1773,7 @@ c Subroutine to interpolate Osborne/Groebner DIII-D profiles
 c************************************************************
 
       subroutine interp_neteti
-       
+
       implicit none
       Use(Dim)              # ny,num_elem
       Use(Xpoint_indices)   # iysptrx
@@ -1845,7 +1856,7 @@ c...    Interpolate values from data file onto UEDGE mesh
             endif
           enddo
         enddo
-        
+
 c...    THIRD, do the Ti profile, begin by reading data
         if (isprofvspsi == 1) then  #profiles provided vs psi
           if (idata==1) call read_exp_fit('ti_vs_psi_expt1')
@@ -1882,9 +1893,9 @@ c...    Interpolate values from data file onto UEDGE mesh
         enddo
 
        enddo   # End of large loop over idata
- 
+
       return
-      end   
+      end
 c ***  End of subroutine interp_neteti --------------------------------c
 c----------------------------------------------------------------------c
 
@@ -1902,7 +1913,7 @@ c     only outputs results for the par and ser builds.
 c *** ----------------------------------------------------------------- c
       subroutine outputstats
       implicit none
-      
+
       integer :: one=1
 
 cpetsc      if (one.eq.1) then

@@ -311,6 +311,7 @@ c     local variables --
       real kdum
       integer zn,za,zamax
       external mcrates
+      real rcxcopy
 
 c     Compute rate parameter for k--->k-1 charge exchange on neutral hydrogen
 c     k               = initial charge state
@@ -385,14 +386,15 @@ c----------------------------------------------------------------------c
          zn=1     # nuclear charge for hydrogenic species
          zamax=1  # maximum atomic charge for hydrogenic species
          za=1     # compute c-x rate for this charge state
-         call mcrates(n0,t0,t0,za,zamax,zn,kdum,kdum,rcx)
+         call mcrates(n0,t0,t0,za,zamax,zn,kdum,kdum,rcxcopy)
+         rcx=rcxcopy
 
 c----------------------------------------------------------------------c
       else     #     use analytic model (hydrogen) for all other istabon
 
          a = 3*t0 / (10*ev)
          rcx = 1.7e-14 * a**0.333
-         if (issgvcxc.eq.1) rcx = sgvcxc # use fixed sig-v 
+         if (issgvcxc.eq.1) rcx = sgvcxc # use fixed sig-v
          if (issgvcxc.eq.2) rcx = sgvcxc*sqrt(t0/m_prot) # fixed sig
 
 c----------------------------------------------------------------------c
@@ -601,7 +603,7 @@ c     has already added it in
          rqa = svradp(te/ev,ne)
 
 c----------------------------------------------------------------------c
-      elseif (istabon .gt. 7) then	# write error message 
+      elseif (istabon .gt. 7) then	# write error message
          call xerrab('**** function rqa is not defined for istabon > 7')
 
 c----------------------------------------------------------------------c
@@ -638,6 +640,7 @@ c     local variables --
       real xuse,yuse,vlog10rra
       real kdum
       integer zn,za,zamax
+      real rracopy
 
 c     Compute rate parameter for k--->k-1 recombination
 c     k               = initial charge state
@@ -854,7 +857,8 @@ c----------------------------------------------------------------------c
             zn=1     # nuclear charge for hydrogenic species
             zamax=1  # maximum atomic charge for hydrogenic species
             za=1     # compute recombination rate for this charge state
-            call mcrates(ne,te,te,za,zamax,zn,kdum,rra,kdum)
+            call mcrates(ne,te,te,za,zamax,zn,kdum,rracopy,kdum)
+            rra=rracopy
 
 c----------------------------------------------------------------------c
       endif
@@ -892,6 +896,7 @@ c     local variables --
       real kdum
       integer zn,za,zamax
       external mcrates
+      real rsacopy
 
 c     Compute rate parameter for k--->k+1 ionization by electrons
 c     k               = initial charge state
@@ -1020,7 +1025,7 @@ c     compute abscissae --
       tsval = gettime(sec4)
       rsa = B2VAhL(xuse, yuse, 0, 0, xknots, yknots, nxcoef, nycoef,
      .          kxords, kyords, rsacoef, ldf, workh, iflag)
-      totb2val = totb2val + gettime(sec4) - tsval      
+      totb2val = totb2val + gettime(sec4) - tsval
 c----------------------------------------------------------------------c
       elseif (istabon .eq. 7) then
 c                       use polynomial fit from Bob Campbell -  8/93
@@ -1049,8 +1054,8 @@ c     ionization rate parameter -- now logarithm of rates
          rsa12=log( wsveh(je,jd+1,jr) )
          rsa21=log( wsveh(je+1,jd,jr) )
          rsa22=log( wsveh(je+1,jd+1,jr) )
-         rsa1=rsa11 + fjd*(rsa12-rsa11) 
-         rsa2=rsa21 + fjd*(rsa22-rsa21) 
+         rsa1=rsa11 + fjd*(rsa12-rsa11)
+         rsa2=rsa21 + fjd*(rsa22-rsa21)
          rsa = exp( rsa1 + fje*(rsa2-rsa1) )
 
 c----------------------------------------------------------------------c
@@ -1111,7 +1116,8 @@ c----------------------------------------------------------------------c
             zn=1     # nuclear charge for hydrogenic species
             zamax=1  # maximum atomic charge for hydrogenic species
             za=0     # compute ionization rate for this charge state
-            call mcrates(ne,te,te,za,zamax,zn,rsa,kdum,kdum)
+            call mcrates(ne,te,te,za,zamax,zn,rsacopy,kdum,kdum)
+            rsa=rsacopy
 
 c----------------------------------------------------------------------c
       endif
@@ -1132,7 +1138,7 @@ c
 c    y = log10(te(eV))
 c    x = log10(ne(1/m3))
 c caution: other version may reverse x,y and then correct later
-c 
+c
 c Both ionization and recombination rates are in m3/sec.
 c Etai is in eV.
 c
@@ -1179,7 +1185,7 @@ c
 c    y = log10(te(eV))
 c    x = log10(ne(1/m3))
 c caution: other version may reverse x,y and then correct later
-c 
+c
 c Both ionization and recombination rates are in m3/sec.
 c Etai is in eV.
 c
@@ -1229,7 +1235,7 @@ c
 c    y = log10(te(eV))
 c    x = log10(ne(1/m3))
 c caution: other version may reverse x,y and then correct later
-c 
+c
 c Both ionization and recombination rates are in m3/sec.
 c Etai is in eV.
 c
@@ -1283,7 +1289,7 @@ c
 c
 c Above 100eV, etai is constant at the 100eV value
 c
-      svradp = max( 0.e0,(13.6e0+etai(x,min(2.e0,y))) ) * 
+      svradp = max( 0.e0,(13.6e0+etai(x,min(2.e0,y))) ) *
      .         1.602e-19 * sionfl(x,y)
 c
       return
@@ -1310,13 +1316,13 @@ c     local variables --
 
       b0 = -2.787217511174e+01
       b1 =  1.052252660075e+01
-      b2 = -4.973212347860e+00   
+      b2 = -4.973212347860e+00
       b3 =  1.451198183114e+00
       b4 = -3.062790554644e-01
-      b5 =  4.433379509258e-02   
+      b5 =  4.433379509258e-02
       b6 = -4.096344172875e-03
       b7 =  2.159670289222e-04
-      b8 = -4.928545325189e-06   
+      b8 = -4.928545325189e-06
 
       logt = log (te/ev)
       logsv = b0+logt*(b1+logt*(b2+logt*(b3+logt*(b4
