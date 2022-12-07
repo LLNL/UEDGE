@@ -15,17 +15,17 @@ import os
 
 
 #-in .bashrc: "export PYLIB=/home/umansky1/PyUEDGE/uedge/pylib"
-execfile(os.environ['PYLIB']+"/plotmesh.py")
-execfile(os.environ['PYLIB']+"/plotcontour.py")
-execfile(os.environ['PYLIB']+"/plotvar.py")
-execfile(os.environ['PYLIB']+"/paws.py")
-execfile(os.environ['PYLIB']+"/osfun.py")
+exec(open(os.environ['PYLIB']+"/plotmesh.py").read())
+exec(open(os.environ['PYLIB']+"/plotcontour.py").read())
+exec(open(os.environ['PYLIB']+"/plotvar.py").read())
+exec(open(os.environ['PYLIB']+"/paws.py").read())
+exec(open(os.environ['PYLIB']+"/osfun.py").read())
 
 plt.ion()
 
 
 #-read UEDGE settings
-execfile("rd_d3dHsm_in.py")
+exec(open("rd_d3dHsm_in.py").read())
 
 
 #-do a quick preliminary run to set all internals
@@ -34,7 +34,7 @@ bbb.restart=0; bbb.ftol=1e10; bbb.dtreal = 1e-6; bbb.exmain()
 
 #-show grid
 plotmesh(iso=1)
-wait = raw_input("PAUSING, PRESS ENTER TO CONTINUE...")
+wait = input("PAUSING, PRESS ENTER TO CONTINUE...")
 
 
 #-run to steady state
