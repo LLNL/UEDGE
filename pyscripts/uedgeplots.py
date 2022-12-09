@@ -31,17 +31,26 @@ from skimage.util import img_as_ubyte as bytescale
 
 def plotmesh(ixmin=None, ixmax=None, iymin=None, iymax=None,
              r_min=None, r_max=None, z_min=None, z_max=None, title=None,
-             block=False, figsize=(4.0, 8.0)):
+             block=False, figsize=(4.0, 8.0),xlabel=None,ylabel=None):
     """
     plotmesh(ixmin=<int>,ixmax=<int>,iymin=<int>,iymax=<int>
              title=<string>,r_min=<val>,r_max=<val>,z_min=<val>,z_max=<val>,
-             block=<True|False>)
+             block=<True|False>,xlabel=None,ylabel=None,zlabel=None)
+
+       Plot the uedge grid.
        where ixmin, ixmax, iymin, and iymax are integer variables or
        expressions used to plot a portion of the grid. title is used as
        both the title and the figure name. Block default is True.
 
        The plot axis limits may be specified with r_rmin,r_max,z_min,z_max.
     """
+    zrefl = com.zm
+    zlim = com.ylim
+    zreflbdry = com.zbdry
+    if str(com.geometry) == str([b'uppersn         ']):
+       zrefl = 2.0 * com.zmid - com.zm
+       zlim = 2.0 * com.zmid - com.ylim
+       zreflbdry = 2.0 * com.zmid - com.zbdry
 
     if ixmin == None:
         ixmin = com.nxomit
@@ -56,9 +65,9 @@ def plotmesh(ixmin=None, ixmax=None, iymin=None, iymax=None,
     if r_max == None:
         r_max = com.rm.max()
     if z_min == None:
-        z_min = com.zm.min()
+        z_min = zrefl.min()
     if z_max == None:
-        z_max = com.zm.max()
+        z_max = zrefl.max()
 
     rcdefaults()
     if title == None:
@@ -67,9 +76,9 @@ def plotmesh(ixmin=None, ixmax=None, iymin=None, iymax=None,
     plt.title(title)
 
     try:
-        plt.plot(com.xlim, com.ylim, 'k-', label='Limiter', linewidth=3)
-        plt.plot(com.xlim, com.ylim, 'y-', label='Limiter', linewidth=1)
-        plt.plot(com.rbdry, com.zbdry, 'b-', label='Last Closed')
+        plt.plot(com.xlim, zlim, 'k-', label='Limiter', linewidth=3)
+        plt.plot(com.xlim, zlim, 'y-', label='Limiter', linewidth=1)
+        plt.plot(com.rbdry, zreflbdry, 'b-', label='Last Closed')
     except:
         pass
     plt.ylim(z_min, z_max)
@@ -78,25 +87,93 @@ def plotmesh(ixmin=None, ixmax=None, iymin=None, iymax=None,
         for iy in range(iymax-iymin+1):
             r0 = [com.rm[ix, iy, 1], com.rm[ix, iy, 2],
                   com.rm[ix, iy, 4], com.rm[ix, iy, 3], com.rm[ix, iy, 1]]
-            z0 = [com.zm[ix, iy, 1], com.zm[ix, iy, 2],
-                  com.zm[ix, iy, 4], com.zm[ix, iy, 3], com.zm[ix, iy, 1]]
+            z0 = [zrefl[ix, iy, 1], zrefl[ix, iy, 2],
+                  zrefl[ix, iy, 4], zrefl[ix, iy, 3], zrefl[ix, iy, 1]]
             plt.plot(r0, z0, 'k-', label='Grid', linewidth=1)
-    plt.ylabel('Z (m)')
-    plt.xlabel('R (m)')
-    plt.axes().set_aspect('equal')
+    if ylabel == None: plt.ylabel('Z (m)')
+    else: plt.ylabel(ylabel)
+    if xlabel == None: plt.xlabel('R (m)')
+    else: plt.xlabel(xlabel)
+    #plt.axes().set_aspect('equal')
 
     plt.ion()
     plt.show(block=block)
     plt.pause(0.001)
 
+def plotanymesh(verts, r_min=None, r_max=None, z_min=None, z_max=None, title=None,
+             block=False, figsize=(4.0, 8.0),xlabel=None,ylabel=None):
+    """
+    plotanymesh(verts, title=<string>,r_min=<val>,r_max=<val>,z_min=<val>,z_max=<val>,
+             block=<True|False>,xlabel=None,ylabel=None)
+
+       Plot any polynomial NxM grid. verts dimensions are [0:N,0:M,0:nverts,0:2].
+       Last dim is [:,:,:,0] is R array, [:,:,:,1] is Z array
+       title is used as both the title and the figure name. Block default is True.
+
+       The plot axis limits may be specified with r_rmin,r_max,z_min,z_max.
+    """
+    zrefl = com.zm
+    zlim = com.ylim
+    zreflbdry = com.zbdry
+    if str(com.geometry) == str([b'uppersn         ']):
+       zrefl = 2.0 * com.zmid - com.zm
+       zlim = 2.0 * com.zmid - com.ylim
+       zreflbdry = 2.0 * com.zmid - com.zbdry
+
+    if r_min == None:
+        r_min = np.min(verts[:,:,:,0])
+    if r_max == None:
+        r_max = np.max(verts[:,:,:,0])
+    if z_min == None:
+        z_min = np.min(verts[:,:,:,1])
+    if z_max == None:
+        z_max = np.max(verts[:,:,:,1])
+
+    rcdefaults()
+    if title == None:
+        title = 'Grid'
+    plt.figure(title, figsize=figsize)
+    plt.title(title)
+
+    try:
+        plt.plot(com.xlim, zlim, 'k-', label='Limiter', linewidth=3)
+        plt.plot(com.xlim, zlim, 'y-', label='Limiter', linewidth=1)
+        plt.plot(com.rbdry, zreflbdry, 'b-', label='Last Closed')
+    except:
+        pass
+    plt.ylim(z_min, z_max)
+    plt.xlim(r_min, r_max)
+    s = verts.shape
+    xlen = s[0]
+    ylen = s[1]
+    for ix in range(xlen):
+        for iy in range(ylen):
+            r0 = [verts[ix, iy, 0, 0], verts[ix, iy, 1, 0],
+                  verts[ix, iy, 2, 0], verts[ix, iy, 3, 0], 
+                  verts[ix, iy, 0, 0]]
+            z0 = [verts[ix, iy, 0, 1], verts[ix, iy, 1, 1],
+                  verts[ix, iy, 2, 1], verts[ix, iy, 3, 1], 
+                  verts[ix, iy, 0, 1]]
+            plt.plot(r0, z0, 'k-', label='Grid', linewidth=1)
+    if ylabel == None: plt.ylabel('Z (m)')
+    else: plt.ylabel(ylabel)
+    if xlabel == None: plt.xlabel('R (m)')
+    else: plt.xlabel(xlabel)
+    #plt.axes().set_aspect('equal')
+
+    plt.ion()
+    plt.show(block=block)
+    plt.pause(0.001)
 
 def plotmeshval(val, ixmin=None, ixmax=None, iymin=None, iymax=None,
                 r_min=None, r_max=None, z_min=None, z_max=None, title=None, units=None,
-                block=False):
+                block=False,xlabel=None,ylabel=None,zlabel=None,figsize=(5.0,8.0)):
     """
     plotmeshval(val,ixmin=<int>,ixmax=<int>,iymin=<int>,iymax=<int>
-             title=<string>,units=<string>,block=<True|False>)
-       Display 2-D quantity using polyfill.
+             title=<string>,units=<string>,block=<True|False>
+             xlabel=None,ylabel=None,zlabel=None)
+
+       Display Uedge 2-D quantity using polyfill.
        where ixmin, ixmax, iymin, and iymax are integer variables or
        expressions used to plot a portion of the grid. title is used as
        both the title and the figure name. Units are displayed in the
@@ -104,6 +181,14 @@ def plotmeshval(val, ixmin=None, ixmax=None, iymin=None, iymax=None,
 
        The plot axis limits may be specified with r_rmin,r_max,z_min,z_max.
     """
+    zrefl = com.zm
+    zlim = com.ylim
+    zreflbdry = com.zbdry
+    if str(com.geometry) == str([b'uppersn         ']):
+       zrefl = 2.0 * com.zmid - com.zm
+       zlim = 2.0 * com.zmid - com.ylim
+       zreflbdry = 2.0 * com.zmid - com.zbdry
+
     if ixmin == None:
         ixmin = com.nxomit
     if ixmax == None:
@@ -117,41 +202,43 @@ def plotmeshval(val, ixmin=None, ixmax=None, iymin=None, iymax=None,
     if r_max == None:
         r_max = com.rm.max()
     if z_min == None:
-        z_min = com.zm.min()
+        z_min = zrefl.min()
     if z_max == None:
-        z_max = com.zm.max()
+        z_max = zrefl.max()
     rcdefaults()
     if title == None:
         title = 'Uedge'
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=figsize)
 
     verts = np.array([])
     z = np.array([])
     for ix in range(ixmax-ixmin+1):
         for iy in range(iymax-iymin+1):
             v = []
-            v.append([com.rm[ix, iy, 1], com.zm[ix, iy, 1]])
-            v.append([com.rm[ix, iy, 2], com.zm[ix, iy, 2]])
-            v.append([com.rm[ix, iy, 4], com.zm[ix, iy, 4]])
-            v.append([com.rm[ix, iy, 3], com.zm[ix, iy, 3]])
+            v.append([com.rm[ix, iy, 1], zrefl[ix, iy, 1]])
+            v.append([com.rm[ix, iy, 2], zrefl[ix, iy, 2]])
+            v.append([com.rm[ix, iy, 4], zrefl[ix, iy, 4]])
+            v.append([com.rm[ix, iy, 3], zrefl[ix, iy, 3]])
             verts = np.append(verts, v)
             z = np.append(z, val[ix, iy])
     verts = verts.reshape(len(z), 4, 2)
     ax.set_title(title)
-    ax.set_ylabel('Z (m)')
-    ax.set_xlabel('R (m)')
+    if ylabel == None: ax.set_ylabel('Z (m)')
+    else: ax.set_ylabel(ylabel)
+    if xlabel == None: ax.set_xlabel('R (m)')
+    else: ax.set_xlabel(xlabel)
     ax.set_aspect('equal')
     try:
-        plt.plot(com.xlim, com.ylim, 'k-', label='Limiter', linewidth=3)
-        plt.plot(com.xlim, com.ylim, 'y-', label='Limiter', linewidth=1)
-        plt.plot(com.rbdry, com.zbdry, 'b-', label='Last Closed')
+        plt.plot(com.xlim, zlim, 'k-', label='Limiter', linewidth=3)
+        plt.plot(com.xlim, zlim, 'y-', label='Limiter', linewidth=1)
+        plt.plot(com.rbdry, zreflbdry, 'b-', label='Last Closed')
     except:
         pass
 
     coll = PolyCollection(verts, array=z, cmap=cm.jet, edgecolors='face')
     ax.add_collection(coll)
     ax.autoscale_view()
-    cbar = fig.colorbar(coll, ax=ax)
+    cbar = fig.colorbar(coll, ax=ax,label=zlabel)
     # if units != None: cbar.ax.set_ylabel(units,rotation=-90,va='bottom')
     if units != None:
         cbar.ax.set_ylabel(units, va='bottom')
@@ -162,6 +249,67 @@ def plotmeshval(val, ixmin=None, ixmax=None, iymin=None, iymax=None,
     plt.show(block=block)
     plt.pause(0.001)
 
+def plotanymeshval(verts,z, r_min=None, r_max=None, z_min=None, z_max=None, title=None, units=None,
+                block=False,xlabel=None,ylabel=None,zlabel=None):
+    """
+    plotanymeshval(verts, val, title=<string>,units=<string>,block=<True|False>,
+                   xlabel=None,ylabel=None,zlabel=None)
+
+       Display 2-D (NxM) quantity, val, using polyfill of NxM polynomial grid verts 
+       verts dimensions are [0:N,0:M,0:nverts,0:2].
+       Last dim is [:,:,:,0] is R array, [:,:,:,1] is Z array
+       title is used as both the title and the figure name. Units are displayed in the
+       side colorbar. Block default is True.
+
+       The plot axis limits may be specified with r_rmin,r_max,z_min,z_max.
+    """
+    zrefl = com.zm
+    zlim = com.ylim
+    zreflbdry = com.zbdry
+    if str(com.geometry) == str([b'uppersn         ']):
+       zrefl = 2.0 * com.zmid - com.zm
+       zlim = 2.0 * com.zmid - com.ylim
+       zreflbdry = 2.0 * com.zmid - com.zbdry
+
+    if r_min == None:
+        r_min = com.rm.min()
+    if r_max == None:
+        r_max = com.rm.max()
+    if z_min == None:
+        z_min = zrefl.min()
+    if z_max == None:
+        z_max = zrefl.max()
+    rcdefaults()
+    if title == None:
+        title = 'Uedge'
+    fig, ax = plt.subplots()
+
+    ax.set_title(title)
+    if ylabel == None: ax.set_ylabel('Z (m)')
+    else: ax.set_ylabel(ylabel)
+    if xlabel == None: ax.set_xlabel('R (m)')
+    else: ax.set_xlabel(xlabel)
+    ax.set_aspect('equal')
+    try:
+        plt.plot(com.xlim, zlim, 'k-', label='Limiter', linewidth=3)
+        plt.plot(com.xlim, zlim, 'y-', label='Limiter', linewidth=1)
+        plt.plot(com.rbdry, zreflbdry, 'b-', label='Last Closed')
+    except:
+        pass
+
+    coll = PolyCollection(verts, array=z, cmap=cm.jet, edgecolors='face')
+    ax.add_collection(coll)
+    ax.autoscale_view()
+    cbar = fig.colorbar(coll, ax=ax,label=zlabel)
+    # if units != None: cbar.ax.set_ylabel(units,rotation=-90,va='bottom')
+    if units != None:
+        cbar.ax.set_ylabel(units, va='bottom')
+    plt.ylim(z_min, z_max)
+    plt.xlim(r_min, r_max)
+
+    plt.ion()
+    plt.show(block=block)
+    plt.pause(0.001)
 
 def mkdensityfile(filename, ival, renmin=None, renmax=None, samples=[500, 500, 500],
                   xrange=[-2.4, 2.4], yrange=[-2.4, 2.4], zrange=[0, 3.2], tree=None):
@@ -185,6 +333,14 @@ def mkdensityfile(filename, ival, renmin=None, renmax=None, samples=[500, 500, 5
           about 1cm r resolution and .6cm in z.
 
     """
+    zrefl = com.zm
+    zlim = com.ylim
+    zreflbdry = com.zbdry
+    if str(com.geometry) == str([b'uppersn         ']):
+       zrefl = 2.0 * com.zmid - com.zm
+       zlim = 2.0 * com.zmid - com.ylim
+       zreflbdry = 2.0 * com.zmid - com.zbdry
+
     if renmin == None:
         renmin = np.min(ival)
     if renmax == None:
@@ -198,7 +354,7 @@ def mkdensityfile(filename, ival, renmin=None, renmax=None, samples=[500, 500, 5
     else:
        file.write(dims)
     rrm = com.rm[:, :, 0].ravel()
-    rzm = com.zm[:, :, 0].ravel()
+    rzm = zrefl[:, :, 0].ravel()
     if tree == None:
         tree = spatial.cKDTree(list(zip(rrm, rzm)))
     treelen = tree.data.shape[0]
@@ -223,16 +379,16 @@ def mkdensityfile(filename, ival, renmin=None, renmax=None, samples=[500, 500, 5
     val[:, -1] = 0
     vf = np.append(val.ravel(), [renmin])
     #dens = bytescale(np.average(vf[i],axis=1,weights=1./d),cmin=renmin,cmax=renmax)
-    dens = bytescale(vf[i] - renmin)
+    dens = bytescale((vf[i] - renmin)/(renmax - renmin))
     file.write(dens)
     file.close()
 
     return tree
 
 
-def profile(rval, zval, title=None, style=None, linewidth=None, xlabel=None, ylabel=None, figsize=(4.0, 8.0), block=False):
+def profile(rval, zval, title=None, style=None, linewidth=None, xlabel=None, ylabel=None, figsize=(4.0, 8.0), block=False,marker=None):
     """
-    profile(xval,yval,title=<None>,style=<None>,linewidth=<None>,xlabel=<None>,ylabel=<None>,block=<True|False>)
+    profile(xval,yval,title=<None>,style=<None>,linewidth=<None>,xlabel=<None>,ylabel=<None>,block=<True|False>,marker=<none>)
        title is used as both the title and the figure name.
        Interactive is turned on so subsequent calls go to the same plot
        Style encoded color, line, and marker.  See matplotlib documention.
@@ -254,7 +410,7 @@ def profile(rval, zval, title=None, style=None, linewidth=None, xlabel=None, yla
     plt.title(title)
 
     try:
-        plt.plot(rval, zval, style, linewidth=lw)
+        plt.plot(rval, zval, style, linewidth=lw,marker=marker)
     except:
         pass
     if ylabel != None:
