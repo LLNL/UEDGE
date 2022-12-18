@@ -27,15 +27,16 @@ from .uedgeC import *
 from Forthon import *
 
 if sys.hexversion >= 0x03000000:
-
+# Order in which packages are called matters due to dependencies (added by J.Guterl)
     from .compy import *
-    from .svrpy import *
     from .grdpy import *
     from .flxpy import *
     from .bbbpy import *
+    from .svrpy import *
     from .wdfpy import *
     from .apipy import *
     from .aphpy import *
+    from .ppppy import *
 else:
     from wdfpy import *
     from svrpy import *

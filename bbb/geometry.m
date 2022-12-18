@@ -461,7 +461,7 @@ c  ---------------------------------------------------------------------
 *  -- local scalars --
       integer nj, ij, ix, iy, jx
       real str, ctr, rm0, zm0, dxc, dz, dacore
-      character*8 fname
+      character*200 fname
       character*60 runid
 
 *=======================================================================
@@ -485,7 +485,7 @@ c            write(6,*) "Calling flxrun in globalmesh."
             call flxrun
             call grdrun
          else
-            fname = 'gridue'
+            fname = trim(GridFileName)
             call readgrid(fname, runid)
             write(*,*) 'Read file "', fname, '" with runid:  ', runid
             write(*,*)
@@ -495,7 +495,7 @@ c            write(6,*) "Calling flxrun in globalmesh."
             call torangrd
             write(*,*) '**** mhdgeo=2: Circ toroidal annulus generated *****'
          else
-            fname = 'gridue'
+            fname = trim(GridFileName)
             call readgrid(fname, runid)
             write(*,*) 'Read file "', fname, '" with runid:  ', runid
             write(*,*)
@@ -511,7 +511,7 @@ c            write(6,*) "Calling flxrun in globalmesh."
          write(*,*) '**** mhdgeo=-2: mag mirror grid generated *****'
       else
          write(*,*) '**** mhdgeo < -1: reading grid from file *****'
-         fname = 'gridue'
+         fname = trim(GridFileName)
          call readgrid(fname, runid)
          write(*,*) 'Read file "', fname, '" with runid:  ', runid
          write(*,*)
@@ -564,8 +564,8 @@ c.... Set indirect addressing arrays for x-direction
                   zm(ix+nj,iy,ij) = rm0*str + zm0*ctr
                enddo
             enddo
-         enddo 
-      endif           
+         enddo
+      endif
 
 c     Re-define midplane guard cells for symmetric double-null
       if (isudsym==1 .and. ismpsym==1) call mpguardc
@@ -599,13 +599,13 @@ c...  Compute surface area of core boundary
            if (mhdgeo .le. -1) dz = 1.
              dacore = dxc * dz
           area_core = area_core + dacore
-        enddo				  
+        enddo
       enddo
 
       return
       end
 c ***  End of subroutine globalmesh *****
-     
+
 c-----------------------------------------------------------------------
       subroutine nphygeo
 
@@ -618,7 +618,7 @@ c-----------------------------------------------------------------------
                           # geometry,ismpsym,simagxs,sibdrys
       Use(Xpoint_indices) # ixpt1,ixpt2,iysptrx1,iysptrx2,iysptrx
       Use(Cut_indices)    # ixcut1,ixcut2,ixcut3,ixcut4
-      Use(Aux)            # ix,iy,ix1,ix3,ixmp
+      Use(Aux),only:ixmp
       Use(Phyvar)         # pi
       Use(Selec)          # ixp1,ixm1
       Use(Comgeo)         # isxptx,isxpty
@@ -639,11 +639,13 @@ c-----------------------------------------------------------------------
 *  -- local scalars --
       integer nj, iu, ik, ij, jx, iysi, iyso, iyp1, ix_last_core_cell,
      .        ixpt2_1temp, nxpt_temp
+      #Former Aux module variables
+      integer ix,iy,ix1,ix3,ix2
       data nj/0/
       real dxc, dyc, dz, str, ctr, rm0, zm0, cossr, cossp, s_bphi, rmmax,
      .     lcon_wk1, lcon_wk2
       real bsqrvoltot,voltot,bsqrave,b_yface,b_xface
-      character*8 fname
+      character*200 fname
       character*60 runid
 
 *=======================================================================
@@ -676,7 +678,7 @@ c ...   Need to fix ixpt2(1) modified by grdrun is geometry=isoleg
               nxpt = nxpt_temp
             endif
          else
-            fname = 'gridue'
+            fname = trim(GridFileName)
             call readgrid(fname, runid)
             write(*,*) 'Read file "', fname, '" with runid:  ', runid
 c ...  now that the grid is read in, we can manipulate dnull for nxomit>0
@@ -698,7 +700,7 @@ c ...  now that the grid is read in, we can manipulate dnull for nxomit>0
             call torangrd
             write(*,*) '*** mhdgeo=2: Circ toroidal annulus ***'
          else
-            fname = 'gridue'
+            fname = trim(GridFileName)
             call readgrid(fname, runid)
             write(*,*) 'Read file "', fname, '" with runid:  ', runid
             write(*,*)
@@ -714,7 +716,7 @@ c ...  now that the grid is read in, we can manipulate dnull for nxomit>0
          write(*,*) '**** mhdgeo=-2: mag mirror grid generated *****'
       else
          write(*,*) '**** mhdgeo < -1: reading grid from file *****'
-         fname = 'gridue'
+         fname = trim(GridFileName)
          call readgrid(fname, runid)
          write(*,*) 'Read file "', fname, '" with runid:  ', runid
          write(*,*)
@@ -773,8 +775,8 @@ c.... Set indirect addressing arrays for x-direction
                   zm(ix+nj,iy,ij) = rm0*str + zm0*ctr
                enddo
             enddo
-         enddo 
-      endif           
+         enddo
+      endif
 
 c     Re-define midplane guard cells for symmetric double-null
       if (isudsym==1.and.ismpsym==1.and.nxc>1) call mpguardc
@@ -856,15 +858,9 @@ c ... Jump to here for domain decomposition
             call s2fill (nx+2, ny+2, 0., fypxv(0,0,iu), 1, nx+2)
          enddo
       if (isnonog .ge. 1) then
-         call nonorthg   # Sets dist btwn interp pts as dxnog, dynog
-                         # Also sets nonorth stencils:fx0,fxm,fy0,fym etc
-         do ix = 0, nx+1    # Bdry value set: matters little except vygtan
-ccc            gxfn(ix,0) = gxfn(ix,1)
-            dxnog(ix,0) = dxnog(ix,1)
-	    dxnog(ix,ny+1) = dxnog(ix,ny)
-         enddo
-         do iy = 0, ny+1  # likewise, dxnog(nx+1,) not relevant, but avoid 0
-           dxnog(nx+1,iy) = 0.1*dxnog(nx,iy)
+         call nonorthg
+         do ix = 0, nx+1    # Boundary value set: matters little except vygtan
+            gxfn(ix,0) = gxfn(ix,1)
          enddo
       endif
 
@@ -923,7 +919,7 @@ c              Effectively, use angfx(ix-1,iy)=angfx(ix,iy) at left boundaries
             b12(ix,iy) = ( 0.5*(b(ix,iy,2) + b(ix,iy,4)) )**0.5
             b12ctr(ix,iy) = b(ix,iy,0)**0.5
             bsqr(ix,iy) = b(ix,iy,0)**2
-            rbfbt(ix,iy) = 0.25 * ( 
+            rbfbt(ix,iy) = 0.25 * (
      .              bphi(ix+nj,iy,1) + bphi(ix+nj,iy,2) +
      .              bphi(ix+nj,iy,3) + bphi(ix+nj,iy,4) ) / btot(ix,iy)
             rbfbt2(ix,iy) = rbfbt(ix,iy)/btot(ix,iy)
@@ -960,7 +956,7 @@ c...  If serial case (ndomain=1), compute area_core (if ||, see globalmesh)
         do jx = 1, nxpt
           do ix = ixpt1(jx)+1, ixpt2(jx)
             area_core = area_core + sy(ix,0)
-          enddo				  
+          enddo
         enddo
       endif
 
@@ -972,39 +968,39 @@ c...  this case is for core only (nyomitmx.ne.0)
       endif
 
 c...  Define horizontal and vertical distance between velocity centers that
-c...  straddle the x-point; 1/ghxpt is the horizontal distance and 1/gvxpt is 
+c...  straddle the x-point; 1/ghxpt is the horizontal distance and 1/gvxpt is
 c...  the vertical distance; sxyxpt is the average surface area
 c
       if (geometry=="dnull" .or. geometry(1:9)=="snowflake" .or.
      .    geometry=="dnXtarget" .or. geometry=="isoleg") then
 c         at lower x-point:
-          ghxpt_lower = 2. / sqrt( 
+          ghxpt_lower = 2. / sqrt(
      .         (rm(ixpt2(2)+nj,iysptrx2(2)+1,4) - rm(ixpt1(1)+nj,iysptrx1(1)+1,4))**2
      .       + (zm(ixpt2(2)+nj,iysptrx2(2)+1,4) - zm(ixpt1(1)+nj,iysptrx1(1)+1,4))**2 )
-          gvxpt_lower = 2. / sqrt(     
+          gvxpt_lower = 2. / sqrt(
      .         (rm(ixpt2(2)+nj,iysptrx2(2),2) - rm(ixpt1(1)+nj,iysptrx1(1),2))**2
      .       + (zm(ixpt2(2)+nj,iysptrx2(2),2) - zm(ixpt1(1)+nj,iysptrx1(1),2))**2 )
           sxyxpt_lower = 0.25 * (
      .          sy(ixpt1(1)+nj,iysptrx1(1)) + sy(ixpt1(1)+1+nj,iysptrx1(1)) +
-     .          sy(ixpt2(2)+nj,iysptrx2(2)) + sy(ixpt2(2)+1+nj,iysptrx2(2)) ) 
+     .          sy(ixpt2(2)+nj,iysptrx2(2)) + sy(ixpt2(2)+1+nj,iysptrx2(2)) )
 c         at upper x-point:
-          ghxpt_upper = 2. / sqrt( 
+          ghxpt_upper = 2. / sqrt(
      .         (rm(ixpt2(1)+nj,iysptrx2(1)+1,4) - rm(ixpt1(2)+nj,iysptrx1(2)+1,4))**2
      .       + (zm(ixpt2(1)+nj,iysptrx2(1)+1,4) - zm(ixpt1(2)+nj,iysptrx1(2)+1,4))**2 )
-          gvxpt_upper = 2. / sqrt(     
+          gvxpt_upper = 2. / sqrt(
      .         (rm(ixpt2(1)+nj,iysptrx2(1),2) - rm(ixpt1(2)+nj,iysptrx1(2),2))**2
      .       + (zm(ixpt2(1)+nj,iysptrx2(1),2) - zm(ixpt1(2)+nj,iysptrx1(2),2))**2 )
           sxyxpt_upper = 0.25 * (
      .          sy(ixpt1(2)+nj,iysptrx1(2)) + sy(ixpt1(2)+1+nj,iysptrx1(2)) +
-     .          sy(ixpt2(1)+nj,iysptrx2(1)) + sy(ixpt2(1)+1+nj,iysptrx2(1)) ) 
+     .          sy(ixpt2(1)+nj,iysptrx2(1)) + sy(ixpt2(1)+1+nj,iysptrx2(1)) )
 c
       else  # there is only one x-point in the simulation domain
         if (nyomitmx < nysol(1)+nyout(1)) then
         if (ixpt1(1)+nj.ge.0 .and. ixpt2(1)+nj.ge.0 .and. ixpt2(1)+nj.le.nx) then
-          ghxpt = 2. / sqrt( 
+          ghxpt = 2. / sqrt(
      .         (rm(ixpt2(1)+nj,iysptrx2(1)+1,4) - rm(ixpt1(1)+nj,iysptrx1(1)+1,4))**2
      .       + (zm(ixpt2(1)+nj,iysptrx2(1)+1,4) - zm(ixpt1(1)+nj,iysptrx1(1)+1,4))**2 )
-          gvxpt = 2. / sqrt(     
+          gvxpt = 2. / sqrt(
      .         (rm(ixpt2(1)+nj,iysptrx2(1),2) - rm(ixpt1(1)+nj,iysptrx1(1),2))**2
      .       + (zm(ixpt2(1)+nj,iysptrx2(1),2) - zm(ixpt1(1)+nj,iysptrx1(1),2))**2 )
           sxyxpt = 0.25 * (
@@ -1036,7 +1032,7 @@ c
      .                              0.25 * (rr(ix3,iy) + rr(ix,iy))
             endif
             syv(ix,iy) = 0.5*(sy(ix3,iy) + sy(ix,iy))
-            hxv(ix,iy) = 
+            hxv(ix,iy) =
      &              2.0*(gx(ix3,iy)*gx(ix,iy)/(gx(ix3,iy)+gx(ix,iy)))
             dxvf(ix,iy) = dx(ix,iy)   # below ix=nx and nx+1 redefined
  401     continue
@@ -1070,16 +1066,22 @@ c ... radial velocity flow at x-pt is ambiguous; zero out surface area if..
       endif
 
 *---------------------------------------------------------------------
-*     -- Define inverse of distance btwn density cell ctrs
+*     -- Define inverse of distance between density centers
 *---------------------------------------------------------------------
-      do 421 iy = 0,  ny+1
+      do 421 iy = 0, ny
          do 420 ix = 0, nx
             ix1 = ixp1(ix,iy)
             gxf(ix,iy) = 2*gx(ix,iy)*gx(ix1,iy) / (gx(ix,iy)+gx(ix1,iy))
  420     continue
  421  continue
+      do 422 ix = 0, nx
+	 ix1 = ixp1(ix,iy)
+         gxf(ix,ny+1) = 2*gx(ix,ny+1)*gx(ix1,ny+1) /
+     .            	 (gx(ix,ny+1)+gx(ix1,ny+1))
+  422 continue
 
-c...  Compute gyf for both isnonog=0,1; nonog mesh changes gy & gyf
+c...  If nonorthogonal grid is used, gyf & gxfn have already been calculated
+      if (isnonog .eq. 0) then
       do 424 iy = 0, ny
          do 423 ix = 0, nx
             ix1 = ixp1(ix,iy)
@@ -1088,15 +1090,7 @@ c...  Compute gyf for both isnonog=0,1; nonog mesh changes gy & gyf
          gyf(nx+1,iy) = 2*gy(nx+1,iy)*gy(nx+1,iy+1)/
      .                	 (gy(nx+1,iy)+gy(nx+1,iy+1))
  424  continue
-
-c...  Set dxnog for orthog mesh; if isnonog=1, call to nonorthg above sets
-      if (isnonog==0) then
-        do iy = 0, ny+1
-          do ix = 0, nx+1
-             dxnog(ix,iy) = 1./(gxf(ix,iy) + 1.e-100)
-             dynog(ix,iy) = 1./(gyf(ix,iy) + 1.e-100)
-          enddo
-        enddo
+      call s2copy (nx+2, ny+2, gxf, 1, nx+2, gxfn, 1, nx+2)
       endif
 
 c...  Calculate a normalization constant for the iy=0 cells
@@ -1136,7 +1130,7 @@ c...  Setup the isixcore(ix) array: =1 if ix on iy=0 core bdry; =0 if not
           endif
         endif
       enddo
-          
+
 *----------------------------------------------------------------------
 *  -- Calculate geometrical factors needed for curvature and grad_B drifts
 
@@ -1145,12 +1139,12 @@ c...  Setup the isixcore(ix) array: =1 if ix on iy=0 core bdry; =0 if not
         do ix = 0, nx+1
           s_bphi = sign(1.,bphi(1,1,1))
           cossr = -s_bphi*(rm(ix+nj,iy,4)-rm(ix+nj,iy,3)) / (
-     .                    (rm(ix+nj,iy,4)-rm(ix+nj,iy,3))**2 + 
+     .                    (rm(ix+nj,iy,4)-rm(ix+nj,iy,3))**2 +
      .                    (zm(ix+nj,iy,4)-zm(ix+nj,iy,3))**2 )**0.5
           curvrby(ix,iy) = -2*cossr/( rm(ix+nj,iy,4)*b(ix+nj,iy,4) +
      .                               rm(ix+nj,iy,3)*b(ix+nj,iy,3) )
           cossp = (rm(ix+nj,iy,4)-rm(ix+nj,iy,2)) / (
-     .            (rm(ix+nj,iy,4)-rm(ix+nj,iy,2))**2 + 
+     .            (rm(ix+nj,iy,4)-rm(ix+nj,iy,2))**2 +
      .            (zm(ix+nj,iy,4)-zm(ix+nj,iy,2))**2 )**0.5
           curvrb2(ix,iy) = -2*cossp/( rm(ix+nj,iy,4)*b(ix+nj,iy,4) +
      .                               rm(ix+nj,iy,2)*b(ix+nj,iy,2) )
@@ -1320,7 +1314,7 @@ c ... Fix the core boundary; just a convention
       if (geometry.eq.'dnull' .or. geometry=='snowflake15' .or.
      .    geometry=='snowflake45' .or. geometry=='snowflake75' .or.
      .    geometry=='dnXtarget' .or. geometry=='isoleg') ixmp = ixmdp(2)
- 
+
 *  -- redefine ixmp if it is outside ix=0,nx domain
       if(ixmp.lt.0 .or. ixmp.gt.nx) then  #search for max rm
 	 rmmax = rm(nxomit,0,0)
@@ -1373,41 +1367,33 @@ c --- Here the initial xnrm, ynrm, etc. are calculated
       if (isnonog .ge. 1) then
 c...  Reset fxm, fx0, fxp around the x-point - only orthogonal coupling
 c...  Also reset gyf, so we need the gy calc. after call to nonorthg
-       if (isfixlb(1) .eq. 0 .and. isfixrb(1) .eq. 0) then 
+       if (isfixlb(1) .eq. 0 .and. isfixrb(1) .eq. 0) then
         do ik = 0, 1
           do ij = 0, 1
             do jx = 1, nxpt
-              fxm(ixpt1(jx)+ij,iysptrx1(jx),ik)  = 0.
-              fx0(ixpt1(jx)+ij,iysptrx1(jx),ik)  = 1.
-              fxp(ixpt1(jx)+ij,iysptrx1(jx),ik)  = 0.
-              fxmy(ixpt1(jx)+ij,iysptrx1(jx),ik) = 0.
-              fxpy(ixpt1(jx)+ij,iysptrx1(jx),ik) = 0.
-              fxm(ixpt2(jx)+ij,iysptrx2(jx),ik)  = 0.
-              fx0(ixpt2(jx)+ij,iysptrx2(jx),ik)  = 1.
-              fxp(ixpt2(jx)+ij,iysptrx2(jx),ik)  = 0.
-              fxmy(ixpt2(jx)+ij,iysptrx2(jx),ik) = 0.
-              fxpy(ixpt2(jx)+ij,iysptrx2(jx),ik) = 0.
-              gyf(ixpt1(jx)+ij,iysptrx1(jx)) = 
-     .                                2*gy(ixpt1(jx)+ij,iysptrx1(jx)) *
-     .                              gy(ixpt1(jx)+ij,iysptrx1(jx)+1) / (
-     .                                 gy(ixpt1(jx)+ij,iysptrx1(jx)) + 
-     .                                 gy(ixpt1(jx)+ij,iysptrx1(jx)+1) ) 
-              gyf(ixpt2(jx)+ij,iysptrx2(jx)) = 
-     .                                2*gy(ixpt2(jx)+ij,iysptrx2(jx)) *
-     .                              gy(ixpt2(jx)+ij,iysptrx2(jx)+1) / (
-     .                                 gy(ixpt2(jx)+ij,iysptrx2(jx)) + 
-     .                                 gy(ixpt2(jx)+ij,iysptrx2(jx)+1) )
-              dynog(ixpt1(jx)+ij,iysptrx1(jx)) = 
-     .                                 1./gyf(ixpt1(jx)+ij,iysptrx1(jx))
-              dynog(ixpt2(jx)+ij,iysptrx2(jx)) = 
-     .                                 1./gyf(ixpt2(jx)+ij,iysptrx2(jx))
+            fxm(ixpt1(jx)+ij,iysptrx1(jx),ik)  = 0.
+            fx0(ixpt1(jx)+ij,iysptrx1(jx),ik)  = 1.
+            fxp(ixpt1(jx)+ij,iysptrx1(jx),ik)  = 0.
+            fxmy(ixpt1(jx)+ij,iysptrx1(jx),ik) = 0.
+            fxpy(ixpt1(jx)+ij,iysptrx1(jx),ik) = 0.
+            fxm(ixpt2(jx)+ij,iysptrx2(jx),ik)  = 0.
+            fx0(ixpt2(jx)+ij,iysptrx2(jx),ik)  = 1.
+            fxp(ixpt2(jx)+ij,iysptrx2(jx),ik)  = 0.
+            fxmy(ixpt2(jx)+ij,iysptrx2(jx),ik) = 0.
+            fxpy(ixpt2(jx)+ij,iysptrx2(jx),ik) = 0.
+            gyf(ixpt1(jx)+ij,iysptrx1(jx)) = 2*gy(ixpt1(jx)+ij,iysptrx1(jx)) *
+     .                                gy(ixpt1(jx)+ij,iysptrx1(jx)+1) / (
+     .               gy(ixpt1(jx)+ij,iysptrx1(jx)) + gy(ixpt1(jx)+ij,iysptrx1(jx)+1) )
+            gyf(ixpt2(jx)+ij,iysptrx2(jx)) = 2*gy(ixpt2(jx)+ij,iysptrx2(jx)) *
+     .                                gy(ixpt2(jx)+ij,iysptrx2(jx)+1) / (
+     .               gy(ixpt2(jx)+ij,iysptrx2(jx)) + gy(ixpt2(jx)+ij,iysptrx2(jx)+1) )
             enddo # end loop on jx 
           enddo # end loop on ij
         enddo # end loop on ik
 
 c...  Reset fym, fy0, fyp around the x-point - only orthogonal coupling
         do ik = 0, 1
-          do ij = 0, 1  #was -1,1; changed 12/13/19
+          do ij = -1, 1
             do jx = 1, nxpt
               fym(ixpt1(jx),iysptrx1(jx)+ij,ik)  = 0.
               fy0(ixpt1(jx),iysptrx1(jx)+ij,ik)  = 1.
@@ -1419,10 +1405,8 @@ c...  Reset fym, fy0, fyp around the x-point - only orthogonal coupling
               fyp(ixpt2(jx),iysptrx2(jx)+ij,ik)  = 0.
               fypx(ixpt2(jx),iysptrx2(jx)+ij,ik) = 0.
               fymx(ixpt2(jx),iysptrx2(jx)+ij,ik) = 0.
-              dxnog(ixpt1(jx),iysptrx2(jx)+ij) = 
-     .                               1./gxf(ixpt1(jx),iysptrx1(jx)+ij)
-              dxnog(ixpt2(jx),iysptrx2(jx)+ij) = 
-     .                               1./gxf(ixpt2(jx),iysptrx2(jx)+ij)
+              gxfn(ixpt1(jx),iysptrx2(jx)+ij) = gxf(ixpt1(jx),iysptrx1(jx)+ij)
+              gxfn(ixpt2(jx),iysptrx2(jx)+ij) = gxf(ixpt2(jx),iysptrx2(jx)+ij)
             enddo # end loop on jx
           enddo # end loop on ij
         enddo # end loop on ik
@@ -1441,7 +1425,7 @@ c...  Reset fxm, fx0, fxp at ixpt1,2 if half-space problem with no flux
                   fxmy(ix+ij,iy,ik) = 0.
                   fxpy(ix+ij,iy,ik) = 0.
                   gyf(ix+ij,iy) = 2*gy(ix+ij,iy) * gy(ix+ij,iy+1) / (
-     .                           gy(ix+ij,iy) + gy(ix+ij,iy+1) ) 
+     .                           gy(ix+ij,iy) + gy(ix+ij,iy+1) )
                 enddo
              enddo
            enddo
@@ -1459,7 +1443,7 @@ c...  Porter problem with low density carbon
               fxmy(ix,iy,ik) = 0.
               fxpy(ix,iy,ik) = 0.
               gyf(ix,iy) = 2*gy(ix,iy) * gy(ix,iy+1) / (
-     .                           gy(ix,iy) + gy(ix,iy+1) ) 
+     .                           gy(ix,iy) + gy(ix,iy+1) )
            enddo
         enddo
       enddo
@@ -1476,8 +1460,8 @@ c...  boundary conditions at midplane for geometry='dnbot'
                fyp(ix,iy,ik)  = 0.
                fymx(ix,iy,ik) = 0.
                fypx(ix,iy,ik) = 0.
-               dxnog(ix,iy) = ( gx(ix,iy) + gx(ix+1,iy) )/
-     .                        (2*gx(ix,iy) * gx(ix+1,iy))
+               gxfn(ix,iy) = 2*gx(ix,iy) * gx(ix+1,iy) /
+     .                          ( gx(ix,iy) + gx(ix+1,iy) )
             enddo
           enddo
         enddo
@@ -1498,7 +1482,7 @@ c...  Reset fym, fy0, fyp at ixpt1,2+0,1 if half-space problem with no flux
                  fyp(ix,iy,ik)  = 0.
                  fypx(ix,iy,ik) = 0.
                  fymx(ix,iy,ik) = 0.
-                 dxnog(ix,iy) = 1./gxf(ix,iy)
+                 gxfn(ix,iy) = gxf(ix,iy)
               enddo
               do iy = 0, ny+1
                  fym(ix2,iy,ik)  = 0.
@@ -1506,7 +1490,7 @@ c...  Reset fym, fy0, fyp at ixpt1,2+0,1 if half-space problem with no flux
                  fyp(ix2,iy,ik)  = 0.
                  fypx(ix2,iy,ik) = 0.
                  fymx(ix2,iy,ik) = 0.
-                 dxnog(ix2,iy) = 1./gxf(ix,iy)
+                 gxfn(ix2,iy) = gxf(ix,iy)
               enddo
            enddo
         endif
@@ -1566,7 +1550,7 @@ c...  of mesh:
         enddo
 
 c   ... If a limiter is present, reset velocity stencil
-        if (islimon .ne. 0) then 
+        if (islimon .ne. 0) then
           do iu = 0, 1
             do iy = 0, ny+1 # fyov... for iy>iy_lims not used, set anyway
                fy0v(ix_lim+iu,iy,1-iu) = 1.
@@ -1576,7 +1560,7 @@ c   ... If a limiter is present, reset velocity stencil
                fypxv(ix_lim+iu,iy,1-iu) = 0.
              enddo
            enddo
-        endif          
+        endif
 
       endif   # end of if (isnonog .ge. 1)
 
@@ -1587,7 +1571,7 @@ c ... Find poloidal index for gas box in 1-D model
          do ix = 0, nx+1
             if (zm(ix,1,2) .lt. xgbx) ixgb = ix
          enddo
-      endif 
+      endif
 
 c ... Set arrays that flag cells near x-points where one-sided derivatives
 c ... may be required:
@@ -1632,7 +1616,7 @@ c ... May be needed for parallel domain decomp cases
           enddo
         enddo
       enddo  # end do-loop over nxpt x-points
- 
+
       return
       end
 c ***** end of subroutine nphygeo ****
@@ -1640,7 +1624,7 @@ c ************************************
 c-----------------------------------------------------------------------
       subroutine conlen
 *     Calculate the ion and electron connection lengths for a poloidal
-*     circuit or between end plates.  These lengths are interpolated 
+*     circuit or between end plates.  These lengths are interpolated
 *     within a banana width of the separatrix to account for finite
 *     banana-width effects
 
@@ -1648,7 +1632,7 @@ c-----------------------------------------------------------------------
       Use(Dim)            # nx,ny
       Use(Comgeo)         # lcon,lconi,lcone,rr,gx,yyc
       Use(Xpoint_indices) # ixpt1,ixpt2,iysptrx1,iysptrx2,iysptrx
-      Use(Aux)            # ix,iy,ixmp
+      Use(Aux),only: ixmp
       Use(RZ_grid_info)   # bpol
       Use(Phyvar)         # me,ev
       Use(Compla)         # mi
@@ -1658,6 +1642,8 @@ c-----------------------------------------------------------------------
 
 *  -- local scalars --
       integer iyso,iybwmni,iybwmne,iybwmxi,iybwmxe,ixref
+      #Former Aux module variables
+      integer ix,iy
       real lcon_wk1,lcon_wk2,omegcips,banwidi,banwide,dlcon,dyyc
       real eps_wk1,eps_wk2,rfac
 
@@ -1704,7 +1690,7 @@ ccc  Radially smooth, very ad hoc correction for PF region
       enddo
 cc ------------------------------------------------------------------
 
-ccc  Computation of lconi & lcone for old (~2005) attempt at kinetics; 
+ccc  Computation of lconi & lcone for old (~2005) attempt at kinetics;
       iyso = max(iysptrx1(1),iysptrx2(1))  # choose outer separatrix if 2
       do iy = 0, ny+1
          lcon_wk1 = 0.         # Place-holder work var for SOL or tot
@@ -1718,7 +1704,7 @@ ccc  Computation of lconi & lcone for old (~2005) attempt at kinetics;
               lconi(ix,iy) = lcon(ix,iy)
               lcone(ix,iy) = lcon(ix,iy)
             enddo
-	 else                  # Core and PF done together - carefully 
+	 else                  # Core and PF done together - carefully
             do ix = 1, nx      # Do sum of core+SOL - then separate
               lcon_wk1 = lcon_wk1 + 1/(rr(ix,iy)*gx(ix,iy))
             enddo
@@ -1766,15 +1752,15 @@ c...  Correct ion/elec connect lengths near separatrix - banana widths
       iybwmxe = max(iybwmne+1, iybwmxe)
 
 c...  First do ions
-      do iy = 0, ny+1 
+      do iy = 0, ny+1
          dlcon = (lcon(ixmp,iybwmxi)-lcon(ixmp,iybwmni))
          dyyc = (yyc(iybwmxi)-yyc(iybwmni))
 	 if(iy > iyso) then    # SOL, so only 1 region; lcon flux func
-	    do ix = 0, nx+1  
+	    do ix = 0, nx+1
               if (iy <= iybwmxi) then  # lin interp over banana width
-                 lconi(ix,iy) = lcon(ixmp,iybwmni) + 
+                 lconi(ix,iy) = lcon(ixmp,iybwmni) +
      .                            dlcon*(yyc(iy)-yyc(iybwmni))/dyyc
-              else  
+              else
                  lconi(ix,iy) = lcon(ix,iy)
               endif
             enddo
@@ -1788,14 +1774,14 @@ c...  First do ions
                 endif
                 if (iy >= iybwmni) then  # lin interp over banana width
                      # PF region is approx, could be improved
-                  lconi(ix,iy) = lcon(ixref,iybwmni) + 
+                  lconi(ix,iy) = lcon(ixref,iybwmni) +
      .                            dlcon*(yyc(iy)-yyc(iybwmni))/dyyc
                 else
                   lconi(ix,iy) = lcon(ix,iy)
                 endif
               else                                         # Core region
                 if (iy >= iybwmni) then  # lin interp over banana width
-                  lconi(ix,iy) = lcon(ixmp,iybwmni) + 
+                  lconi(ix,iy) = lcon(ixmp,iybwmni) +
      .                            dlcon*(yyc(iy)-yyc(iybwmni))/dyyc
                 else
                   lconi(ix,iy) = lcon(ix,iy)
@@ -1806,15 +1792,15 @@ c...  First do ions
       enddo
 
 c...  Now do the electrons
-      do iy = 0, ny+1 
+      do iy = 0, ny+1
          dlcon = (lcon(ixmp,iybwmxe)-lcon(ixmp,iybwmne))
          dyyc = (yyc(iybwmxe)-yyc(iybwmne))
 	 if(iy > iyso) then    # SOL, so only 1 region; lcon flux func
-	    do ix = 0, nx+1  
+	    do ix = 0, nx+1
               if (iy <= iybwmxe) then  # lin interp over banana width
-                 lcone(ix,iy) = lcon(ixmp,iybwmne) + 
+                 lcone(ix,iy) = lcon(ixmp,iybwmne) +
      .                            dlcon*(yyc(iy)-yyc(iybwmne))/dyyc
-              else  
+              else
                  lcone(ix,iy) = lcon(ix,iy)
               endif
             enddo
@@ -1828,14 +1814,14 @@ c...  Now do the electrons
                 endif
                 if (iy >= iybwmne) then  # lin interp over banana width
                      # PF region is approx, could be improved
-                  lcone(ix,iy) = lcon(ixref,iybwmne) + 
+                  lcone(ix,iy) = lcon(ixref,iybwmne) +
      .                            dlcon*(yyc(iy)-yyc(iybwmne))/dyyc
                 else
                   lcone(ix,iy) = lcon(ix,iy)
                 endif
               else                                         # Core region
                 if (iy >= iybwmne) then  # lin interp over banana width
-                  lcone(ix,iy) = lcon(ixmp,iybwmne) + 
+                  lcone(ix,iy) = lcon(ixmp,iybwmne) +
      .                            dlcon*(yyc(iy)-yyc(iybwmne))/dyyc
                 else
                   lcone(ix,iy) = lcon(ix,iy)
@@ -1871,9 +1857,8 @@ c-----------------------------------------------------------------------
       implicit none
       Use(Dim)            # nx,ny,nxpt
       Use(Xpoint_indices) # ixpt1,ixpt2,iysptrx1,iysptrx2
-      Use(Aux)            # ix,iy,ix1,ix3
       Use(Selec)          # ixp1,ixm1
-      Use(Comgeo)         # gyf,gxf,dxnog
+      Use(Comgeo)         # gyf,gxf,gxfn
       Use(Noggeo)         # vtag,angfx,fxm,fx0,fxp,fym,fy0,fyp
       Use(RZ_grid_info)   # rm,zm
       Use(Share)          # geometry,nxc,nxomit,isoldgrid
@@ -1892,8 +1877,10 @@ c-----------------------------------------------------------------------
       real rints(0:1), zints(0:1), dyf, dxf, errlim, bigslp, eps
       real z4, r4, delrm, delzm, thetax, thetay
       integer ifxfail, ifyfail, nj, itry, ik
+      #Former Aux module variables
+      integer ix,iy,ix1,ix3
       data errlim/1.e-10/, bigslp/1.e20/, eps/1e-3/
-	  
+
 *=======================================================================
 *//computation//
 
@@ -1905,7 +1892,7 @@ c     where a,b,c are the sides opposite the angles A,B,C of a plane
 c     triangle.  In vtag(ix,iy), use the average of the angle at vertex 4
 c     of cell (ix,iy) and vertex 1 of cell (ix+1,iy+1).
       do 11 iy = 0, ny
-         do 10 ix = 0, nx    # ix=0 and ix=nx are done specially below
+         do 10 ix = 1, nx-1    # ix=0 and ix=nx are done specially below
 c     At vertex 4 of the (ix+nj,iy) cell:
                aa = sqrt( (rm(ix+nj,iy,3)-rm(ix+nj,iy,4))**2 +
      .                    (zm(ix+nj,iy,3)-zm(ix+nj,iy,4))**2 )
@@ -1955,8 +1942,7 @@ c...  Roundoff problems may cause the ix=0 and ix=nx values of vtag to
 c...  be in error.  Thus, linearly extrapolate anfgx at ix=0 and nx with
 c...  adjacent values assuming a uniform mesh (gx not defined yet).
 c...  Also redo vtag.  A similar situation exists near limiter guard
-c...  cells at ix_lim and ix_lim+1. 
-      if(redopltvtag == 1) then
+c...  cells at ix_lim and ix_lim+1.
        do iy = 0, ny+1
          angfx(0,iy) = 2*angfx(1,iy) - angfx(2,iy)
          vtag(0,iy) = 2*vtag(1,iy) - vtag(2,iy)
@@ -1984,8 +1970,7 @@ c...  cells at ix_lim and ix_lim+1.
          vtag(nx,iy) = 2*vtag(nx-1,iy) - vtag(nx-2,iy)
          angfx(nx+1,iy) = angfx(nx,iy)    # not really used
          vtag(nx+1,iy) = vtag(nx,iy)      # not really used
-       enddo
-      endif
+      enddo
 
 c...  Set angfx and vtag in the y-guard cells to adjacent values
       do ix = 0, nx+1
@@ -2021,7 +2006,7 @@ c...  reset values next to cut at ixpt1 or ixpt2 if half-space problem
             angfx(ixpt1(1),iy) = 0.
           enddo
        endif
-        
+
 
 c...  reset values for midplane guard cells of double-null configuration
       if ((isudsym==1.or.(geometry.eq.'dnXtarget')) .and. nxc.gt.0) then
@@ -2033,7 +2018,7 @@ c...  reset values for midplane guard cells of double-null configuration
             vtag(nxc  ,iy) = 0.
             vtag(nxc+1,iy) = 0.
          enddo
-      endif      
+      endif
 
 c...  Calculate the fraction-stencil for variables to use at ix-1, ix, ix+1
 c...  when forming y-derivatives and averages for the nonorthogonal grid
@@ -2042,7 +2027,7 @@ c...  left of the center point (ishx=0) and if that does not  work, we shift
 c...  to the right of the center point (ishx=1); if the intersection is
 c...  is beyond ix-1 or ix+1, we turn 90 degrees and look for intersection
 c...  with lines from [(ix-1,iy),(ix-1,iy+1)] or [(ix+1,iy),(ix+1,iy+1)].
-c...  We also calculate the stencil for the variables at iy (ishy=0) and 
+c...  We also calculate the stencil for the variables at iy (ishy=0) and
 c...  those at iy+1 (ishy=1)
 
       ifxfail = 0
@@ -2074,7 +2059,7 @@ c...  fix possible divide-by-zero
             iyu2 = iy + 1 - ishy
 
 c           setup most like diagonal line for proper intersection
-            if ( (vtag(ix,iy)+vtag(ixm1(ix,iy),iy))*(1-2*ishy) 
+            if ( (vtag(ix,iy)+vtag(ixm1(ix,iy),iy))*(1-2*ishy)
      .                                                  .ge. 0 ) then
                ishx = 1    # note ixu1=ix for both ishx=0,1; unlike prev vers.
                ixu2 = ixp1(ix,iyu2)
@@ -2093,14 +2078,14 @@ ccc        write(*,*) "isht,rmid,zmid,slp1 = ",isht,rmid,zmid,slp1
 ccc        write(*,*) "rint,zint = ",rint,zint
 ccc        write(*,*) "d1,d2,d3 = ",d1,d2,d3
 ccc      endif
-            if (d1.le.d3*1.0001 .and. d2.le.d3*1.0001) then 
-               rints(ishy) = rint 
+            if (d1.le.d3*1.0001 .and. d2.le.d3*1.0001) then
+               rints(ishy) = rint
                zints(ishy) = zint
                fx0(ix,iy,ishy) = d2/d3
                fxm(ix,iy,ishy) =  (1-ishx)*0.5*d1/d3
                fxp(ix,iy,ishy) = ishx*0.5*d1/d3
                fxmy(ix,iy,ishy) = (1-ishx)*0.5*d1/d3
-               fxpy(ix,iy,ishy) = ishx*0.5*d1/d3 
+               fxpy(ix,iy,ishy) = ishx*0.5*d1/d3
                itry = 1
             elseif (itry.eq.1) then  # switch to second diag for intersection
                if (ishx.eq.1) then
@@ -2129,44 +2114,39 @@ ccc      endif
                goto 13
             endif
 c...  Recalculate the distance between y-points normal to y-face
-c...  For isnonog=1, 1/gyf .ne. dynog
-            dynog(ix,iy) = sqrt( (rints(1)-rints(0))**2 +
+            dyf = sqrt( (rints(1)-rints(0))**2 +
      .                             (zints(1)-zints(0))**2 )
+            gyf(ix,iy) = 1/dyf
  20      continue
  21   continue
 
 c...  Approx. the gyf in guard cells around boundary; these should not
 c...  matter except possibly gyf(0,0) for half-space problem & iflcore=1
       do iy = 0, ny
-         dynog(0,iy) = dynog(1,iy)
-         dynog(nx+1,iy) = dynog(nx,iy)
+         gyf(0,iy) = gyf(1,iy)
+         gyf(nx+1,iy) = gyf(nx,iy)
       enddo
-
+							     
 c...  Approx. gyf in midplane guard cells for geometry=dnbot, only for 
 c...  corner boundary condition
       if ((isudsym==1.or.(geometry.eq.'dnXtarget')) .and. nxc.gt.0) then
          do iy = 0, ny
-            dynog(nxc,iy) = dynog(nxc-1,iy)
-            dynog(nxc+1,iy) = dynog(nxc+2,iy)
+            gyf(nxc,iy) = gyf(nxc-1,iy)
+            gyf(nxc+1,iy) = gyf(nxc+2,iy)
          enddo
       endif
-c...  Also set dynog(,ny+1) to nonzero; not use - avoid possible 1/dynog
-      do ix = 0, nx+1
-        dynog(ix,ny+1) = 0.1*dynog(ix,ny)
-      enddo
-
 c...  Similarly approximate gyf for limiter guard cells
       if (islimon .ne. 0) then
          do iy = 0, ny
-            dynog(ix_lim,iy) = dynog(ix_lim-1,iy)
-            dynog(ix_lim+1,iy) = dynog(ix_lim+2,iy)
+            gyf(ix_lim,iy) = gyf(ix_lim-1,iy)
+            gyf(ix_lim+1,iy) = gyf(ix_lim+2,iy)
          enddo
       endif
 c...  Similarly approximate gyf for upper target plate guard cells
       if (nxpt==2) then
          do iy = 0, ny
-            dynog(ixrb(1)+1,iy) = dynog(ixrb(1),iy)
-            dynog(ixlb(2),iy) = dynog(ixlb(2)+1,iy)
+            gyf(ixrb(1)+1,iy) = gyf(ixrb(1),iy)
+            gyf(ixlb(2),iy) = gyf(ixlb(2)+1,iy)
          enddo
       endif
 
@@ -2181,69 +2161,40 @@ c...  top of the center point (ishy=0) and if that does not work, we shift
 c...  to the right of the center point (ishy=1); if the intersection is
 c...  is beyond iy-1 or iy+1, we turn 90 degrees and look for intersection
 c...  with lines from [(ix,iy-1),(ixp1,iy-1)] or [(ix,iy+1),(ixp1,iy+1)].
-c...  We also calculate the stencil for the variables at ix (ishx=0) and 
+c...  We also calculate the stencil for the variables at ix (ishx=0) and
 c...  those at ixp1 (ishx=1)
 c...  We now (8/25/94) include the bend in the flux surface through slpfs,
 c...  the slope of the flux surface which can be different on each side
 c...  of the x-face.
 
       ifyfail = 0
-      do 41 ix = 0, nx 
+      do 41 ix = 0, nx
 ccc	 if (isudsym==1 .and. ix==nxc) goto 41
 ccc         # skip non-physical interface between inboard and outboard midplane
+
          do 40 iy = 1, ny
 c...  Fix possible divide-by-zero
            if ( isoldgrid .eq. 1) then #only use to retrieve pre-1/96 solution
             if ( rm(ix+nj,iy,4) .eq. rm(ix+nj,iy,2) .or.
      .              abs(zm(ix+nj,iy,4)-zm(ix+nj,iy,2)) .lt. 1.e-9 ) then
-               dxnog(ix,iy) =
+               gxfn(ix,iy) = 1. /
      .                sqrt( (rm(ixp1(ix,iy)+nj,iy,0)-rm(ix+nj,iy,0))**2 +
      .                      (zm(ixp1(ix,iy)+nj,iy,0)-zm(ix+nj,iy,0))**2 )
-               if (isudsym==1 .and. ix==nxc) dxnog(ix,iy)= 1.e-20  #just small
                goto 40
             endif
            endif
-
-c...  fix possible divide-by-zero; normally compute (R,Z) slope of x-face
-           if ( rm(ix+nj,iy,4) .eq. rm(ix+nj,iy,2) ) then
-              slp1 = bigslp
-           elseif ( zm(ix+nj,iy,4) .eq. zm(ix+nj,iy,2) ) then
-              slp1 = 1/bigslp
-           else
-              slp1 =(zm(ix+nj,iy,4)-zm(ix+nj,iy,2))/
-     .                                  (rm(ix+nj,iy,4)-rm(ix+nj,iy,2))
-           endif
-
-cc_new            if ( rm(ix+nj,iy,4) .eq. rm(ix+nj,iy,2) ) then
-cc_new                slp0 = bigslp
-cc_new             elseif ( zm(ix+nj,iy,4) .eq. zm(ix+nj,iy,2) ) then
-cc_new                slp0 = 1/bigslp
-cc_new             else
-cc_new                slp0 =(zm(ix+nj,iy,4)-zm(ix+nj,iy,2))/
-cc_new      .                                   (rm(ix+nj,iy,4)-rm(ix+nj,iy,2))
-cc_new             endif
-
-c...  Set (R,Z) coordinate at midpoint of x-face
+c...  fix possible divide-by-zero
+            if ( rm(ix+nj,iy,4) .eq. rm(ix+nj,iy,2) ) then
+               slp1 = bigslp
+            elseif ( zm(ix+nj,iy,4) .eq. zm(ix+nj,iy,2) ) then
+               slp1 = 1/bigslp
+            else
+               slp1 =(zm(ix+nj,iy,4)-zm(ix+nj,iy,2))/
+     .                                   (rm(ix+nj,iy,4)-rm(ix+nj,iy,2))
+            endif
             zmid = 0.5*(zm(ix+nj,iy,4)+zm(ix+nj,iy,2))
             rmid = 0.5*(rm(ix+nj,iy,4)+rm(ix+nj,iy,2))
             ishx = 0
-
-c...  First find intersection to normal to x-face to its left & set tilt param
-cc_new            if(angfx(ix,iy) > 0) then
-cc_new              ishy = 1  # search upward from (ix,iy) cell
-cc_new            else
-cc_new              ishy = 0  # search downward
-cc_new            endif
-cc_new
-cc_new            ishx = 0
-cc_new            if(angfx(ix,iy) > 0) then
-cc_new              ishy = 1  # search upward from (ix,iy) cell
-cc_new            else
-cc_new              ishy = 0  # search downward
-cc_new            endif
-cc_new            call lindis2(ix,iy,rmid,zmid,slpl,ishx,ishy)
-
-
             iyu1 = iy
  33         ixu1 = (1-ishx)*ix + ishx*ixp1(ix,iyu1)
             if ( angfx(ix,iy)*(1-2*ishx) .ge. 0) then #setup most likely diag
@@ -2300,15 +2251,12 @@ c ...       Search for intersection btwn (ixu1,iyu1) & (ixu2,iyu2)
                goto 33
             endif
 c...  Calculate the distance between interpolated pts normal to x-face
-c...  Include bend in flux surface through angles angfs1,2; here cmt out.
-c...  For isnonog=1, 1/gxf .ne. dxnog as interp pts not along cell ctrs
+c...  Include the bend in the flux surface through angles angfs1,2
 
-
-            dxnog(ix,iy) = sqrt( (rints(1)-rints(0))**2 + 
-     .                           (zints(1)-zints(0))**2 )
+            dxf = sqrt( (rints(1)-rints(0))**2 +
+     .                  (zints(1)-zints(0))**2 )
 ccc     .                  / abs( cos(0.5*(angfs1-angfs2)) )
-ccc            gxfn(ix,iy) = 1/dxf
-            
+            gxfn(ix,iy) = 1/dxf
  40      continue
  41   continue
 
@@ -2317,7 +2265,7 @@ ccc            gxfn(ix,iy) = 1/dxf
       endif
 
 c...  if isupstreamx=1, cells above x-point should be orthogonal; reset
-      if (reset_core_og == 1) then 
+      if (reset_core_og == 1) then
         do jx = 1, nxpt
           do iy = 0, ny+1
             do ix = ixpt1(jx)+1, ixpt2(jx)
@@ -2341,7 +2289,7 @@ c...  if isupstreamx=1, cells above x-point should be orthogonal; reset
 c...  Reset plate guard-cell fy to orthogonal stencil
       do jx = 1, nxpt
         do iy = 0, ny+1
-           ix = ixlb(jx) 
+           ix = ixlb(jx)
               fym(ix,iy,0)  = 0.
               fy0(ix,iy,0)  = 1.
               fyp(ix,iy,0)  = 0.
@@ -2379,7 +2327,7 @@ c ---------------------------------------------------------------------
 *     face; thus, -1/slp1 is the slope of the perpendicular. The second line
 *     connects two other points on the mesh given by [rm(i1,j1),zm(i1,j1)]
 *     and a second point defined by the switch ipos2:
-*        ipos2 = 0 2nd point is the cell center [rm(i2,j2),zm(i2,j2)] 
+*        ipos2 = 0 2nd point is the cell center [rm(i2,j2),zm(i2,j2)]
 *        ipos2 = 1 2nd point is y-face for [rm(i1,j1),zm(i1,j1)]
 *        ipos2 = 2 2nd point is x-face for [rm(i1,j1),zm(i1,j1)]
 *        ipos2 = 3 2nd point is y-face for [rm(i2,j2),zm(i2,j2)]
@@ -2388,9 +2336,9 @@ c ---------------------------------------------------------------------
 *     decreasing direction. LINDIS returns the values at the intersection
 *     (rx,zx), and the distances d1, d2, and d3:
 *
-*        d1 = distance between (rx,zx) and (r1,z1), 
-*        d2 = distance between (rx,zx) and (r2,z2) 
-*        d3 = distance between (r1,z1) and (r2,z2), 
+*        d1 = distance between (rx,zx) and (r1,z1),
+*        d2 = distance between (rx,zx) and (r2,z2)
+*        d3 = distance between (r1,z1) and (r2,z2),
 ****************************************************************************
       implicit none
       Use(Dim)            # nx,ny
@@ -2402,13 +2350,13 @@ c ---------------------------------------------------------------------
      .        ipos2, ish
       real slp1,r0,z0           # slope of face, and perp. midpoint (r0,z0)
 
-*  -- Output scalars --          
+*  -- Output scalars --
       real rx,zx,d1,d2,d3    #intersection (rx,zx) and distances (see above)
 
 *  -- Local scalars --
       real slp2,r1,z1,r2,z2,r2cc,z2cc,dface_cc
       integer nj
- 
+
       nj = max(0, nxomit)
 
       r1 = rm(i1+nj,j1,0)
@@ -2456,213 +2404,13 @@ c ---------------------------------------------------------------------
       return
       end
 c ***** end of subroutine lindis *****************
-c *****
-      subroutine lindis2 (p1,q1,rmf,zmf,slpmf,isx,isy,idone)
-C  THIS IS WORK-IN-PROGRESS FOR NEW INTERPOLATOR: NOT CALLED
-c
-******************************************************************************
-*     LINDIS2 finds the intersection of two lines, one defined by the
-*     perpendicular to a face obeying the equation z=zmf-(r-zmf)/slpmf,
-*     where (rmf,zmf) gives the center of the face and slpmf is the face slope
-*     face; thus, -1/slpmf is the slope of the perpendicular. The second line
-*     connects two other points on the mesh as is defined below - search along
-*     line segments between cell centers and midpoints of faces to follow
-*     along the mesh lines even if the cells form a curved surface. The index
-*     isx (ishx) specifies search to left of face (isx=0) or to the right 
-*     (isx=1).  Also, isy is determined by angfx > 0 or < 0, which determines
-*     the direction of the search (upward if isy=1, downward if isy=0).
-*     See related figures of the stencil patterns for a visual picture.
-*        d1 = distance between (rx,zx) and (r1,z1), 
-*        d2 = distance between (rx,zx) and (r2,z2) 
-*        d3 = distance between (r1,z1) and (r2,z2), 
-****************************************************************************
-      implicit none
-      Use(Dim)            # nx,ny
-      Use(RZ_grid_info)   # rm,zm
-      Use(Share)          # nxomit
-      Use(Noggeo)         # fy0,fym,fyp etc
-      Use(Comgeo)         # dxnog
-      Use(Selec)          # ixp1 
-
-*  -- Input scalars --
-      integer p1,q1,isx,isy          # indices of pts (p1,q1) & (i2,j2) & face switch
-      real rmf,zmf,slpmf       # slope of face, and midpoint (rmf,zmf)
-
-*  -- Output scalars --          
-      real rx,zx,d12,d1x,d2x #intersection (rx,zx) and distances (see above)
-      integer idone
-
-*  -- Local scalars --
-      real r1,z1,r2,z2	     #coordinates of two pts defining 2nd line
-                             #connecting alternate cell ctrs & cell faces
-      real slpn,slp2         #slope of normal to x-face (=-11/slpmf)
-      real dcf
-      integer nj,isg,ixc,iyc
- 
-      idone = 0
-      nj = max(0, nxomit)
-
-c... ************************************************************************
-c...  Search up (isy=0) or down (isy=1) in iy for fix ix, then ix at fixed iy
-c... ************************************************************************
-      do isg = 1, 3   #consider 3 center-to-face vert sgmts for intersection
-	iyc = q1 + sign(isg/2,-isy)
-        if(isy==0) then
-          ixc = p1 + nj
-        else
-          ixc = ixp1(p1+nj,iyc)
-        endif
-        if (isg/2 == (isg+1)/2) then   #isg even, r1,z1 on y-face
-          r1 = 0.5*(rm(ixc,iyc,2+2*isy) + rm(ixc,iyc,1+2*isy)) # y-face
-          z1 = 0.5*(zm(ixc,iyc,2+2*isy) + zm(ixc,iyc,1+2*isy)) # y-face
-        else    #isg odd, so r1,z1 is cell ctr
-          r1 = rm(ixc,iyc,0)	# cell ctr
-          z1 = zm(ixc,iyc,0)	# cell ctr
-        endif
-c...  First line segment btw (r1,z1) y-face below (iys=0) or above (iys=1)
-c...  Find slope of second line, and solve for intersection (rx,zx)
-        if(isg == 1) then  #r2,z2 only set for isg=1; then use last r1,z1
-          r2 =0.5*(rm(ixc,iyc,2+2*isy) + rm(ixc,iyc,1+2*isy)) # y-face
-          z2 =0.5*(zm(ixc,iyc,2+2*isy) + zm(ixc,iyc,1+2*isy)) # y-face
-        endif
-        slp2 = (z1-z2) / (r1-r2+1.e-20)	 #slope of r1,z1-r2,z2 line segment
-        slpn = -1./(slpmf+1.e-20)        #slope of normal to x-face
-c...  Solution of 2 linear eqns (lines) for intersection rx,zx
-        zx = (slpn*zmf - slp2*z2 + r2 - rmf)/(slpn-slp2+1.e-20)
-        rx = slpn*(zx-zmf) + rmf
-
-c...  Compute distances btwn pts 1,2, and btwn intersect rx,zx & pts 1,2
-        d12 = sqrt((r1-r2)**2 + (z1-z2)**2)
-        d1x = sqrt((rx-r1)**2 + (zx-z1)**2)
-        d2x = sqrt((rx-r2)**2 + (zx-r2)**2)
-
-c...  Set dist btwn cell ctr & adj face just beyond line segmt 1,2
-        if(isg==1) then      #here r2,z2 is lower (upper) iy-face
-          dcf = sqrt((r2-rm(ixc,iyc-1+2*isy,0))**2 +
-     .               (z2-zm(ixc,iyc-1+2*isy,0))**2)
-        elseif(isg==2) then  #here r1,z1 is upper (lower) iy-face
-          dcf = sqrt((r1-rm(ixc,iyc-2,0))**2 +
-     .               (z1-zm(ixc,iyc-2,0))**2)
-        elseif(isg==3) then  #here r2,z2 is upper (lower) iy-face
-          dcf = sqrt((r2-rm(ixc,iyc-1+isy,0))**2 +
-     .               (z2-zm(ixc,iyc-1+isy,0))**2)
-        endif
-c...  Check if d1x and d2x < d12; if so, record stencil  values & exit
-        if (d12 > d1x .and. d12 > d2x) then  #note then d12=d1x+d2x
-          dxnog(p1+nj,q1) = dxnog(p1+nj,q1)+sqrt((rmf-rx)**2+(zmf-zx)**2)
-          if(isy==0) then
-            if(isg==1) then
-              fym(p1+nj,q1,0) = d1x/(dcf+d12)
-              fy0(p1+nj,q1,0) = (dcf+d2x)/(dcf+d12)
-            elseif(isg==2) then
-              fy0(p1+nj,q1,0) = (dcf+d1x)/(dcf+d12)
-              fyp(p1+nj,q1,0) = d2x/(dcf+d12)
-            elseif(isg==3) then
-              fy0(p1+nj,q1,0) = d1x/(dcf+d12)
-              fyp(p1+nj,q1,0) = (dcf+d2x)/(dcf+d12)
-            endif
-          elseif(isy==1) then
-            if(isg==1) then
-              fyp(p1+nj,q1,1) = d1x/(dcf+d12)
-              fy0(p1+nj,q1,1) = (dcf+d2x)/(dcf+d12)
-            elseif(isg==2) then
-              fy0(p1+nj,q1,1) = (dcf+d1x)/(dcf+d12)
-              fym(p1+nj,q1,1) = d2x/(dcf+d12)
-            elseif(isg==3) then
-              fy0(p1+nj,q1,1) = d1x/(dcf+d12)
-              fym(p1+nj,q1,1) = (dcf+d2x)/(dcf+d12)
-            endif
-          endif
-          idone = 1
-          break
-        endif     #testing if valid intersection is found
-
-        r2 = r1
-        z2 = z1
-      enddo
-
-c... ************************************************************************
-c...  Similar coding to search right/left if no intersect in iy (idone=0)
-c... ************************************************************************
-      if(idone == 1) return
-      do isg = 1,2   #consider 2 center-to-face horiz sgmts for intersection
-        ixc = p1 + nj #sign(1,-isy)*isg/2
-	iyc = q1 + 1 - 2*isy
-        if (isg == 2) then   #isg even, r1,z1 at cell ctr
-          if(isy==0) ixc = ixp1(ixc,iyc)
-          r1 = rm(ixc,iyc,0)	# cell ctr
-          z1 = zm(ixc,iyc,0)	# cell ctr
-        else    #isg odd (=1), so r1,z1 on cell face
-          if(isy==1) ixc = ixp1(ixc,iyc)
-          r1 =0.5*(rm(ixc,iyc,2-isy) + rm(ixc,iyc,4-isy)) # x-face
-          z1 =0.5*(zm(ixc,iyc,2-isy) + zm(ixc,iyc,4-isy)) # x-face
-        endif
-c...  First line segment btw (r1,z1) x-face to right (iys=0) or left (iys=1)
-c...  Find slope of second line, and solve for intersection (rx,zx)
-        if(isg == 1) then  #r2,z2 only set for isg=1; then use last r1,z1
-          r2 = rm(ixc,iyc,0)            # cell ctr
-          z2 = zm(ixc,iyc,0)            # cell ctr
-        endif
-        slp2 = (z1-z2) / (r1-r2+1.e-20)	 #slope of line segment
-        slpn = -1./(slpmf+1.e-20)        #slope of normal to x-face
-        zx = (slpn*zmf - slp2*z2 + r2 - rmf)/(slpn-slp2+1.e-20)
-        rx = slpn*(zx-zmf) + rmf
-
-c...  Compute distances btwn pts 1,2, and btwn intersect rx,zx & pts 1,2
-        d12 = sqrt((r1-r2)**2 + (z1-z2)**2)
-        d1x = sqrt((rx-r1)**2 + (zx-z1)**2)
-        d2x = sqrt((rx-r2)**2 + (zx-r2)**2)
-
-c...  If isg=1, first set dist btwn right-most(left-most)cell ctr & adj face
-c...  Here for isg=1, r1,z1 is cell x-face, so rm,zm is shifted cell ctr
-        if(isg==1) then
-          if(isy==0) ixc=ixp1(p1+nj,iyc)
-          if(isy==1) ixc=p1+nj
-          dcf = sqrt((r1-rm(ixc,iyc,0))**2 + (z1-zm(ixc,iyc,0))**2)
-        elseif(isg==2) then
-          if(isy==0) ixc=p1+nj
-          if(isy==1) ixc=ixp1(p1+nj,iyc)
-          dcf = sqrt((r2-rm(ixc,iyc,0))**2 + (z2-zm(ixc,iyc,0))**2)
-        endif
-
-c...  Check if d1x and d2x < d12; if so, record stencil values & exit
-        if (d12 > d1x .and. d12 > d2x) then  #note then d12=d1x+d2x
-          dxnog(p1+nj,q1) = dxnog(p1+nj,q1)+sqrt((rmf-rx)**2+(zmf-zx)**2)
-          if(isy==0) then
-            if(isg==1) then
-              fyp(p1+nj,q1,0) = d2x/(dcf+d12)
-              fypx(p1+nj,q1,0) = (dcf+d1x)/(dcf+d12)
-            elseif(isg==2) then
-              fyp(p1+nj,q1,0) = d1x/(dcf+d12)
-              fypx(p1+nj,q1,0) = (dcf+d2x)/(dcf+d12)
-            endif
-          elseif(isy==1) then
-            if(isg==1) then
-              fym(p1+nj,q1,1) = d2x/(dcf+d12)
-              fymx(p1+nj,q1,1) = (dcf+d1x)/(dcf+d12)
-            elseif(isg==2) then
-              fym(p1+nj,q1,1) = d1x/(dcf+d12)
-              fymx(p1+nj,q1,1) = (dcf+d2x)/(dcf+d12)           
-            endif
-          endif
-          idone = 1
-          break
-        endif     #testing if valid intersection is found
-
-        r2 = r1
-        z2 = z1
-      enddo
-
-      return
-      end
-c ***** end of subroutine lindis2 *****************
 c ---------------------------------------------------------------------
 
       subroutine grdnrm (nx,ny,ixlb,ixpt1,ixpt2,ixrb,iysptrx,isgindx,
      .                                  gx,gxf,gy,gyf,gyc,xn,xvn,yn,yvn)
 
 c...  This subroutine constructs the normalized poloidal and radial grid
-c...  point locations xn, xvn, yn, & yvn used for interpolating to a different 
+c...  point locations xn, xvn, yn, & yvn used for interpolating to a different
 c...  mesh size. Three poloidal regions are used for iy .le. iysep, and one
 c...  for iy .gt. iysep. If isgindx=1, a uniform (index) mesh is assumed.
 
@@ -2674,7 +2422,7 @@ c  -- Input variables - geometrical distances
      .     gyf(0:nx+1,0:ny+1), gyc(0:nx+1,0:ny+1)
 
 c  -- Output varibles - normalized cell locations
-      real xn(0:nx+1,0:ny+1), xvn(0:nx+1,0:ny+1), 
+      real xn(0:nx+1,0:ny+1), xvn(0:nx+1,0:ny+1),
      .     yn(0:nx+1,0:ny+1), yvn(0:nx+1,0:ny+1)
 
 c  -- local variables
@@ -2713,7 +2461,7 @@ c...  normalize 0 -> 1, in two intervals: core-pf and sol
             yvn(ix,iy) = (yvn(ix,iy) - yvns) / yvtot
  30      continue
 
-      else     # large isgindx if-test      
+      else     # large isgindx if-test
 c...  use index-based mesh if isgindx .ne. 0
 
          yn(ix,0) = 0.0e0
@@ -2742,16 +2490,16 @@ c...  use index-based mesh if isgindx .ne. 0
 
 
       endif    # large isgindx if-test
-         
+
  40   continue
 
-c...  For iy<iysep, normalize the poloidal or x-grid in three regions: left 
+c...  For iy<iysep, normalize the poloidal or x-grid in three regions: left
 c...  leg, core, and right leg. We don't worry about using indirect addressing
-c...  near the cuts as we normalize each region and any offset error 
+c...  near the cuts as we normalize each region and any offset error
 c...  resulting from using gx(ix-1,iy) instead of gx(ixm1,iy) is unimportant
 c...  For iy>iysep, only one poloidal region is used.
 
-      if (isgindx .eq. 0) then     # use true spatial distances for interp 
+      if (isgindx .eq. 0) then     # use true spatial distances for interp
                                    # large if-test on isgindx
       do 55 iy = 0, ny+1
          xn(0,iy) = 0.
@@ -2793,7 +2541,7 @@ c...  ixpt2+1-nx+1 if iy .le. iysptrx
          do 80 ix = max(ixpt2+1, 0), nx+1
             xn(ix,iy) = (xn(ix,iy) - xns) / xtot
             xvn(ix,iy) = (xvn(ix,iy) - xvns) / xvtot
- 80      continue   
+ 80      continue
  90   continue
  95   continue
 
@@ -2812,7 +2560,7 @@ c...  For iy .gt. iysptrx, normalize the single poloidal region
  130  continue
 
       else    # treat iy<iysptrx & iy>iysptrx the same
-              # large if-test on isgindx  
+              # large if-test on isgindx
 
       do iy = 0, ny+1
          if (ixpt1 .le. ixlb) goto 315
@@ -2846,15 +2594,15 @@ c...  For iy .gt. iysptrx, normalize the single poloidal region
             xn(ix,iy) = xn(ix-1,iy) + delxn
             xvn(ix,iy) = xvn(ix-1,iy) + delxn
          enddo
- 332     xn(ixrb+1,iy) = 1.e0 
+ 332     xn(ixrb+1,iy) = 1.e0
          xvn(ixrb,iy) = 0.999999e0
          xvn(ixrb+1,iy) = 1.e0
       enddo
 
-      endif     # large if-test on isgindx        
+      endif     # large if-test on isgindx
 
       return
-      end   
+      end
 c **** end of subroutine grdnrm ****
 c **********************************
 c-----------------------------------------------------------------------
