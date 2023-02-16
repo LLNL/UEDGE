@@ -1,0 +1,46 @@
+#
+# IRIX64 - IRIX BASIS configuration with NCAR graphics
+#
+# Fortran Errors
+# 1615 - dummy argument is array, actual is scalar
+# 2024 - lines less than 72 columns long are not standard F77
+# 2026 - lower case letters are not standard
+#
+# turn off warnings about line length (2034) and lower case letters (2026)
+#
+# C Errors
+# 1167 - Pointer points outside of underlying object
+# 1552 - variable is set but never used
+#
+
+ProgName = xuedge
+Packages = aph api bbb com flx grd svr wdf .
+Macros = sptodp
+RealSize = 8
+
+PackFiles = ${BasInc}/pfb.pack ${BasInc}/ezn.pack
+AUXLibs = RL pfb ezn ezd basis
+
+SYSLibs   = complib.sgimath blas fpe
+SYSLDPath = ${NCARG_ROOT}/lib
+
+setenv SGI_ABI -64
+
+define NCARG_ROOT /usr/local/NCAR/4.2.1/32
+define NCARV      411
+
+FGroup     = 1
+  Use      = sgi_f90
+  Flags    = -64 -woff 1615
+  Optimize = -g3 -O3 -G 0
+
+CGroup     = 1
+  Use      = sgi_cc
+  Flags    = -64 -ansi -woff 1429,1552
+  Optimize = -g3 -O3 -G 0
+  LXFlags  = -woff 1167
+
+LDGroup    = 1
+  Use      = sgi_f90
+  Flags    = -64
+  MapName  = code.map

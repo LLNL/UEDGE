@@ -1,0 +1,11 @@
+Starting Basis global memory monitoring
+errortrp("off")
+echo = no
+This script tests the ranf random number generator family.
+It requires PDB file seedranf to be in the current directory.
+CAUTION: this must be run in a fresh copy of Basis, so that
+         no ranf() calls have been executed yet.
+  All is well unless you see lines beginning '**ERROR:'.
+-----------------------------------------------------------
+Literal table begins with 0 entries at line 3.
+Ending Basis global memory monitoring

@@ -1,0 +1,98 @@
+#############################################################################
+Structure of aeqdsk EFIT file needed by UEDGE; edit file aeqdsk_template by 
+inserting new data in format of the other real numbers (e16.9) only for 
+lines below beginning with *; leave other lines unchanged
+#############################################################################
+
+Line 1:  Date
+Line 2:  shot number
+Line 3:  time slice
+Line 4:  set of variables including time slice (again); none used; 
+can substitute dummy
+
+*Line 5:   third number is toroidal B-field (T) at magnetic axis
+
+Lines 6-19: leave as in template (zeroes)
+6th - 19th lines: can be zeroes, but used format in “standard” aeqdsk file
+
+*Line 20:  4 numbers reseps, zseps, rseps2, zseps2, which are following:
+R for lower X-pt,  Z for lower X-pt, R for upper Xpt, Z for upper X-pt  
+NOTE: HERE ALL IN [CM], BUT “G” FILE USES [M]. Generally, make R < 0 for 
+upper Xpt to remove from consideration.
+
+Lines 21-58: leave as in template (zeroes)
+
+*Line 59:  2, 3, and 4th entries are R inner StPt, Z inner StPt, R outer StPt  
+ALL IN  [CM] {Note: you can have UEDGE find strike pts by setting isspnew=1
+and also setting rstrike(1:2) or zstrike(1:2), but better start with initial
+values here}
+
+*Line 60:  1st entry is Z outer StPt
+
+Lines 61-63:  leave as in template (zeroes)
+
+
+
+
+#############################################################################
+Structure of neqdsk or “g” EFIT file needed by UEDGE
+Note: while the "a" file uses length units of cm, here m are usedS
+#############################################################################
+
+Line 1: 48-character ID, followed by 3 space-delimited integers;
+### integers are idum(not used), nxefit(#rad EFIT pts), nyefit(#vert EFIT pts);
+format for integers is i4
+
+Lines 2-5: reading scalar parameters one line at a time
+### Format(2020) is 5e16.9 (5 numbers per line with e16.9 format)
+
+*Line 2: read(iunit,2020) xdim,zdim,rcentr,rgrid1,zmid (m)
+           rad dim, vert dim, mag axis R, R at inner bdry, Z midplane
+
+*Line 3: read(iunit,2020) rmagx,zmagx,simagx,sibdry,bcentr
+           mag axis R, mag axis Z, mag axis Psi, X-pt Psi, B_tor
+
+*Line 4: read(iunit,2020) cpasma,simagx,xdum,rmagx,xdum
+           toroidal current, mag axis Psi, not used, mag axis R, not used
+
+*Line 5: read(iunit,2020) zmagx,xdum,sibdry,xdum,xdum
+           mag axis Z, not used, X-pt Psi, not used, not used
+
+Lines 6 and beyond (number of elements depend on EFIT mesh nxefit,nyefit)
+### Reading 1D midplane arrays from EFIT “g” file (nxefit is from 
+### first line in “g” file line, see above).
+
+*     read(iunit,2020) (fpol(i),i=1,nxefit)
+        poloidal current F=R*B_toroidal radially across EFIT mesh at midplane
+
+      read(iunit,2020) (pres(i),i=1,nxefit)
+        unused plasma pressure radially across EFIT mesh
+
+      read(iunit,2020) (workk(i),i=1,nxefit)
+        unused data (?) radially across EFIT mesh
+
+      read(iunit,2020) (workk(i),i=1,nxefit)
+        unused data (?) radially across EFIT mesh
+
+### Reading 2D poloidal flux arrays from EFIT file (nyefit from 1st input line)
+
+*     read(iunit,2020) ((fold(i,j),i=1,nxefit),j=1,nyefit)
+        poloidal magnetic flux across EFIT mesh
+
+### One more dummy 1D array
+
+      read(iunit,2020) (qpsi(i),i=1,nxefit)
+        unused data (?) across EFIT mesh
+
+### Two integers giving number of pts on LCFS and on vessel bdry
+      read(iunit,2022) nbdry, nlim
+(2022 format is 2i5)
+
+### 1D arrays of size nbdry and nlim
+      read(iunit,2020) (rbdry(i),zbdry(i),i=1,nbdry)  # NOT USED
+      read(iunit,2020) (rbdry(i),zbdry(i),i=1,nbdry)  # wall bdry;diagnostic
+
+##################################################
+### That is all UEDGE reads from EFIT “g” file ###
+##################################################
+

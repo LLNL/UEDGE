@@ -1,0 +1,164 @@
+hrothgar:rognlien(Forthon_case6)> python -i rdtimedpd_1.py 
+Welcome to PyUedge
+Forthon edition
+Packages loaded:  ['com', 'aph', 'api', 'bbb', 'flx', 'grd', 'svr', 'wdf']
+Closing PDB file pfd3d_ex.16x8
+ Wrote file "gridue" with runidg:    EFITD    09/07/90      # 66832 ,2384ms            
+
+ ***** Grid generation has been completed
+  Updating Jacobian, npe =   1
+ iter=    0 fnrm=     0.7926655291405496     nfe=      1
+  Updating Jacobian, npe =   2
+ iter=    1 fnrm=     0.1359864333433531     nfe=      4
+ iter=    2 fnrm=     0.6142699662168870E-03 nfe=      8
+ iter=    3 fnrm=     0.1166106773374772E-06 nfe=     14
+ iter=    4 fnrm=     0.5915260263929298E-13 nfe=     24
+
+
+ nksol ---  iterm = 1.
+            maxnorm(sf*f(u)) .le. ftol, where maxnorm() is
+            the maximum norm function.  u is probably an
+            approximate root of f.
+initial fnrm = 0.250349981173
+ 
+*** Number time-step changes and dt: idtc; bbb.dtreal =  1 ; 2.94117647059e-05
+------------------------------------------------------------------------------
+ iter=    0 fnrm=     0.2503499811729383     nfe=      1
+ iter=    1 fnrm=     0.5356768791579849E-02 nfe=      6
+ iter=    2 fnrm=     0.1843765115388060E-04 nfe=     12
+
+
+ nksol ---  iterm = 1.
+            maxnorm(sf*f(u)) .le. ftol, where maxnorm() is
+            the maximum norm function.  u is probably an
+            approximate root of f.
+* Step number at this dtreal; initial fnrm =  1 ; 0.224185941531
+Number of func eval; nonlinear iters; preJac eval =  12 ; 2 ; 0
+Total time =  0.0001 ; Timestep =  0.0001 ; bbb.yl[ipt], ipt =  0.0765487301155 ,  258
+ 
+ iter=    0 fnrm=     0.2241859415310908     nfe=      1
+ iter=    1 fnrm=     0.6314780471020956E-02 nfe=      7
+ iter=    2 fnrm=     0.9028143716241640E-05 nfe=     14
+
+
+ nksol ---  iterm = 1.
+            maxnorm(sf*f(u)) .le. ftol, where maxnorm() is
+            the maximum norm function.  u is probably an
+            approximate root of f.
+* Step number at this dtreal; initial fnrm =  2 ; 0.212958491456
+Number of func eval; nonlinear iters; preJac eval =  14 ; 2 ; 0
+Total time =  0.0002 ; Timestep =  0.0001 ; bbb.yl[ipt], ipt =  0.0778211308723 ,  258
+ 
+ iter=    0 fnrm=     0.2129584914561263     nfe=      1
+ iter=    1 fnrm=     0.2606126434288053E-02 nfe=      7
+ iter=    2 fnrm=     0.3684847803053971E-05 nfe=     14
+
+
+ nksol ---  iterm = 1.
+            maxnorm(sf*f(u)) .le. ftol, where maxnorm() is
+            the maximum norm function.  u is probably an
+            approximate root of f.
+* Step number at this dtreal; initial fnrm =  3 ; 0.19795867186
+Number of func eval; nonlinear iters; preJac eval =  14 ; 2 ; 0
+Total time =  0.0003 ; Timestep =  0.0001 ; bbb.yl[ipt], ipt =  0.0787612619538 ,  258
+ 
+* Step number at this dtreal; initial fnrm =  4 ; 0.178473731885
+Number of func eval; nonlinear iters; preJac eval =  16 ; 2 ; 0
+Total time =  0.0004 ; Timestep =  0.0001 ; bbb.yl[ipt], ipt =  0.0794198928975 ,  258
+ 
+* Step number at this dtreal; initial fnrm =  5 ; 0.157549957788
+Number of func eval; nonlinear iters; preJac eval =  16 ; 2 ; 0
+Total time =  0.0005 ; Timestep =  0.0001 ; bbb.yl[ipt], ipt =  0.0798406828695 ,  258
+ 
+Closing PDB file being written: pfdt_it333
+ 
+*** Number time-step changes and dt: idtc; bbb.dtreal =  2 ; 0.0001
+------------------------------------------------------------------------------
+* Step number at this dtreal; initial fnrm =  1 ; 0.0722595528086
+Number of func eval; nonlinear iters; preJac eval =  12 ; 2 ; 0
+Total time =  0.00118 ; Timestep =  0.00034 ; bbb.yl[ipt], ipt =  0.0795227432019 ,  258
+ 
+* Step number at this dtreal; initial fnrm =  2 ; 0.0560173109027
+Number of func eval; nonlinear iters; preJac eval =  13 ; 2 ; 0
+Total time =  0.00152 ; Timestep =  0.00034 ; bbb.yl[ipt], ipt =  0.0790332307122 ,  258
+ 
+* Step number at this dtreal; initial fnrm =  3 ; 0.0458066222754
+Number of func eval; nonlinear iters; preJac eval =  14 ; 2 ; 0
+Total time =  0.00186 ; Timestep =  0.00034 ; bbb.yl[ipt], ipt =  0.0785981434567 ,  258
+ 
+* Step number at this dtreal; initial fnrm =  4 ; 0.0386558847587
+Number of func eval; nonlinear iters; preJac eval =  15 ; 2 ; 0
+Total time =  0.0022 ; Timestep =  0.00034 ; bbb.yl[ipt], ipt =  0.0782636021851 ,  258
+ 
+* Step number at this dtreal; initial fnrm =  5 ; 0.0330980693738
+Number of func eval; nonlinear iters; preJac eval =  17 ; 2 ; 0
+Total time =  0.00254 ; Timestep =  0.00034 ; bbb.yl[ipt], ipt =  0.0780114191579 ,  258
+ 
+Closing PDB file being written: pfdt_it333
+ 
+*** Number time-step changes and dt: idtc; bbb.dtreal =  3 ; 0.00034
+------------------------------------------------------------------------------
+* Step number at this dtreal; initial fnrm =  1 ; 0.0125375116796
+Number of func eval; nonlinear iters; preJac eval =  15 ; 2 ; 0
+Total time =  0.004852 ; Timestep =  0.001156 ; bbb.yl[ipt], ipt =  0.0773336901133 ,  258
+ 
+* Step number at this dtreal; initial fnrm =  2 ; 0.00793618216263
+Number of func eval; nonlinear iters; preJac eval =  18 ; 2 ; 0
+Total time =  0.006008 ; Timestep =  0.001156 ; bbb.yl[ipt], ipt =  0.077184953698 ,  258
+ 
+* Step number at this dtreal; initial fnrm =  3 ; 0.00498488399454
+Number of func eval; nonlinear iters; preJac eval =  19 ; 2 ; 0
+Total time =  0.007164 ; Timestep =  0.001156 ; bbb.yl[ipt], ipt =  0.0770910034114 ,  258
+ 
+* Step number at this dtreal; initial fnrm =  4 ; 0.00309946744042
+Number of func eval; nonlinear iters; preJac eval =  10 ; 1 ; 0
+Total time =  0.00832 ; Timestep =  0.001156 ; bbb.yl[ipt], ipt =  0.0770314078048 ,  258
+ 
+* Step number at this dtreal; initial fnrm =  5 ; 0.00192519189638
+Number of func eval; nonlinear iters; preJac eval =  22 ; 2 ; 0
+Total time =  0.009476 ; Timestep =  0.001156 ; bbb.yl[ipt], ipt =  0.0769933841248 ,  258
+ 
+Closing PDB file being written: pfdt_it333
+ 
+*** Number time-step changes and dt: idtc; bbb.dtreal =  4 ; 0.001156
+------------------------------------------------------------------------------
+* Step number at this dtreal; initial fnrm =  1 ; 0.000188562323785
+Number of func eval; nonlinear iters; preJac eval =  10 ; 1 ; 0
+Total time =  0.0173368 ; Timestep =  0.0039304 ; bbb.yl[ipt], ipt =  0.0769359914484 ,  258
+ 
+* Step number at this dtreal; initial fnrm =  2 ; 6.07071635491e-05
+Number of func eval; nonlinear iters; preJac eval =  10 ; 1 ; 0
+Total time =  0.0212672 ; Timestep =  0.0039304 ; bbb.yl[ipt], ipt =  0.0769314197572 ,  258
+ 
+* Step number at this dtreal; initial fnrm =  3 ; 1.94948953137e-05
+Number of func eval; nonlinear iters; preJac eval =  10 ; 1 ; 0
+Total time =  0.0251976 ; Timestep =  0.0039304 ; bbb.yl[ipt], ipt =  0.0769299491016 ,  258
+ 
+* Step number at this dtreal; initial fnrm =  4 ; 6.2512266222e-06
+Number of func eval; nonlinear iters; preJac eval =  11 ; 1 ; 0
+Total time =  0.029128 ; Timestep =  0.0039304 ; bbb.yl[ipt], ipt =  0.0769294775766 ,  258
+ 
+* Step number at this dtreal; initial fnrm =  5 ; 2.00300997352e-06
+Number of func eval; nonlinear iters; preJac eval =  11 ; 1 ; 0
+Total time =  0.0330584 ; Timestep =  0.0039304 ; bbb.yl[ipt], ipt =  0.0769293266089 ,  258
+ 
+Closing PDB file being written: pfdt_it333
+ 
+*** Number time-step changes and dt: idtc; bbb.dtreal =  5 ; 0.0039304
+------------------------------------------------------------------------------
+* Step number at this dtreal; initial fnrm =  1 ; 2.95830579184e-08
+Number of func eval; nonlinear iters; preJac eval =  13 ; 1 ; 0
+Total time =  0.05978512 ; Timestep =  0.01336336 ; bbb.yl[ipt], ipt =  0.0769292566204 ,  258
+ 
+* Step number at this dtreal; initial fnrm =  2 ; 3.59868403444e-09
+Number of func eval; nonlinear iters; preJac eval =  13 ; 1 ; 0
+Total time =  0.07314848 ; Timestep =  0.01336336 ; bbb.yl[ipt], ipt =  0.0769292556983 ,  258
+ 
+* Step number at this dtreal; initial fnrm =  3 ; 4.37712139189e-10
+Number of func eval; nonlinear iters; preJac eval =  14 ; 1 ; 0
+ 
+****************************************************
+**  SUCCESS: frnm < bbb.ftol; or dt_tot > t_stop  **
+****************************************************
+Closing PDB file being written: pfdt_it333
+>>> 

@@ -1,0 +1,237 @@
+                Global Config File Variables
+
+This README gives a summary of the variables you can set in an mio
+config file.  It gives an example config file at the end.  Also see the
+mio and mio-intro man pages.
+
+Here are the variables to contain information needed to make a complete
+configuration in which to build a Basis code.  These are things that an
+automatic process could not successfully compute in as much as they are
+the means by which you make your intentions concrete.
+
+This is global information in the sense that it pertains to all packages
+in the code system unless overridden at the package level.
+
+Variables are associated with a group.  There are currently three
+types of groups: FGroup for fortran, CGroup for C, and LDGroup for the
+loader.
+
+Host:
+  Specifies variables to be assigned when run on a specific.
+  The Targets are used as regular expressions and matched against the 
+  current host name.  If no Targets are specified, then the group name
+  becomes the Targets.
+
+  The values from the matching groups are only copied after the entire file is
+  read, usually by an 'include' statement.
+
+
+CGroup:
+  Specify a C compiler group consisting of the
+  following variables.  This permits an extra degree of control
+  over compilation of .c files.  Each file or package can
+  be assigned to a group and be compiled according to its
+  specifications.
+
+Compiler:
+  The C compiler to use for files in this CGroup.
+
+Flags:
+  The C compiler command options NOT having to do with
+  optimization or debugging.
+
+Optimize:
+  The C compiler command options having to do with
+  optimization.
+
+Debug:
+  The C compiler command options having to do with
+  debugging.
+
+
+
+
+FGroup:
+  Specify a FORTRAN compiler group consisting of the
+  following flags.  This permits an extra degree of control
+  over compilation of .f or .m files.  Each file or package can
+  be assigned to a group and be compiled according to its
+  specifications.
+
+Compiler:
+  The Fortran compiler to use.
+
+Flags:
+  The FORTRAN compiler command options NOT having to do with
+  optimization or debugging.
+
+Optimize:
+  The FORTRAN compiler command options having to do with
+  optimization.
+
+Debug:
+  The FORTRAN compiler command options having to do with
+  debugging.
+
+MPPLFlags:
+  Global MPPL command options.
+
+MACFlags:
+  Global MAC command options.
+
+
+
+
+LDGroup:
+  Specify a linker group consisting of the
+  following flags.  This permits an extra degree of control
+  over linking programs.  Each file or package can
+  be assigned to a group and any programs will be linked
+  according to its specifications.  All flags take PACT's
+  value if not specified in LDGroup 1 and uses LDGroup 1
+  value for all other groups.
+
+Loader:
+  The loader to use for files in this LDGroup.
+
+Flags:
+  Command line options for the linker.
+
+MapName:
+  If specified, a load map will be created using this name.
+
+Libraries:
+  Libraries to search for externals.  Do not specify the loader
+  command, just the library name i.e. foo not -lfoo.
+
+LibPath:
+  Paths to search for libraries.  Do not specify the loader
+  command, just the path i.e.  /usr/lib not -L/usr/lib.
+  See LDpathOpt
+
+LDpathOpt:
+  Loader option used to specify load path. Usually -L.
+
+LDserachOpt:
+  Loader options used to specify libraries to search.
+  Usually -l.
+
+Objects:
+  List of object files to use in load.
+
+LibGroup:
+
+LibFlags:
+  Loader flags used to create library.
+
+ARFlags:
+  ar flags to create archives.
+
+
+AUXLibs:
+  Auxilliary libraries which may be system dependent.
+
+Packages:
+  The complete list of packages to be built as a part
+  of the code system. A package may be followed by a
+  '*' in which case the package is compiled but not
+  added to the list of packages with which to load.
+  See the RL* in the example below.
+
+PACTRoot:
+  The root directory where PACT is installed.
+
+Path:
+  Add the following directories to the beginning of your
+  path environment variable.  The purpose is to let config
+  files specify where compilers and related utilities reside
+  for the build process to use.
+
+PythonHome:
+  The directory were Python is installed.  Expects a bin, lib, and include
+  in this location.
+
+PythonVer:
+  Version number of Python. Just the major and minor version.
+  1.5 not 1.5.2.
+
+PythonPath:
+  Value for PYTHONPATH variable.
+
+InstRoot:
+  The root directory where the code will be installed.
+
+ProgName:
+  The name of the principle executable program of the
+  system.
+
+PackFiles:
+  A list of *.pack files needed for the main executable.
+
+SYSIncPath:
+  Include path for headers and other similar kinds of files. 
+  This adds additional -I<path> to compilations (mppl and cc).
+
+SYSLibs:
+  System libraries (usually vendor supplied or installed
+  by the system administrator) used in linking the
+  main executable.
+
+SYSLDPath:
+  Load path for libraries.  This adds additional -L<path>
+  flags to the load line.
+
+        Define variables
+
+NCARG_ROOT:
+  Directory containing the NCAR graphics libraries to be used in linking
+  the main executable.
+
+NCARV: NCAR version.  4.0.1 would be defined as
+  define NCARV 401
+
+IntegerSize:
+  Default byte size for integers.
+  Override with Integer4 or Integer8 in Package file.
+
+RealSize:
+  Default byte size for real numbers.
+  Override with Real4 or Real8 in Package file.
+
+
+        Example config file for DEC Alpha Platforms
+
+
+Here is an example of a config file for the DEC Alpha platform.
+This is essentially the same as basis/builder/std/axp.
+
+#
+# AXP - basic AXP BASIS configuration using NCAR graphics
+#
+include site-local
+
+Packages  = scripts* mppl* hst fft svd pfb fit ezn ezd RL* rt
+PACTRoot  = /usr/local/apps/pactnew
+
+AUXLibs   =
+SYSLibs   = -lfftpack -llapack -lblas
+define NCARG_ROOT /usr/local/NCAR/4.0.1
+define NCARV      401
+
+FGroup    = 1
+ Compiler = f90
+ Flags    = -align dcommons -recursive
+
+LDGroup   = 1
+ MapName   = code.map
+
+
+
+site-local:
+
+Host = linux ( host[123] )
+   Foo = 1
+   Bar = 3 
+
+Host = host1
+   Foo = 2

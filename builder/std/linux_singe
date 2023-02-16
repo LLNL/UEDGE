@@ -1,0 +1,38 @@
+#
+#  LINUX - UEDGE using NCAR graphics and Portland Group
+#
+
+include packages
+
+PackFiles = ${BasInc}/pfb.pack ${BasInc}/ezn.pack
+AUXLibs = RL pfb ezn ezd basis
+PACTRoot  = /usr/local/pact/pact04_05_11
+
+!define NCARG_ROOT /usr/local/ncarg
+!define NCARV      411
+
+
+FGroup     = 1
+  Use      = gfortran
+  Optimize = -Ofast
+  Debug    = -g
+  Flags    =  -fcray-pointer -cpp
+
+CGroup     = 1 
+  Use      = gnu_cc
+  Optimize = -Ofast
+  Debug    = -g
+  Flags    = 
+
+LDGroup    = 1
+  Use      = gfortran
+  MapName  = code.map
+  Optimize = -Ofast
+  Debug    = -g
+    Flags  = 
+
+FGroup     = 2 (api/fimp.m)
+  Use      = gfortran
+  Optimize = -Ofast
+  Debug    = -g
+  Flags    = -fcray-pointer -cpp

@@ -276,16 +276,18 @@ c-----------------------------------------------------------------------
      >	  (nuion(misa,nz) + nurec(misa,nz))*al32(m)
             fricc(misa,nz,5) = - denmass(misa,nz)*usol(m,nz,misa)*
      >	    (nuion(misa,nz) + nurec(misa,nz))*al32(m)
-	  if( nz.gt.1 )
-     >	  friction(misa,nz) = friction(misa,nz) + usol(m,nz-1,misa)
-     >	  *denmass(misa,nz-1) * nuion(misa,nz-1) * al32(m)
+	  if( nz.gt.1 ) then
+      	    friction(misa,nz) = friction(misa,nz) + usol(m,nz-1,misa)
+     >	    *denmass(misa,nz-1) * nuion(misa,nz-1) * al32(m)
             fricc(misa,nz,5) = fricc(misa,nz,5) + usol(m,nz-1,misa)
      >	    *denmass(misa,nz-1) * nuion(misa,nz-1) * al32(m)
-	  if( nz.lt.nzmax )
-     >	  friction(misa,nz) = friction(misa,nz) + usol(m,nz+1,misa)
-     >	  *denmass(misa,nz+1) * nurec(misa,nz+1) * al32(m)
+          endif
+	  if( nz.lt.nzmax ) then
+      	    friction(misa,nz) = friction(misa,nz) + usol(m,nz+1,misa)
+     >	    *denmass(misa,nz+1) * nurec(misa,nz+1) * al32(m)
             fricc(misa,nz,5) = fricc(misa,nz,5) + usol(m,nz+1,misa)
      >	    *denmass(misa,nz+1) * nurec(misa,nz+1) * al32(m)
+          endif
 	  enddo
 	enddo
 	return

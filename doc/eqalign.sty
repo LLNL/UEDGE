@@ -1,0 +1,53 @@
+% eqalign (style option for all style) to reenable PLAIN TeX's
+% \eqalign command and generalize the LaTeX's equation numbering.
+% Written by Charles Karney (Karney%PPC.MFENET@NMFECC.ARPA) 1986/01/03.
+
+% This style option can be used with any style. E.g.,
+%     \documentstyle[11pt,eqalign]{article}
+% It provides:
+
+% (1) \eqalign, \displaylines, \eqalignno, and \leqalignno from Plain
+% TeX.
+
+% (2) \eqn(A5c) gives \eqno\hbox{(A5c)}.  This ensures that the "A" and
+% "c" are set in Roman.
+
+% (3) \eqnum increments the equation counter and prints it.  E.g.,
+%     $$x^2+y^2=z^2, \eqn(\eqnum)$$
+
+% (4) \eqlab{<label>} is the same as \eqnum except that \ref{<label>} can
+% be used to refer to the equation.  E.g.,
+%     $$x^2+y^2=z^2, \eqn(\eqlab{Pythag})$$
+%     ...  as is shown in Eq.~(\ref{Pythag}). ...
+
+% (5) \eqlab and \ref in combination allow the inclusion of alphabetic
+% suffices to equation numbers.  E.g.,
+%     $$\eqalignno{
+%                 a&=b+c, &(\eqlab{triv}a)\cr             % gives (10a)
+%                 d&=e+f, &(\ref{triv}b)\cr               % gives (10b)
+%                 g&=h+i. &(\ref{triv}c)\cr}$$            % gives (10c)
+%     ... as is shown in Eq.~(\ref{triv}a) ...
+%     ... as is shown in Eqs.~(\ref{triv}) ...
+% and so on.
+
+\def\eqalign#1{\null\,\vcenter{\openup\jot\m@th
+  \ialign{\strut\hfil$\displaystyle{##}$&$\displaystyle{{}##}$\hfil
+      \crcr#1\crcr}}\,}
+\def\@lign{\tabskip\z@skip\everycr{}} % restore inside \displ@y
+\def\displaylines#1{\displ@y
+  \halign{\hbox to\displaywidth{$\@lign\hfil\displaystyle##\hfil$}\crcr
+    #1\crcr}}
+\def\eqalignno#1{\displ@y \tabskip\@centering
+  \halign to\displaywidth{\hfil$\@lign\displaystyle{##}$\tabskip\z@skip
+    &$\@lign\displaystyle{{}##}$\hfil\tabskip\@centering
+    &\llap{$\@lign\hbox{##}$}\tabskip\z@skip\crcr
+    #1\crcr}}
+\def\leqalignno#1{\displ@y \tabskip\@centering
+  \halign to\displaywidth{\hfil$\@lign\displaystyle{##}$\tabskip\z@skip
+    &$\@lign\displaystyle{{}##}$\hfil\tabskip\@centering
+    &\kern-\displaywidth\rlap{$\@lign\hbox{##}$}\tabskip\displaywidth\crcr
+    #1\crcr}}
+
+\def\eqn(#1){\eqno\hbox{(#1)}}
+\def\eqnum{{\refstepcounter{equation}\theequation}}
+\def\eqlab#1{{\refstepcounter{equation}\label{#1}\theequation}}

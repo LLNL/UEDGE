@@ -19,7 +19,7 @@ c-----------------------------------------------------------------------
       Use(UEpar)    # isnewpot,r0slab,cslim,dcslim,csfaclb,csfacrb,csfacti,
                     # isnion,isupon,isteon,istion,isngon,isnionxy,isuponxy,
                     # isteonxy,istionxy,isngonxy,isphionxy
-      Use(Aux)      # ix,iy,igsp,iv,iv1,iv2,iv3,iv4,ix1,ix2,t0,t1
+      Use(Aux)      # ixmp
       Use(Coefeq)   # fac2sp,cf2ef,exjbdry
       Use(Bcond)    # iflux,ncore,tcoree,tcorei,tbmin,nbmin,ngbmin,
                     # tepltl,tipltl,tepltr,tipltr,
@@ -78,6 +78,9 @@ c...  local scalars
       real dif_imp_flux, fng_alb, fngyw, nharmave
       real upbdry, upbdry1, upbdry2, uugoal, fniy_recy, lengg, xtotc
       integer ixt, ixt1, ixt2, ixt3, jx, ixc, ierr
+      #Former Aux module variables
+      integer ix,iy,igsp,iv,iv1,iv2,iv3,iv4,ix1,ix2,ix3,ix4
+      real t0,t1
 
 *  -- external procedures --
       real sdot, yld96, kappa
@@ -782,15 +785,21 @@ c... BC for neutral gas temperature/energy at iy=0
                 yldot(iv) = nurlxg*(tgwall(igsp)*ev-tg(ix,0,igsp))/
      .                                                      (temp0*ev)
               elseif (istgpfc(igsp) == 1)    # extrapolation
-                 tbound = tg(ix,1,igsp) - gyf(ix,1)*
-     .                       (tg(ix,2,igsp)-tg(ix,1,igsp))/gyf(ix,0)
-                 tbound = max(tbound, 0.25*tbmin*ev)  #tbmin=.1 eV
-                 yldot(iv) = nurlxi *(tbound - tg(ix,0,igsp))/(temp0*ev)
+                tbound = tg(ix,1,igsp) - gyf(ix,1)*
+     .                      (tg(ix,2,igsp)-tg(ix,1,igsp))/gyf(ix,0)
+                tbound = max(tbound, 0.25*tbmin*ev)  #tbmin=.1 eV
+                yldot(iv) = nurlxi *(tbound - tg(ix,0,igsp))/(temp0*ev)
               elseif (istgpfc(igsp) == 2)    # specified gradient
-                 yldot(iv) = nurlxi*( (tg(ix,1,igsp) - tg(ix,0,igsp)) -
+                yldot(iv) = nurlxi*( (tg(ix,1,igsp) - tg(ix,0,igsp)) -
      .                           0.5*(tg(ix,1,igsp) + tg(ix,0,igsp))/
      .                           (gyf(ix,0)*lytg(1,igsp)) )/(temp0*ev)
-              elseif (istgpfc(igsp) > 2)
+              elseif (istgpfc(igsp) == 3)  #Maxwell thermal flux to wall
+                t0 = max(cdifg(igsp)*tg(ix,1,igsp), temin*ev)
+                vyn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
+                yldot(iv) =  -nurlxg*( fegy(ix,0,igsp) + 2*cgengmw*
+     .                               ng(ix,1,igsp)*vyn*t0*sy(ix,0) )/
+     .                                     (sy(ix,0)*vpnorm*ennorm)
+              elseif (istgpfc(igsp) > 3)
                  call xerrab("***Input error: invalid istgpfc ***")
               endif
 
@@ -871,7 +880,15 @@ c...  Now do the corners: the ion density corners are done elsewhere
            do jx = 1, nxpt
 	     if (isngonxy(ixlb(jx),0,igsp)==1) then
                yldot(idxg(ixlb(jx),0,igsp)) = nurlxg*
-     .           ( ng(ixlb(jx)+1,0,igsp) - ng(ixlb(jx),0,igsp) )/n0g(igsp)
+     .           (ng(ixlb(jx)+1,0,igsp) - ng(ixlb(jx),0,igsp))/n0g(igsp)
+             endif
+           enddo
+         enddo
+         do igsp = 1, ngsp
+           do jx = 1, nxpt
+	     if(istgonxy(ixlb(jx),0,igsp)==1) then
+               yldot(idxtg(ixlb(jx),0,igsp)) = nurlxg*
+     .          (tg(ixlb(jx)+1,0,igsp) - tg(ixlb(jx),0,igsp))/(temp0*ev)
              endif
            enddo
          enddo
@@ -908,7 +925,7 @@ c...  Now do the corners: the ion density corners are done elsewhere
            do jx = 1, nxpt
 	     if(isngonxy(ixrb(jx),0,igsp)==1) then
                yldot(idxg(ixrb(jx)+1,0,igsp)) = nurlxg*
-     .           ( ng(ixrb(jx),0,igsp) - ng(ixrb(jx)+1,0,igsp) )/n0g(igsp)
+     .           (ng(ixrb(jx),0,igsp) - ng(ixrb(jx)+1,0,igsp))/n0g(igsp)
              endif
            enddo
          enddo
@@ -936,7 +953,7 @@ c...  Note: j3 is local range index for iy passed from pandf in oderhs.m
             iv1 = idxphi(ix,1)
 
 c  ################ do BC on core bdry, then on PF bdry #################
-            if (isixcore(ix)==1) then   # ix is part of the core boundary:
+            if (isixcore(ix)==1 .and. isphicore0==0) then # ix is core bdry
                ix3 = ixm1(ix,1)
                ix4 = ixm1(ix,0)
                r_major = 0.5*(rm(ix,0,0) + rm(ix,1,0)) + r0slab
@@ -1416,7 +1433,13 @@ c... BC for neutral gas temperature/energy at iy=ny+1
               yldot(iv) = nurlxi*( (tg(ix,ny,igsp) - tg(ix,ny+1,igsp)) -
      .                         0.5*(tg(ix,ny,igsp) + tg(ix,ny+1,igsp))/
      .                         (gyf(ix,ny)*lytg(2,igsp)) )/(temp0*ev)
-            elseif (istgwc(igsp) > 2)
+            elseif (istgwc(igsp) == 3)  #Maxwell thermal flux to wall
+              t0 = max(cdifg(igsp)*tg(ix,ny,igsp), temin*ev)
+              vyn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
+              yldot(iv) =  nurlxg*( fegy(ix,ny,igsp) - 2*cgengmw*
+     .                              ng(ix,ny,igsp)*vyn*t0*sy(ix,ny) )/
+     .                                      (sy(ix,ny)*vpnorm*ennorm)
+            elseif (istgwc(igsp) > 3)
                call xerrab("***Input error: invalid istgwc ***")
             endif
           endif
@@ -1916,11 +1939,14 @@ c            totfeix is thermal + kinetic + viscous flux
             totfeixl(iy,jx) = feix(ixt,iy) + ckinfl*kfeix 
             totfnix = 0.
             do ifld = 1, nfsp
+            # the condition on zi must include use of v2cd which is not properly set to zero in pandf1
+            if(zi(ifld)>1e-10) then
               totfeixl(iy,jx) = totfeixl(iy,jx) + cfeixdbo*(
      .                      2.5* ni(ixt,iy,ifld)*v2cd(ixt,iy,ifld)*
      .                                sx(ixt,iy)*rbfbt(ixt,iy)+
      .                             floxibgt(ixt,iy,ifld) )*ti(ixt,iy)
-              if(zi(ifld)>1e-10) totfnix = totfnix + fnix(ixt,iy,ifld)
+              totfnix = totfnix + fnix(ixt,iy,ifld)
+              endif
             enddo
             if (isupgon(1)==1) then
 c              Different boundary conditions for neutral momentum equation
@@ -2086,6 +2112,14 @@ c ... Neutral temperature - test if tg eqn is on, then set BC
      .                   (tg(ixt2,iy,igsp)-tg(ixt1,iy,igsp))/gxf(ixt,iy)
               tbound = max(tbound,0.5*temin*ev)
               yldot(iv) = nurlxg*(tbound - tg(ixt,iy,igsp))/(temp0*ev)
+            elseif (istglb(igsp) == 2)  #placeholder for gradient BC
+              call xerrab("**INPUT ERROR: istglb=2 grad opt not implemented")
+            elseif (istglb(igsp) == 3)  #Maxwell thermal flux to wall
+              t0 = max(cdifg(igsp)*tg(ixt1,iy,igsp), temin*ev)
+              vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
+              yldot(iv) =  -nurlxg*( fegx(ixt,iy,igsp) + 2*cgengmpl*
+     .                            ng(ixt1,iy,igsp)*vxn*t0*sx(ixt,iy) )/
+     .                                     (sx(ixt,iy)*vpnorm*ennorm)
             else
               call xerrab("**INPUT ERROR: istglb set to unknown option")
             endif
@@ -2540,11 +2574,14 @@ c            totfeix is thermal + kinetic + viscous flux
             totfeixr(iy,jx) = feix(ixt1,iy) + ckinfl*kfeix 
             totfnix = 0.
             do ifld = 1, nfsp
+            # the condition on zi must include use of v2cd which is not properly set to zero in pandf1
+            if(zi(ifld)>1e-10) then
               totfeixr(iy,jx) = totfeixr(iy,jx) + cfeixdbo*(
      .                    2.5* ni(ixt,iy,ifld)*v2cd(ixt1,iy,ifld)*
      .                          sx(ixt1,iy)*rbfbt(ixt,iy)+
      .                           floxibgt(ixt1,iy,ifld) )*ti(ixt,iy)
-              if(zi(ifld)>1e-10) totfnix = totfnix + fnix(ixt1,iy,ifld)
+               totfnix = totfnix + fnix(ixt1,iy,ifld)
+               endif
             enddo
             if (isupgon(1)==1) then
 c              Different boundary conditions for neutral momentum equation
@@ -2712,6 +2749,14 @@ c ... Neutral temperature - test if tg eqn is on, then set BC
      .               (tg(ixt1,iy,igsp)-tg(ixt2,iy,igsp))/gxf(ixt1,iy)
               tbound = max(tbound,0.5*temin*ev)
               yldot(iv) = nurlxg*(tbound - tg(ixt,iy,igsp))/(temp0*ev)
+            elseif (istgrb(igsp) == 2)  #placeholder for gradient BC
+              call xerrab("**INPUT ERROR: istgrb=2 grad opt not implemented")
+            elseif (istgrb(igsp) == 3)  #Maxwell thermal flux to wall
+              t0 = max(cdifg(igsp)*tg(ixt1,iy,igsp), temin*ev)
+              vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
+              yldot(iv) =  nurlxg*( fegx(ixt1,iy,igsp) - 2*cgengmpl*
+     .                            ng(ixt1,iy,igsp)*vxn*t0*sx(ixt1,iy) )/
+     .                                     (sx(ixt1,iy)*vpnorm*ennorm)
             else
               call xerrab("**INPUT ERROR: istgrb set to unknown option")
             endif
@@ -2849,8 +2894,8 @@ c...  Now do the parallel velocity
                   endif
                endif
    
-               do 193 igsp = 1, ngsp
-                  if(isngonxy(nxc,iy,igsp)*isngonxy(nx+1,iy,igsp)==1) then
+               do igsp = 1, ngsp
+                  if(isngonxy(nxc,iy,igsp)*isngonxy(nxc+1,iy,igsp)==1) then
                      iv =  idxg(nxc  ,iy,igsp)
                      iv2 = idxg(nxc+1,iy,igsp)
                      yldot(iv ) = nurlxg*(ng(nxc-1,iy,igsp) - 
@@ -2858,7 +2903,17 @@ c...  Now do the parallel velocity
                      yldot(iv2) = nurlxg*(ng(nxc+2,iy,igsp) - 
      .                                    ng(nxc+1,iy,igsp)) / n0g(igsp)
                   endif
- 193           continue
+                  if(istgonxy(nxc,iy,igsp)*istgonxy(nxc+1,iy,igsp)==1) then
+                     iv =  idxtg(nxc  ,iy,igsp)
+                     iv2 = idxtg(nxc+1,iy,igsp)
+                     yldot(iv ) = nurlxg*(tg(nxc-1,iy,igsp) - 
+     .                                    tg(nxc  ,iy,igsp))*
+     .                                1.5*ng(nxc,iy,igsp) / ennorm
+                     yldot(iv2) = nurlxg*(tg(nxc+2,iy,igsp) - 
+     .                                    tg(nxc+1,iy,igsp))*
+     .                                1.5*ng(nxc+1,iy,igsp)/ ennorm
+                  endif
+               enddo
 
 c...  Do boundary condition for potential along ix=nxc and ix=nxc+1
                if (isphionxy(nxc,iy)*isphionxy(nxc+1,iy)==1) then
@@ -3314,7 +3369,6 @@ c************************************************************************
                     # isteonxy,istionxy,isngonxy,isphionxy 
       Use(Indexes)  # iseqalg
       Use(Compla)
-      Use(Aux)
       Use(Ynorm)
       Use(Selec) 
       Use(Bcond)    # isfixlb, isfixrb
@@ -3324,7 +3378,8 @@ c************************************************************************
       Use(Share)   # islimon, ix_lim, iy_lims, geometry, nxc
 
       integer ifld, ii
-	  
+      #Former Aux module variables
+      integer ix,iy,igsp
 c ... Initialize the iseqalg array to zero (==>differential equation)
       do ii = 1, neqmx
          iseqalg(ii) = 0
@@ -3599,7 +3654,6 @@ c-----------------------------------------------------------------------
       Use(Share)               # nyomitmx
       Use(Xpoint_indices)      # ixlb,ixrb,ixpt1,ixpt2,iysptrx1,iysptrx2
       Use(Math_problem_size)   # neqmx(for arrays not used here) 
-      Use(Aux)      # ix,iy,igsp
       Use(Selec)    # ixp1
       Use(Phyvar)   # pi,qe
       Use(Comgeo)   # gy,sy,xcwi,xcwo,xcpf,yylb,yyrb
@@ -3620,6 +3674,8 @@ c-----------------------------------------------------------------------
 
 *  -- local scalars --
       integer isor, jx, jxlbi, jxrbi, jxlbo, jxrbo, ixbegi, ixendi, ixbego, ixendo
+      #Former Aux module variables
+      integer ix,iy,igsp
       real argi, argo, xnoti, xnoto
 *  -- local arrays --
       real sycosi(10), sycoso(10)
@@ -3951,7 +4007,6 @@ c-----------------------------------------------------------------------
 ##      Use(Share)               # nyomitmx
       Use(Xpoint_indices)      # ixlb,ixrb
 ##      Use(Math_problem_size)   # neqmx(for arrays not used here) 
-      Use(Aux)      # ix,iy,igsp
 ##      Use(Selec)    # ixp1
       Use(Rccoef)   # igasl,rb; igspsorl,rb; ygasl,rb; wgasl,rb;fvaplb,avaplb,
                     # tvaplb,tvaprb,
@@ -3964,6 +4019,8 @@ c-----------------------------------------------------------------------
 
 *  -- local scalars --
       integer isor,jx,igw
+      #Former Aux module variables
+      integer igsp,iy
       real arglb, argrb
 *  -- local arrays --
       real sxcoslb(10), sxcosrb(10)

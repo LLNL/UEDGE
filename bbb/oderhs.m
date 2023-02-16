@@ -10,7 +10,7 @@ c-----------------------------------------------------------------------
 *//documentation//
 *
 *
-*  1. purpose
+*  1. purpose 
 *
 *     FD2TRA computes the two-dimensional field of flow of some
 *     quantity that is transported by convection and conduction.
@@ -63,6 +63,11 @@ c-----------------------------------------------------------------------
       Use(Selec)   # i1,i4,i5,i8,j1,j4,j5,j8,ixp1
       Use(Noggeo)  # fxm,fx0,fxp,fxmy,fxpy
       Use(Share)   # isnonog,cutlo
+      Use(PandfTiming)
+
+      real tick,tock
+      external tick tock
+
 
 *  -- output arguments --
       real trax(0:nx+1,0:ny+1), tray(0:nx+1,0:ny+1)
@@ -79,6 +84,8 @@ c..   note: dim(a,b) = max((a-b),0)
 *=======================================================================
 *//computation//
 *=======================================================================
+
+      if (TimingPandfOn.gt.0) Timefd2tra=tick()
 *  ---------------------------------------------------------------------
 *  -- auxiliaries --
 *  ---------------------------------------------------------------------
@@ -522,7 +529,7 @@ c..   note: dim(a,b) = max((a-b),0)
      .                                 dify(ix,iy+posy)*(py1-py0)
   282    continue
   283 continue
-
+      if (TimingPandfOn.gt.0) TotTimefd2tra=TotTimefd2tra+tock(Timefd2tra)
       return
       end
 c**  End of subroutine fd2tra ******************
@@ -554,7 +561,7 @@ c    yldot is the RHS of ODE solver or RHS=0 for Newton solver (NKSOL)
       integer nigmx
       parameter (nigmx=100)
 
-*  -- local variables
+*  -- slocal variables
       integer ifld, jfld, zn, k, k1, k2, jx, ixt, ixt1, ixr, ixr1, iixt,
      .        ixt0
       real fxet, fxit, qr, vt0, vt1, vtn, vtn2, pradold, eeliold, 
@@ -578,7 +585,7 @@ c    yldot is the RHS of ODE solver or RHS=0 for Newton solver (NKSOL)
       real lmfpn, lmfppar, lmfpperp
       real temp1, temp2, temp3, temp4, cutlo3, lambd_ci, lambd_ce
       real upxavep1,upxave0,upxavem1,upf0,upfm1
-      real teev
+      real teev,nexface,loglmcc,nmxface
       logical xccuts, xcturb
       integer iy1, ixmp2, iyp1, iyp2, iym1, ixs, ixf, iys, iyf,
      .        methnx, methny, iy2, i2pwr, i5pwr, j2pwr, j5pwr,
@@ -596,6 +603,9 @@ c    yldot is the RHS of ODE solver or RHS=0 for Newton solver (NKSOL)
       integer idum, idumaray(1)
       real(Size4) sec4, gettime, tsimpfe, tsimp, tsnpg, ueb
       integer impflag
+      # former Aux module variables
+      integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
+      real tv,t0,t1,t2,a
 cnxg      data igs/1/
 
       Use(Dim)      # nx,ny,nhsp,nusp,nzspt,nzsp,nisp,ngsp,nxpt
@@ -615,8 +625,7 @@ cnxg      data igs/1/
                     # isofric,isteaven
                     # isnionxy,isuponxy,isteonxy,istionxy,isngonxy,isphionxy,
                     # isupon,isteon,istion,isphion
-      Use(Aux)      # ix,iy,igsp,iv,iv1,iv2,iv3,
-                    # ix1,ix2,ix3,ix4,ix5,ix6,tv,t0,t1,t2,a
+      Use(Aux)      # ixmp
       Use(Coefeq)
       Use(Bcond)    # albedoo,albedoi,isfixlb,isfixrb
                     # xcnearlb,xcnearrb,openbox
@@ -667,14 +676,19 @@ cnxg      data igs/1/
       Use(Npes_mpi)              # mype
       Use(RZ_grid_info)  		 # bpol
       Use(Interp)				 # ngs, tgs 
+      Use(ParallelEval)          # ParallelJac,ParallelPandf1
+      Use(PandfTiming)
 
 *  -- procedures for atomic and molecular rates --
       integer zmax,znuc
       real dene,denz(0:1),radz(0:1)
       real rsa, rra, rqa, rcx, emissbs, erl1, erl2, radneq, radimpmc
       real radmc, svdiss, vyiy0, vyiym1, v2ix0, v2ixm1
+      real tgupyface, ngupyface, n1upyface, ng2upyface
       external rsa, rra, rqa, rcx, emissbs, erl1, erl2, radneq, radimpmc
       external radmc, svdiss
+      real tick,tock
+      external tick,tock
 	  
 ccc      save
 
@@ -693,6 +707,25 @@ c  Check array sizes
       if (ngsp > nigmx .or. nisp > nigmx) then
          call xerrab("***PANDF in oderhs.m: increase nigmx, recompile")
       endif
+c... Timing of pandf components (added by J. Guterl)
+        if (TimingPandf.gt.0
+     . .and. yl(neq+1) .lt. 0 .and. ParallelPandf1.eq.0) then
+        TimingPandfOn=1
+        else
+        TimingPandfOn=0
+        endif
+        if (TimingPandfOn.gt.0) TimePandf=tick()
+c... Roadblockers for  call to pandf through openmp structures (added by J.Guterl)
+      if ((isimpon.gt.0 .and. isimpon.ne.6) .and. (ParallelJac.gt.0 .or. ParallelPandf1.gt.0)) then
+      call xerrab('Only isimpon=0 or 6 is validated with openmp.
+     .Contact the UEDGE team to use other  options with openmp.')
+      endif
+
+      if ((ismcnon.gt.0) .and. (ParallelJac.gt.0 .or. ParallelPandf1.gt.0)) then
+      call xerrab('Only ismcnon=0 is validated with openmp.
+     .Contact the UEDGE team to use other options with openmp.')
+      endif
+
 
 ************************************************************************
 *  -- initialization --
@@ -988,9 +1021,12 @@ c...  boundary cells of a mesh region.  Used in subroutine bouncon.
 ************************************************************************
 c... First, we convert from the 1-D vector yl to the plasma variables.
 ************************************************************************
-
+         if (TimingPandfOn.gt.0) TimeConvert0=tick()
          call convsr_vo (xc, yc, yl)  # pre 9/30/97 was one call to convsr
-         call convsr_aux (xc, yc, yl)
+         if (TimingPandfOn.gt.0) TotTimeConvert0=TotTimeConvert0+tock(TimeConvert0)
+         if (TimingPandfOn.gt.0) TimeConvert1=tick()
+         call convsr_aux (xc, yc)
+         if (TimingPandfOn.gt.0) TotTimeConvert1=TotTimeConvert1+tock(TimeConvert1)
 
 c ... Set variable controlling upper limit of species loops that
 c     involve ion-density sources, fluxes, and/or velocities.
@@ -1101,14 +1137,16 @@ c ,,, Add diffusion propto betap**iexpbp and (B0/B)**inbdif (as for isbohmcalc=3
 c ... Compute log_lambda
       do iy = j1, j6
         do ix = i1, i6
-          teev = te(ix,iy)/ev
+          ix1 = ixp1(ix,iy)
+          teev = 0.5*(te(ix,iy)+te(ix1,iy))/ev
+          nexface = 0.5*(ne(ix,iy)+ne(ix1,iy))
           if (islnlamcon == 1) then
             loglambda(ix,iy) = lnlam  # set to constant
           elseif (teev < 50.) then    # Braginskii formula, teev<50
-            loglambda(ix,iy) = 23.4-1.15*log10(1.e-6*ne(ix,iy))+
+            loglambda(ix,iy) = 23.4-1.15*log10(1.e-6*nexface)+
      .                              3.45*log10(teev)
           else                        #teev > 50
-            loglambda(ix,iy) = 25.3-1.15*log10(1.e-6*ne(ix,iy))+
+            loglambda(ix,iy) = 25.3-1.15*log10(1.e-6*nexface)+
      .              2.33167537087122D+00*log10(teev)
           endif
           ctaui(ix,iy,1) = 2.1e13*sqrt(mi(1)/mp)/ loglambda(ix,iy)
@@ -1473,9 +1511,9 @@ c ... Add anomalous perp vis vy using calc_currents result - awkward,change
         enddo
       endif          
 
-c ... Calculate friction forces from Braginskii, if isimpon .ne. 5.
+c ... Calc friction forces from Braginskii; no individ chg-states;isimpon < 5.
 
-      if (isimpon.ne.5 .and. isimpon.ne.6 .and. isimpon.ne.7) then
+      if (isimpon < 5) then
          do iy = j1, j6    #iys1, iyf6
             do ix = i1, i6
                ix2 = ixp1(ix,iy)
@@ -1508,7 +1546,7 @@ c     cfyef is included. Both isphiofft=0 or 1 cases included in one loop
                  if (ix==ixlb(jx) .and. ixmnbcl==1) then
                    ix1 = ixlb(jx) + 1
                  elseif (ix==ixrb(jx) .and. ixmxbcl==1) then
-                   ix1 = ixrb(jx) - 1
+                   ix1 = ixrb(jx) - 1 
                  endif
                enddo
                ix2 = ixp1(ix1,iy)
@@ -1516,9 +1554,12 @@ c     cfyef is included. Both isphiofft=0 or 1 cases included in one loop
      .                   lcone(ix,iy) )
                lmfpe = 2e16*(te(ix,iy)/ev)**2/ne(ix,iy)
                flxlimf = flalftf*ltmax/(flalftf*ltmax + lmfpe)
+               nexface = 0.5*(ne(ix2,iy)+ne(ix1,iy))
                ex(ix,iy) = (1 - isphiofft) * (
-     .                     -( gpex(ix1,iy)/(0.5*(ne(ix2,iy)+ne(ix1,iy)))+
-     .                                cthe*flxlimf*gtex(ix1,iy) )/qe ) +
+     .                                     -( gpex(ix1,iy)/nexface +
+     .                                cthe*flxlimf*gtex(ix1,iy) )/qe -
+     .                                              gpondpotx(ix,iy) +
+     .                 pondomfpare_use(ix,iy)/(qe*rrv(ix,iy)*nexface) ) + 
      .                      isphiofft * (
      .                            (phi(ix1,iy)-phi(ix2,iy))*gxf(ix1,iy) )
             enddo
@@ -2323,20 +2364,25 @@ c  *** a Jacobian calculation
 c ...    integ. sources over cells (but not for Jac) for higher-order accuracy
 
              do ifld = 1, nfsp  # loop over ions
-                call volave(nx, ny, j2, j5, i2, i5, ixp1(0,0), ixm1(0,0), 
-     .                 fsprd, vol(0,0), psor_tmpov(0,0), psor(0,0,ifld))
-                call volave(nx, ny, j2, j5, i2, i5, ixp1(0,0), ixm1(0,0),
-     .                 fsprd, vol(0,0), psor_tmpov(0,0), psorxr(0,0,ifld))
+                call volave(nx, ny, j2, j5, i2, i5, ixp1(0:nx+1,0:ny+1), 
+     .                 ixm1(0:nx+1,0:ny+1),fsprd, vol(0:nx+1,0:ny+1), 
+     .                 psor_tmpov(0:nx+1,0:ny+1), psor(0:nx+1,0:ny+1,ifld))
+                call volave(nx, ny, j2, j5, i2, i5, ixp1(0:nx+1,0:ny+1), 
+     .                 ixm1(0:nx+1,0:ny+1), fsprd, vol(0:nx+1,0:ny+1), 
+     .                 psor_tmpov(0:nx+1,0:ny+1), psorxr(0:nx+1,0:ny+1,ifld))
              enddo
 
 c *** Now do the gas
              do igsp = 1, ngsp  # now loop over gas species
-                call volave(nx, ny, j2, j5, i2, i5, ixp1(0,0), ixm1(0,0),
-     .                fsprd, vol(0,0), psor_tmpov(0,0), psorg(0,0,igsp))
-                call volave(nx, ny, j2, j5, i2, i5, ixp1(0,0), ixm1(0,0),
-     .                fsprd, vol(0,0), psor_tmpov(0,0), psorrg(0,0,igsp))
-                call volave(nx, ny, j2, j5, i2, i5, ixp1(0,0), ixm1(0,0),
-     .                fsprd, vol(0,0), psor_tmpov(0,0), psorcxg(0,0,igsp))
+                call volave(nx, ny, j2, j5, i2, i5, ixp1(0:nx+1,0:ny+1), 
+     .                ixm1(0:nx+1,0:ny+1), fsprd, vol(0:nx+1,0:ny+1), 
+     .                psor_tmpov(0:nx+1,0:ny+1), psorg(0:nx+1,0:ny+1,igsp))
+                call volave(nx, ny, j2, j5, i2, i5, ixp1(0:nx+1,0:ny+1), 
+     .                ixm1(0:nx+1,0:ny+1), fsprd, vol(0:nx+1,0:ny+1), 
+     .                psor_tmpov(0:nx+1,0:ny+1), psorrg(0:nx+1,0:ny+1,igsp))
+                call volave(nx, ny, j2, j5, i2, i5, ixp1(0:nx+1,0:ny+1), 
+     .                ixm1(0:nx+1,0:ny+1), fsprd, vol(0:nx+1,0:ny+1), 
+     .                psor_tmpov(0:nx+1,0:ny+1), psorcxg(0:nx+1,0:ny+1,igsp))
              enddo
        
           endif   # end of if (yl(neq+1).lt.0) test
@@ -2370,7 +2416,7 @@ c *** Now do the gas
 c In the case of neutral parallel mom, call neudif to get
 c flux fngy, vy and uu, now that we have evaluated nuix etc.
 *****************************************************************
-
+      if (TimingPandfOn.gt.0) TimeNeudif=tick()
 ccc      if (isupgon .eq. 1 .and. zi(ifld) .eq. 0.0) call neudif
       if (ineudif .eq. 1) then
          call neudif
@@ -2385,7 +2431,7 @@ c ..Timing
       else
          call neudifo
       endif
-
+      if (TimingPandfOn.gt.0) TotTimeNeudif=TotTimeNeudif+tock(TimeNeudif)
 *****************************************************************
 *  Other volume sources calculated in old SRCMOD
 *****************************************************************
@@ -2424,6 +2470,7 @@ c...  Force fluxes and gradients on cuts to be zero for half-space problems
          do ix = i2, i5
             ix1 = ixm1(ix,iy)
             ix2 = ixp1(ix,iy)
+            nexface = 0.5*(ne(ix2,iy)+ne(ix,iy))
             t1 =.5*cvgp*(upe(ix,iy)*rrv(ix,iy)*
      .              ave(gx(ix,iy),gx(ix2,iy))*gpex(ix,iy)/gxf(ix,iy) +
      .                   upe(ix1,iy)*rrv(ix1,iy)*
@@ -2431,53 +2478,56 @@ c...  Force fluxes and gradients on cuts to be zero for half-space problems
             t2 = 1.e-20* 0.25*(fqp(ix,iy)+fqp(ix1,iy))*
      .                (ex(ix,iy)+ex(ix1,iy))/gx(ix,iy)
             seec(ix,iy) = seec(ix,iy) + t1*vol(ix,iy) - t2
-            if (nusp-isupgon(1).eq.1) smoc(ix,iy,1) = -cpgx*gpex(ix,iy)*
-     .                                   rrv(ix,iy)*sx(ix,iy)/gxf(ix,iy)
-         enddo
+            if (nusp-isupgon(1).eq.1) smoc(ix,iy,1)=(( -cpgx*gpex(ix,iy)-
+     .                   qe*nexface*gpondpotx(ix,iy) )*rrv(ix,iy)  +
+     .                     pondomfpare_use(ix,iy) )*sx(ix,iy)/gxf(ix,iy)
+         enddo 
       enddo
 
 *  -- Now loop over all ion species for seec, seic, and smoc --
 
       do 101 ifld = 1, nusp  #not nfsp; up only for ifld<=nusp
+* ------ *
+        if(zi(ifld) > 1.e-20) then  #only ions here; atoms follow
+* ------ *
 *     -- coupling in the x-direction --
-
-         do 31 iy = j2, j5
-            do 30 ix = i2, i5
+*     -- (note sign change in pondomfpari_use term starting 031722)
+           do 31 iy = j2, j5
+             do 30 ix = i2, i5
                ix1 = ixm1(ix,iy)
                ix2 = ixp1(ix,iy)
-               tv =  gpix(ix ,iy,ifld)/gxf(ix,iy)
+               tv = gpix(ix ,iy,ifld)/gxf(ix,iy)
                t1 = gpix(ix1,iy,ifld)/gxf(ix1,iy)
                t1 = .5*cvgp*( up(ix,iy,ifld)*rrv(ix,iy)*
      .                                 ave(gx(ix2,iy),gx(ix,iy))*tv
      .                      + up(ix1,iy,ifld)*rrv(ix1,iy)*
      .                                 ave(gx(ix,iy),gx(ix1,iy))*t1 )
                seic(ix,iy) = seic(ix,iy) + cfvgpx(ifld)*t1*vol(ix,iy)
-               if (zi(ifld) .ne. 0) then
-                 t0 = - cpiup(ifld)*gpix(ix,iy,ifld)*rrv(ix,iy)*
-     .                                              sx(ix,iy)/gxf(ix,iy)
-                 if (nusp-isupgon(1) .eq. 1) then  # single ion mom. eq.
-                    smoc(ix,iy,1) = smoc(ix,iy,1) + cpgx*t0
-                 else                # multiple mom. eq., so nusp=nisp
-                    t0 = t0 +( qe*zi(ifld)*0.5*( ni(ix2,iy,ifld)+
-     .                         ni(ix,iy,ifld) )*ex(ix,iy)*rrv(ix,iy) +
-     .                         frici(ix,iy,ifld) )* sx(ix,iy)/gxf(ix,iy)
-                    if (ifld <= nusp) smoc(ix,iy,ifld) = 
-     .                                        smoc(ix,iy,ifld) + cpgx*t0 
-                 endif
-c...  Add friction part of Q_e here
-                 tv = 0.25*(frice(ix,iy)+frice(ix1,iy))*
-     .                ( upe(ix,iy)     + upe(ix1,iy) -
-     .                upi(ix,iy,ifld) - upi(ix1,iy,ifld) )
-                 seec(ix,iy) = seec(ix,iy) - zi(ifld)**2*ni(ix,iy,ifld)*
-     .                                          tv*vol(ix,iy)/nz2(ix,iy)
-c... REMEMBER TO ADD CONTRIBUTION TO SEEC FROM V2 1/26/95
+               t0 = - cpiup(ifld)*( gpix(ix,iy,ifld)*rrv(ix,iy) -
+     .                                  pondomfpari_use(ix,iy,ifld) )*
+     .                                            sx(ix,iy)/gxf(ix,iy)
+               if (nusp-isupgon(1) .eq. 1) then  # single ion mom. eq.
+                  smoc(ix,iy,1) = smoc(ix,iy,1) + cpgx*t0
+               else                # multiple mom. eq., so nusp=nisp
+                  t0 = t0 +( qe*zi(ifld)*0.5*( ni(ix2,iy,ifld)+
+     .                       ni(ix,iy,ifld) )*ex(ix,iy)*rrv(ix,iy) +
+     .                       frici(ix,iy,ifld) )* sx(ix,iy)/gxf(ix,iy)
+                  if (ifld <= nusp) smoc(ix,iy,ifld) = 
+     .                                      smoc(ix,iy,ifld) + cpgx*t0 
                endif
-   30       continue
-   31    continue
+c...  Add friction part of Q_e here
+               tv = 0.25*(frice(ix,iy)+frice(ix1,iy))*
+     .              ( upe(ix,iy)     + upe(ix1,iy) -
+     .              upi(ix,iy,ifld) - upi(ix1,iy,ifld) )
+               seec(ix,iy) = seec(ix,iy) - zi(ifld)**2*ni(ix,iy,ifld)*
+     .                                        tv*vol(ix,iy)/nz2(ix,iy)
+               
+   30        continue
+   31      continue
 
 *     -- coupling in the x & y-directions --
-         do 34 iy = j2, j5
-           do 33 ix = i2, i5
+           do 34 iy = j2, j5
+            do 33 ix = i2, i5
              if (isgpye == 0) then
                ix1 = ixm1(ix,iy)
                ix2 = ixp1(ix,iy)
@@ -2504,15 +2554,49 @@ c... REMEMBER TO ADD CONTRIBUTION TO SEEC FROM V2 1/26/95
                t1 = -0.5*( vy(ix,iy  ,ifld)*gpey(ix,iy  ) +
      .                     vy(ix,iy-1,ifld)*gpey(ix,iy-1) )
              endif
-             if (zi(ifld).gt.1e-10) then 
-               seec(ix,iy) = seec(ix,iy) - fluxfacy*t1 * vol(ix,iy)
-               seic(ix,iy) = seic(ix,iy) + fluxfacy*cfvgpy(ifld)*t2*
+             seec(ix,iy) = seec(ix,iy) - fluxfacy*t1 * vol(ix,iy)
+             seic(ix,iy) = seic(ix,iy) + fluxfacy*cfvgpy(ifld)*t2*
      .                                                     vol(ix,iy)
-             endif
-   33      continue
-   34    continue
+   33       continue
+   34      continue
 
-  101 continue
+        endif  #test on zi(ifld) > 0, so only ion terms
+  101 continue  #ifld loop over ion species
+
+c ... Now include seic contribution from hydrogen atoms if isupgon=1
+c ... Then "ion" species 2 (redundant as gas species 1) is hydr atom
+
+      if(isupgon(1)==1 .and. zi(2)<1.e-20 .and. istgon(1)==0) then
+        if(cfvgpx(2) > 0.) then
+          do iy = j2, j5
+            do ix = i2, i5
+              ix1 = ixm1(ix,iy)
+              ix2 = ixp1(ix,iy)
+              iy1 = max(0,iy-1)
+              seic(ix,iy) = seic(ix,iy) + 0.5*cfvgpx(2)*( 
+     ,                       uuxg(ix, iy,1)*gpix(ix,iy,2) +
+     .                       uuxg(ix1,iy,1)*gpix(ix1,iy,2) )*vol(ix,iy)
+              seic(ix,iy) = seic(ix,iy) + 0.5*cfvgpy(2)*( 
+     .                        vyg(ix, iy,1)*gpiy(ix,iy,2) +
+     .                        vyg(ix,iy1,1)*gpiy(ix,iy1,2) )*vol(ix,iy)
+            enddo
+          enddo
+        else  # Here if cfvgpx(2)=0, old vpar_g*grad_Pg only => ifld=2
+          do iy = j2, j5
+            do ix = i2, i5
+               ix1 = ixm1(ix,iy)
+               ix2 = ixp1(ix,iy)
+               tv = gpix(ix ,iy,2)/gxf(ix,iy)
+               t1 = gpix(ix1,iy,2)/gxf(ix1,iy)
+               t1 = .5*cvgp*( up(ix,iy,2)*rrv(ix,iy)*
+     .                               ave(gx(ix2,iy),gx(ix,iy))*tv
+     .                    + up(ix1,iy,2)*rrv(ix1,iy)*
+     .                               ave(gx(ix,iy),gx(ix1,iy))*t1 )
+               seic(ix,iy) = seic(ix,iy) + t1*vol(ix,iy)
+            enddo
+          enddo
+        endif  #test on cfvgpx(2) > 0 or = 0
+      endif   #test for inertial neutrals
 
 *****************************************************************
 *  Other physics coefficients. (old PHYVIS)
@@ -2525,8 +2609,10 @@ c... REMEMBER TO ADD CONTRIBUTION TO SEEC FROM V2 1/26/95
 c
 c     neutral viscosity for isupgon=1
 c
+c  Logic here is specialized; only ifld=2 (igsp=1) has viscosity calc.
+c  If more neutral species have full parallel mom eqn, need to redo loops
          if(isupgon(1) .eq. 1 .and. zi(ifld) .eq. 0)then
-            do 936 iy = j1,j6
+            do 936 iy = j1,j5
                iyp1 = min(iy+1,ny+1)
                do 937 ix = i1,i6
 c
@@ -2552,8 +2638,7 @@ c
                     rrfac = rr(ix,iy)*rr(ix,iy)
                     lmfpn = lmfppar*rrfac + lmfpperp*(1-rrfac)
                   endif
-                  csh = lmfpn*nm(ix,iy,ifld)*
-     .                            sqrt(max(ti(ix,iy),temin*ev)/mi(ifld))*
+                  csh = lmfpn*nm(ix,iy,ifld)*vtn*
      .                                      lgvmax/(lgvmax + lmfpn)  
                   qsh = csh * (up(ix1,iy,ifld)-up(ix,iy,ifld)) *
      .                                                       gx(ix,iy)
@@ -2561,13 +2646,47 @@ c
      .               (1 + (abs(qsh/(qfl+cutlo))**flgamvg))**(1./flgamvg)
      .               + cfanomvisxg*travis(ifld)*nm(ix,iy,ifld)
 
-c    Now do y-direction; csh is the same for neutrals, but should use den face
- 		  qfl = flalfvgya(iy)*nm(ix,iy,ifld)*vtn**2
+c    Now do y-direction; use ni on up y-face
+                  ix2 = ixp1(ix,iy)
+                  ix3 = ixp1(ix,iyp1)
+                  tgupyface = 0.25*( tg(ix,iy,1)+
+     .                         tg(ix,iyp1,1)+tg(ix2,iy,1)+
+     .                         tg(ix3,iyp1,1) )
+                  vtn = sqrt(max(tgupyface,temin*ev)/mi(ifld))
+                  nmxface = 0.5*(nm(ix,iy,ifld)+nm(ix2,iy,ifld))
+                  ngupyface = 0.25*( ni(ix,iy,ifld)+
+     .                         ni(ix,iyp1,ifld)+ni(ix2,iy,ifld)+
+     .                         ni(ix3,iyp1,ifld) )
+                  n1upyface = 0.25*( ni(ix,iy,1)+
+     .                         ni(ix,iyp1,1)+ni(ix2,iy,1)+
+     .                         ni(ix3,iyp1,1) )
+                  if(ishymol == 0) then
+                    lmfppar = vtn/(kelhihg*n1upyface +
+     .                                         kelhghg*ngupyface)
+                    lmfpperp = vtn/( vtn*sigcx*n1upyface + 
+     .                      kelhihg*n1upyface+kelhghg*ngupyface )
+                    lmfpn = lmfppar*rrfac + lmfpperp*(1-rrfac)
+                  else  # ishymol=1
+                    ng2upyface = 0.25*( ng(ix,iy,2)+
+     .                         ng(ix,iyp1,2)+ng(ix2,iy,2)+
+     .                         ng(ix3,iyp1,2) )
+                    lmfppar = vtn/(kelhihg*n1upyface +
+     .                     kelhghg*n1upyface + kelhmhg*ng2upyface)
+                    lmfpperp = vtn/( vtn*sigcx*n1upyface + 
+     .                     kelhihg*n1upyface +kelhghg*ngupyface +
+     .                     kelhmhg*ng2upyface )
+                    lmfpn = lmfppar*rrfac + lmfpperp*(1-rrfac)
+                  endif
+        
+                  csh = lmfpn*ngupyface*mi(ifld)*vtn*
+     .                                      lgvmax/(lgvmax + lmfpn)  
+
+ 		  qfl = flalfvgya(iy)*ngupyface*mi(ifld)*vtn**2
                   qsh = csh * (up(ix,iy,ifld)-up(ix,iyp1,ifld)) * 
      .                                                        gyf(ix,iy)
                   visy(ix,iy,ifld)= cfvisyn*csh / 
      .               (1 + (abs(qsh/(qfl+cutlo))**flgamvg))**(1./flgamvg)
-     .               + cfanomvisyg*travis(ifld)*nm(ix,iy,ifld)
+     .               + cfanomvisyg*travis(ifld)*nmxface
 c
  937           continue
  936        continue
@@ -2947,8 +3066,10 @@ c
 ccc In detail, coef1 = qe**4*sqrt(me)*lnlam / ((2*pi)**1.5*eps0**2)
       do 74 iy = j2, j5
          do 73 ix = i2, i5
+            ix2 = ixm1(ix,iy)
             a = max (te(ix,iy), temin*ev)
-            coef1 = feqp*4.8e-15*loglambda(ix,iy)*sqrt(ev)*ev*mp
+            loglmcc = 0.5*(loglambda(ix,iy)+loglambda(ix2,iy))
+            coef1 = feqp*4.8e-15*loglmcc*sqrt(ev)*ev*mp
             eqp(ix,iy) = coef1 * w3(ix,iy) * ne(ix,iy) / (a*sqrt(a))
 c...       reduce eqp when (te-ti)/(te+ti) << 1
             eqp(ix,iy) = eqp(ix,iy) * (a-ti(ix,iy))**2 / ( cutlo +
@@ -3393,8 +3514,8 @@ ccc Distance between veloc. cell centers:
 *  -- compute the momentum transport --
 
          call fd2tra (nx,ny,flox,floy,conx,cony,
-     .                up(0,0,ifld),fmix(0,0,ifld),
-     .                fmiy(0,0,ifld),1, methu)
+     .                up(0:nx+1,0:ny+1,ifld),fmix(0:nx+1,0:ny+1,ifld),
+     .                fmiy(0:nx+1,0:ny+1,ifld),1, methu)
 
       if (isnonog .eq. 1) then
 
@@ -3418,9 +3539,8 @@ c     The density-stencil dxnog has to be averaged as well.
      .                  fy0v (ix,iy,0)*up(ix1,iy  ,ifld)-
      .                  fypv (ix,iy,0)*up(ix5,iy+1,ifld)-
      .                  fymxv(ix,iy,0)*up(ix ,iy1 ,ifld)-
-     .                  fypxv(ix,iy,0)*up(ix ,iy+1,ifld) ) /
-     .                     ( 2*dxnog(ix,iy)*dxnog(ix1,iy) /
-     .                       (dxnog(ix,iy)+dxnog(ix1,iy)) )
+     .                  fypxv(ix,iy,0)*up(ix ,iy+1,ifld) )*2/
+     .                              (dxnog(ix,iy)+dxnog(ix1,iy))
                if (isgxvon .eq. 0) then
                   fmixy(ix,iy,ifld) = cfvisxy(ifld)*visy(ix,iy,ifld) *
      .              ( grdnv/cos(0.5*(angfx(ix1,iy)+angfx(ix,iy))) - 
@@ -3437,7 +3557,6 @@ c     The density-stencil dxnog has to be averaged as well.
 c...  Now flux limit with flalfvgxy if ifld=2
                if (ifld==2) then
                  t0 = max(tg(ix,iy,1),temin*ev)
-                 t1 = max(tg(ix2,iy,1),temin*ev)
                  vtn = sqrt(t0/mg(1))
                  qfl = flalfvgxya(ix)*0.5*(sx(ix,iy)+sx(ix1,iy))*vtn**2*
      .                                        nm(ix,iy,ifld) + cutlo
@@ -3644,7 +3763,7 @@ c     The neutral species, momentum coupling AND other source terms:
                   ix2 = ixp1(ix,iy)
 c ... IJ 2016/10/10 use cfneutdiv_fmg multiplier for neutrals 
 c                 if (ifld .ne. iigsp) then
-	          if(zi(ifld) .ne. 0) then # IJ 2016; depends if ion or neut
+	          if(zi(ifld) > 1.e-20) then # IJ 2016; depends if ion or neut
                     resmo(ix,iy,ifld) = resmo(ix,iy,ifld)
      .                 + (fmixy(ix2,iy,ifld) - fmixy(ix,iy,ifld))
                   else
@@ -3662,7 +3781,7 @@ c***	IJ 2017/09/21: Need to add similar fmgxy calculation for MC neutrals on non
 c IJ 2016/10/10 add cfneutdiv_fmg multiplier for neutrals to control fraction of momentum to add 
 c               if (ifld .ne. iigsp) then
 c ... IJ 2016 resmo contrib changes if ion or neut
-	       if(zi(ifld) .ne. 0) then
+	       if(zi(ifld) > 1.e-20) then
                  resmo(ix,iy,ifld) = resmo(ix,iy,ifld)
      .                                 - (fmix(ix2,iy,ifld) - fmix(ix,iy  ,ifld)
      .                        + fluxfacy*(fmiy(ix ,iy,ifld) - fmiy(ix,iy-1,ifld)) )
@@ -3745,10 +3864,9 @@ c  -- it is included in frici from mombal or mombalni
             feeycbo(ix) = 0.0e0
             w0(ix,iy) = 0.0e0
             w1(ix,iy) = 0.0e0
-            wvh(ix,iy,1) = 0.0e0
-	    wvh(ix,iy,2) = 0.0e0
   707    continue
   708 continue
+      wvh = 0.0e0    #wvh is 3D vector (ix,iy,nusp)
 
 *  -- compute conxe and conxi --
 
@@ -4751,12 +4869,16 @@ c******************************************************************
                   enddo
                endif
  255        continue
-            iv =  idxte(ix,iy)
-            iv1 = idxti(ix,iy)
-	    if(isteonxy(ix,iy).eq.1) yldot(iv) = (1-iseqalg(iv)) *
-     .                                  resee(ix,iy)/(vol(ix,iy)*ennorm)
-	    if(istionxy(ix,iy).eq.1) yldot(iv1) = (1-iseqalg(iv1)) *
+            if(isteonxy(ix,iy) == 1) then
+              iv =  idxte(ix,iy)
+	      yldot(iv) = (1-iseqalg(iv)) *
+     .                                 resee(ix,iy)/(vol(ix,iy)*ennorm)
+            endif
+            if(istionxy(ix,iy) == 1) then
+              iv1 = idxti(ix,iy)
+	      yldot(iv1) = (1-iseqalg(iv1)) *
      .                                 resei(ix,iy)/(vol(ix,iy)*ennorm)
+            endif
             do 256 igsp = 1, ngsp
 	      if(isngonxy(ix,iy,igsp).eq.1) then
                 iv2 = idxg(ix,iy,igsp)
@@ -4842,7 +4964,7 @@ c ... Accumulate cpu time spent here.
       else
          ttotjf = ttotjf + gettime(sec4) - tsjf
       endif
-
+      if (TimingPandfOn.gt.0) TotTimePandf=TotTimePandf+tock(TimePandf)
       return
       end
 c****** end of subroutine pandf ************
@@ -5112,6 +5234,7 @@ c ... Common blocks:
       Use(Coefeq)       # cfnetap
       Use(Volsrc)       # volmsor
       Use(Npes_mpi)
+      Use(Conduc)       # pondomfpari_use
 
 
 c ... Local variables:
@@ -5184,7 +5307,8 @@ c ... of pressure and Ti at poloidal density-cell faces.
             ifld = ifld + 1
             if (ziin(ifld) .lt. 1.e-10) ifld = ifld+1 #skip gas index
             den(misa,nz) = 0.5 * (ni(ix,iy,ifld) + ni(ix1,iy,ifld))
-            gradp(misa,nz) = rrv(ix,iy) * gpix(ix,iy,ifld)
+            gradp(misa,nz) = rrv(ix,iy) * gpix(ix,iy,ifld) -
+     .                                      pondomfpari_use(ix,iy,ifld)
             tempa(misa) = 0.5 * (ti(ix,iy) + ti(ix1,iy))
             gradt(misa,nz) = rrv(ix,iy) * gtix(ix,iy) 
             zeffv = 0.5*(zeff(ix,iy)+zeff(ix1,iy))
@@ -5365,7 +5489,8 @@ c
       real tnuiz,ngnot,lmfp,ty0,ty1,nlmt,nu1,nu2,ffyi,ffyo
       integer iy1, methgx, methgy, iy2, jx
       logical isxyfl
-
+      integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
+      real t,t0,t1,t2,a
       Use(Dim)      # nx,ny,nhsp,nisp,ngsp,nxpt
       Use(Xpoint_indices)      # ixlb,ixpt1,ixpt2,ixrb,iysptrx1
       Use(Share)    # geometry,nxc,isnonog,cutlo,islimon,ix_lim,iy_lims
@@ -5373,8 +5498,6 @@ c
       Use(UEpar)    # methg,
                     # qfl,csh,qsh,cs,
                     # isupgon,iigsp,nlimgx,nlimgy,nlimiy,rld2dx,rld2dy
-      Use(Aux)      # ix,iy,igsp,iv,iv1,iv2,iv3,
-                    # ix1,ix2,ix3,ix4,ix5,ix6,t,t0,t1,t2,a
       Use(Coefeq)   # cngfx,cngfy,cngmom,cmwall,cdifg,rld2dxg,rld2dyg
       Use(Bcond)    # albedoo,albedoi
       Use(Parallv)  # nxg,nyg
@@ -5579,7 +5702,8 @@ c...  now add the convective velocity for the charge-exchange species
 *  --------------------------------------------------------------------
 
       call fd2tra (nx,ny,floxg,floyg,conxg,conyg,
-     .             ng(0,0,igsp),fngx(0,0,igsp),fngy(0,0,igsp),0,methg)
+     .             ng(0:nx+1,0:ny+1,igsp),fngx(0:nx+1,0:ny+1,igsp),
+     .             fngy(0:nx+1,0:ny+1,igsp),0,methg)
 
 c...  Addition for nonorthogonal mesh
       if (isnonog .eq. 1) then
@@ -5653,7 +5777,7 @@ ccc            MER: Set flag to apply xy flux limit except at target plates
      .                     (log(ng(ix2,iy,igsp)) - log(ng(ix,iy,igsp)))*
      .                                 gxf(ix,iy) ) * sx(ix,iy)
               else
-               fngxy(ix,iy,igsp) = difgx2*(grdnv/cos(angfx(ix,iy)) -
+               fngxy(ix,iy,igsp) = difgx2*( grdnv/cos(angfx(ix,iy)) -
      .                             (ng(ix2,iy,igsp) - ng(ix,iy,igsp))*
      .                                 gxf(ix,iy) ) * sx(ix,iy)
               endif
@@ -5840,11 +5964,14 @@ c
       real tsngxlog,tsngylog,tsngfd2,tsngfxy
       real dndym1,dndy0,dndyp1,d2ndy20,d2ndy2p1,d3ndy3
       real dndxm1,dndx0,dndxp1,d2ndx20,d2ndx2p1,d3ndx3
-      real flalfgx_adj, flalfgy_adj, flalfgxy_adj
+      real flalfgx_adj, flalfgy_adj, flalfgxy_adj, ngxface, ngyface
       integer iy1, methgx, methgy, iy2, jx, jfld, ifld
       integer iym1,iyp1,iyp2,ixm1b,ixp1b,ixp2b
       logical isxyfl
       real(Size4) sec4, gettime
+      # Former Aux module variables
+      integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
+      real t,t0,t1,t2,a
 
       Use(Dim)      # nx,ny,nhsp,nisp,ngsp,nxpt
       Use(Xpoint_indices)      # ixlb,ixpt1,ixpt2,ixrb,iysptrx1
@@ -5853,8 +5980,6 @@ c
       Use(UEpar)    # methg,
                     # qfl,csh,qsh,cs,
                     # isupgon,iigsp,nlimgx,nlimgy,nlimiy,rld2dx,rld2dy
-      Use(Aux)      # ix,iy,igsp,iv,iv1,iv2,iv3,
-                    # ix1,ix2,ix3,ix4,ix5,ix6,t,t0,t1,t2,a
       Use(Coefeq)   # cngfx,cngfy,cngmom,cmwall,cdifg,rld2dxg,rld2dyg
       Use(Bcond)    # albedoo,albedoi
       Use(Parallv)  # nxg,nyg
@@ -5903,6 +6028,7 @@ c ..Timing;initialize
             ix2 = ixp1(ix,iy)
             ix4 = ixp1(ix,iy1)
             ix6 = ixp1(ix,iy2)
+            ngxface = 0.5*(ng(ix,iy,igsp)+ng(ix2,iy,igsp))
             t0 = max(tg(ix,iy,igsp),temin*ev)
             t1 = max(tg(ix2,iy,igsp),temin*ev)
             vtn = sqrt( t0/mg(igsp) )
@@ -5911,7 +6037,7 @@ c ..Timing;initialize
             nu2 = nuix(ix2,iy,igsp) + vtnp/lgmax(igsp)
 	    tgf = 0.5*(tg(ix,iy,igsp)+tg(ix2,iy,igsp))
             flalfgx_adj = flalfgxa(ix,igsp)*( 1. +
-     .                    (cflbg*ngbackg(igsp)/ng(ix,iy,igsp))**inflbg )
+     .                    (cflbg*ngbackg(igsp)/ngxface)**inflbg )
             qfl = flalfgx_adj * sx(ix,iy) * (vtn + vtnp)*rt8opi*
      .           (ng(ix,iy,igsp)*gx(ix,iy) + ng(ix2,iy,igsp)*gx(ix2,iy))
      .                                      / (8*(gx(ix,iy)+gx(ix2,iy)))
@@ -6010,6 +6136,7 @@ c ..Timing; initiate time for y-direction calc
 
       do 890 iy = j1, j5
          do 889 ix = i4, i8
+            ngyface = 0.5*(ng(ix,iy,igsp)+ng(ix,iy+1,igsp))
 	    t0 = max(tg(ix,iy,igsp),temin*ev)
 	    t1 = max(tg(ix,iy+1,igsp),temin*ev)
             vtn = sqrt( t0/mg(igsp) )
@@ -6018,7 +6145,7 @@ c ..Timing; initiate time for y-direction calc
             nu2 = nuix(ix,iy+1,igsp) + vtnp/lgmax(igsp)
 	    tgf = 0.5*(tg(ix,iy,igsp)+tg(ix,iy+1,igsp))
             flalfgy_adj = flalfgya(iy,igsp)*( 1. +
-     .                   (cflbg*ngbackg(igsp)/ng(ix,iy,igsp))**inflbg )
+     .                   (cflbg*ngbackg(igsp)/ngyface)**inflbg )
             qfl = flalfgy_adj * sy(ix,iy) * (vtn + vtnp)*rt8opi*
      .                              ( ngy0(ix,iy,igsp)*gy(ix,iy) + 
      .                                ngy1(ix,iy,igsp)*gy(ix,iy+1) ) / 
@@ -6109,7 +6236,8 @@ c ..Timing
       if(istimingon==1) tsngfd2 = gettime(sec4)
 
       call fd2tra (nx,ny,floxg,floyg,conxg,conyg,
-     .             pg(0,0,igsp),fngx(0,0,igsp),fngy(0,0,igsp),0,methg)
+     .             pg(0:nx+1,0:ny+1,igsp),fngx(0:nx+1,0:ny+1,igsp),
+     .             fngy(0:nx+1,0:ny+1,igsp),0,methg)
 c ..Timing
       if(istimingon==1) ttngfd2=ttngfd2+(gettime(sec4)-tsngfd2)
 
@@ -6192,12 +6320,13 @@ ccc            MER: Set flag to apply xy flux limit except at target plates
      .                                 gxf(ix,iy) ) * sx(ix,iy)
               endif
 c...  Now flux limit with flalfgxy
+               ngxface = 0.5*(ng(ix,iy,igsp)+ng(ix2,iy,igsp))
                t0 = max(tg(ix,iy,igsp),temin*ev)
                t1 = max(tg(ix2,iy,igsp),temin*ev)
                vtn = sqrt( t0/mg(igsp) )
                vtnp = sqrt( t1/mg(igsp) )
                flalfgxy_adj = flalfgxya(ix,igsp)*( 1. +
-     .                     (cflbg*ngbackg(igsp)/ng(ix,iy,igsp))**inflbg )
+     .                     (cflbg*ngbackg(igsp)/ngxface)**inflbg )
                qfl = flalfgxy_adj*sx(ix,iy) * (vtn + vtnp)*rt8opi*
      .           (ng(ix,iy,igsp)*gx(ix,iy) + ng(ix2,iy,igsp)*gx(ix2,iy))
      .                                      / (8*(gx(ix,iy)+gx(ix2,iy)))
@@ -6299,26 +6428,30 @@ c ... fluxes are fngx -> fnix and fngy -> fngy in pandf, i.e., methg
 c ... determines the differencing for the inertial particle fluxes, not 
 c ... methn
       do iy = j1, j5
-         do ix = i1,i5
-            ix1 = ixp1(ix,iy)
-            if (1.-rrv(ix,iy) > 1.e-4 .or. isupgon(igsp)==0) then 
+        do ix = i1,i5
+          ix1 = ixp1(ix,iy)
+          if (1.-rrv(ix,iy) > 1.e-4 .or. isupgon(igsp)==0) then 
                            #combine binormal/par comps or x only diffusive
-               uug(ix,iy,igsp) = fngx(ix,iy,igsp) / (
-     .                        0.5*(ng(ix,iy,igsp)+ng(ix1,iy,igsp))
-     .                                                      *sx(ix,iy) )
-            else   # binormal component negligable small
-               uug(ix,iy,igsp) = up(ix,iy,iigsp)
-            endif
-            vyg(ix,iy,igsp) = fngy(ix,iy,igsp) / (
-     .                        0.5*(ng(ix,iy,igsp)+ng(ix,iy+1,igsp))
+             uug(ix,iy,igsp) = fngx(ix,iy,igsp) / (
+     .                      0.5*(ng(ix,iy,igsp)+ng(ix1,iy,igsp))
+     .                                                    *sx(ix,iy) )
+c ...    remove nonorthogonal vy component from uug for seic contrib
+             uuxg(ix,iy,igsp) = (fngx(ix,iy,igsp)+fngxy(ix,iy,igsp))/ (
+     .                      0.5*(ng(ix,iy,igsp)+ng(ix1,iy,igsp))
+     .                                                    *sx(ix,iy) )
+          else   # binormal component negligable small
+             uug(ix,iy,igsp) = up(ix,iy,iigsp)
+          endif
+          vyg(ix,iy,igsp) = fngy(ix,iy,igsp) / (
+     .                      0.5*(ng(ix,iy,igsp)+ng(ix,iy+1,igsp))
      .                                                      *sy(ix,iy) )
 c --------------- transfer inertial gas velocities to neutral ion species
-            if (isupgon(igsp).eq.1) then
-               vy(ix,iy,iigsp) = vyg(ix,iy,igsp)
-            endif
-         enddo
+          if (isupgon(igsp).eq.1) then
+             vy(ix,iy,iigsp) = vyg(ix,iy,igsp)
+          endif
+        enddo
 cfw ----   If doing only the outer half we want this boundary condition:
-         if (iy.le.iysptrx2(1).and.isfixlb(1).eq.2) uug(ixpt2(1),iy,igsp) = 0
+        if(iy.le.iysptrx2(1).and.isfixlb(1).eq.2) uug(ixpt2(1),iy,igsp)=0
       enddo
 
 c **- loop for uu just as in the previous version - needed for correct Jac?
@@ -6429,7 +6562,9 @@ c --------------------------------------------------------------------------
       real tnuiz,ngnot,lmfp,ty0,ty1,nlmt,ffyo,ffyi
       integer iy1, methgx, methgy, iy2, jx
       logical isxyfl
-
+      # Former Aux module variables
+      integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
+      real t,t0,t1,t2,a
       Use(Dim)      # nx,ny,nhsp,nisp,ngsp,nxpt
       Use(Xpoint_indices)      # ixlb,ixpt1,ixpt2,ixrb,iysptrx1
       Use(Share)    # geometry,nxc,isnonog,cutlo,islimon,ix_lim,iy_lims
@@ -6437,8 +6572,6 @@ c --------------------------------------------------------------------------
       Use(UEpar)    # methg,
                     # qfl,csh,qsh,cs,
                     # isupgon,iigsp,nlimgx,nlimgy,nlimiy,rld2dx,rld2dy
-      Use(Aux)      # ix,iy,igsp,iv,iv1,iv2,iv3,
-                    # ix1,ix2,ix3,ix4,ix5,ix6,t,t0,t1,t2,a
       Use(Coefeq)   # cngfx,cngfy,cngmom,cmwall,cdifg,rld2dxg,rld2dyg
       Use(Bcond)    # albedoo,albedoi
       Use(Parallv)  # nxg,nyg
@@ -6636,7 +6769,8 @@ c...  now add the convective velocity for the charge-exchange species
 *  --------------------------------------------------------------------
 
       call fd2tra (nx,ny,floxg,floyg,conxg,conyg,
-     .             lng(0,0,igsp),flngx(0,0,igsp),flngy(0,0,igsp),0,methg)
+     .             lng(0:nx+1,0:ny+1,igsp),flngx(0:nx+1,0:ny+1,igsp),
+     .             flngy(0:nx+1,0:ny+1,igsp),0,methg)
 
 c...  Addition for nonorthogonal mesh
       if (isnonog .eq. 1) then
@@ -6834,8 +6968,9 @@ c ..  the gas fluxes and then used to form fnix if isupgon(igsp)=1
       Use(UEpar)    # methg,
                     # qfl,csh,qsh,cs,
                     # isupgon,iigsp,nlimgx,nlimgy
-      Use(Aux)      # ix,iy,igsp,iv,iv1,iv2,iv3,
-                    # ix1,ix2,ix3,ix4,ix5,ix6,t,t0,t1,t2,a
+       # Former Aux module variables
+      integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
+      real t,t0,t1,t2,a
       Use(Coefeq)   # cngfx,cngfy,cngmom,cmwall,cdifg,rld2dxg,rld2dyg
       Use(Bcond)    # albedoo,albedoi
       Use(Parallv)  # nxg,nyg
@@ -7049,7 +7184,8 @@ c...  now add the convective velocity for the charge-exchange species
 *  --------------------------------------------------------------------
 
       call fd2tra (nx,ny,floxg,floyg,conxg,conyg,
-     .             ng(0,0,igsp),fngx(0,0,igsp),fngy(0,0,igsp),0,methg)
+     .             ng(0:nx+1,0:ny+1,igsp),fngx(0:nx+1,0:ny+1,igsp),
+     .             fngy(0:nx+1,0:ny+1,igsp),0,methg)
 
 c ... Calculate the neutral flow velocity from v = flux/ng
       do 8903 iy = j1, j5
@@ -7274,8 +7410,9 @@ c --------------------------------------------------------------------------
       real vt0,vt1,wallfac,lxtgc,dupdx,dupdy,fniy_recy,thetacc
       real vttn,vttp
       integer ifld,iixt,iy1, methgx, methgy, iy2, jx
-
-
+      #Former Aux module variables
+      integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
+      real t0,t1,t2,tv,a
       Use(Dim)      # nx,ny,nhsp,nisp,ngsp,nxpt
       Use(Xpoint_indices)      # ixlb,ixpt1,ixpt2,ixrb,iysptrx1
       Use(Share)    # geometry,nxc,isnonog,cutlo,islimon,ix_lim,iy_lims
@@ -7283,8 +7420,7 @@ c --------------------------------------------------------------------------
       Use(UEpar)    # methg,
                     # qfl,csh,qsh,cs,
                     # isupgon,iigsp,nlimgx,nlimgy,nlimiy,rld2dx,rld2dy
-      Use(Aux)      # ix,iy,igsp,iv,iv1,iv2,iv3,
-                    # ix1,ix2,ix3,ix4,ix5,ix6,t,t0,t1,t2,a
+
       Use(Coefeq)   # cngfx,cngfy,cngmom,cmwall,cdifg,rld2dxg,rld2dyg
       Use(Bcond)    # albedoo,albedoi
       Use(Parallv)  # nxg,nyg
@@ -7305,8 +7441,47 @@ c --------------------------------------------------------------------------
       Use(MCN_dim)  #
       Use(MCN_sources)   # cfneutsor_ei
 
+*  -- procedures --
+      real ave
+      ave(t0,t1) = 2*t0*t1 / (cutlo+t0+t1)
 
-*  -- initialize some arrays to 0 --
+*  -- Compute sources terms v_grad_Pg; first initialize array over range
+c  -- This v_grad_Pg term first added by MZhao
+
+      do igsp = 1, ngsp
+        do iy = j2, j5
+          do ix = i2, i5
+            segc(ix,iy,igsp) = 0.0
+          enddo
+        enddo
+      enddo
+
+      do igsp = 1, ngsp
+        if(istgon(igsp) == 1) then
+          do iy = j2, j5
+            do ix = i2, i5
+              ix1 = ixm1(ix,iy)
+              ix2 = ixp1(ix,iy)
+              iy1 = max(0,iy-1)
+              tv = (pg(ix2,iy,igsp) - pg(ix ,iy,igsp))
+              t1 = (pg(ix ,iy,igsp) - pg(ix1,iy,igsp))
+              segc(ix,iy,igsp) = 0.5*cvgpg*( 
+     ,                 uug(ix, iy,igsp)*ave(gx(ix2,iy),gx(ix, iy))*tv +
+     .                 uug(ix1,iy,igsp)*ave(gx(ix ,iy),gx(ix1,iy))*t1 )*
+     .                                                      vol(ix,iy)
+              t2 = cvgpg*0.5*( vyg(ix, iy,igsp)*dynog(ix, iy)*
+     .                       (pgy1(ix, iy,igsp)-pgy0(ix, iy,igsp)) +
+     .                   vyg(ix,iy1,igsp)*dynog(ix,iy1)*
+     .                       (pgy1(ix,iy1,igsp)-pgy0(ix,iy1,igsp)) )
+              segc(ix,iy,igsp)=segc(ix,iy,igsp) + cvgpg*t2*vol(ix,iy)
+            enddo
+          enddo
+        endif
+      enddo
+
+
+
+*  -- Compute flux terms; initialize some arrays to 0 --
 
       do igsp = 1, ngsp
         do iy = j1, j6
@@ -7372,14 +7547,14 @@ c... flux-limit occurs in building hcxg - do not flux-limit 2nd time
       do igsp = 1, ngsp
         do iy = j4, j8
           do jx = 1, nxpt  #if at plate, sub (1-cfloxiplt)*neut-contrib
-            if(ixmnbcl==1) then  #real plate-need for parallel UEDGE
+            if(ixmnbcl==1) then  #real div plt -need for parallel UEDGE
               iixt = ixlb(jx) #left plate
               if(fngx(iixt,iy,igsp) > 0.) then
                 floxge(iixt,iy,igsp) = floxge(iixt,iy,igsp) -
      .                    (1.-cfloxiplt)*cfcvti*2.5*fngx(iixt,iy,igsp)
               endif
             endif
-            if(ixmxbcl==1) then #real plate-need for parallel UEDGE
+            if(ixmxbcl==1) then #real div plt -need for parallel UEDGE
               iixt = ixrb(jx) # right plate
               if(fngx(iixt,iy,igsp) < 0.) then
                 floxge(iixt,iy,igsp) = floxge(iixt,iy,igsp) -
@@ -7401,14 +7576,106 @@ c... flux-limit occurs in building hcxg - do not flux-limit 2nd time
         enddo
       enddo
  
+*  -- Correct bdry:remove any inward power from walls; ok in parallel
+      do igsp = 1, ngsp
+        do ix = i4, i8
+          do jx = 1, nxpt  #if on PF wall, sub (1-cfloygw)*neut-contrib
+            if(iymnbcl==1) then  #real PFw-need for parallel UEDGE?
+              if(ix <= ixpt1(jx) .or. ix > ixpt2(jx)) then
+                if(fngy(ix,0,igsp) > 0.) then
+                  floyge(ix,0,igsp) = floyge(ix,0,igsp) -
+     .                       (1.-cfloygwall)*cfcvtg*2.5*fngy(ix,0,igsp)
+                endif
+              endif
+            endif
+          enddo
+          if(iymxbcl==1) then #real outer-w-need for parallel UEDGE?
+            if(fngy(ix,ny,igsp) < 0.) then
+              floyge(ix,ny,igsp) = floyge(ix,ny,igsp) -
+     .                    (1.-cfloygwall)*cfcvtg*2.5*fngy(ix,ny,igsp)
+            endif
+          endif
+          floyge(ix,ny+1,igsp) = 0.0e0 #cosmetic
+        enddo   #ix loop
+      enddo
+
 *  -- Combine conduction/convection to compute thermal energy flow --
       do igsp = 1,ngsp
         if(istgon(igsp) == 1) then
-          call fd2tra (nx,ny,floxge(0,0,igsp),floyge(0,0,igsp),
-     .                 conxge(0,0,igsp),conyge(0,0,igsp),tg(0,0,igsp),
-     .                 fegx(0,0,igsp),fegy(0,0,igsp),0,methi)
+          call fd2tra (nx,ny,floxge(0:nx+1,0:ny+1,igsp), 
+     .          floyge(0:nx+1,0:ny+1,igsp), conxge(0:nx+1,0:ny+1,igsp),
+     .          conyge(0:nx+1,0:ny+1,igsp),tg(0:nx+1,0:ny+1,igsp),
+     .          fegx(0:nx+1,0:ny+1,igsp),fegy(0:nx+1,0:ny+1,igsp),
+     .          0,methi)
         endif
       enddo
+
+c...  Add y-component of nonorthogonal diffusive flux; convective component 
+c...  already added to uug(ix,iy,igsp)
+      if (isnonog == 1) then
+        do igsp = 1, ngsp
+          if(istgon(igsp) == 0) cycle
+          do iy = j1, j6
+            if (iy .gt. ny) cycle
+            iy1 = max(iy-1,0)
+            do ix = i1, i6
+              ix1 = ixm1(ix,iy)
+              ix2 = ixp1(ix,iy)
+              ix3 = ixm1(ix,iy1)
+              ix4 = ixp1(ix,iy1)
+              ix5 = ixm1(ix,iy+1)
+              ix6 = ixp1(ix,iy+1)
+              t0 = max(tg(ix,iy,igsp),temin*ev)
+              t1 = max(tg(ix2,iy,igsp),temin*ev)
+              vtn = sqrt( t0/mg(igsp) )
+              vtnp = sqrt( t1/mg(igsp) )
+              nu1 = nuix(ix,iy,igsp) + vtn/lgmax(igsp)
+              nu2 = nuix(ix2,iy,igsp) + vtnp/lgmax(igsp)
+
+c --- Note: this four-point average results in not getting the full Jac. for
+c --- a nonorthogonal mesh because of ngy1,0 - see def. of hcyn
+
+                grdnv =( ( fym (ix,iy,1)*log(tg(ix2,iy1 ,igsp)) +  
+     .                     fy0 (ix,iy,1)*log(tg(ix2,iy  ,igsp)) +
+     .                     fyp (ix,iy,1)*log(tg(ix2,iy+1,igsp)) +  
+     .                     fymx(ix,iy,1)*log(tg(ix ,iy1 ,igsp)) +
+     .                     fypx(ix,iy,1)*log(tg(ix ,iy+1,igsp)) ) 
+     .                  -( fym (ix,iy,0)*log(tg(ix ,iy1 ,igsp)) +
+     .                     fy0 (ix,iy,0)*log(tg(ix ,iy  ,igsp)) +
+     .                     fyp (ix,iy,0)*log(tg(ix ,iy+1,igsp)) +
+     .                     fymx(ix,iy,0)*log(tg(ix4,iy1 ,igsp)) +  
+     .                     fypx(ix,iy,0)*log(tg(ix6,iy+1,igsp)) ) ) / 
+     .                                                  dxnog(ix,iy)  
+               difgx2 = ave( tg(ix ,iy,igsp)/nu1,
+     .                       tg(ix2,iy,igsp)/nu2 )/mg(igsp)
+     .                         + rld2dxg(igsp)**2*(1/gxf(ix,iy)**2)*
+     .                           0.5*(nuiz(ix,iy,igsp)+nuiz(ix2,iy,igsp))
+
+               fegxy(ix,iy,igsp) = cfegxy*exp( 0.5*
+     .                 (log(tg(ix2,iy,igsp))+log(tg(ix,iy,igsp))) )*
+     .                      difgx2*ave(ng(ix2,iy,igsp),ng(ix,iy,igsp))*
+     .                                 ( grdnv/cos(angfx(ix,iy))
+     .                  - (log(tg(ix2,iy,igsp)) - log(tg(ix,iy,igsp)))*
+     .                                        gxf(ix,iy) )*sx(ix,iy)
+c...  Flux limit with flalftxt even though hcys have parallel FL built in
+               t0 = max(tg(ix,iy,igsp),temin*ev)
+               t1 = max(tg(ix2,iy,igsp),temin*ev)
+               vttn = t0*sqrt( t0/mg(igsp) )
+               vttp = t1*sqrt( t1/mg(igsp) )
+       if(isfegxyqflave == 0) then
+               qfl = flalftgxy(igsp)*0.25*sx(ix,iy) * (vttn+vttp) * 
+     .                              (ng(ix,iy,igsp)+ng(ix2,iy,igsp))
+       else  #use harmonic average of T*vt and ng to face
+               qfl = flalftgxy(igsp) * sx(ix,iy) * ave(vttn,vttp) * 
+     .                            ave(ng(ix,iy,igsp),ng(ix2,iy,igsp))
+       endif
+               fegxy(ix,iy,igsp) = fegxy(ix,iy,igsp) /
+     .                          sqrt(1. + (fegxy(ix,iy,igsp)/qfl)**2)
+               fegx(ix,iy,igsp) = fegx(ix,iy,igsp) - fegxy(ix,iy,igsp)
+             enddo  #loop over ix
+           enddo    #loop over iy
+        enddo       #loop over igsp
+      endif         #if-test on isnonog
 
 *  ---------------------------------------------------------------------
 *  compute the energy residuals.
@@ -7418,16 +7685,28 @@ c... flux-limit occurs in building hcxg - do not flux-limit 2nd time
 
       do igsp = 1, ngsp
         do iy = j2, j5
+          iy1 = max(0,iy-1)
           do ix = i2, i5
             ix1 = ixm1(ix,iy)
             reseg(ix,iy,igsp)= -( fegx(ix,iy,igsp)-fegx(ix1,iy,  igsp)+
-     .                            fegy(ix,iy,igsp)-fegy(ix, iy-1,igsp) )
+     .                            fegy(ix,iy,igsp)-fegy(ix, iy1,igsp) )
+     .                                                + segc(ix,iy,igsp)
             reseg(ix,iy,igsp)= reseg(ix,iy,igsp) + vol(ix,iy)* 
      .                      eqpg(ix,iy,igsp)*(ti(ix,iy)-tg(ix,iy,igsp))+
      .                   cftgdiss(igsp)*psorg(ix,iy,igsp)*tg(ix,iy,igsp)
           enddo
         enddo
       enddo
+
+      if((isudsym==1.or.geometry.eq.'dnXtarget') .and. nxc > 1) then
+        do igsp = 1, ngsp
+          do iy = j2, j5
+            fegx(nxc-1,iy,igsp) = 0. 
+            fegx(nxc  ,iy,igsp) = 0. 
+            fegx(nxc+1,iy,igsp) = 0. 
+          enddo
+        enddo
+      endif
 
 *  -- Energy transfer to impurity neutrals at tg(,,igsp)
       if (ngsp >= 2) then   # for now, specialized to igsp=2 only
@@ -7638,7 +7917,7 @@ c...  variables are used, i.e., n,nv,nT, or n,v,T, or n,v,nT
       Use(Compla)
       Use(Indexes)
       Use(Selec)     # i2,i5,j2,j5,ixp1
-      Use(Aux)       # ix,iy,iv,iv1,iv2,ix1
+
       Use(Coefeq)    # cngtgx
       Use(UEpar)     # isnion,isupon,isteon,istion,isngon,isnionxy,isuponxy,
                      # isteonxy,istionxy,isngonxy,isphionxy
@@ -7650,6 +7929,8 @@ c...  variables are used, i.e., n,nv,nT, or n,v,T, or n,v,nT
 
 *  -- Local variables
       integer ifld
+      #Former Aux module variables
+      integer ix,iy,iv,iv1,iv2,ix1,igsp
       real nbv, nbvdot, nbidot, nbedot, nbgdot, yldot_np1, nbg2dot(ngsp)
 
 c...  If isflxvar=0, we use ni,v,Te,Ti,ng as variables, and the ODEs need
@@ -7722,20 +8003,24 @@ c ....            Fix limiter case with algebraic eqns, not ODEs
                endif
   257       continue
             if (isflxvar .eq. 0) then
-               iv =  idxte(ix,iy)
-               iv1 = idxti(ix,iy)
-	       if(isteonxy(ix,iy).eq.1 .and. iseqalg(iv).eq.0) then
-                 yldot(iv) = ( yldot(iv)*nnorm - 
+               if(isteonxy(ix,iy) == 1) then
+                 iv =  idxte(ix,iy)
+	         if(iseqalg(iv) == 0) then
+                   yldot(iv) = ( yldot(iv)*nnorm - 
      .                                       yl(iv)*nbedot ) / ne(ix,iy)
+                 endif
                endif
-	       if(istionxy(ix,iy).eq.1 .and. iseqalg(iv1).eq.0) then
-                 if(isupgon(1)==1) then  #atom dens included in nbidot
-                   yldot(iv1) = ( yldot(iv1)*nnorm - yl(iv1)*nbidot  ) /
+	       if(istionxy(ix,iy) == 1) then
+                 iv1 = idxti(ix,iy)
+                 if(iseqalg(iv1) == 0) then
+                   if(isupgon(1)==1) then  #atom dens included in nbidot
+                     yldot(iv1) = ( yldot(iv1)*nnorm - yl(iv1)*nbidot  )/
      .                                       (nit(ix,iy)+ ni(ix,iy,2))
-                 else      #atom dens not included in nbidot
-                   yldot(iv1) = ( yldot(iv1)*nnorm - yl(iv1)*
+                   else      #atom dens not included in nbidot
+                     yldot(iv1) = ( yldot(iv1)*nnorm - yl(iv1)*
      .                             ( nbidot + cngtgx(1)*nbg2dot(1) ) ) /
      .                            (nit(ix,iy) + cngtgx(1)*ng(ix,iy,1))
+                   endif
                  endif
                endif
                do igsp = 1, ngsp
@@ -7745,7 +8030,7 @@ c ....            Fix limiter case with algebraic eqns, not ODEs
      .                            yl(iv)*nbg2dot(igsp) )/ng(ix,iy,igsp)
                  endif
               enddo
-            endif
+            endif   #end if-test on isflxvar
   260    continue
  270  continue
 
@@ -7763,7 +8048,6 @@ c   -------------------------------------------------------------------------
       Use(Dim)      # nx,nxm,ny,nisp
       Use(Math_problem_size)   # neqmx(for arrays not used here)
       Use(Comgeo)   # vol
-      Use(Aux)      # ix,iy
       Use(RZ_grid_info)   # rm,zm
       Use(Volsrc)   # pwrsore,pwrsori,volpsor,pvole,pvoli,ivolcur,
                     # z0pe,z0pi,r0pe,r0pi,zwpe,zwpi,rwpe,rwpi,
@@ -7781,6 +8065,8 @@ c   -------------------------------------------------------------------------
      &     ivolcurgt, mvolcurt
       real argr, argz
       integer isxjcsor, iexjcsor, isyjcsor, ieyjcsor, ifld, nj
+      #Former Aux module variables
+      integer ix,iy,igsp
 
 
 c...  Initialize values and arrays
@@ -7799,15 +8085,16 @@ c...  Initialize values and arrays
       call s2fill (nx+2, ny+2, 0., pwrsori, 1, nx+2)
       call s2fill (nx+2, ny+2, 0., pwrsore, 1, nx+2)
       call s2fill (nx+2, ny+2, 0., voljcsor, 1, nx+2)
+      call s2fill (nx+2, ny+2, 0., pondpot, 1, nx+2)
       do ifld = 1, nisp
-        call s2fill (nx+2, ny+2, 0., volpsor(0,0,ifld), 1, nx+2)
-        call s2fill (nx+2, ny+2, 0., volmsor(0,0,ifld), 1, nx+2)
+        call s2fill (nx+2, ny+2, 0., volpsor(0:nx+1,0:ny+1,ifld), 1, nx+2)
+        call s2fill (nx+2, ny+2, 0., volmsor(0:nx+1,0:ny+1,ifld), 1, nx+2)
         ivolcurt = ivolcurt + ivolcur(ifld)
         mvolcurt = mvolcurt + mvolcur(ifld)
       enddo
       do igsp = 1, ngsp
-        call s2fill (nx+2, ny+2, 0., volpsor(0,0,igsp), 1, nx+2)
-        call s2fill (nx+2, ny+2, 0., volmsor(0,0,igsp), 1, nx+2)
+        call s2fill (nx+2, ny+2, 0., volpsor(0:nx+1,0:ny+1,igsp), 1, nx+2)
+        call s2fill (nx+2, ny+2, 0., volmsor(0:nx+1,0:ny+1,igsp), 1, nx+2)
         ivolcurgt = ivolcurgt + ivolcurg(igsp)
       enddo        
 cccMER NOTE: generalize the following for multiple x-points
@@ -7833,7 +8120,8 @@ cc Define index ranges for a localized ion-loss sink; crude & temporary
         ieyjcsor = iysptrx
       endif
 
-      if ( abs(pvoli+pvole+ivolcurt+mvolcurt+ivolcurgt+jcvsor)
+      if ( abs( pvoli+pvole+ivolcurt+mvolcurt+
+     .                        ivolcurgt+jcvsor+ponderompot )
      .                      > 0. ) then   # skip, big jump to end
 
       do 20 iy = 0, ny+1
@@ -7873,44 +8161,48 @@ cc  Temporary localized current source (for prompt ion loss)
  20   continue
 
       do 40 iy = 0, ny+1
-         if (rm(0+nj,iy,0).lt.rlimiter .or. islimsor.eq.1) then
+        if (rm(0+nj,iy,0).lt.rlimiter .or. islimsor.eq.1) then
          do 30 ix = 0, nx+1
             zc = z0ni - (rm(ix+nj,iy,0)-r0ni)*sin(thetarot) +
      .                  (zm(ix+nj,iy,0)-z0ni)*cos(thetarot)
             rc = r0ni + (rm(ix+nj,iy,0)-r0ni)*cos(thetarot) +
      .                  (zm(ix+nj,iy,0)-z0ni)*sin(thetarot)
-            if (zc.lt.zcutmin .or. rc.lt.rcutmin) goto 30
-             argz = min(25., ((zc-z0pe)/zwpe)**2)
-             argr = min(25., ((rc-r0pe)/rwpe)**2)            
-            pwrsore(ix,iy) =pvole*vol(ix,iy)*exp(-argz-argr)/effvpe
-             argz = min(25., ((zc-z0pi)/zwpi)**2)
-             argr = min(25., ((rc-r0pi)/rwpi)**2)            
-            pwrsori(ix,iy) =pvoli*vol(ix,iy)*exp(-argz-argr)/effvpi
-            do ifld = 1, nisp
-               argz = min(25., ((zc-z0ni)/zwni)**2)
-               argr = min(25., ((rc-r0ni)/rwni)**2)            
-              volpsor(ix,iy,ifld) = ivolcur(ifld) * vol(ix,iy) *
+            if (zc < zcutmin .or. rc < rcutmin) goto 30
+               argz = min(25., ((zc-z0pe)/zwpe)**2)
+               argr = min(25., ((rc-r0pe)/rwpe)**2)            
+              pwrsore(ix,iy) =pvole*vol(ix,iy)*exp(-argz-argr)/effvpe
+               argz = min(25., ((zc-z0pi)/zwpi)**2)
+               argr = min(25., ((rc-r0pi)/rwpi)**2)            
+              pwrsori(ix,iy) =pvoli*vol(ix,iy)*exp(-argz-argr)/effvpi
+               argz = min(25., ((zc-z0pondp)/zwpondp)**2)
+               argr = min(25., ((rc-r0pondp)/rwpondp)**2)            
+              pondpot(ix,iy) = ponderompot*exp(-argz-argr)
+              do ifld = 1, nisp
+                 argz = min(25., ((zc-z0ni)/zwni)**2)
+                 argr = min(25., ((rc-r0ni)/rwni)**2)            
+                volpsor(ix,iy,ifld) = ivolcur(ifld) * vol(ix,iy) *
      .                                   exp(-argz-argr)/(effvni*ev)
-               argz = min(25., ((zc-z0up)/zwup)**2)
-               argr = min(25., ((rc-r0up)/rwup)**2)            
-              volmsor(ix,iy,ifld) = mvolcur(ifld) * vol(ix,iy) *
+                 argz = min(25., ((zc-z0up)/zwup)**2)
+                 argr = min(25., ((rc-r0up)/rwup)**2)            
+                volmsor(ix,iy,ifld) = mvolcur(ifld) * vol(ix,iy) *
      .                                   exp(-argz-argr)/(effvup*ev)
-            enddo
-            do igsp = 1, ngsp
-               argz = min(25., ((zc-z0ng(igsp))/zwng(igsp))**2)
-               argr = min(25., ((rc-r0ng(igsp))/rwng(igsp))**2)            
-              volpsorg(ix,iy,igsp) = ivolcurg(igsp) * vol(ix,iy) *
+              enddo
+              do igsp = 1, ngsp
+                 argz = min(25., ((zc-z0ng(igsp))/zwng(igsp))**2)
+                 argr = min(25., ((rc-r0ng(igsp))/rwng(igsp))**2)            
+                volpsorg(ix,iy,igsp) = ivolcurg(igsp) * vol(ix,iy) *
      .                                 exp(-argz-argr)/(effvng(igsp)*ev)
-            enddo
+              enddo
 cccMER For full double-null configuration, iysptrx is last closed flux surface
 cc  Temporary localized current source (for prompt ion loss)
-            if (iy >= isyjcsor .and. iy <= ieyjcsor) then
-              if (ix .ge. isxjcsor .and. ix .le. iexjcsor) then
-                voljcsor(ix,iy) = jcvsor*vol(ix,iy) / effvjel
+              if (iy >= isyjcsor .and. iy <= ieyjcsor) then
+                if (ix .ge. isxjcsor .and. ix .le. iexjcsor) then
+                  voljcsor(ix,iy) = jcvsor*vol(ix,iy) / effvjel
+                endif
               endif
-            endif
+cccs            endif  # test on zcutmin and rcutmin
  30      continue
-         endif
+        endif   # test on rlimiter and islimsor
  40   continue
 
       endif  # end of large if beginning if (abs(pvoli+pvole+...
@@ -8058,7 +8350,7 @@ c ... Beginning of execution for call rhsnk (by nksol).
 c ... Calculate right-hand sides for interior and boundary points.
 ccc 10   call convsr_vo (-1,-1, yl)  # test new convsr placement
 ccc      call convsr_aux (-1,-1, yl) # test new convsr placement
- 10   call pandf1 (-1, -1, 0, neq, tloc, yl, yldot)
+ 10   call pandf1rhs_interface ( neq, tloc, yl, yldot)
 
  20   continue
       return
@@ -8111,6 +8403,7 @@ c ... Common blocks:
       Use(Parallv)                 # nxg,nyg
       Use(Time_dep_nwt)            # nufak,dtreal,ylodt,dtuse
       Use(Selec)                   # yinc
+      Use(Jacaux)                  # ExtendedJacPhi
 
 c ... Functions:
       logical tstguardc
@@ -8156,6 +8449,9 @@ c ... Set beginning and ending indices of right-hand sides that might be
 c     perturbed.
          ii1 = max(iv-mu, 1)
          ii2 = min(iv+ml, neq)
+c... >>>>> WARNING (added by J.Guterl)
+c... >>>>> WARNING -> Do not forget to keep consistency between this subroutine and localjacbuilder in parallel.F90 when modifiying jacobian eval.
+c... >>>>> WARNING
 c ... Reset range if this is a potential perturbation with isnewpot=1
 ccc         if (isphion*isnewpot.eq.1 .and. mod(iv,numvar).eq.0) then
 cc  Comment out;storage for Jac inconsistent if mu & ml above not used
@@ -8164,6 +8460,23 @@ cc         if (isphion*isnewpot.eq.1 .and. mfnkso < 4) then
 cc            ii1 = max(iv-4*numvar*nx, 1)      # 3*nx may be excessive
 cc            ii2 = min(iv+4*numvar*nx, neq)    # 3*nx may be excessive
 cc         endif
+
+cc J.Guterl: I disagree with the statement above about inconsistent storage. Storage is consistent for abs(mfnksol)<4 with ilut preconditionner
+cc         : as the reconstruction of the jacobian is not based on ubw and lbw.
+cc         : For the banded preconditioner, out of bound checks have been added to csrbnd
+cc         : where lbw abd ubw are simply given to estimate the max dimension of the jacobian.
+cc         : The banded method can be then used even without fully consistent ubw and lbw.
+cc         : Further validation of this statement is needed though.
+cc         : Also, stencil analysis can be performed with the UEDGEToolBox extension.
+
+c... Option added to keep extended Jacobian when phi eq. is on (Added by J.Guterl). See comments above
+        if (ExtendedJacPhi.gt.0) then
+        if(isphion*isnewpot.eq.1 .and. mod(iv,numvar).eq.0) then
+            ii1 = max(iv-4*numvar*nx, 1)      # 3*nx may be excessive
+            ii2 = min(iv+4*numvar*nx, neq)    # 3*nx may be excessive
+        endif
+       endif
+
 c ... Reset range if extrapolation boundary conditions are used
 cc  This reset of ii1,2 may also cause storage prob.; see just above
          if (isextrnpf+isextrtpf+isextrngc+isextrnw+isextrtw.gt.0) then
@@ -8244,11 +8557,10 @@ cc               if (rdoff.ne.0.e0) jacelem=jacelem*(1.0e0+ranf()*rdoff)
 
          enddo  # end of ii loop over equations
 
-c ... Restore dependent variable and plasma variables near its location.
+c ... Restore dependent variable yl & assoicated plasma vars near perturbation
          yl(iv) = yold
          call pandf1 (xc, yc, iv, neq, t, yl, wk)
 
-ccc 18   continue
 c...  If this is the last variable before jumping to new cell, reset pandf 
 ccc  Call not needed because goto 18 svrpkg=daspk option disabled above
 ccc         if (mod(iv,numvar).eq.0 .and. isjacreset.ge.1) then
@@ -8257,7 +8569,7 @@ ccc         endif
    
 c ... End loop over dependent variables and finish Jacobian storage.
 c##############################################################      
-      enddo             # end of main loop over yl variables
+      enddo             # end of main iv-loop over yl variables
 c##############################################################
 
       jcsc(neq+1) = nnz
@@ -8977,7 +9289,7 @@ c ... Call pandf to set terms with yl(neq+1) flag on for Jacobian
 
 c ... Calculate Jacobian matrix. 
       tp = 0.
-      call jac_calc (neq, tp, yl, f0, lbw, ubw, wk,
+      call jac_calc_interface (neq, tp, yl, f0, lbw, ubw, wk,
      .               nnzmx, jac, jacj, jaci)
       yl(neq+1) = -1.             # Turn-off Jacobian flag for pandf
       call rhsnk (neq, yl, f0)    # Reset f0 with nufak off
@@ -9353,7 +9665,9 @@ c ... Common blocks:
 c ... Local variables:
       real tp
       integer i
-
+      #Add working array to avoid recursive variable assignment
+      real wk(neq)
+      wk(1:neq)=0.0
 c ... Flag these calls to RHS (pandf) as Jacobian calculations
       yl(neq+1) = 1.  # with ccc, dont include nufak in scaling Jacobian
 
@@ -9362,7 +9676,8 @@ c ... Calculate right-hand sides at unperturbed values of variables.
 
 c ... Calculate Jacobian matrix.
       tp = 0.
-      call jac_calc (neq, tp, yl, yldot0, lbw, ubw, sf,
+      #Working array wk in place of sf in the call to jac_calc (J.Guterl)
+      call jac_calc_interface (neq, tp, yl, yldot0, lbw, ubw, wk,
      .               nnzmx, jac, jacj, jaci)
 
       yl(neq+1) = -1.      # Turn-off Jacobian flag for pandf
@@ -9806,25 +10121,24 @@ c ... Implicit function:
    
 
       if (ishosor .eq. 1) then  # averge power terms is ishosor=1
-         call volavenv(nx, ny, 1, ny, 1, nx, ixp1(0,0), ixm1(0,0),
-     .                               fsprd, psor_tmpov(0,0), prad)
+         call volavenv(nx, ny, 1, ny, 1, nx, ixp1(0:nx+1,0:ny+1), ixm1(0:nx+1,0:ny+1),
+     .                               fsprd, psor_tmpov(0:nx+1,0:ny+1), prad)
          do igsp = nhgsp+1, ngsp
            jz = igsp - nhgsp
            do iimp = 0, nzsp(jz)       
-             call volavenv(nx, ny, 1, ny, 1, nx, ixp1(0,0), ixm1(0,0),
-     .                     fsprd, psor_tmpov(0,0), pradz(0,0,iimp,jz))
+             call volavenv(nx, ny, 1, ny, 1, nx, ixp1(0:nx+1,0:ny+1), ixm1(0:nx+1,0:ny+1),
+     .                     fsprd, psor_tmpov(0:nx+1,0:ny+1), pradz(0:nx+1,0:ny+1,iimp,jz))
            enddo
         enddo
       endif
 
 # Set arrays to check energy conserv; add ion parallel drift and visc heat
 
-      do 10 ix=0,nx
-         do 9 iy=0,ny
+      do jx = 1, nxpt
+        do ix=ixlb(jx),ixrb(jx)
+          do iy=0,ny
             ix1 = ixm1(ix,iy)
             ix2 = ixp1(ix,iy)
-            ix3 = ixm1(ix,iy-1)
-            ix4 = ixm1(ix,iy+1)
             fety(ix,iy) = 0.
             fetx(ix,iy) = 0.
             do id = 1, nusp
@@ -9848,8 +10162,9 @@ c ... Implicit function:
             enddo
             fety(ix,iy) = fety(ix,iy) + feey(ix,iy) + feiy(ix,iy)
             fetx(ix,iy) = fetx(ix,iy) + feex(ix,iy) + feix(ix,iy)
-  9      continue 
- 10   continue
+          enddo
+        enddo
+      enddo
 
 # Now correct the boundary x-fluxes if non-unity ckinfl
       if (abs(ckinfl-1.) > 1.e-10) then
@@ -9880,8 +10195,9 @@ c ... Implicit function:
       pvmomcx = 0.e0
       ptjdote = 0.e0 
 
-      do 31 ix=1,nx
-         do 30 iy=1,ny
+      do jx = 1, nxpt
+        do ix=ixlb(jx)+1,ixrb(jx)
+          do iy=1,ny
             ix1 = ixm1(ix,iy)
             ix2 = ixp1(ix,iy)
 # Here peirad includes sum of electron and ion energy losses; note that binding
@@ -9923,8 +10239,9 @@ cc            ptjdote = ptjdote + jdote(ix,iy)
                engerr(ix,iy) = engerr(ix,iy) - prad(ix,iy)*vol(ix,iy)/
      .                                                     abs(pwrin)
             endif
- 30      continue
- 31   continue
+          enddo
+        enddo
+      enddo
 
 # ionization and background sources
 
@@ -9954,8 +10271,9 @@ cc            ptjdote = ptjdote + jdote(ix,iy)
       enddo    
       pradfft = 0.
       
-      do iy = 1, ny
-         do ix = 1, nx
+      do jx = 1, nxpt
+        do ix = ixlb(jx)+1,ixrb(jx)
+          do iy = 1, ny
             do igsp = 1, ngsp
               if (ishymol.eq.0 .or. igsp.ne.2) then
                iion(igsp) = iion(igsp) - cnsor*qe*psorg(ix,iy,igsp)
@@ -9963,7 +10281,8 @@ cc            ptjdote = ptjdote + jdote(ix,iy)
                icxgas(igsp) = icxgas(igsp) - qe*psorcxg(ix,iy,igsp)
               endif
             enddo
-         enddo
+          enddo
+        enddo
       enddo
 
       do igsp = 1, ngsp
@@ -9973,7 +10292,8 @@ cc            ptjdote = ptjdote + jdote(ix,iy)
       enddo
 
       do iy = 1, ny
-         do ix = 1, nx
+        do jx = 1, nxpt
+          do ix = ixlb(jx)+1, ixrb(jx)
             ix1 = ixm1(ix,iy)
             pradrc = pradrc + cnsor*erlrc(ix,iy)
             pradiz = pradiz + (eeli(ix,iy)-ebind*ev) * psor(ix,iy,1) 
@@ -9983,21 +10303,25 @@ cc            ptjdote = ptjdote + jdote(ix,iy)
             pibirth = pibirth + ceisor* eion*ev * (psordis(ix,iy)) -
      .                ccoldsor*ng(ix,iy,1)*(1.5*ti(ix,iy)-eion*ev)*
      .                                          nucx(ix,iy,1)*vol(ix,iy) 
-         enddo
+          enddo
+        enddo
       enddo
       pradht = pradiz + pradrc
    
       if (isimpon .eq. 2 .or. isimpon .eq. 7) then #fixed fraction model
          do iy = 1, ny
-            do ix = 1, nx
+           do jx = 1, nxpt
+             do ix = ixlb(jx)+1, ixrb(jx)
                pradfft = pradfft + pradcff(ix,iy)*vol(ix,iy)
-            enddo
+             enddo
+           enddo
          enddo
       endif
 
       if (isimpon .gt. 2) then  #separate impurity species
-         do 39 iy = 1, ny
-            do 38 ix = 1, nx
+         do iy = 1, ny
+           do jx = 1, nxpt
+             do ix = ixlb(jx)+1, ixrb(jx)
                do igsp = nhgsp+1, ngsp
                   jz = igsp - nhgsp
                   do iimp = 0, nzsp(jz)
@@ -10005,10 +10329,11 @@ cc            ptjdote = ptjdote + jdote(ix,iy)
      .                             pradz(ix,iy,iimp,jz)*vol(ix,iy)
                   enddo
                enddo
-            pradzbind = pradzbind + (pwrze(ix,iy)-prad(ix,iy))*
+               pradzbind = pradzbind + (pwrze(ix,iy)-prad(ix,iy))*
      .                                vol(ix,iy) # only total pradzbind calc
- 38         continue
- 39      continue
+             enddo
+           enddo
+         enddo
          do igsp = nhgsp+1, ngsp
             jz = igsp - nhgsp
             do iimp = 0, nzsp(jz)
@@ -10172,7 +10497,6 @@ c ... Use as diagnostic called from BASIS/Python parser (alt. to balancee)
       Use(Comgeo)         # sx,vol,gx,gxf
       Use(Noggeo)         # angfx
       Use(Phyvar)         # pi, ev
-      Use(Aux)            # ix,iy
       Use(Postproc)       # pwr_plth,Pwr_pltz,sdel,rb;sdil,rb; sdbindl,rb,
                           # sdtl,rb;gdil,rd
       Use(Xpoint_indices) # ixlb, ixrb
@@ -10186,6 +10510,8 @@ c ... Use as diagnostic called from BASIS/Python parser (alt. to balancee)
 
 c  Local variables
       integer iu,jx,id,ixi,ixo 
+      #Former Aux module variables
+      integer ix,iy
       real tempvo,tempvi
       real pdivilb(1:nxpt),pdivirb(1:nxpt),pdivelb(1:nxpt),
      .     pdiverb(1:nxpt)
@@ -10347,7 +10673,6 @@ c ... Use as diagnostic called from BASIS/Python parser (alt. to balancee)
       Use(Dim)            # nx,ny,nxpt
       Use(Comgeo)         # sy
       Use(Phyvar)         # pi, ev
-      Use(Aux)            # ix,iy
       Use(Postproc)       # pwr_wallh, Pwr_wallz
                           # swallr, swalli, swalle, swbind, swallt
                           # spfwallr
@@ -10357,6 +10682,8 @@ c ... Use as diagnostic called from BASIS/Python parser (alt. to balancee)
 
 c  Local variables
       integer jx,id,ixi,ixo,ip
+      #Former Aux module variables
+      integer ix,iy
       real pwallr,pwalli,pwalle,pwbind
       real swallid(0:nx+1,nfsp)
 
@@ -10727,40 +11054,40 @@ Use(Comgeo)         # vol,rr
       open (nunit, file=fname, form='formatted', status='unknown')
       do ifld = 1, nisp
          if (zi(ifld) .gt. 0) 
-     .      call gfsub3 (nunit,nx,ny,nxd,nyd,1,ni(0,0,ifld))
+     .      call gfsub3 (nunit,nx,ny,nxd,nyd,1,ni(0:nxd+1,0:nyd+1,ifld))
       enddo
       do ifld = 1, nisp
          if (zi(ifld) .gt. 0) 
-     .      call gfsub3 (nunit,nx,ny,nxd,nyd,1,uu(0,0,ifld))
+     .      call gfsub3 (nunit,nx,ny,nxd,nyd,1,uu(0:nxd+1,0:nyd+1,ifld))
       enddo
       do ifld = 1, nisp
          if (zi(ifld) .gt. 0) 
-     .      call gfsub3 (nunit,nx,ny,nxd,nyd,1,vy(0,0,ifld))
+     .      call gfsub3 (nunit,nx,ny,nxd,nyd,1,vy(0:nxd+1,0:nyd+1,ifld))
       enddo
-      call gfsub3 (nunit,nx,ny,nxd,nyd,1,te(0,0))
-      call gfsub3 (nunit,nx,ny,nxd,nyd,1,ti(0,0))
-      call gfsub3 (nunit,nx,ny,nxd,nyd,1,pr(0,0))
+      call gfsub3 (nunit,nx,ny,nxd,nyd,1,te(0:nxd+1,0:nyd+1))
+      call gfsub3 (nunit,nx,ny,nxd,nyd,1,ti(0:nxd+1,0:nyd+1))
+      call gfsub3 (nunit,nx,ny,nxd,nyd,1,pr(0:nxd+1,0:nyd+1))
       do ifld = 1, nisp
          if (zi(ifld) .gt. 0) 
-     .      call gfsub3 (nunit,nx,ny,nxd,nyd,1,upi(0,0,ifld))
+     .      call gfsub3 (nunit,nx,ny,nxd,nyd,1,upi(0:nxd+1,0:nyd+1,ifld))
       enddo
-      call gfsub3 (nunit,nx,ny,nxd,nyd,1,rr(0,0))
+      call gfsub3 (nunit,nx,ny,nxd,nyd,1,rr(0:nxd+1,0:nyd+1))
       do ifld = 1, nisp
          if (zi(ifld) .gt. 0) 
-     .      call gfsub3 (nunit,nx,ny,nxd,nyd,1,fnix(0,0,ifld))
+     .      call gfsub3 (nunit,nx,ny,nxd,nyd,1,fnix(0:nxd+1,0:nyd+1,ifld))
       enddo
       do ifld = 1, nisp
          if (zi(ifld) .gt. 0) 
-     .      call gfsub3 (nunit,nx,ny,nxd,nyd,1,fniy(0,0,ifld))
+     .      call gfsub3 (nunit,nx,ny,nxd,nyd,1,fniy(0:nxd+1,0:nyd+1,ifld))
       enddo
-      call gfsub3 (nunit,nx,ny,nxd,nyd,1,feix(0,0))
-      call gfsub3 (nunit,nx,ny,nxd,nyd,1,feiy(0,0))
-      call gfsub3 (nunit,nx,ny,nxd,nyd,1,feex(0,0))
-      call gfsub3 (nunit,nx,ny,nxd,nyd,1,feey(0,0))
-      call gfsub3 (nunit,nx,ny,nxd,nyd,1,vol(0,0))
+      call gfsub3 (nunit,nx,ny,nxd,nyd,1,feix(0:nxd+1,0:nyd+1))
+      call gfsub3 (nunit,nx,ny,nxd,nyd,1,feiy(0:nxd+1,0:nyd+1))
+      call gfsub3 (nunit,nx,ny,nxd,nyd,1,feex(0:nxd+1,0:nyd+1))
+      call gfsub3 (nunit,nx,ny,nxd,nyd,1,feey(0:nxd+1,0:nyd+1))
+      call gfsub3 (nunit,nx,ny,nxd,nyd,1,vol(0:nxd+1,0:nyd+1))
 
       nxd = nxm		# note dimension nxm rather than nx for b(,,)
-      call gfsub3 (nunit,nx,ny,nxd,nyd,1,b(0,0,0))
+      call gfsub3 (nunit,nx,ny,nxd,nyd,1,b(0:nxd+1,0:nyd+1,0))
 
       close (nunit)
       call remark(" *** background plasma file written for EIRENE ***")
@@ -11474,13 +11801,13 @@ c ... equations
 
 *  -- local variables
       integer methnx,methny,ifld
-
+      #Former Aux module variables
+      integer ix,iy,igsp,iv,iv1,iv2,iv3,ix2,ix3,ix4,ix5,ix6
+      real t,t0,t1,t2,a
       Use(Dim)      # nx,ny,nhsp,nisp,ngsp
       Use(Share)    # nxpt,geometry,nxc,cutlo
       Use(Xpoint_indices)      # ixpt1,ixpt2,iysptrx
       Use(UEpar)    # methn,nlimix,nlimiy,nlimiy
-      Use(Aux)      # ix,iy,igsp,iv,iv1,iv2,iv3,
-                    # ix1,ix2,ix3,ix4,ix5,ix6,t,t0,t1,t2,a
       Use(Coefeq)   # cnfx,cnfy
       Use(Selec)    # i1,i2,i3,i4,i5,i6,i7,i8,j1,j2,j3,j4,j5,j6,j7,j8
                     # xlinc,xrinc,yinc,ixm1,ixp1
@@ -11618,7 +11945,9 @@ c ... neoclassical effects
 *  -- local variables
       integer ifld
       real tempp,tempm,diffp,diffm
-
+      #Former Aux module variables
+      integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
+      real t,t0,t1,t2,a
       Use(Dim)      # nx,ny,nhsp,nisp,ngsp,nusp
       Use(Xpoint_indices)      # ixlb,ixpt1,ixpt2,ixrb,iysptrx1,iysptrx2
                                # iysptrx
@@ -11626,8 +11955,6 @@ c ... neoclassical effects
       Use(RZ_grid_info)  # bpol,b12,b32,bsqr
       Use(Bfield)   #rbfbt
       Use(Share)    # nxpt,geometry,nxc,cutlo
-      Use(Aux)      # ix,iy,igsp,iv,iv1,iv2,iv3,
-                    # ix1,ix2,ix3,ix4,ix5,ix6,tv,t0,t1,t2,a
       Use(Selec)    # i1,i2,i3,i4,i5,i6,i7,i8,xlinc,xrinc,ixs1,
                     # j1,j1p,j2,j2p,j3,j4,j5,j6,j5p,j6p,j7,j8,
       Use(Compla)   # ni,up,te,ti,ng,phi,v2cd,
@@ -11700,6 +12027,9 @@ c ... neoclassical viscosity effects
 
 *  -- local variables
       integer ifld
+      #Former Aux module variables
+      integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
+      real tv,t0,t1,t2,a
       real tempp,tempm,temp0,diffp,diffm,gradx_vpiv,gradx_vpiq
 
       Use(Dim)      # nx,ny,nhsp,nisp,ngsp,nusp
@@ -11709,8 +12039,6 @@ c ... neoclassical viscosity effects
       Use(RZ_grid_info)  # bpol,b12,b32,bsqr,b12ctr
       Use(Bfield)   #rbfbt
       Use(Share)    # nxpt,geometry,nxc,cutlo
-      Use(Aux)      # ix,iy,igsp,iv,iv1,iv2,iv3,
-                    # ix1,ix2,ix3,ix4,ix5,ix6,tv,t0,t1,t2,a
       Use(Selec)    # i1,i2,i3,i4,i5,i6,i7,i8,xlinc,xrinc,ixs1,
                     # j1,j1p,j2,j2p,j3,j4,j5,j6,j5p,j6p,j7,j8,
       Use(Compla)   # ni,up,te,ti,ng,phi,v2cd,
@@ -11789,3 +12117,83 @@ c  The output is the file jacwrite.txt
       write(*,*)"Jacobian written successfully to jacwrite.txt"
       end
 c ***** End of subroutine jacwrite **********
+
+      subroutine jac_calc_interface(neq, t, yl, yldot00, ml, mu, wk,
+     .                     nnzmx, jac, ja, ia)
+
+c ... Interface for Jacobian matrix calculation for nksol only(added by. J.Guterl)
+
+      implicit none
+
+c ... Input arguments:
+      integer neq      # total number of equations (all grid points)
+      real t           # physical time
+      real yl(*)       # dependent variables
+      real yldot00(neq+2) # right-hand sides evaluated at yl
+      integer ml, mu   # lower and upper bandwidths
+      integer nnzmx    # maximum number of nonzeros in Jacobian
+
+c ... Work-array argument:
+      real wk(neq)     # work space available to this subroutine
+
+c ... Output arguments:
+      real jac(nnzmx)     # nonzero Jacobian elements
+      integer ja(nnzmx)   # col indices of nonzero Jacobian elements
+      integer ia(neq+1)   # pointers to beginning of each row in jac,ja
+
+      Use(ParallelEval)   # ParallelJac
+
+c!omp  if (ParallelJac.eq.1) then
+c!omp    call jac_calc_parallel (neq, t, yl, yldot00, ml, mu, wk,
+c!omp.             nnzmx, jac, ja, ia)
+c!omp  else
+         call jac_calc (neq, t, yl, yldot00, ml, mu, wk,
+     .               nnzmx, jac, ja, ia)
+c!omp  endif
+       end subroutine jac_calc_interface
+
+      subroutine Pandf1rhs_interface(neq, time, yl, yldot)
+c ... Interface for pandf1 rhs calculation for nksol only (added by. J.Guterl)
+          implicit none
+          Use(Math_problem_size) # neqmx
+          Use(ParallelEval)      # ParallelPandf1
+          integer neq
+          real time, yl(neqmx),yldot(neq)
+
+c!omp     if (ParallelPandf1.gt.0) then
+c!omp         call OMPPandf1Rhs(neq, time, yl, yldot)
+c!omp     else
+              call pandf1(-1, -1, 0, neq, time, yl, yldot)
+c!omp     endif
+
+      end subroutine Pandf1rhs_interface
+
+        subroutine PrintTimingPandf()
+            Use(PandfTiming)
+            write(*,*) '----- Timing Pandf as eval rhs ----'
+            write(*,*) ' - TimePandf:',TotTimePandf
+            if (TotTimePandf.gt.0) then
+            write(*,*) ' - Convert0:', TotTimeConvert0,TotTimeConvert0/TotTimePandf
+            write(*,*) ' - Convert1:', TotTimeConvert1,TotTimeConvert1/TotTimePandf
+            write(*,*) ' - Neudif:', TotTimeNeudif,TotTimeNeudif/TotTimePandf
+            write(*,*) ' - fd2tra:', TotTimefd2tra,TotTimefd2tra/TotTimePandf
+            write(*,*) '-----------------------------------'
+            endif
+        end subroutine PrintTimingPandf
+
+        real function tick()
+        implicit none
+            integer :: now, clock_rate
+            call system_clock(now,clock_rate)
+            tick=real(now)/real(clock_rate)
+        end function tick
+
+        real function tock(t)
+         implicit none
+            real, intent(in) :: t
+            integer :: now, clock_rate
+            call system_clock(now,clock_rate)
+
+            tock = real(now)/real(clock_rate)-t
+        end function tock
+

@@ -1,0 +1,12 @@
+#! /bin/bash
+
+
+d=`dirname $0`
+
+
+pushd $d
+
+pytest --forked 
+
+popd
+

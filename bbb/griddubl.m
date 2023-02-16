@@ -7,7 +7,6 @@ c-----------------------------------------------------------------------
 
       Use(Dim)      # nx,ny,nhsp,nisp,ngsp,nxpt
       Use(Xpoint_indices)   # ixlb,ixpt1,ixpt2,ixrb,iysptrx
-      Use(Aux)      # igsp
       Use(Interp)   # ixlbo,ixpt1o,ixpt2o,ixrbo,iysptrxo
                     # xnrmo,xvnrmo,ynrmo,yvnrmo,
                     # nis,tes,tis,tgs,ups,phis,ngs,isimesh,afracs,
@@ -21,6 +20,8 @@ c-----------------------------------------------------------------------
                         # ixcut4,iycut4
 
       integer ifld,jx,ir
+      #Former Aux module variables
+      integer igsp,iy
 
       if (ismpion == 0) isimesh = 0  #turn-off switch; at least one mesh calc
 
@@ -30,9 +31,9 @@ c-----------------------------------------------------------------------
          ixpt1o(jx) = ixpt1(jx)
          ixpt2o(jx) = ixpt2(jx)
          ixrbo(jx) = ixrb(jx)
-      enddo 
+      enddo
 
-c...  Order poloidal regions from old mesh (as new mesh in ueinit) 
+c...  Order poloidal regions from old mesh (as new mesh in ueinit)
       ixsto(1) = ixlb(1)
       ixendo(1) = ixcut1
       if (ixlb(1) == 0 .and. ixcut1 == 0) then  # no inner leg
@@ -65,7 +66,7 @@ c..   Continue ordering if double null or snowflake
         else # 4 regions in 1st domain, compl & do 2-region 2nd domain
           ixsto(4) = ixcut3+1
           ixendo(4) = ixrb(1)+1
-          ixsto(5) = ixlb(2) 
+          ixsto(5) = ixlb(2)
         endif  # remain indices are the same
           ixendo(5) = ixcut4
           ixsto(6) = ixcut4+1
@@ -85,8 +86,8 @@ c           # fill dead guard cells with adjacent values
                ni(nx+1,iy,ifld) = ni(nx,iy,ifld)
             enddo
          endif
-         call s2copy (nx+2, ny+2, ni(0,0,ifld), 1, nx+2,
-     .            nis(0,0,ifld), 1, nx+2)
+         call s2copy (nx+2, ny+2, ni(0:nx+1,0:ny+1,ifld), 1, nx+2,
+     .            nis(0:nx+1,0:ny+1,ifld), 1, nx+2)
   705 continue
       do 706 ifld = 1, nusp
          if (nyomitmx >= nysol(1)+nyout(1)) then
@@ -96,8 +97,8 @@ c           # fill dead guard cells with adjacent values
                up(nx+1,iy,ifld) = up(nx,iy,ifld)
             enddo
          endif
-         call s2copy (nx+2, ny+2, up(0,0,ifld), 1, nx+2,
-     .            ups(0,0,ifld), 1, nx+2)
+         call s2copy (nx+2, ny+2, up(0:nx+1,0:ny+1,ifld), 1, nx+2,
+     .            ups(0:nx+1,0:ny+1,ifld), 1, nx+2)
   706 continue
 
       do 707 igsp = 1, ngsp
@@ -108,10 +109,10 @@ c           # fill dead guard cells with adjacent values
                ng(nx+1,iy,igsp) = ng(nx,iy,igsp)
             enddo
          endif
-         call s2copy (nx+2, ny+2, ng(0,0,igsp), 1, nx+2,
-     .            ngs(0,0,igsp), 1, nx+2)
-         call s2copy (nx+2, ny+2, tg(0,0,igsp), 1, nx+2,
-     .            tgs(0,0,igsp), 1, nx+2)
+         call s2copy (nx+2, ny+2, ng(0:nx+1,0:ny+1,igsp), 1, nx+2,
+     .            ngs(0:nx+1,0:ny+1,igsp), 1, nx+2)
+         call s2copy (nx+2, ny+2, tg(0:nx+1,0:ny+1,igsp), 1, nx+2,
+     .            tgs(0:nx+1,0:ny+1,igsp), 1, nx+2)
   707 continue
 
          if (nyomitmx >=nysol(1)+nyout(1)) then
@@ -146,7 +147,6 @@ c-----------------------------------------------------------------------
 
       Use(Share)    # geometry,nxc
       Use(Dim)      # nx,ny,nhsp,nisp,ngsp
-      Use(Aux)      # ix,iy,igsp,ix2
       Use(Compla)
       Use(Interp)   # nxold,nyold,nis,tes,tis,tgs,phis,ups,ngs
       Use(Selec)    # ixm1,ixp1
@@ -155,6 +155,8 @@ c-----------------------------------------------------------------------
 c...  local variables
       integer ifld
       integer ix2p, ix2m, ip1, im1, ixn, iy2, iy2p
+      #Former Aux module variables
+      integer ix,iy,igsp,ix2
 c.... note: ix2 is already defined in Aux, but we can use it since it is
 c.... meant to be a work variable, i.e., its value can change
 
@@ -723,11 +725,11 @@ c...  the cut at nxc
          do 903 ifld = 1, nusp
             up(ix2m,iy,ifld) = 0.
             up(ix2 ,iy,ifld) = 0.
-            up(ix2p,iy,ifld) = 0. 
+            up(ix2p,iy,ifld) = 0.
  903     continue
 
          te(ix2 ,iy) = te(ix2m  ,iy)
-         te(ix2p,iy) = te(ix2p+1,iy)        
+         te(ix2p,iy) = te(ix2p+1,iy)
          ti(ix2 ,iy) = ti(ix2m  ,iy)
          ti(ix2p,iy) = ti(ix2p+1,iy)
          phi(ix2 ,iy) = phi(ix2m  ,iy)
@@ -756,8 +758,8 @@ c -----------------------------------------------------------------------
 c...  This subroutine calculates the "intermediate" mesh that has nxold
 c...  poloidal points and ny radial points. Linear interpolation is used
 c...  to find the intersections of the old mesh radial lines with the
-c...  new mesh poloidal lines. This intermediate mesh is then used to 
-c...  interpolate variables in the radial direction to the new mesh, but at 
+c...  new mesh poloidal lines. This intermediate mesh is then used to
+c...  interpolate variables in the radial direction to the new mesh, but at
 c...  the old poloidal points. Subsequently, a poloidal interpolation it done.
 
 c...  The input variables:
@@ -803,7 +805,7 @@ ccc   real d2
       data smalln /1.e-07/, almost1 /9.9999e-01/, delerr /1.e-02/
 
 c...  This routine searchs for the (ix,iyo) indice pair the gives a point
-c...  on the new grid (xn,yn) that is closest to the old grid point 
+c...  on the new grid (xn,yn) that is closest to the old grid point
 c...  (xno,yno) for a give (ixo,iy), i.e., the intermediate grid indices
 
       iyom = iyos
@@ -853,11 +855,11 @@ c...  Special case for xno = 0,1; yyn could be more general if xn.ne.0,1
   72        continue
             icount = icount + 1
             if (icount .gt. 500) then
-               call remark('***** grdinty cannot find straddling grid 
+               call remark('***** grdinty cannot find straddling grid
      .points, check vel. grd at nx')
                write(*,*) 'ixo,iy,ixm,iyom = ',ixo,iy,ixm,iyom,
      .                    '  ixf,ixof,iyf,iyof = ',ixf,ixof,iyf,iyof
-               call xerrab("") 
+               call xerrab("")
             endif
             if (abs(xno(ixo,iyomp)-xno(ixo,iyom)) .lt. smalln) then
                xxn = xno(ixo,iyom)
@@ -867,7 +869,7 @@ c...  Special case for xno = 0,1; yyn could be more general if xn.ne.0,1
 c...  Special if test prevents prob for vel. grid for nx pt.
                if (xxn.gt.almost1 .and. ixm.eq.ixf-1) yyn = yn(ixmp,iy)
             else
-               spo = (yno(ixo,iyomp) - yno(ixo,iyom)) / 
+               spo = (yno(ixo,iyomp) - yno(ixo,iyom)) /
      .               (xno(ixo,iyomp) - xno(ixo,iyom))
                spn = (yn(ixmp,iy) - yn(ixm,iy)) /
      .               (xn(ixmp,iy) - xn(ixm,iy))
@@ -877,7 +879,7 @@ c...  Special if test prevents prob for vel. grid for nx pt.
             endif
 c...  Verify that old grid pts nearly straddle new grd pt, or try again
             ferr = delerr*( yno(ixo,iyomp)-yno(ixo,iyom) )
-            if (yyn.ge.yno(ixo,iyom)-ferr .and. 
+            if (yyn.ge.yno(ixo,iyom)-ferr .and.
      .                              yyn.le.yno(ixo,iyomp)+ferr) goto 74
             if (yyn .lt. yno(ixo,iyom)) then
                if (iyom .eq. iyos) goto 74
@@ -891,7 +893,7 @@ c...  Verify that old grid pts nearly straddle new grd pt, or try again
             goto 72
   74        continue
             ferr = delerr*( xn(ixmp,iy)-xn(ixm,iy) )
-            if (xxn.ge.xn(ixm,iy)-ferr .and. 
+            if (xxn.ge.xn(ixm,iy)-ferr .and.
      .                                xxn.le.xn(ixmp,iy)+ferr) goto 76
 c...  Special if test prevents prob for vel. grid for nx pt.
             if (xxn.gt.almost1 .and. ixm.eq.ixf-1) goto 76
@@ -984,8 +986,8 @@ c...  first intermediate mesh to second intermediate mesh (xnrmnx,ynrmnx)
          call polintp (ixst(ir),ixend(ir),ixsto(ir),ixendo(ir),0,ny+1,
      .                 nx,ny,nnxold,nnyold,xnrmnx,xnrmox,wrkint,wrkint2)
       enddo
-            
-c...  Next do radial interpolation using wrkint2 on second intermediate 
+
+c...  Next do radial interpolation using wrkint2 on second intermediate
 c...  mesh to the final mesh (xnrm,ynrm); result is varn
          if (iysptrx .gt. 0) then
             iyend = iysptrx
@@ -1009,7 +1011,7 @@ c...  Last, fix midway boundaries for double null case
                varn(ix2 ,iy) = varn(ix2m  ,iy)
                varn(ix2p,iy) = varn(ix2p+1,iy)
   20        continue
-         endif   
+         endif
 #     End of the density mesh calculation
 
 c...  This next case is for ivel=1, i.e., the parallel velocity equation
@@ -1043,7 +1045,7 @@ c...  poloidal interpolation for velocity grid
       enddo
 
 c...  Next do radial interpolation using wrkint2 on second intermediate
-c...  mesh to the final mesh (xvnrm,yvnrm); result is varn 
+c...  mesh to the final mesh (xvnrm,yvnrm); result is varn
          if (iysptrx .gt. 0) then
             iyend = iysptrx
             if (nyomitmx >= nysol(1)+nyout(1)) then
@@ -1089,7 +1091,7 @@ c...  but with the old poloidal mesh structure
 
 c --  Input variables
       integer iys,iyf,iyos,iyof,ixs,ixf,nx,ny,nxold,nyold
-      real yn(0:nxold+1,0:ny+1), yo(0:nxold+1,0:nyold+1), 
+      real yn(0:nxold+1,0:ny+1), yo(0:nxold+1,0:nyold+1),
      .     varo(0:nxold+1,0:nyold+1)
 
 c --  Output variables
@@ -1116,7 +1118,7 @@ c ...    check for extrapolation and limit change to chng
                avn = abs(varn(ix,iy))
                avo = abs(varo(ix,iyl))
                if( avn .lt. avo ) then
-                  avn = max(avn, avo/chng) 
+                  avn = max(avn, avo/chng)
                else
                   avn = min(avn, avo*chng)
                endif
@@ -1126,7 +1128,7 @@ c ...    check for extrapolation and limit change to chng
                avn = abs(varn(ix,iy))
                avo = abs(varo(ix,iyl+1))
                if( avn .lt. avo ) then
-                  avn = max(avn, avo/chng) 
+                  avn = max(avn, avo/chng)
                else
                   avn = min(avn, avo*chng)
                endif
@@ -1150,7 +1152,7 @@ c...  of the radial interpolation on the new radial mesh
 
 c --  Input variables
       integer ixs,ixf,ixos,ixof,iys,iyf,nx,ny,nxold,nyold
-      real xn(0:nx+1,0:ny+1), xo(0:nxold+1,0:ny+1), 
+      real xn(0:nx+1,0:ny+1), xo(0:nxold+1,0:ny+1),
      .     varo(0:nxold+1,0:ny+1)
 
 c --  Output variables
@@ -1177,7 +1179,7 @@ c ...    check for extrapolation and limit change to chng
                avn = abs(varn(ix,iy))
                avo = abs(varo(ixl,iy))
                if( avn .lt. avo ) then
-                  avn = max(avn, avo/chng) 
+                  avn = max(avn, avo/chng)
                else
                   avn = min(avn, avo*chng)
                endif
@@ -1187,7 +1189,7 @@ c ...    check for extrapolation and limit change to chng
                avn = abs(varn(ix,iy))
                avo = abs(varo(ixl+1,iy))
                if( avn .lt. avo ) then
-                  avn = max(avn, avo/chng) 
+                  avn = max(avn, avo/chng)
                else
                   avn = min(avn, avo*chng)
                endif

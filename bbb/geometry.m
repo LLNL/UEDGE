@@ -4,7 +4,7 @@ c ... Return true if cell (ix,iy) is a guard cell, otherwise false.
       implicit none
 
       Use(Dim)   # nx,ny
-
+ 
       integer ix,iy
 
       if (ix .lt. 1 .or. ix .gt. nx .or. iy .lt. 1 .or. iy .gt. ny) then
@@ -461,7 +461,7 @@ c  ---------------------------------------------------------------------
 *  -- local scalars --
       integer nj, ij, ix, iy, jx
       real str, ctr, rm0, zm0, dxc, dz, dacore
-      character*8 fname
+      character*200 fname
       character*60 runid
 
 *=======================================================================
@@ -485,7 +485,7 @@ c            write(6,*) "Calling flxrun in globalmesh."
             call flxrun
             call grdrun
          else
-            fname = 'gridue'
+            fname = trim(GridFileName)
             call readgrid(fname, runid)
             write(*,*) 'Read file "', fname, '" with runid:  ', runid
             write(*,*)
@@ -495,7 +495,7 @@ c            write(6,*) "Calling flxrun in globalmesh."
             call torangrd
             write(*,*) '**** mhdgeo=2: Circ toroidal annulus generated *****'
          else
-            fname = 'gridue'
+            fname = trim(GridFileName)
             call readgrid(fname, runid)
             write(*,*) 'Read file "', fname, '" with runid:  ', runid
             write(*,*)
@@ -511,7 +511,7 @@ c            write(6,*) "Calling flxrun in globalmesh."
          write(*,*) '**** mhdgeo=-2: mag mirror grid generated *****'
       else
          write(*,*) '**** mhdgeo < -1: reading grid from file *****'
-         fname = 'gridue'
+         fname = trim(GridFileName)
          call readgrid(fname, runid)
          write(*,*) 'Read file "', fname, '" with runid:  ', runid
          write(*,*)
@@ -618,7 +618,7 @@ c-----------------------------------------------------------------------
                           # geometry,ismpsym,simagxs,sibdrys
       Use(Xpoint_indices) # ixpt1,ixpt2,iysptrx1,iysptrx2,iysptrx
       Use(Cut_indices)    # ixcut1,ixcut2,ixcut3,ixcut4
-      Use(Aux)            # ix,iy,ix1,ix3,ixmp
+      Use(Aux)            # ixmp
       Use(Phyvar)         # pi
       Use(Selec)          # ixp1,ixm1
       Use(Comgeo)         # isxptx,isxpty
@@ -639,11 +639,13 @@ c-----------------------------------------------------------------------
 *  -- local scalars --
       integer nj, iu, ik, ij, jx, iysi, iyso, iyp1, ix_last_core_cell,
      .        ixpt2_1temp, nxpt_temp
+      #Former Aux module variables
+      integer ix,iy,ix1,ix3,ix2
       data nj/0/
       real dxc, dyc, dz, str, ctr, rm0, zm0, cossr, cossp, s_bphi, rmmax,
      .     lcon_wk1, lcon_wk2
       real bsqrvoltot,voltot,bsqrave,b_yface,b_xface
-      character*8 fname
+      character*200 fname
       character*60 runid
 
 *=======================================================================
@@ -676,7 +678,7 @@ c ...   Need to fix ixpt2(1) modified by grdrun is geometry=isoleg
               nxpt = nxpt_temp
             endif
          else
-            fname = 'gridue'
+            fname = trim(GridFileName)
             call readgrid(fname, runid)
             write(*,*) 'Read file "', fname, '" with runid:  ', runid
 c ...  now that the grid is read in, we can manipulate dnull for nxomit>0
@@ -698,7 +700,7 @@ c ...  now that the grid is read in, we can manipulate dnull for nxomit>0
             call torangrd
             write(*,*) '*** mhdgeo=2: Circ toroidal annulus ***'
          else
-            fname = 'gridue'
+            fname = trim(GridFileName)
             call readgrid(fname, runid)
             write(*,*) 'Read file "', fname, '" with runid:  ', runid
             write(*,*)
@@ -714,7 +716,7 @@ c ...  now that the grid is read in, we can manipulate dnull for nxomit>0
          write(*,*) '**** mhdgeo=-2: mag mirror grid generated *****'
       else
          write(*,*) '**** mhdgeo < -1: reading grid from file *****'
-         fname = 'gridue'
+         fname = trim(GridFileName)
          call readgrid(fname, runid)
          write(*,*) 'Read file "', fname, '" with runid:  ', runid
          write(*,*)
@@ -779,6 +781,10 @@ c.... Set indirect addressing arrays for x-direction
 c     Re-define midplane guard cells for symmetric double-null
       if (isudsym==1.and.ismpsym==1.and.nxc>1) call mpguardc
 
+c...  For 1D poloidal flux-tube geometry (nysol=1), reset cell vertex
+c...  locations near ix=ixpt2 on iy=1 surface if nxpt2msh or nxpt2psh > 1
+      if (nxpt2msh+nxpt2psh > 0) call reset1dmeshpt
+
 *     Define guard cells around the edge of the mesh --
       call guardc
 
@@ -834,26 +840,26 @@ c ... Jump to here for domain decomposition
          call s2fill (nx+2, ny+2, 0., vtag, 1, nx+2)
          call s2fill (nx+2, ny+2, 0., angfx, 1, nx+2)
          do iu = 0, 1
-            call s2fill (nx+2, ny+2, 1., fx0(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fxm(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fxp(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 1., fy0(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fym(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fyp(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fxmy(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fxpy(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fymx(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fypx(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 1., fx0v(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fxmv(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fxpv(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 1., fy0v(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fymv(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fypv(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fxmyv(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fxpyv(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fymxv(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fypxv(0,0,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 1., fx0(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fxm(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fxp(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 1., fy0(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fym(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fyp(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fxmy(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fxpy(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fymx(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fypx(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 1., fx0v(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fxmv(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fxpv(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 1., fy0v(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fymv(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fypv(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fxmyv(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fxpyv(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fymxv(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fypxv(0:nx+1,0:ny+1,iu), 1, nx+2)
          enddo
       if (isnonog .ge. 1) then
          call nonorthg   # Sets dist btwn interp pts as dxnog, dynog
@@ -1517,16 +1523,16 @@ c...  Reset fym, fy0, fyp at ixpt1,2+0,1 if half-space problem with no flux
 c...  As a test, if isnonog.ge.2, reset fym etc. to 5-point stencil
       if (isnonog .ge. 2) then
          do iu = 0, 1
-            call s2fill (nx+2, ny+2, 1., fx0(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fxm(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fxp(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 1., fy0(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fym(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fyp(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fxmy(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fxpy(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fymx(0,0,iu), 1, nx+2)
-            call s2fill (nx+2, ny+2, 0., fypx(0,0,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 1., fx0(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fxm(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fxp(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 1., fy0(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fym(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fyp(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fxmy(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fxpy(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fymx(0:nx+1,0:ny+1,iu), 1, nx+2)
+            call s2fill (nx+2, ny+2, 0., fypx(0:nx+1,0:ny+1,iu), 1, nx+2)
          enddo
       endif
 
@@ -1554,6 +1560,7 @@ c...  Set the nonorthogonal stencil for the velocity cells
 
 c...  Special settings for velocity boundary cells at left and right edge
 c...  of mesh:
+ccccc** Shouldn't matter as up=cs BC, but also fx0v should =1
         do iu = 0, 1
           do iy = 0, ny+1
             do jx = 1, nxpt
@@ -1648,7 +1655,7 @@ c-----------------------------------------------------------------------
       Use(Dim)            # nx,ny
       Use(Comgeo)         # lcon,lconi,lcone,rr,gx,yyc
       Use(Xpoint_indices) # ixpt1,ixpt2,iysptrx1,iysptrx2,iysptrx
-      Use(Aux)            # ix,iy,ixmp
+      Use(Aux)            # ixmp
       Use(RZ_grid_info)   # bpol
       Use(Phyvar)         # me,ev
       Use(Compla)         # mi
@@ -1658,6 +1665,8 @@ c-----------------------------------------------------------------------
 
 *  -- local scalars --
       integer iyso,iybwmni,iybwmne,iybwmxi,iybwmxe,ixref
+      #Former Aux module variables
+      integer ix,iy
       real lcon_wk1,lcon_wk2,omegcips,banwidi,banwide,dlcon,dyyc
       real eps_wk1,eps_wk2,rfac
 
@@ -1871,7 +1880,6 @@ c-----------------------------------------------------------------------
       implicit none
       Use(Dim)            # nx,ny,nxpt
       Use(Xpoint_indices) # ixpt1,ixpt2,iysptrx1,iysptrx2
-      Use(Aux)            # ix,iy,ix1,ix3
       Use(Selec)          # ixp1,ixm1
       Use(Comgeo)         # gyf,gxf,dxnog
       Use(Noggeo)         # vtag,angfx,fxm,fx0,fxp,fym,fy0,fyp
@@ -1892,6 +1900,8 @@ c-----------------------------------------------------------------------
       real rints(0:1), zints(0:1), dyf, dxf, errlim, bigslp, eps
       real z4, r4, delrm, delzm, thetax, thetay
       integer ifxfail, ifyfail, nj, itry, ik
+      #Former Aux module variables
+      integer ix,iy,ix1,ix3
       data errlim/1.e-10/, bigslp/1.e20/, eps/1e-3/
 	  
 *=======================================================================
@@ -2038,10 +2048,10 @@ c...  reset values for midplane guard cells of double-null configuration
 c...  Calculate the fraction-stencil for variables to use at ix-1, ix, ix+1
 c...  when forming y-derivatives and averages for the nonorthogonal grid
 C...  This is a somewhat complicated loop; we search for the crossing to the
-c...  left of the center point (ishx=0) and if that does not  work, we shift
-c...  to the right of the center point (ishx=1); if the intersection is
-c...  is beyond ix-1 or ix+1, we turn 90 degrees and look for intersection
-c...  with lines from [(ix-1,iy),(ix-1,iy+1)] or [(ix+1,iy),(ix+1,iy+1)].
+c...  left of center point (ishx=0,ishy=1) using ave of ix+/-1 cells. If fails
+c...  look right of the center point (ishx=1). Repeat for ishy=0 (lower iy
+c...  intersection).  Consult separate diagrams give more graphical detail of
+c...  the y-face normal & cells used to construct 2nd line for interpolation.
 c...  We also calculate the stencil for the variables at iy (ishy=0) and 
 c...  those at iy+1 (ishy=1)
 
@@ -2066,6 +2076,9 @@ c...  fix possible divide-by-zero
                slp1 =(zm(ix+nj,iy,4)-zm(ix+nj,iy,3))/
      .                                   (rm(ix+nj,iy,4)-rm(ix+nj,iy,3))
             endif
+
+c...  Center y-face & ixu1=ix; iyu1 is below face (ishy=0) or above (ishy=1)
+c...  iyu2 is opposite iyu1: below if ishy=0 or above if ishy=1
             zmid = 0.5*(zm(ix+nj,iy,4)+zm(ix+nj,iy,3))
             rmid = 0.5*(rm(ix+nj,iy,4)+rm(ix+nj,iy,3))
             ishy = 0
@@ -2076,14 +2089,15 @@ c...  fix possible divide-by-zero
 c           setup most like diagonal line for proper intersection
             if ( (vtag(ix,iy)+vtag(ixm1(ix,iy),iy))*(1-2*ishy) 
      .                                                  .ge. 0 ) then
-               ishx = 1    # note ixu1=ix for both ishx=0,1; unlike prev vers.
+               ishx = 1    # ixu1=ix for both ishx=0,1; unlike prev vers.
                ixu2 = ixp1(ix,iyu2)
             else
                ishx = 0
                ixu2 = ixm1(ix,iyu2)
             endif
 
-c ...       Search for intersection btwn (ixu1,iyu1) & (ixu2,iyu2)
+c ...       Search for normal intersection btwn (ixu1,iyu1) & 2nd pt
+c ...       given by ave of (ixu2,iyu2) & (ixu2,iyu2+ishy); see sub lindis
             isht = 1 - ishy
  15         call lindis(ixu1,iyu1,ixu2,iyu2,3,isht,rmid,zmid,slp1,
      .                                               rint,zint,d1,d2,d3)
@@ -2093,6 +2107,8 @@ ccc        write(*,*) "isht,rmid,zmid,slp1 = ",isht,rmid,zmid,slp1
 ccc        write(*,*) "rint,zint = ",rint,zint
 ccc        write(*,*) "d1,d2,d3 = ",d1,d2,d3
 ccc      endif
+
+c...    Confirm intersection, else retry for other diagonal
             if (d1.le.d3*1.0001 .and. d2.le.d3*1.0001) then 
                rints(ishy) = rint 
                zints(ishy) = zint
@@ -2177,11 +2193,12 @@ c...  Similarly approximate gyf for upper target plate guard cells
 c...  Calculate the fraction-stencil for variables to use at iy-1, iy, iy+1
 c...  when forming derivatives normal to the tilted x-face.
 C...  This is a somewhat complicated loop; we search for the crossing to the
-c...  top of the center point (ishy=0) and if that does not work, we shift
-c...  to the right of the center point (ishy=1); if the intersection is
-c...  is beyond iy-1 or iy+1, we turn 90 degrees and look for intersection
-c...  with lines from [(ix,iy-1),(ixp1,iy-1)] or [(ix,iy+1),(ixp1,iy+1)].
-c...  We also calculate the stencil for the variables at ix (ishx=0) and 
+c...  above central point (ishy=0) using the central cell and ave of the
+c...  2 left cells(ishx=0) or 2 right cells (ishx=1). Repeat process for 
+c...  intersection below central cell center. Consult separate diagrams give 
+c...  more graphical detail of the y-face normal & cells used to construct 
+c...  2nd line for interpolation.
+c...  Also calculate the stencil for the variables at ix (ishx=0) and 
 c...  those at ixp1 (ishx=1)
 c...  We now (8/25/94) include the bend in the flux surface through slpfs,
 c...  the slope of the flux surface which can be different on each side
@@ -2243,7 +2260,7 @@ cc_new              ishy = 0  # search downward
 cc_new            endif
 cc_new            call lindis2(ix,iy,rmid,zmid,slpl,ishx,ishy)
 
-
+c...   Setup most likely diagonal for intersection with x-face normal
             iyu1 = iy
  33         ixu1 = (1-ishx)*ix + ishx*ixp1(ix,iyu1)
             if ( angfx(ix,iy)*(1-2*ishx) .ge. 0) then #setup most likely diag
@@ -2256,7 +2273,8 @@ cc_new            call lindis2(ix,iy,rmid,zmid,slpl,ishx,ishy)
                ixu2 = ishx*ix + (1-ishx)*ixp1(ix,iyu2)
             endif
 
-c ...       Search for intersection btwn (ixu1,iyu1) & (ixu2,iyu2)
+c ...       Search for intersection btwn (ixu1,iyu1) & 2nd pt given by
+c ...       mid-point of (ixu2,iyu2) & (ixu2+ishx,iyu2) - see sub lindis
             isht = 1 - ishx
  35         call lindis(ixu1,iyu1,ixu2,iyu2,4,isht,rmid,zmid,slp1,
      .                                               rint,zint,d1,d2,d3)
@@ -2858,3 +2876,42 @@ c...  For iy .gt. iysptrx, normalize the single poloidal region
 c **** end of subroutine grdnrm ****
 c **********************************
 c-----------------------------------------------------------------------
+c...  Subroutine to shift cell vertices near ix=ixpt2 for 1D flux tube ...
+      subroutine reset1dmeshpt
+
+      implicit none
+      Use(Dim)            # nx,ny
+      Use(RZ_grid_info)   # rm,zm
+      Use(Xpoint_indices) # ixpt2
+      Use(Share)          # nxomit,nxpt2msh,nxpt2psh,rxpt2msh,zxpt2psh
+
+c...  local scalars
+      integer ix,ix2
+      real lenginc,theta
+
+      ix2 = nxomit+ixpt2(1)    		#consider outer flux-surface only
+
+c...  First fix iy=1 cell vertices above X-point (ixpt2)
+      theta = rxpt2msh/zxpt2msh   #defines curvature of flux surface
+      do ix = ix2, ix2-nxpt2msh+1, -1
+        rm(ix,1,3) = rm(ix,1,4)            # + zxpt2msh*theta
+        zm(ix,1,3) = zm(ix,1,4) + zxpt2msh #+ zxpt2msh*(1-0.5*theta**2)
+        rm(ix-1,1,4) = rm(ix,1,3)
+        zm(ix-1,1,4) = zm(ix,1,3)
+      enddo
+
+c...  Second, fix iy=1 cell vertices below X-point
+      theta = rxpt2psh/zxpt2psh   #defines curvature of flux surface
+      do ix = ix2+1, ix2+nxpt2psh
+        rm(ix,1,4) = rm(ix,1,3)             #  + zxpt2psh*theta
+        zm(ix,1,4) = zm(ix,1,3) - zxpt2psh  #zxpt2psh*(1.-0.5*theta**2)
+        rm(ix+1,1,3) = rm(ix,1,4)
+        zm(ix+1,1,3) = zm(ix,1,4)
+      enddo
+
+      return
+      end
+c***  End of subroutine reset1dmeshpt ****
+c*****************************************
+
+    

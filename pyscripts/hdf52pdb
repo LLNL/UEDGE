@@ -89,6 +89,14 @@ def hdf52pdb(infile,outfile):
               print("Couldn't write tgs to  ",outfile)
        except:
            print("Couldn't read tgs from  ",infile)
+       try:
+           ta  = np.array(hfg.get('tipers'))
+           try:
+              fp.write('tipers@bbb',ta.transpose().reshape(ta.shape).tolist())
+           except:
+              print("Couldn't write tipers to  ",outfile)
+       except:
+           print("Couldn't read tipers from  ",infile)
 
     except:
        print("Old style hdf5 infile")
@@ -148,6 +156,14 @@ def hdf52pdb(infile,outfile):
               print("Couldn't write tgs to  ",outfile)
        except:
            print("Couldn't read tgs from  ",infile)
+       try:
+           ta  = np.array(hf.get('tipers@bbb'))
+           try:
+              fp.write('tipers@bbb',ta.transpose().reshape(ta.shape).tolist())
+           except:
+              print("Couldn't write tipers to  ",outfile)
+       except:
+           print("Couldn't read tipers from  ",infile)
 
 
     fp.close()

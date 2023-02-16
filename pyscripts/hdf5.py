@@ -2,10 +2,10 @@ import numpy as np
 import h5py
 import uedge
 try:
-   import __version__ as pyv
-   pyver = pyv.__version__
+    import __version__ as pyv
+    pyver = pyv.__version__
 except:
-   pyver = uedge.__version__
+    pyver = uedge.__version__
 from .uedge import bbb
 from .uedge import com
 from .uedge_lists import *
@@ -28,10 +28,9 @@ def hdf5_restore(file):
         dummy = hf['bbb']   # force an exception if the group not there
         hfb = hf.get('bbb')
         try:
-           hdf5_restore_dump(file,hdffile=hf)
+            hdf5_restore_dump(file, hdffile=hf)
         except:
-           raise
-        
+            raise
 
     except:
         print("Old style hdf5 file")
@@ -84,6 +83,13 @@ def hdf5_restore(file):
             print(error)
         except:
             print("Couldn't read tgs from  ", file)
+        try:
+            bbb.tipers[...] = np.array(hf.get('tipers@bbb'))
+        except ValueError as error:
+            print("Couldn't read tipers from  ", file)
+            print(error)
+        except:
+            print("Couldn't read tipers from  ", file)
 
     hf.close()
     return True
@@ -97,8 +103,8 @@ def hdf5_save(file, varlist=['bbb.ngs', 'bbb.ng',
                              'bbb.up', 'bbb.ups',
                              'bbb.tg', 'bbb.tgs',
                              'bbb.ev', 'bbb.prad',
-                             'bbb.pradhyd','com.nx',
-                             'com.ny','com.rm','com.zm'],
+                             'bbb.pradhyd', 'bbb.tipers','com.nx',
+                             'com.ny', 'com.rm', 'com.zm'],
               addvarlist=[]):
     """
     Save HDF5 output for restarting and plotting.
@@ -158,10 +164,8 @@ def hdf5_save(file, varlist=['bbb.ngs', 'bbb.ng',
         except ValueError as error:
             print("HDF5 write failed to ", file, ' var ', vt[1])
             print(error)
-            raise
         except:
             print("HDF5 write failed to ", file, ' var ', vt[1])
-            raise
 
     for lvt in addvarlist:
         try:
@@ -184,10 +188,8 @@ def hdf5_save(file, varlist=['bbb.ngs', 'bbb.ng',
         except ValueError as error:
             print("HDF5 write failed to ", file, ' var ', vt[1])
             print(error)
-            raise
         except:
             print("HDF5 write failed to ", file, ' var ', vt[1])
-            raise
 
     hf.close()
     return True
@@ -227,10 +229,8 @@ def hdf5_dump(file, packages=list_packages(objects=1), vars=None, globals=None):
                 except ValueError as error:
                     print("Couldn't write out: "+p.name()+'.'+v)
                     print(error)
-                    raise
                 except:
                     print("Couldn't write out: "+p.name()+'.'+v)
-                    raise
             else:
                 print(p.name()+'.'+v+" is not allocated")
     if globals != None:
@@ -251,10 +251,8 @@ def hdf5_dump(file, packages=list_packages(objects=1), vars=None, globals=None):
             except ValueError as error:
                 print("Couldn't write out: "+p.name()+'.'+v)
                 print(error)
-                raise
             except:
                 print("Couldn't write out: "+p.name()+'.'+v)
-                raise
 
     hf.close()
     return True
@@ -268,30 +266,29 @@ def h5py_dataset_iterator(g, prefix=''):
             yield (path, item)
         elif isinstance(item, h5py.Group):  # test for group (go down)
             # following yield is not python 2.7 compatible
-            #yield from h5py_dataset_iterator(item, path)
-            for (path,item) in h5py_dataset_iterator(item, path):
+            # yield from h5py_dataset_iterator(item, path)
+            for (path, item) in h5py_dataset_iterator(item, path):
                 yield (path, item)
 
 
-def hdf5_restore_dump(file, scope=globals(),hdffile=None):
+def hdf5_restore_dump(file, scope=None, hdffile=None,quiet=False):
     """
        Restore all variables from a previously saved HDF5 file.
        This is called by hdf5_restore and the recommended way
        to restore.
     """
-    prfileattrs = True
     if hdffile == None:
-       try:
-           hf = h5py.File(file, 'r')
-       except:
-           print("Couldn't open hdf5 file ", file)
-           raise
+        try:
+            hf = h5py.File(file, 'r')
+        except:
+            print("Couldn't open hdf5 file ", file)
+            raise
     else:
-       hf = hdffile
+        hf = hdffile
     try:
         try:
             g = hf['bbb']
-            if prfileattrs:
+            if not quiet:
                 prfileattrs = False
                 print('File attributes:')
                 print('     written on: ', g.attrs['ctime'])
@@ -300,25 +297,34 @@ def hdf5_restore_dump(file, scope=globals(),hdffile=None):
                 print('    physics tag: ', np.char.strip(g.attrs['ver']))
                 print(' python version: ', np.char.strip(g.attrs['pyver']))
         except:
-            print('No file attributes, trying to restore')
+            if not quiet:
+                print('No file attributes, trying to restore')
 
         for (path, dset) in h5py_dataset_iterator(hf):
-           vt = path.split('/')
-           pck = packagename2object(vt[1])
-           po = pck.getpyobject(vt[2])
-           try:
-               if dset.size > 1:
-                  po[...] = np.array(dset[()])
-               else:
-                  setattr(pck,vt[2],dset[()])
-           except:
-               print('Couldn\'t read dataset ', path)
-               raise
+            vt = path.split('/')
+            if vt[1] == 'globals':
+                if scope != None:
+                    if dset.size > 1:
+                        scope[vt[2]] = np.array(dset[()])
+                    else:
+                        scope[vt[2]] = dset[()]
+
+            else:
+                try:
+                    pck = packagename2object(vt[1])
+                    po = pck.getpyobject(vt[2])
+                    if dset.size > 1:
+                        po[...] = np.array(dset[()])
+                    else:
+                        setattr(pck, vt[2], dset[()])
+                except:
+                    print('Couldn\'t read dataset ', path)
+                    raise
     except:
         print("Couldn't read hdf5 file ", file)
         raise
 
     if hdffile == None:
         hf.close()
-    
+
     return True

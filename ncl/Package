@@ -1,0 +1,10 @@
+PKG = ncl
+POINTER = cray
+
+VDF = ncl.v
+
+SU = ncl_driver.m
+
+SYSTEM LINUX MACOSX
+SF = nclass_mod.f rarray_copy.f rarray_sum.f rarray_zero.f \
+     u_erf.f u_lu_backsub.f u_lu_decomp.f write_mod.f

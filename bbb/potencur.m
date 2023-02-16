@@ -6,7 +6,7 @@ c-----------------------------------------------------------------------
 *  -- input arguments
       integer iy
 
-      Use(Dim)      # nx
+      Use(Dim)      # nx 
       Use(Phyvar)   # qe
       Use(Compla)   # zi
       Use(Comflo)   # fnix,fqx
@@ -41,9 +41,12 @@ c-----------------------------------------------------------------------
 
 *  -- local variables
       real  nbarx, nbary, sigbarx, sigbary, zfac, temp1, utm, ut0, utp,
-     .      ut0n, fqp_old, omgci, zfac0, zfac1, tiy1d, tiy0d, 
+     .      ut0n, fqp_old, omgci, zfac0, zfac1, tiy1d, tiy0d,
      .      niy1d, niy0d, phiy1d, phiy0d, fp1, fp2, nzvibtot
       integer iy1, ifld
+      #Former Aux module variables
+      integer ix,iy,ix1,ix2,ix3,ix4
+      real t0,t1
       integer jx,ixl,ixlp1,ixlp2,ixr,ixrm1,ixrm2,iyp2
 
       Use(Dim)               # nx,ny,nxpt
@@ -51,7 +54,6 @@ c-----------------------------------------------------------------------
       Use(Xpoint_indices)    # ixlb,ixpt1,ixpt2,ixrb,iysptrx
       Use(Math_problem_size) # neqmx(for arrays not used here)
       Use(Phyvar)            # ev,qe
-      Use(Aux)               # ix,iy,ix1,ix2,ix3,ix4,t0,t1
       Use(Coefeq)            # cfjp2,cfjpy,cftnm,cfvycf,cfqybf,cfq2bf,cfqydt
       Use(Selec)             # i1,i5,i6,j1,j5,j6,ixm1,ixp1,j1p,j2p,j5p,j6p,i3
       Use(Comgeo)            # gx,gy,gxf,gyf,gxc,gyc,sx,sy,rr,isxptx,isxpty,
@@ -73,15 +75,16 @@ c-----------------------------------------------------------------------
       Use(Parallv)           # nxg,nyg
       Use(Time_dep_nwt)      # dtreal
       Use(Interp)            # nxold,nyold
-      Use(Indices_domain_dcl)# ixmnbcl,ixmxbcl	  
-	  
+      Use(Indices_domain_dcl)# ixmnbcl,ixmxbcl
+      Use(Volsrc)            # pondpot
+
       ifld = 1
 
 ************************************************************************
 *     Calculate fqp, the parallel current if isimpon.ne.5
 ************************************************************************
       if (isimpon.eq.5) goto 255
-        
+
       do 25 iy = j1p, j6p
          do 24 ix = i1, i5
 	    iy1 = max(0,iy-1)
@@ -116,6 +119,8 @@ c    .              4.0*(prtv(ix,iy) - prtv(ix,iy1)) * gyc(ix,iy)
             fqp(ix,iy) = (rrv(ix,iy)*sx(ix,iy)*sigbarx*gxf(ix,iy)/qe)*
      .                       ( (pre(ix1,iy) - pre(ix,iy))/nbarx
      .                  - qe * (phi(ix1,iy) - phi(ix,iy))
+     .                  + qe * (pondpot(ix1,iy) - pondpot(ix,iy))
+     .                  + pondomfpare_use(ix,iy)/(rrv(ix,iy)*nbarx)
      .               + cthe * ( te(ix1,iy) -  te(ix,iy)) )
 
 c           Special calculation for ix-boundary cells; able to retrieve
@@ -132,7 +137,7 @@ c           old case with frfqpn=0 ...
                   nbarx = ne(ixlp1,iy)
                   sigbarx = zfac*cfsigm*sigma1*rrv(ixlp1,iy)*
      .                                         (te(ixlp1,iy)/ev)**1.5
-                  fqp(ix,iy) = 
+                  fqp(ix,iy) =
      .                  (rrv(ixlp1,iy)*sx(ixlp1,iy)*sigbarx*gxf(ixlp1,iy)/qe)*
      .                       (  (pre(ixlp2,iy)-pre(ixlp1,iy))/nbarx -
      .               qe*(phi(ixlp1,iy)-phi(ixl,iy))*gxf(ixl,iy)/gxf(ixlp1,iy) +
@@ -142,7 +147,7 @@ c           old case with frfqpn=0 ...
      .                         rbfbt(ixl,iy)*sx(ixl,iy) + fdiaxlb(iy,jx) )
                   do ifld = 1, nusp   # note fqp,fqpsat are poloidal proj. of || curr
                      fqpsatlb(iy,jx)=fqpsatlb(iy,jx)-qe*zi(ifld)*ni(ixl,iy,ifld)*
-     .                         up(ixl,iy,ifld)*sx(ixl,iy)*rrv(ixl,iy)  
+     .                         up(ixl,iy,ifld)*sx(ixl,iy)*rrv(ixl,iy)
                   enddo
                   if (fqp(ixl,iy) < 0.) then #limit to saturation current
 		     fp1 = fqp(ixl,iy)
@@ -156,7 +161,7 @@ c           old case with frfqpn=0 ...
                   nbarx = ne(ixrm1,iy)
                   sigbarx = zfac*cfsigm*sigma1*rrv(ixrm2,iy)*
      .                                         (te(ixrm1,iy)/ev)**1.5
-                  fqp(ix,iy) = 
+                  fqp(ix,iy) =
      .                  (rrv(ixrm2,iy)*sx(ixrm2,iy)*sigbarx*gxf(ixrm2,iy)/qe)*
      .                       (  (pre(ixrm1,iy)-pre(ixrm2,iy))/nbarx -
      .               qe*(phi(ixr,iy)-phi(ixrm1,iy))*gxf(ixrm1,iy)/gxf(ixrm2,iy) +
@@ -166,7 +171,7 @@ c           old case with frfqpn=0 ...
      .                      rbfbt(ixr,iy)*sx(ixrm1,iy) + fdiaxrb(iy,jx) )
                   do ifld = 1, nusp   # note fqp,fqpsat are poloidal proj. of || curr
                      fqpsatrb(iy,jx)=fqpsatrb(iy,jx)+qe*zi(ifld)*ni(ixr,iy,ifld)*
-     .                        up(ixrm1,iy,ifld)*sx(ixrm1,iy)*rrv(ixrm1,iy)  
+     .                        up(ixrm1,iy,ifld)*sx(ixrm1,iy)*rrv(ixrm1,iy)
                   enddo
                   if (fqp(ixrm1,iy) > 0.) then #limit to saturation current
 		     fp1 = fqp(ixrm1,iy)
@@ -182,7 +187,7 @@ c           old case with frfqpn=0 ...
 
             if (iy .eq. 1) then
                dphi_iy1(ix) = -fqp(ix,iy)/(rrv(ix,iy)*sx(ix,iy)*
-     .                         sigbarx*gxf(ix,iy)) + 
+     .                         sigbarx*gxf(ix,iy)) +
      .                         (pre(ix1,iy)-pre(ix,iy))/(qe*nbarx)
             endif
 c    .        + cfjpx * sx(ix,iy) * 0.125 * temp1
@@ -190,7 +195,7 @@ c    .               * (rbfbt2(ix,iy) + rbfbt2(ix1,iy))
 ccc         if (iy.eq.1 .and. isnewpot.eq.1) fqp(ix,1) = fqp(ix,2)
    24    continue
    25 continue
-  
+
  255  continue   # jump here if isimpon=5
 ************************************************************************
 *     Calculate fq2, the 2-current
@@ -210,7 +215,7 @@ c...  in subroutine nphygeo)
             if ( isxptx(ix,iy)==0 .and. iysptrx.gt.0 )
      .          temp1 = 4.0*(prtv(ix,iy) - prtv(ix,iy-1)) * gyc(ix,iy)
             fq2d(ix,iy) = sx(ix,iy) * 0.25 * temp1 *
-     .                         (rbfbt(ix1,iy) + rbfbt(ix,iy)) / 
+     .                         (rbfbt(ix1,iy) + rbfbt(ix,iy)) /
      .                           (btot(ix,iy) + btot(ix1,iy))
             fq2(ix,iy) = cfjp2 * bfacxrozh(ix,iy) * fq2d(ix,iy)
    36    continue
@@ -231,7 +236,7 @@ c...  in subroutine nphygeo)
             zfac = 1. / ( zeff(ix,iy) * (1.193 - 0.2205*zeff(ix,iy)
      .                                + 0.0275*zeff(ix,iy)**2) )
             sigbary = zfac * rsigpl * sigbar0
-            if (iy < iysptrx .and. ix > ixpt1(1) .and. ix < ixpt2(1)+1) 
+            if (iy < iysptrx .and. ix > ixpt1(1) .and. ix < ixpt2(1)+1)
      .                        sigbary = sigbary+zfac*rsigplcore*sigbar0
             if (iy.eq.0) sigbary=0.
 cc       sigbary = zfac * rsigpl * cfsigm * sigma1 *
@@ -250,7 +255,7 @@ c...  in subroutine nphygeo)
             if ( isxpty(ix,iy)==0 .and. iysptrx.gt.0 )
      .          temp1 = 4.0*(prtv(ix,iy) - prtv(ix3,iy)) * gxc(ix,iy)
             fqyae(ix,iy) = ( sy(ix,iy)*sigbary/(dynog(ix,iy)*qe) ) * (
-     .        + (ney1(ix,iy)*tey1(ix,iy) - ney0(ix,iy)*tey0(ix,iy))/nbary 
+     .        + (ney1(ix,iy)*tey1(ix,iy) - ney0(ix,iy)*tey0(ix,iy))/nbary
      .        - qe * (phiy1(ix,iy) - phiy0(ix,iy)) )
             fqyai(ix,iy) = -(sy(ix,iy)*sigbary/(dynog(ix,iy)*qe*zi(1)) ) * (
      .        + (niy1(ix,iy,1)*tiy1(ix,iy) - niy0(ix,iy,1)*tiy0(ix,iy))/nbary
@@ -278,13 +283,13 @@ ccc            fqy(ix,iy) = fqya(ix,iy) + cfydd*fqyd(ix,iy)
              ix4 = ixm1(ix,iy-1)
              utm = (4/(btot(ix,iy-1)+btot(ix,iy))**2)*
      .             ( ey(ix,iy-1) - 2*cfgpijr*gpiy(ix,iy-1,ifld)/
-     .           (qe*zi(ifld)*(niy1(ix,iy-1,ifld)+niy0(ix,iy-1,ifld))) ) 
+     .           (qe*zi(ifld)*(niy1(ix,iy-1,ifld)+niy0(ix,iy-1,ifld))) )
 
              ix3 = ixm1(ix,iy+1)
              ix4 = ixm1(ix,iy)
              ut0 = (4/(btot(ix,iy)+btot(ix,iy+1))**2)*
      .            ( ey(ix,iy) - 2*cfgpijr*gpiy(ix,iy,ifld)/
-     .            (qe*zi(ifld)*(niy1(ix,iy,ifld)+niy0(ix,iy,ifld))) ) 
+     .            (qe*zi(ifld)*(niy1(ix,iy,ifld)+niy0(ix,iy,ifld))) )
 
              ix3 = ixm1(ix,iyp2)
              ix4 = ixm1(ix,iy+1)
@@ -296,16 +301,16 @@ ccc            fqy(ix,iy) = fqya(ix,iy) + cfydd*fqyd(ix,iy)
                utp = 0
              endif
              fmity(ix,iy,ifld) = -0.25*mi(ifld)*
-     .                          (difutm(ifld)+dutm_use(ix,iy,ifld))* 
+     .                          (difutm(ifld)+dutm_use(ix,iy,ifld))*
      .                         ( (niy1(ix,iy,ifld)+niy0(ix,iy,ifld))*
      .                       (2*r0slab+rm(ix,iy,0)+rm(ix,iy+1,0))*ut0 -
      .                         (niy1(ix,iy-1,ifld)+niy0(ix,iy-1,ifld))*
      .                      (2*r0slab+rm(ix,iy-1,0)+rm(ix,iy,0))*utm )*
      .                                                         gy(ix,iy)
 c... Use gy not 1/dynog as diff is btwn 2 cells, not interp pts
- 
+
              fmity(ix,iy+1,ifld) = -0.25*mi(ifld)*
-     .                            (difutm(ifld)+dutm_use(ix,iy+1,ifld))* 
+     .                            (difutm(ifld)+dutm_use(ix,iy+1,ifld))*
      .                        ( (niy1(ix,iy+1,ifld)+niy0(ix,iy+1,ifld))*
      .                      (2*r0slab+rm(ix,iy+1,0)+rm(ix,iyp2,0))*utp -
      .                           (niy1(ix,iy,ifld)+niy0(ix,iy,ifld))*
@@ -332,7 +337,7 @@ c... Use gy not 1/dynog as diff is btwn 2 cells, not interp pts
             niy0d = (niy0(ix,iy,ifld) - niy0s(ix,iy,ifld))/dtreal
             phiy1d = (phiy1(ix,iy) - phiy1s(ix,iy))/dtreal
             phiy0d = (phiy0(ix,iy) - phiy0s(ix,iy))/dtreal
-            
+
 c... Next diffs btwn interp pts (niy1&niy0), thus use 1/dynog, not gyf
             fqydti(ix,iy,ifld) = ( -qe*0.5*
      .                             (niy1(ix,iy,ifld)+niy0(ix,iy,ifld))/
@@ -347,7 +352,7 @@ c... Next diffs btwn interp pts (niy1&niy0), thus use 1/dynog, not gyf
            enddo  #loop over ix
          enddo    #loop over iy
        endif      #test zi>1.e-10
-      enddo       #loop over ifld            
+      enddo       #loop over ifld
 
 
 c ... Sum ion species contributions to fqya, fqym, fqydti
@@ -363,7 +368,7 @@ c ... Sum ion species contributions to fqya, fqym, fqydti
      .                                        gyf(ix,iy)*sy(ix,iy) )
               fqym(ix,iy) = fqym(ix,iy) + fqymi(ix,iy,ifld)
               fqydt(ix,iy) = fqydt(ix,iy) + fqydti(ix,iy,ifld)
-            endif 
+            endif
           enddo
         enddo
       enddo
@@ -371,11 +376,11 @@ c ... Sum ion species contributions to fqya, fqym, fqydti
 c ... Zero fqya on iy=0,1 and iy=ny,1 as unimportant (use isnewpot=0 bc)
       do ix = i1, i6
          if (isixcore(ix)==1) then
-            do iy = 0, nfqya0core         
+            do iy = 0, nfqya0core
               fqya(ix,iy) = 0.
             enddo
          else
-            do iy = 0, nfqya0pf         
+            do iy = 0, nfqya0pf
               fqya(ix,iy) = 0.
             enddo
          endif
@@ -394,7 +399,7 @@ c ... Sum contributions for fqy; ave old fqyao & fqya with rnewpot
      .                     rnewpot*fqya(ix,iy) +
      .                     cfqym*fqym(ix,iy)+fqyd(ix,iy)
 
-            if (nx==nxold .and. ny==nyold) then 
+            if (nx==nxold .and. ny==nyold) then
                fqy(ix,iy) = fqy(ix,iy) + cfqydt*fqydt(ix,iy)
             endif
             if (cfvycf .ne. 0.) then  # use for classical Braginskii model
@@ -402,7 +407,7 @@ c ... Sum contributions for fqy; ave old fqyao & fqya with rnewpot
      .                      vycf(ix,iy)
             endif
          enddo
-      enddo            
+      enddo
 
 ************************************************************************
 *     Calculate fqx, the poloidal current
@@ -425,7 +430,7 @@ c ...     Force boundary fqx to be uniform; these fqx only for phi B.C.
      .                     fqx(ixlb(jx),iy) = fqx(ixlb(jx)+1,iy)
                if (ix==ixrb(jx) .and. isexunif*ixmxbcl==1)
      .                     fqx(ixrb(jx),iy) = fqx(ixrb(jx)-1,iy)
-            enddo 
+            enddo
    46    continue
          if ((isudsym==1.or.(geometry.eq.'dnXtarget'))
      &                           .and. nxc.gt.0) fqx(nxc,iy) = 0.
@@ -445,10 +450,11 @@ c --------------------------------------------------------------------c
       real  nbarx, nbary, sigbarx, sigbary, zfac, temp1, utm, ut0, utp,
      .      ut0n, fqp_old, omgci
       integer iy1
+      #Former Aux module variables
+      integer ix,iy,ix1,ix2,ix3,ix4
 
       Use(Dim)               # ny
       Use(Phyvar)            # ev,qe
-      Use(Aux)               # ix,iy,ix1,ix2,ix3,ix4
       Use(Coefeq)            # cfqyn
       Use(Selec)             # i1,i6,j1p,j5p,j6p,ixm1
       Use(Comgeo)            # gx,gy,gxf,gyf,gxc,gyc,sx,sy
@@ -463,10 +469,10 @@ c --------------------------------------------------------------------c
             omgci = qe*b(ix,iy,0)/mi(1)
             ix3 = ixm1(ix,iy+1)
             ix4 = ixm1(ix,iy)
-            fqyn(ix,iy) = qe*0.125*( 
+            fqyn(ix,iy) = qe*0.125*(
      .              (ngy0(ix,iy,1)+ngy1(ix,iy,1))*nucx(ix,iy,1) +
      .              (niy0(ix,iy,1)+niy1(ix,iy,1))*nuneo )*sy(ix,iy)* (
-     .                             v2ce(ix ,iy  ,1)+v2cd(ix ,iy  ,1) + 
+     .                             v2ce(ix ,iy  ,1)+v2cd(ix ,iy  ,1) +
      .                             v2ce(ix ,iy+1,1)+v2cd(ix ,iy+1,1) +
      .                             v2ce(ix4,iy  ,1)+v2cd(ix4,iy  ,1) +
      .                             v2ce(ix3,iy+1,1)+v2cd(ix3,iy+1,1) )/
@@ -481,7 +487,7 @@ c ... Add contributions to fqy
          do ix = i1, i6
             fqy(ix,iy) = fqy(ix,iy) + cfqyn*fqyn(ix,iy)
          enddo
-      enddo            
+      enddo
 
       return
       end
@@ -502,6 +508,8 @@ c...  of the calculation in the grid.
 
 *  -- local variables
       integer jx
+      #Former Aux module variables
+      integer ix,iy,iv3,ix1,ix2
       real dtuse
       logical isgc,isgc1
 
@@ -510,7 +518,6 @@ c...  of the calculation in the grid.
       Use(Xpoint_indices)      # ixlb,ixrb,ixpt1,ixpt2,iysptrx
       Use(Math_problem_size)   # neqmx
       Use(UEpar)    # nurlxp
-      Use(Aux)      # ix,iy,iv3,ix1,ix2
       Use(Selec)    # i2,i5,j2,j5,ixm1,ixp1
       Use(Comgeo)   # vol
       Use(Comflo)   # fqx,fqy
@@ -521,6 +528,7 @@ c...  of the calculation in the grid.
       Use(Parallv)  # nxg,nyg
       Use(Compla)   # phi
       Use(Volsrc)   # voljcsor
+      Use(Aux)      # ixmp
 
 ***********************************************************************
 *     Set up the equation for the electrostatic potential phi
@@ -543,7 +551,7 @@ c...  of the calculation in the grid.
      .                            + voljcsor(ix,iy) )
             endif
   161    continue
-  162 continue 
+  162 continue
 
 *****************************************************************
 *   Potential equation to be solved
@@ -560,7 +568,7 @@ c...  of the calculation in the grid.
             if (isexunif==0) then
                if (.not. isgc) then
                   yldot(iv3) = resphi(ix,iy)/(vol(ix,iy)*temp0)
-               endif               
+               endif
             else
                if ((.not. isgc) .and. (.not. isgc1)) then
                   yldot(iv3) = resphi(ix,iy)/(vol(ix,iy)*temp0)
@@ -568,56 +576,97 @@ c...  of the calculation in the grid.
             endif
   260    continue
 ccc         yldot(idxphi(1,iy)) = -nurlxp*(phi(1,iy) - phi(0,iy))/temp0
-ccc         yldot(idxphi(nx,iy)) = -nurlxp*(phi(nx,iy) - 
+ccc         yldot(idxphi(nx,iy)) = -nurlxp*(phi(nx,iy) -
 ccc     .                                           phi(nx+1,iy))/temp0
   270 continue
-
-cc    Reset core potential to simple constant (0.) if isphicore0=1
+cc    If isphicore0=1, eset core potential everywhere to midplane pot
+cc    just outside separatrix (phi(ixmp,iysptrx+1) 
       if (isphicore0 == 1) then
-        do iy = 0, iysptrx
-          do ix = ixpt1(1)+1, ixpt2(1)
-            iv3 = idxphi(ix,iy)
-            yldot(iv3) = -nurlxp*(phi(ix,iy) - 0.)/temp0
-           enddo
-         enddo
+        do jx = 1, nxpt
+          do iy = 0, iysptrx  #iy=0 & 1 set by BCs
+            do ix = ixpt1(1)+1, ixpt2(1)
+              iv3 = idxphi(ix,iy)
+              yldot(iv3) = -nurlxp*(phi(ix,iy)-phi(ixmp,iysptrx+1))/
+     .                                                          temp0
+            enddo
+          enddo
+        enddo
       endif
+
       return
       end
 c-----------------------------------------------------------------------
-      subroutine potent (iy)
+      subroutine potent_1dsol
 
       implicit none
 
 *  -- input arguments
       integer iy
 
-      Use(Dim)      # nx
-      Use(Phyvar)   # qe
-      Use(Comgeo)   # gx
-      Use(Compla)   # te,phi
-      Use(Poten)    # kappal
+      Use(Dim)         # nx
+      Use(Phyvar)      # qe
+      Use(Comgeo)      # gx
+      Use(Compla)      # te,phi
+      Use(Poten)       # kappal,kappar
       Use(Gradients)   # ex
-      Use(Selec)    # ixp1
+      Use(Selec)       # ixp1
+      Use(Share)       # nxc
+      Use(Xpoint_indices) # iysptrx,ixpt1,ixpt2
 
 *  -- local variables
-      integer ix, ix1
+      integer ix, ix1, ix2
       real dxf
 
 *-----------------------------------------------------------------------
 
 *  -- This subroutine computes the potential along a flux tube by
 *     integrating the poloidal electric field, starting from the
-*     left boundary where the potential is defined to be zero.
-*     For the core region we have previously set the poloidal
+*     left boundary where the potential is defined to be zero for snull.
+*     For up/down symm cases (isudsym=1), do inner half from inner plate
+*     and then outer half from outer plate.
+*     For the core region we have previously set the
 *     electric field to zero, so we can integrate over all ix, even
 *     for flux tubes in the private flux region.
 
-      phi(0,iy) = kappal(iy,1) * te(0,iy) / qe
-      do 10, ix = 0, nx
-         ix1 = ixp1(ix,iy)
-         dxf= 0.5 * (gx(ix,iy)+gx(ix1,iy))/(gx(ix,iy)*gx(ix1,iy))
-         phi(ix1,iy) = phi(ix,iy) - ex(ix,iy) * dxf
- 10   continue
+      if (isudsym == 0) then  # single-null
+        do iy = j2, j5
+          phi(0,iy) = kappal(iy,1) * te(0,iy) / qe
+          do ix = i2, i5
+            ix1 = ixp1(ix,iy)
+            dxf= 0.5 * (gx(ix,iy)+gx(ix1,iy))/(gx(ix,iy)*gx(ix1,iy))
+            phi(ix1,iy) = phi(ix,iy) - ex(ix,iy) * dxf
+          enddo
+        enddo
+      else  # for lower half of up/down sym, sep phi from inner/outer plates
+        do iy = j2, j5
+          phi(0,iy) = kappal(iy,1) * te(0,iy) / qe
+          do ix = 0, nxc-1
+            ix1 = ixp1(ix,iy)
+            dxf= 0.5 * (gx(ix,iy)+gx(ix1,iy))/(gx(ix,iy)*gx(ix1,iy))
+            phi(ix1,iy) = phi(ix,iy) - ex(ix,iy) * dxf
+          enddo
+        enddo
+        do iy = j2, j5
+          phi(nx+1,iy) = kappar(iy,1) * te(nx+1,iy) / qe
+          do ix = nx, nxc+1, -1
+            ix1 = ixm1(ix,iy)
+            ix2 = ixp1(ix,iy)
+            dxf= 0.5 * (gx(ix,iy)+gx(ix1,iy))/(gx(ix,iy)*gx(ix1,iy))
+            phi(ix,iy) = phi(ix2,iy) + ex(ix,iy) * dxf
+          enddo
+        enddo
+      endif
+
+c ... Impose zero y-gradient for iy < iysptrx in core region and 
+c ... for all ny+1; could generalize to double null
+      do ix = i1, i6
+        if (ix > ixpt1(1) .and. ix < ixpt2(1)+1) then
+          do iy = j1, min(iysptrx,j5)
+            phi(ix,iy) = phi(ix,iysptrx+1)
+          enddo
+        endif
+        phi(ix,ny+1) = phi(ix,ny)
+      enddo
 
       return
       end

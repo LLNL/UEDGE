@@ -1,0 +1,125 @@
+#
+# MATHM - matrix tests
+#
+
+errortrp("off")
+echo = no
+
+integer j, k
+real eps
+
+integer iv(2), iv3(3)
+logical lv(2), lv3(3)
+
+integer imat(3, 3, 1), jmat(3, 3)
+real rmat(3, 3, 1), rimat(3, 3, 1), rjmat(3, 3)
+real onemat(3, 3), unit(3, 3)
+double dimat(3, 3, 1), djmat(3, 3)
+complex cmat(3, 3, 1), cmat2(3, 3)
+double complex dcmat(3, 3, 1), dcmat2(3, 3)
+logical lmat(3, 3, 1)
+
+onemat = shape(ones(9),3,3)
+unit   = diag([[1, 1, 1]], 0)
+
+eps = max(100*r1mach(4), 1.e-10)
+
+lmat = (ones(3, 3) == diag(ones(3)))
+if (~land(lmat)) remark("ERROR 56")
+
+imat  = diag([[2, 4, 6]], 0) + diag([3, 5], 1) + diag(4, [2]) +
+        diag([3, 5], -1) + diag(4, -2)
+cmat  = diag([1.0, 2.0, 3.0], 0) + diag([[2.0 + 0.3i, 4.0 + 5.0i]], 1) +
+        diag(6.0 - 0.7i, [2])
+dcmat = diag([1.0, 2.0, 3.0], 0) + diag([[2.0 + 0.3i, 4.0 + 5.0i]], 1) +
+        diag(6.0 - 0.7i, [2])
+
+do k = 1, 3
+   do j = 1, 3
+      if (imat(j, k) <> j+k) remark("ERROR 0")
+   enddo
+enddo
+
+# single precision matrix division
+rimat = imat
+rjmat = rimat /! (0.5*unit)
+lmat  = (abs(rjmat-2.0*rimat) < eps)
+if (~land(lmat)) remark("ERROR 1")
+<< "ok a"
+
+# double precision matrix division
+dimat = imat
+djmat = dimat /! (0.5*unit)
+lmat  = (abs(djmat-2.0*dimat) < eps)
+if (~land(lmat)) remark("ERROR 2")
+<< "ok b"
+
+# tesing transpose operator and logical and and or functions.
+jmat = transpose(transpose(imat))
+lmat = (imat == jmat)
+if (~land(lmat)) remark("ERROR 3")
+
+dimat = imat
+djmat = transpose(transpose(dimat))
+lmat  = (dimat == djmat)
+if (~land(lmat)) remark("ERROR 4")
+if (~lor(lmat)) remark("ERROR 5")
+
+<< "ok c"
+
+# testing transpose and complex conjugate on matrices
+cmat   = cmat + transpose(conjg(cmat))
+cmat2  = transpose(conjg(cmat))
+dcmat  = dcmat + transpose(conjg(dcmat))
+dcmat2 = transpose(conjg(dcmat))
+
+if (lor((cmat == cmat/2.0))) remark( "ERROR 6")
+if (lor((dcmat == dcmat/2.0))) remark( "ERROR 7")
+
+lmat = (abs(cmat-cmat2) < eps)
+if (~land(lmat)) remark("ERROR 8")
+
+lmat = (abs(dcmat-dcmat2) < eps)
+if (~land(lmat)) remark("ERROR 9")
+
+<< "ok d"
+
+# check 'rangex' and 'shape', 'squeeze'.
+jmat  = outer(iota(3), iota(3))
+djmat = outer(dble(iota(3)), dble(iota(3)))
+
+iv = shape(jmat)
+lv = (iv == 3*ones(2))
+if (~land(lv)) remark("ERROR 68")
+
+iv = shape(djmat)
+lv = (iv == 3*ones(2))
+if (~land(lv)) remark("ERROR 69")
+
+iv3 = shape(imat)
+lv3 = (iv3 == 3*ones(2)//1)
+if (~land(lv3)) remark("ERROR 68.1")
+
+iv3 = shape(dimat)
+lv3 = (iv3 == 3*ones(2)//1)
+if (~land(lv3)) remark("ERROR 69.1")
+
+<< "ok e"
+
+# test vmax and vmin
+real x(3, 4) = [[7, 9, 3], [1, 10, 2], [4, 8, 6], [11, 12, 5]]
+logical lmat(4) = (vmin(x, 1) == [3.0, 1.0, 4.0, 5.0])
+if (~land(lmat)) remark("vmax ERROR 1")
+
+lmat = (vmax(x, 1) == [9.0, 10.0, 8.0, 12.0])
+if (~land(lmat)) remark("vmax ERROR 2")
+
+logical lmat(3) = (vmin(x, 2) == [1.0, 8.0, 2.0])
+if (~land(lmat)) remark("vmax ERROR 3")
+
+lmat = (vmax(x, 2) == [11.0, 12.0, 6.0])
+if (~land(lmat)) remark("vmax ERROR 4")
+
+<< "ok f"
+
+quit

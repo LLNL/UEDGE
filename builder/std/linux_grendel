@@ -1,0 +1,30 @@
+#
+#  LINUX - UEDGE using NCAR graphics and Portland Group
+#
+
+include packages
+
+PackFiles = ${BasInc}/pfb.pack ${BasInc}/ezn.pack
+AUXLibs = RL pfb ezn ezd basis
+PACTRoot  = /afs/localcell/usr/pact/pact12
+
+!define NCARG_ROOT /afs/localcell/usr/Ncar
+!define NCARV      411
+
+define WARN_PATTERN "PGF90-W- PGC-W-"
+define ERR_PATTERN  "PGF90-S- PGC-S-"
+
+FGroup     = 1
+  Use      = pgi_f90
+  Optimize = -O1
+  Flags    = -Mrecursive -Mpreprocess
+
+CGroup     = 1
+  Use      = gnu_cc
+  Optimize = -g -O1
+  Debug    = -g
+
+LDGroup    = 1
+  Use      = pgi_f90
+  MapName  = code.map
+

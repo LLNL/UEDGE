@@ -88,6 +88,15 @@ def pdb2h5py(infile,outfile):
            print("Couldn't write tgs to  ",outfile)
     except:
         print("Couldn't read tgs from  ",infile)
+    try:
+        din = np.array(fp.read('tipers@bbb'))
+        din = din.reshape(din.shape[::-1]).transpose()
+        try:
+           hfg.create_dataset('tipers',data=din)
+        except:
+           print("Couldn't write tipers to  ",outfile)
+    except:
+        print("Couldn't read tipers from  ",infile)
 
     fp.close()
     hf.close()

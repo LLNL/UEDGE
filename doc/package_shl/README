@@ -1,0 +1,130 @@
+This package gives access to the dynamic linking loader (dll)
+library routines dlopen, dlsym, and dlclose. These routines
+allow a program to load a shared library (.so or .sl) and 
+execute a subroutine that is specified at runtime. Normally
+shared libraries are specified when a program is built. Users
+of IDL will be very familiar with this in the use of the
+call_external() function. PYTHON uses something similar to
+be able to import code from shared libraries. With this package,
+developers, and ordinary users, can write routines in compiled
+languages like C and Fortran and pass data in and out of them 
+inside of a Corsica session. 
+
+There are two calling interfaces supported by the shl package
+routines call_external and exec_external.
+
+Call_external:
+
+    This routine has an idl-like interface. The arguments are
+    passed as a count and an array of pointers (int argc, void *argv[]).
+    The subroutine called in the library is usually written in C 
+    because of the requirement to use pointers. Even when the desired
+    code is written in Fortran, a simple C "wrapper" code is written to
+    decode the arguments. The file bar.c, in this document directory, 
+    is an example of a routine that may be called with call_external. 
+    The following will produce a shared library using the GNU tools:
+
+        [wm@hrothgar package_shl]$ gcc bar.c -fpic -c
+        [wm@hrothgar package_shl]$ ld -shared bar.o -o libfoo.so
+
+    The following is an example of calling the routine from corsica.
+
+        [wm@hrothgar package_shl]$ ../../scripts/caltrans.sh
+        setting CPU_ environment to your value, LINUX
+        Running /md0/wm/dsysstuff/caltrans_shl/corsica/LINUX/caltrans
+        corsica> {real} foo(100)
+        corsica> call_external("./libfoo.so","bar",&foo,100)
+        call_external("./libfoo.so","bar",&foo,100) =   0
+
+    It illustrates a couple "features" of corsica. Note the "{real}".
+    If you examine bar.c you will see that the array is a single precision
+    float. The type "real" in corsica is made double precision by use
+    of a macro. The curly brackets override the macro and declare foo
+    to be single precision. Also, notice the "&foo" in the call line.
+    The subroutine "bar" modifies the contents of the array passed into it.
+    Without the "&" in front of the array the subroutine would be passed
+    a dummy copy of the array which is thrown away when it returns. The 
+    "&" should be used around any arguments that are output of the subroutine.
+    Also note that all space must be allocated by corsica before calling and
+    it is up to the user to insure that sufficient space, and of the correct
+    type, is allocated.
+
+Exec_external
+
+    This routine uses a more standard call interface, each argument is
+    enumerated on the subroutine definition line. The arguments are all
+    passed by reference. Because of this it's possible to call Fortran
+    directly using this shl package routine. The file fbar.f is an example
+    of a subroutine, functionally similar to bar.c, but written in Fortran
+    and using this routines call interface. The following is an example of
+    creating a shared library using the portland group compiler:
+
+    	[wm@hrothgar package_shl]$ pgf90 -fpic -c fbar.f
+	[wm@hrothgar package_shl]$  ld -shared fbar.o -o libfoo.so \
+	     -L$PGI/linux86/lib -lpgf90 -lpgf90_rpm1 -lpgf902 -lpgf90rtl \
+	     -lpgftnrtl -lpgc
+
+    You may wonder why this example has so many libraries. This brings
+    up a requirement of the dynamic loader. 
+	     
+	  THE SHARED LIBRARY MUST BE SELF-CONTAINED - ALL REQUIRED ENTRY
+	  POINTS MUST BE RESOLVED WITHIN THE LIBRARY
+
+    The unix command "ldd" is very useful for testing this. 
+    For example lets leave off the libraries and try to execute.
+
+    	[wm@hrothgar package_shl]$  ld -shared fbar.o -o libfoo.so 
+	[wm@hrothgar package_shl]$ ../../scripts/caltrans.sh
+	setting CPU_ environment to your value, LINUX
+	Running /md0/wm/dsysstuff/caltrans_shl/corsica/LINUX/caltrans
+	corsica> {real} foo(10)
+	corsica> exec_external("./libfoo.so","fbar_",&foo,10)
+	exec_external: Couldn't open shared library ./libfoo.so.
+	./libfoo.so: undefined symbol: pgf90_compiled
+	Error in calling exec_external
+	Writing traceback info to file untitled.001.err
+	Returned to user input level.
+
+    If we use ldd on the library we can see this missing entry point.
+
+    	[wm@hrothgar package_shl]$ ldd -d libfoo.so
+	        statically linked
+		undefined symbol: pgf90_compiled        (./libfoo.so)
+
+    It isn't always true that if ldd reports undefined symbols that 
+    your library will not work with the shl package but it is a good
+    tool for debugging. So after reloading the library properly, for
+    the pgi compiler, here is how one would use it in corsica:
+
+    	[wm@hrothgar package_shl]$ ../../scripts/caltrans.sh 
+	setting CPU_ environment to your value, LINUX
+	Running /md0/wm/dsysstuff/caltrans_shl/corsica/LINUX/caltrans
+	corsica>  {real} foo(10)
+	corsica> exec_external("./libfoo.so","fbar_",&foo,10)
+	exec_external("./libfoo.so","fbar_",&foo,10) =   10
+
+    Note that the same issues of "{real}" and "&foo" apply as in 
+    the call_external case. In this example you will notice the name
+    "fbar_" has an underscore appended to the end. Many Fortran 
+    compilers append an underscore to the name of subroutines. It is
+    up to the user to know the correct entry point to call within
+    the shared library. The unix command "nm" can be used to show
+    the symbols within a shared library. 
+
+
+
+One useful utility that the shl package provides is close_library.
+The user would use this when they make a change to a shared library. 
+With each call to either call_external or exec_external a list is
+kept of each routine and library combination. In order for a change 
+to a shared library to be used, if the old version has already been 
+called, the system call dlclose must be called for every routine used
+from that old library. The routine close_library does this. In the
+example I've been using the syntax would be:
+
+	corsica> close_library("./libfoo.so")
+	close_library("./libfoo.so") =   0
+
+Note that the string argument must be an exact match to the library
+string used in all calls to call_external or exec_external.
+

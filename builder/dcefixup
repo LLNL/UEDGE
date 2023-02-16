@@ -1,0 +1,10 @@
+#!/bin/sh
+# Work around a library name clash on some platforms.
+
+arch=`$BASIS_ROOT/bin/cfgman use`
+cd ./dev/$arch/include || exit 1
+sed 's/ -ldce / -luedge_dce /' make-config > mcf.tmp &&
+  mv mcf.tmp make-config || rm mcf.tmp
+cd ../lib || exit 1
+test -h libuedge_dce.a || ln -s libdce.a libuedge_dce.a
+echo "Package dce: Library renamed libuedge_dce.a to avoid name clash."

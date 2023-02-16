@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include "llnltyps.h"
+#include <stdlib.h>
 
 #define ZERO   RCONST(0.0)  /* real 0.0   */
 
@@ -74,7 +75,7 @@ typedef  int integer; */
  ***************************************************************/
 
 void nvfreer_(real x);
-void nvfreei_(integer x);
+void nvfreei_(void *x);
 
 /***************************************************************/
 void * nvnewr_(integer *NLENGTH)
@@ -126,7 +127,7 @@ void * nvnewi_(integer *NLENGTH)
 }
 /***************************************************************/
 
-void nvfreei_(integer x)
+void nvfreei_(void *x)
 {
   free(x);
 }

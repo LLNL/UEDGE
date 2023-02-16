@@ -1,0 +1,12 @@
+#
+# UEDGE - basic structural information.
+#
+
+#Packages   = aph api bbb com dce flx grd svr wdf .
+#Packages   = aph api bbb com     flx grd svr wdf .
+
+Directories = aph api bbb com     flx grd svr wdf .
+
+MPPL_lang = to f90
+Macros = sptodp
+RealSize = 8

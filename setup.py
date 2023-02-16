@@ -9,22 +9,25 @@ import string
 import site
 from Forthon.compilers import FCompiler
 import getopt
+import logging
 
-version='7.0.9.2.0rc1'
+version='7.0.9.3.0'
 
 try:
     os.environ['PATH'] += os.pathsep + site.USER_BASE + '/bin'
+    import setuptools
     import distutils
     from distutils.core import setup
     from distutils.core import Extension
     from distutils.dist import Distribution
     from distutils.command.build import build
+    from distutils.command.install import install
     from subprocess import call
     import numpy
 except:
     raise SystemExit("Distutils problem")
 
-optlist, args = getopt.getopt(sys.argv[1:], 'gt:F:', ['parallel', 'petsc'])
+optlist, args = getopt.getopt(sys.argv[1:], 'gt:F:', ['parallel', 'petsc', 'omp'])
 machine = sys.platform
 debug = 0
 fcomp = None
@@ -42,6 +45,9 @@ for o in optlist:
         parallel = 1
     elif o[0] == '--petsc':
         petsc = 1
+    elif o[0] == '--omp':
+        os.putenv("OMP","1")
+        
 
 
 if petsc == 1 and os.getenv('PETSC_DIR') == None:
@@ -58,10 +64,18 @@ fcompiler = FCompiler(machine=machine,
                       fcompname=fcomp)
 
 
+class uedgeInstall(build):
+    def run(self):
+       install.run(self)
+       logging.basicConfig(stream=sys.stderr,level=logging.INFO)
+       log = logging.getLogger()
+       log.info("test")
 class uedgeBuild(build):
     def run(self):
         # with python2 everything is put into a single uedgeC.so file
         if sys.hexversion < 0x03000000:
+            raise SystemExit("Python versions < 3 not supported")
+        else:
             if petsc == 0:
                 call(['make', '-f', 'Makefile.Forthon'])
             else:
@@ -69,7 +83,7 @@ class uedgeBuild(build):
             build.run(self)
         else:
             if petsc == 0:
-                call(['make', '-f', 'Makefile.Forthon3'])
+                call(['make', '-f','Makefile.Forthon3'])
             else:
                 call(['make', '-f', 'Makefile.PETSc3'])
             build.run(self)
@@ -78,6 +92,8 @@ class uedgeBuild(build):
 class uedgeClean(build):
     def run(self):
         if sys.hexversion < 0x03000000:
+            raise SystemExit("Python versions < 3 not supported")
+        else:
             if petsc == 0:
                 call(['make', '-f', 'Makefile.Forthon', 'clean'])
             else:
@@ -89,7 +105,7 @@ class uedgeClean(build):
                 call(['make', '-f', 'Makefile.PETSc3', 'clean'])
 
 
-uedgepkgs = ['aph', 'api', 'bbb', 'com', 'flx', 'grd', 'svr', 'wdf']
+uedgepkgs = ['aph', 'api', 'bbb', 'com', 'flx', 'grd', 'svr', 'wdf', 'ncl']
 
 
 def makeobjects(pkg):
@@ -102,32 +118,7 @@ uedgeobjects = []
 
 
 if sys.hexversion < 0x03000000:
-    builddir = 'build'
-    for pkg in uedgepkgs:
-         uedgeobjects = uedgeobjects + makeobjects(pkg)
-    uedgeobjects = uedgeobjects + ['aphrates.o', 'aphread.o',
-                                   'apifcn.o', 'apip93.o', 'apisorc.o',
-                                   'fimp.o', 'fmombal.o', 'inelrates.o',
-                                   'sputt.o', 'boundary.o', 'convert.o',
-                                   'geometry.o', 'griddubl.o', 'oderhs.o',
-                                   'odesetup.o', 'odesolve.o', 'potencur.o',
-                                   'ext_neutrals.o',
-                                   'turbulence.o', 'blasext.o', 'brent.o',
-                                   'comutil.o', 'misc.o', 'mnbrak.o',
-                                   'flxcomp.o', 'flxdriv.o', 'flxread.o',
-                                   'flxwrit.o', 'grdcomp.o', 'grddriv.o',
-                                   'grdinit.o', 'grdread.o', 'grdwrit.o',
-                                   'daspk.o', 'nksol.o', 'svrut1.o', 'svrut2.o',
-                                   'svrut3.o', 'svrut4.o', 'vodpk.o', 'uoa.o',
-                                   'dsum.o', 'dummy_py.o', 'error.o', 'getmsg.o',
-                                   'ssum.o', 'daux1.o', 'wdf.o']
-
-    if petsc:
-        uedgeobjects = uedgeobjects + ['petsc-uedge.o', 'petscMod.o']
-
-    if parallel:
-        # add extra dot o's needed if we're parallel
-        uedgeobjects = uedgeobjects + []
+    raise SystemExit("Python versions < 3 not supported")
 else:
     dummydist = Distribution()
     dummydist.parse_command_line()
@@ -164,6 +155,8 @@ if parallel:
 
 with open('pyscripts/__version__.py','w') as ff:
     ff.write("__version__ = '%s'\n"%version)
+with open('pyscripts/__src__.py','w') as ff:
+    ff.write("__src__ = '%s'\n"%os.getcwd())
 
 define_macros=[("WITH_NUMERIC", "0"),
                ("FORTHON_PKGNAME", '\"uedgeC\"'),
@@ -206,7 +199,7 @@ setup(name="uedge",
 
       cmdclass={'build': uedgeBuild, 'clean': uedgeClean},
       test_suite="pytests",
-      install_requires=['forthon', 'mppl'],
+      install_requires=['forthon', 'mppl','easygui'],
       # note that include_dirs may have to be expanded in the line above
       classifiers=['Programming Language :: Python',
                    'Programming Language :: Python :: 3']

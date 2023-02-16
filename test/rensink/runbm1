@@ -1,0 +1,41 @@
+# Read parameters and pfb file pfbm1
+echo=no
+debug=yes
+restart=1
+read inbm1
+# Invoke Newton solver
+exmain
+# Save plasma variables and residuals
+real svnis(0:nxold+1,0:nyold+1,1:nisp)=nis(0:nxold+1,0:nyold+1,1:nisp)
+real svups(0:nxold+1,0:nyold+1,1:nisp)=ups(0:nxold+1,0:nyold+1,1:nisp)
+real svngs(0:nxold+1,0:nyold+1,1:ngsp)=ngs(0:nxold+1,0:nyold+1,1:ngsp)
+real svtes(0:nxold+1,0:nyold+1)=tes(0:nxold+1,0:nyold+1)
+real svtis(0:nxold+1,0:nyold+1)=tis(0:nxold+1,0:nyold+1)
+real svphis(0:nxold+1,0:nyold+1)=phis(0:nxold+1,0:nyold+1)
+real svresco(0:nx+1,0:ny+1,1:nisp)=resco(0:nx+1,0:ny+1,1:nisp)
+real svresng(0:nx+1,0:ny+1,1:ngsp)=resng(0:nx+1,0:ny+1,1:ngsp)
+real svresmo(0:nx+1,0:ny+1,1:nisp)=resmo(0:nx+1,0:ny+1,1:nisp)
+real svresee(0:nx+1,0:ny+1)=resee(0:nx+1,0:ny+1)
+real svresei(0:nx+1,0:ny+1)=resei(0:nx+1,0:ny+1)
+real svresphi(0:nx+1,0:ny+1)=resphi(0:nx+1,0:ny+1)
+# Read in plasma variables from a run with a previous code version
+restore varbm1
+# Compute largest differences over grid for each plasma variable and
+# normalize to the largest value of that variable
+sup(abs(svnis-nis))/sup(abs(nis))
+sup(abs(svups-ups))/sup(abs(ups))
+sup(abs(svngs-ngs))/sup(abs(ngs))
+sup(abs(svtes-tes))/sup(abs(tes))
+sup(abs(svtis-tis))/sup(abs(tis))
+sup(abs(svphis-phis))/sup(abs(phis))
+# Read in residuals from a run with a previous code version
+restore resbm1
+# Compute largest differences over grid for each residual
+sup(abs(svresco-resco))/nnorm
+sup(abs(svresmo-resmo))/fnorm(1)
+sup(abs(svresng-resng))/sup(abs(ngs))
+sup(abs(svresee-resee))/ennorm
+sup(abs(svresei-resei))/ennorm
+sup(abs(svresphi-resphi))/temp0
+#
+end

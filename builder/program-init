@@ -1,0 +1,31 @@
+#
+# Basic configuration for UEDGE
+#
+
+# Start with BASIS configuration
+getenv(BASIS_ROOT)
+include $BASIS_ROOT/include/configured
+
+# Re-initialize for UEDGE as needed
+ProgName    = xuedge
+SYSIncPath = . .. ${SysInc} ${BasInc} ${PACTRoot}/include
+LIB = lib
+RPATH = /usr/${LIB}
+CmpLib = /usr/${LIB}
+
+VMake += LIB RPATH
+VEnv  += LIB RPATH
+
+Directory : . {
+    # describe how to load xuedge
+    BasisProgram : xuedge {
+       Main      = 1
+
+       PackFiles = uedge.pack
+       Packages  = aph api bbb com flx grd svr wdf fbasis mth pfb par ezn ezd
+
+       Source    = glbtmdat.f
+       Libraries = Lapack NCAR
+       Phase     = link
+    }
+}

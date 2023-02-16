@@ -31,7 +31,10 @@ if __name__ == "__main__":
             default='WARNING',help='Set the logging level')
       args = parser.parse_args()
       logger.setLevel(args.loglevel)
-      from tkFileDialog import askopenfilename,asksaveasfilename
+      try:
+         from tkFileDialog import askopenfilename,asksaveasfilename
+      except:
+         from tkinter.filedialog import askopenfilename,asksaveasfilename
       if args.basis_filename == None:
          infile = askopenfilename(title="Select input basis file",filetypes=[("allfiles","*"),("bas","*.bas")])
       else:

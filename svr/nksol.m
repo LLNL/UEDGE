@@ -1,5 +1,5 @@
 c
-c $Id: nksol.m,v 7.2 2020/02/12 18:35:18 meyer8 Exp $
+c $Id: nksol.m,v 7.4 2021/03/23 18:59:33 meyer8 Exp $
 c
 
 c!include "../mppl.h"
@@ -689,7 +689,7 @@ c shefa   computes an lu decomposition of a hessenberg matrix.
 c shesl   solves a hessenberg linear system, using lu factors.
 c sheqr   computes a qr decomposition of a hessenberg matrix.
 c shels   solves a hessenberg least-squares system, using qr factors.
-c r1mach9 computes machine epsilon in single precision.
+c epsilon computes machine epsilon in double precision.
 c vnormnk computes a scaled euclidean norm of a vector.
 c dogdrv  driver for the dogleg strategy.
 c dogstp  computes the dogleg step for the current trust region.
@@ -727,7 +727,7 @@ c- icntnu change
       external f, jac, pset, psol
       real savf,u,rwork,su,sf
       real stptol,epsmch,fnrm,f1nrm,f1nrmp,unrm
-      real ftol,stepmx,r1mach9,vnormnk,epsfac,sunrm,snrm2,tau
+      real ftol,stepmx,epsilon,vnormnk,epsfac,sunrm,snrm2,tau
       dimension savf(n),u(*),rwork(lrw),su(n),sf(n)
       dimension iwork(liw)
       real rlx, epscon1, epscon2, adjf1
@@ -736,6 +736,7 @@ c- icntnu change
 c
       real zero,one,two,three
       logical mxtkn
+       Use(Cdv)
 cpetsc      external gettime
 cpetsc      real gettime,sec4
 c+pnb
@@ -764,7 +765,10 @@ c-----------------------------------------------------------------------
       common /nks003/ pthrsh, ipcur, nnipset, incpset
 c
       save
-      data zero/0.0e0/,one/1.0e0/,two/2.0e0/,three/3.0e0/
+      zero=0.
+      one=1.0
+      two=2.0
+      three=3.0
 c-----------------------------------------------------------------------
 c zero counters in common block nks001.
 c-----------------------------------------------------------------------
@@ -806,8 +810,7 @@ c=======================================================================
 c-----------------------------------------------------------------------
 c     compute machine epsilon.
 c-----------------------------------------------------------------------
-      epsmch = r1mach9(4)
-ccc      write(*,*) 'epsmch = ', epsmch
+      epsmch = epsilon(zero)
 c-----------------------------------------------------------------------
 c     initialize parameters.  check for illegal input.
 c-----------------------------------------------------------------------
@@ -971,7 +974,9 @@ c insufficient storage in iwork
         endif
       if (itermx .eq. 0) itermx = 200
       nbcfmx = 10
-      if (stptol .eq. zero) stptol = epsmch**(two/three)
+      if (iprint.gt.1) write(*,*)'0) sptol,epsmch', stptol,epsmch  
+      if (stptol .eq. 0.0) stptol = epsmch**(2.0/3.0)
+      if (iprint.gt.1) write(*,*)'1) sptol', stptol
       if (stepmx .eq. zero) then
         unrm = vnormnk(n,u,su)
         sunrm = snrm2(n,su,1)
@@ -1083,6 +1088,8 @@ cpetsc        nksoltime(iter+1)=gettime(sec4)
 cpetsc        nksollinits(iter+1)=nli
 cpetsc        nksolfeval(iter+1)=nfe
 cpetsc      endif
+      # we add here a trap for aborted exmain when 'stop' is called. Added by J.Guterl
+      if (exmain_aborted) call xerrab('exmain aborted...')
       call nkstop(n,u,rwork(lup),savf,fnrm,su,sf,stptol,rwork(lx),
      *            ftol,iret,iter,itermx,mxtkn,ncscmx,iterm)
 c
@@ -1303,8 +1310,9 @@ c-----------------------------------------------------------------------
       real u, s, su, one, rlngth, temp, zero
       integer i, n
       dimension u(n), s(n), su(n)
-      data one/1.0e0/, zero/0.0e0/
 c
+      zero=0.0
+      one=1.0
       rlngth = zero
       do 10 i = 1,n
         temp = one/su(i)
@@ -3204,7 +3212,7 @@ c-----------------------------------------------------------------------
       real rlx, adjf1
       integer ivar
       dimension savf(n),u(*),unew(n),p(n),su(n),sf(n),icnstr(n)
-      real pt1,pt1trl,pt99,one,two,alpha
+      real pt1,pt1trl,pt99,one,two,alpha,acond,mcond,bcond
       logical mxtkn
 c-----------------------------------------------------------------------
 c     nks001 common block.
@@ -3263,8 +3271,8 @@ ccc MVU: 15-jan-2020
       call slngth(n, u, p, su, rlngth)
       rlmin = stptol/rlngth
       rl = one
-      if (iprint .gt. 1) write(iunit,20) rlmin
- 20   format(' ------ in routine lnsrch (min lambda=',e12.4,') ------ ')
+       if (iprint .gt. 1) write(iunit,20) rlmin,stptol,rlngth
+ 20   format(' -- in routine lnsrch (min lambda=',3e12.4,') -- ')
 c-----------------------------------------------------------------------
 c begin iteration to find rl value satisfying alpha- and beta-
 c conditions.  if rl becomes .lt. rlmin, then terminate with iret=1.
@@ -3279,8 +3287,14 @@ c-----------------------------------------------------------------------
       call sswap(n, u, 1, unew, 1)
       fnrmp = vnormnk(n,savf,sf)
       f1nrmp = fnrmp*fnrmp/two
-      if (iprint .gt. 1) write(iunit,125) rl,f1nrm,f1nrmp
- 125  format(' lambda, f1, f1new ',3d20.8)
+      acond=f1nrmp/adjf1 - f1nrm + alpha*slpi*rl
+ 
+      if (iprint .gt. 1) then
+       write(iunit,125) rl,f1nrm,f1nrmp,acond,nfe
+      endif
+ 125  format(' lambda,f1,f1new,acon,nfe',4d28.16,I4)
+ 126  format(' lambda,f1,f1new,bcon,nfe',4d28.16,I4)
+ 127  format(' lambda,f1,f1new,acon,bcon,mcon,nfe',3d28.16,3d12.2,I4)
       if (f1nrmp/adjf1 .gt. f1nrm + alpha*slpi*rl) go to 200
 c alpha-condition satisfied.  now check for beta-condition.
         if (f1nrmp/adjf1 .lt. f1nrm + beta*slpi*rl) then
@@ -3299,8 +3313,11 @@ c alpha-condition satisfied.  now check for beta-condition.
             call sswap(n, u, 1, unew, 1)
             fnrmp = vnormnk(n,savf,sf)
             f1nrmp = fnrmp*fnrmp/two
-            if (iprint .gt. 1) write(iunit,125) rl,f1nrm,f1nrmp
-            if ( (f1nrmp/adjf1 .le. f1nrm + alpha*slpi*rl) .and.
+            if (iprint .gt. 1) then
+	     bcond=f1nrmp/adjf1 - f1nrm + beta*slpi*rl
+              write(iunit,126) rl,f1nrm,f1nrmp,bcond,nfe
+            endif
+	    if ( (f1nrmp/adjf1 .le. f1nrm + alpha*slpi*rl) .and.
      *           (f1nrmp/adjf1 .lt. f1nrm + beta*slpi*rl)  .and.
      *           (rl .lt. rlmax) ) go to 130
             endif
@@ -3325,7 +3342,7 @@ c alpha-condition satisfied.  now check for beta-condition.
             call sswap(n, u, 1, unew, 1)
             fnrmp = vnormnk(n,savf,sf)
             f1nrmp = fnrmp*fnrmp/two
-            if (iprint .gt. 1) write(iunit,125) rl,f1nrm,f1nrmp
+
             if (f1nrmp/adjf1 .gt.f1nrm + alpha*slpi*rl) then
                 rldiff = rlincr
               elseif (f1nrmp/adjf1 .lt. f1nrm + beta*slpi*rl) then
@@ -3333,6 +3350,13 @@ c alpha-condition satisfied.  now check for beta-condition.
                 rldiff = rldiff - rlincr
                 f1lo = f1nrmp
               endif
+	    
+	    if (iprint .gt. 1) then
+	     mcond=rldiff-rlmin
+	     acond=f1nrmp/adjf1 - f1nrm + alpha*slpi*rl
+             bcond=f1nrmp/adjf1 - f1nrm + beta*slpi*rl
+            write(iunit,127) rl,f1nrm,f1nrmp,acond,bcond,mcond,nfe
+            endif
             if ( ( (f1nrmp/adjf1 .gt. f1nrm + alpha*slpi*rl) .or.
      *             (f1nrmp/adjf1 .lt. f1nrm + beta*slpi*rl) )  .and.
      *           (rldiff .gt. rlmin) ) go to 150

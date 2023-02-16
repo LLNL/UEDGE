@@ -1,0 +1,111 @@
+errortrp("off")
+echo = no
+
+<< "--------------------------------------------------------------------------"
+<< "Character = abcdefghijklmnopqrstuvwxyz  (dec/oct/hex)"
+character a(26) = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
+formdesc = "dec"
+a
+formdesc = "oct"
+a
+formdesc = "hex"
+a
+formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+<< "Character = abdc  (dec/oct/hex)"
+character*4 a1(2) = ["abcd", "wxyz"]
+formdesc = "dec"
+a1
+formdesc = "oct"
+a1
+formdesc = "hex"
+a1
+formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+<< "Integer = iota(13)  (dec/oct/hex)"
+integer b(13) = iota(13)
+formdesc = "dec"
+b
+formdesc = "oct"
+b
+formdesc = "hex"
+b
+formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+<< "Logical = true  (dec/oct/hex)"
+logical c(17) = true
+c(9:17) = false
+formdesc = "dec"
+c
+formdesc = "oct"
+c
+formdesc = "hex"
+c
+formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+<< "Range = [0:1, 1:2, 2:3, 3:4, 4:5, 5:6, 6:7, 7:8, 8:9, 9:10, 10:11]  (dec/oct/hex)"
+range d(11) = [0:1, 1:2, 2:3, 3:4, 4:5, 5:6, 6:7, 7:8, 8:9, 9:10, 10:11]
+formdesc = "dec"
+d
+formdesc = "oct"
+d
+formdesc = "hex"
+d
+formdesc = "dec"
+
+#<< "--------------------------------------------------------------------------"
+#<< "Address = 8192  (dec/oct/hex)"
+#Address e = 8192
+#e
+
+<< "--------------------------------------------------------------------------"
+<< "Real = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 0.0] (dec/oct/hex)"
+real w(10) = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 0.0]
+formdesc = "dec"
+w
+formdesc = "oct"
+w
+formdesc = "hex"
+w
+formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+<< "Double = [3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 0.0]  (dec/oct/hex)"
+double x(8) = [3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 0.0]
+formdesc = "dec"
+x
+formdesc = "oct"
+x
+formdesc = "hex"
+x
+formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+<< "Complex = iota(5)*cmplx(1,2)  (dec/oct/hex)"
+complex y(5) = iota(5)*cmplx(1,2)
+formdesc = "dec"
+y
+formdesc = "oct"
+y
+formdesc = "hex"
+y
+formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+<< "Double complex = iota(7)*dcmplx(2,3)  (dec/oct/hex)"
+double complex z(7) = iota(7)*dcmplx(2.71,3.14)
+formdesc = "dec"
+z
+formdesc = "oct"
+z
+formdesc = "hex"
+z
+formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+
+quit

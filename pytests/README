@@ -1,0 +1,24 @@
+
+This python test area is setup to be run with the "pytest" module. You may 
+need to load this into your Anaconda Python environment with:
+
+    pip install pytest pytest-xdist
+
+Then to run all the tests type:
+
+    pytest --forked
+
+To run just the fast tests to:
+
+    pytest --forked fast_tests
+
+To run just a specific test you can either do this while in this directory:
+
+    pytest --forked fast_tests/Slab_geometry
+
+or
+
+    cd fast_tests/Slab_geometry
+    pytest --forked
+
+Repeat for any desired test.

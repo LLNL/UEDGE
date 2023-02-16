@@ -1,0 +1,77 @@
+Forthon_case1:
+   Slab model with 4 hydrogen variables (ni,upi,te,ti) and a (6+2)*(10+2) 
+[poloidal*radial] mesh yielding  384 variables.  The +2 in the mesh size 
+arises from one guard-cell at each end of the domain used to set boundary 
+conditions. Solver is svrpkg="vodpk" (time-dependent solver) and 
+preconditioner is premeth="ilut".
+
+Forthon_case2:
+   DIII-D single-null geometry with 5 variables (ni,upi,te,ti,ng) and a
+(16+2)*(8+2) [poloidal*radial] mesh yielding  900 variables.  Solver is 
+svrpkg="nksol" and preconditioner is premeth="banded".
+
+Forthon_case3:
+   DIII-D single-null geometry with 6 variables (ni,upi,te,ti,ng,upg) and a
+(64+2)*(32+2) [poloidal*radial] mesh yielding 13,464 variables.  The +2 in
+the mesh size arises from one guard-cell at each end of the domain used to set
+boundary conditions.  Solver is svrpkg="nksol" and preconditioner is 
+premeth="ilut".
+
+Forthon_case4:
+   ITER single-null geometry with 6 variables (ni,upi,te,ti,ng,upg) and a
+(62+2)*(26+2) [poloidal*radial] mesh yielding 10,752 variables.  A 
+fixed-fraction impurity model is added (only energy sink term for electrons 
+assuming a fixed concentration of carbon) and the mesh is nonorthogonal, 
+typically making the solution more difficult.  Solver is svrpkg="nksol" and 
+preconditioner is premeth="ilut"Solver is NKSOL.
+
+Forthon_case5:
+   ITER single-null geometry with 6 hydrogen variables (ni,upi,te,ti,ng,upg) 
+and 7 carbon impurity variables (ni,ng) and a (62+2)*(26+2) [poloidal*radial]
+mesh yielding 23,296 variables. Mesh is again nonorthogonal.  Solver is 
+svrpkg="nksol" and preconditioner is premeth="ilut".
+
+Forthon_case6:
+   Same DIII-D setup as case 2, but two examples of running time-dependently.
+To run these cases, must have a link to the files uedge/pyscripts/rdinitdt.py
+and uedge/pyscripts/rdcontdt.py.  Here rdinitdt.py sets various parameters for
+controlling the time-dependent run, and rdcontdt.py advances the solution
+through a series calls to bbb.exmain() while attempting to advance the
+timestep (bbb.dtreal); each successful solution (time-step) results in an
+updated solution that is take as the initial condition for the next step and
+the total time is accumulated.  
+   Note rdcontdt.py has an inner loop over ii2 that controls taking ii2max 
+steps at the present time-step, and an outer loop over ii1 that either 
+increases the time-step by a factor of mult_dt if loop ii2 is successful, or 
+decreases bbb.dtreal by 3 if loop ii2 has a step with a failed convergence.
+   The two cases are rdtimedpd_1.py, which is just the same as Forthon_case2,
+except that it solves for steady-state by starting at a time-step of 
+bbb.dtreal=1e-4, and successively increases the time-step until steady-state
+is reached by using scripts rdinitdt.py and rdcontdt.py.  The second case
+rdtimedpd_2.py, is the same as _1.py, except the core density boundary 
+condition is raised to ncore[0]=1e20 (from 2e19), and the initial time-step
+is bbb.dtreal=1e-2.  Because of the large change in the boundary condition and
+larger initial time-step, the initial time-step does not converge 
+(bbb.iterm != 1); this case then illustrates how the script rdcontdt.py 
+reduces the time-step until convergence is obtain, and then moves the time-step
+forward to eventually find steady-state.
+
+Notes on parameter variations to test performance:
+
+   The initial profiles provided to cases 3-5 are very close to equilibrium,
+and should converge with a modest number of iterations (although case 5 is 
+large and may take some time).  To check the performance of solvers, the user
+can make subsequent runs with changes to a few input parameters; modification
+of core boundary values is an easy and relevant to the core coupling problem.
+Here are some suggested changes:
+
+Core temperatures (scale by 10-50%):
+bbb.tcoree	# electron temperature on core boundary
+bbb.tcorei	# ion temperature on core boundary
+
+Radial transport coefficients (can scale these together, or separately, 
+say 10-20% variation):
+bbb.difni[0]	# radial ion density diffusion
+bbb.kye		# radial electron energy diffusion
+bbb.kyi		# radial ion energy diffusion
+bbb.travis[0]	# radial viscosity coefficient for up (has modest effect)
