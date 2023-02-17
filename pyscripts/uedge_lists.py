@@ -6,7 +6,7 @@
 
 import uedge
 import re
-packages =  [uedge.com,uedge.aph,uedge.api,uedge.bbb,uedge.flx,uedge.grd,uedge.svr,uedge.wdf]
+packages =  [uedge.com,uedge.aph,uedge.api,uedge.bbb,uedge.flx,uedge.grd,uedge.svr,uedge.wdf,uedge.ncl]
 
 
 def packagename2object(package):
