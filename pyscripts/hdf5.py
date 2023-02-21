@@ -317,6 +317,9 @@ def hdf5_restore_dump(file, scope=None, hdffile=None,quiet=False):
                         po[...] = np.array(dset[()])
                     else:
                         setattr(pck, vt[2], dset[()])
+                except ValueError as error:
+                    print("Couldn't read tes from  ", file)
+                    print(error)
                 except:
                     print('Couldn\'t read dataset ', path)
                     raise
