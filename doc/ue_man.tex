@@ -1,5 +1,6 @@
 \documentclass [12pt]{article}
 \usepackage {nf,eqalign}
+\usepackage{pdfpages}
 \pagestyle{myheadings}
 \topmargin -0.50truein
 \oddsidemargin 0.truein
@@ -67,9 +68,9 @@
 \begin{document}
 
 \maketitle
-%\begin{flushleft}
-%   LLNL Report No. UCRL
-%\end{flushleft}
+\begin{flushleft}
+   \texttt{LLNL Report No.: LLNL-SM-846481}
+\end{flushleft}
 
 \begin{abstract}
 
@@ -85,7 +86,7 @@
   system of algebraic equations are solved by fully-implicit
   techniques.  The code can be used to follow time-dependent solutions
   or to find steady-state solutions by direct iteration.  The code is
-  written in Fortran with a very small amount c.  Calulations can be
+  written in Fortran with a very small amount of amount C.  Calulations can be
   performed under Python or Basis code steering frameworks, which
   provide very similar functionality, with Python become the preferred
   method for new users.
@@ -3061,6 +3062,9 @@ create pf\_somename;write nis,ups,tes,tis,ngs,phis;close
 \noindent
 {\bf ACKNOWLEDGMENTS} 
 
+This work was performed under the auspices of the U.S. Department of Energy by Lawrence
+Livermore National Laboratory under Contract DE-AC52-07NA27344.
+
 We are pleased to acknowledge the contributions of many people to various
 aspects of the {\sf UEDGE} code. J.L. Milovich was primarily responsible for
 constructing initial versions of the code that utilized many aspects of the
@@ -3075,6 +3079,7 @@ D.E. Post, V. Rozhansky, D.D. Ryutov, R. Schneider, and X.Q. Xu.
 
 \appendix
 \section{Equations used for the {\sf UEDGE} code} 
+
 
 This section closely parallels the discussion in Ref.~\citenum{r99}, and the
 interested reader may find it helpful to consult that paper for some more
@@ -3401,6 +3406,15 @@ variable {\sf nusp = total number of full ion momentum equations} (generally
 one each for hydrogen ions and neutrals, plus the number of impurity charge
 states, excluding the neutral impurity).
 
+\section{{\sf UEDGE} topology conventions} 
+
+\includepdf[pages=-]{ue_geom_fig_only.pdf}
+
+\section{A Primer on Input Files and Obtaining Initial UEDGE Solutions} 
+
+\includepdf[pages=-]{UEDGE_Primer_v4.pdf}
+
+
 \begin{thebibliography}{99}
   
 \bibitem{brag} S.I. Braginskii, Transport processes in a plasma {\it Reviews
@@ -3541,6 +3555,7 @@ Stiff Systems of ODEs,'' SIAM J. Num. Anal. {\bf 23}, 610 (1986).
   STRAHL,'' JET Report R(87)08 (1987).
 
 \end{thebibliography} 
+
 
 
 \end{document}
