@@ -3745,10 +3745,9 @@ c  -- it is included in frici from mombal or mombalni
             feeycbo(ix) = 0.0e0
             w0(ix,iy) = 0.0e0
             w1(ix,iy) = 0.0e0
-            wvh(ix,iy,1) = 0.0e0
-	    wvh(ix,iy,2) = 0.0e0
   707    continue
   708 continue
+      wvh = 0.0e0
 
 *  -- compute conxe and conxi --
 

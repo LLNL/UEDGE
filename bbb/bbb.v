@@ -1944,7 +1944,7 @@ w0(0:nx+1,0:ny+1)       _real
 w1(0:nx+1,0:ny+1)       _real
 w2(0:nx+1,0:ny+1)       _real
 w3(0:nx+1,0:ny+1)       _real
-wvh(0:nx+1,0:ny+1,1:2)  _real	#species dependent viscous heating
+wvh(0:nx+1,0:ny+1,1:nusp)  _real	#species dependent viscous heating
 
 ***** Locflux:
 #Local arrays for the calculation of the fluxes and other quantities.
