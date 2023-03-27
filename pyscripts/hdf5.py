@@ -10,6 +10,7 @@ from .uedge import bbb
 from .uedge import com
 from .uedge_lists import *
 import time
+from Forthon import packageobject
 
 
 def hdf5_restore(file):
@@ -27,8 +28,9 @@ def hdf5_restore(file):
     try:
         dummy = hf['bbb']   # force an exception if the group not there
         hfb = hf.get('bbb')
-        try:
-            hdf5_restore_dump(file, hdffile=hf)
+        try:           
+            for var in ['tes', 'tis', 'ups', 'nis', 'phis', 'ngs', 'tgs']:
+                packageobject('bbb').__setattr__(var, hf['bbb'][var][()]) 
         except:
             raise
 
