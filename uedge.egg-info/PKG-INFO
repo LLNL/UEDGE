@@ -1,0 +1,16 @@
+Metadata-Version: 1.2
+Name: uedge
+Version: 8.0.0
+Summary: 2D Fluid simulation of plasma and neutrals in magnetic fusion devices
+Home-page: UNKNOWN
+Author: Tom Rognlien
+Author-email: trognlien@llnl.gov
+Maintainer: Bill Meyer
+Maintainer-email: meyer8@llnl.gov
+License: UNKNOWN
+Description: UNKNOWN
+Platform: Unix
+Platform: Windows (cygwin)
+Platform: Mac OSX
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
