@@ -107,10 +107,9 @@ def write_gridue(fname=None, runid=None):
         fname = bbb.GridFileName[0].decode('UTF-8').strip()
     if runid is None:
         runid = com.runid[0].decode('UTF-8').strip()
-    if 'hdf5' in fname.lower():
-        gridue = File(fname, 'w')
-    else:
-        gridue = File('{}.hdf5'.format(fname), 'w')
+    if 'hdf5' not in fname.lower():
+        fname = fname + '.hdf5'
+    gridue = File(fname, 'w')
     gridue.require_group('grid')
     gue = gridue['grid']
     gue.require_group('com')
@@ -176,5 +175,5 @@ def write_gridue(fname=None, runid=None):
     gridue.close()
     if bbb.iprint != 0:
         print(' Wrote grid file successfully:')
-        print('     file name:   {}.hdf5'.format(fname))
-        print('     run-ID:      {}'.format(runid))
+        print('     file name:   {}'.format(fname.strip()))
+        print('     run-ID:      {}'.format(runid.strip()))
