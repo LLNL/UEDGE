@@ -251,6 +251,7 @@ nxxpt
 nyomitmx	integer /0/
    # number of y-cells to omit from iy=ny; used to do core only for fluid eqns
 igrid		integer	/1/	# loop index for which grid; e.g., nysol(igrid)
+isgriduehdf5   integer /0/  
 geometry	character*16 /"snull"/
 				# specifies magnetic configuration, e.g.,
 				# ='snull' for lower single null

@@ -266,6 +266,7 @@ c-------End of function rcxr_zn6b---------------------------------------
       character*256 mcfilename(*)
       character*256 fname
       Use(Multicharge)
+      Use(Lsode)        # iprint
       Use(Impdata)      #apidir
 
 c ... Function:
@@ -308,11 +309,15 @@ c     read header --
 *     un*formatted read for header data
       read (nget,'(2a8,i12,4x,a32)') idcod, idtyp, n, id1
       if (n .lt. 0 .and. iprt_imp_file == 1) then  
-        write(*,*) '***Impurity file using new 2012 format is ',mcfilename(i)
+        if (iprint .ne. 0) then
+            write(*,*) '***Impurity file using new 2012 format is ',mcfilename(i)
+        endif
         mcfformat(i) = 1
         iprt_imp_file = 0
       elseif (iprt_imp_file == 1) then
-        write(*,*) '***Impurity file using pre-2012 format is ',mcfilename(i)
+        if (iprint .ne. 0) then
+            write(*,*) '***Impurity file using pre-2012 format is ',mcfilename(i)
+        endif
         mcfformat(i) = 0
         iprt_imp_file = 0
       endif

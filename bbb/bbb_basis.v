@@ -3349,8 +3349,6 @@ ebindz(za:integer, zn:integer)                   real function
       	# in zn   nuclear charge
 wtottim()					 subroutine
       	# writes out timing information
-rundt()						 subroutine
-      	# time-advances solution using nksol with dtreal
 domain_dc()					 subroutine
       	# calculates indices of domains for domain decomposition
 map_var_jac()					 subroutine
