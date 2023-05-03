@@ -1,7 +1,7 @@
 aph   # Atomic physics (hydrogenic)
 
 ***** Physical_constants:
-ev	real	/1.6022e-19/   # 1 electron volt in Joules
+ev_aph	real	/1.6022e-19/   # 1 electron volt in Joules
 m_prot  real    /1.67e-27/     # proton mass
 
 ***** Data_input:
@@ -145,23 +145,23 @@ readehr2(fname:string)	subroutine
 
 ***** Aphwrk:
 # working arrays for 2-d spline interpolation
-nxdata  integer
-nydata  integer
-xdata(1:nxdata)             _real
-ydata(1:nydata)             _real
-fdata(1:nxdata,1:nydata)    _real
-ldf                          integer
-iflag                        integer
-kxords  integer /4/               # order of spline fit versus log(te)
-                                  # kxords=4 (default) is cubic interpolation
-kyords  integer /4/               # order of spline fit versus log10(ne)
-                                  # kyords=4 (default) is cubic interpolation
-xknots(1:nxdata+kxords)     _real
-yknots(1:nydata+kyords)     _real
-workh(1:nxdata*nydata+2*kxords*(nxdata+1)) _real # work array
-rsacoef(1:nxdata,1:nydata)  _real # spline coeff's for ionization
-rracoef(1:nxdata,1:nydata)  _real # spline coeff's for recombination
-rqacoef(1:nxdata,1:nydata)  _real # spline coeff's for line emission
+nxdata_aph  integer
+nydata_aph  integer
+xdata_aph(1:nxdata_aph)             _real
+ydata_aph(1:nydata_aph)             _real
+fdata_aph(1:nxdata_aph,1:nydata_aph)    _real
+ldf_aph                          integer
+iflag_aph                        integer
+kxords_aph  integer /4/               # order of spline fit versus log(te)
+                                  # kxords_aph=4 (default) is cubic interpolation
+kyords_aph  integer /4/               # order of spline fit versus log10(ne)
+                                  # kyords_aph=4 (default) is cubic interpolation
+xknots_aph(1:nxdata_aph+kxords_aph)     _real
+yknots_aph(1:nydata_aph+kyords_aph)     _real
+workh(1:nxdata_aph*nydata_aph+2*kxords_aph*(nxdata_aph+1)) _real # work array
+rsacoef(1:nxdata_aph,1:nydata_aph)  _real # spline coeff's for ionization
+rracoef(1:nxdata_aph,1:nydata_aph)  _real # spline coeff's for recombination
+rqacoef(1:nxdata_aph,1:nydata_aph)  _real # spline coeff's for line emission
 
 ***** Subs:
 # Subroutines that can be called from the parser

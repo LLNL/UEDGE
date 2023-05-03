@@ -2553,7 +2553,7 @@ mpicmd     	character*64 	/"mpirun"/ 				# MPI command
 npopt       character*8     /"-np"/                 # option to specify # procs
 npext      	integer 		/2/						# number of procs for external system call
 
-runid       character*80    /" "/					# description of run
+runid_ext   character*80    /" "/					# description of run
 
 get_neutral_sources		logical		/.true./			#whether to use neutral source data
 get_neutral_moments		logical		/.false./			#whether to use neutral moment data
@@ -3855,7 +3855,7 @@ alfz             real     /10./
 vrfac            real     /1./      # scales convective velocity
 sp               real     /20./
 courant          real     /0.9/
-tend             real     /0.1/     # final time
+tendoned         real     /0.1/     # final time
 ndtmax           integer  /10000/   # max number of timesteps allowed
 ntim             integer  /50/      # number of output times
 ito              integer   /1/
