@@ -137,7 +137,7 @@ class UeRun():
             hdf5_save('{}_last_ii2.hdf5'.format(savename))
 
         try:
-            file = File('{}/{}_last_ii2.hdf5'.format(savedir, savename, 'r+'))
+            file = File('{}/{}_last_ii2.hdf5'.format(savedir, savename), 'r+')
         except:
             file = File('{}_last_ii2.hdf5'.format(savename), 'r+')
 
