@@ -1,4 +1,3 @@
-theme: minima
 # UEDGE
 A 2D time-dependent fluid simulation code of plasma and neutrals in magnetic fusion devices.
 ## Brief description 
