@@ -1,3 +1,0 @@
-package
-com = "Data Used in Multiple Packages"
-firstpkg = com

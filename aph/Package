@@ -1,8 +1,0 @@
-PKG = aph
-POINTER = cray
-
-VDF = aph.v
-
-NVDF = ../com/com.v
-
-SM = aphrates.m aphread.m
