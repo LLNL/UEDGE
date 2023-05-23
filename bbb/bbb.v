@@ -241,6 +241,7 @@ isnupdot1sd               integer /0/  #=0, use 2-pt ndot for (n*up)_dot;
 isphicore0		  integer /0/  #=1 sets phi=phi_mp in core if isphion=1
 is_z0_imp_const           integer /0/  #=0 use hydr Keilhacker;=1 z0_imp_const
 z0_imp_const              real    /1./ #z0 in therm force if is_z0_imp_const=1
+ismolcrm                  real  /0/ # =1 uses CRUMPET rates, =0 uses old model
 					
 ***** Model_choice restart:
 #Flags for choosing one or another calculation of a part of the model
@@ -251,12 +252,16 @@ iondenseqn	character*8	/"llnl"/	# ion continuity equation
 cnfx      real      /1./    #X-flux coef for conv. in n-eq.
 cnfy      real      /1./    #Y-flux coef for conv. in n-eq.
 cnsor     real      /1./    #Coef for particle src. in n-eq.
+cmesori   real      /1./    #Coef for mol. diss. e source in ion eng eq
+cmesore   real      /1./    #Coef for mol. diss. e source in electron eng eq
 cfneut    real      /1./    #Coef for fluid neutrals contrib's to resid's
 cfnidh    real      /1./    #Coef for neutral-ion drift heating
 cfupcx    real      /1./    #Coef for nucx*(up_ion - up_gas) momentum coupling
 cfticx    real      /1./    #Coef for nucx*(up_ion-up_gas)**2 heating in Ti Eq
 cfupimpg  real      /0./    #Coef for impur up Cx/elast drag on up=0 imp gas
 cftiimpg  real      /0./    #Coef for Ti cooling CX/elast loss to cold imp gas
+cfcrmi    real      /1/     #Coef for ion source due to molecular crm diss.
+cfcrma    real      /1/     #Coef for atom source due to molecular crm diss.
 cmneut    real      /0./    #Coef for Monte Carlo neutrals contrib's to resid's
 cnflux(ngspmx) real /ngspmx*1./ #coef for particle flux in n-eq. (resco)
 chradi    real      /1./    #Coef for hyd. ioniz. rad. loss in elec. eng. eq.
@@ -310,6 +315,8 @@ cvgp      real      /1./    #Coef for v.Grad(p) ion/elec eng. terms
 cvgpg     real      /1./    #Coef for v.Grad(pg) gas eng. terms
 cfvgpx(1:nispmx) real /nispmx*1./ #Coefs for x components of v.grad(p) in ti-eq
 cfvgpy(1:nispmx) real /nispmx*1./ #Coefs for y components of v.grad(p) in ti-eq
+cfvgpgx(1:ngspmx) real /ngspmx*0./ # Coefs for v*grad(pg) term (poloidal component) for Tg if isupgon=0.
+cfvgpgy(1:ngspmx) real /ngspmx*0./ # Coefs for v*grad(pg) term (poloidal component) for Tg if isupgon=0.
 cfbgt     real      /0./    #Coef for the B x Grad(T) terms.
 cfjhf     real      /1./    #Coef for convective cur (fqp) heat flow
 jhswitch  integer   /0/     #Coef for the Joule-heating terms
@@ -1600,6 +1607,11 @@ fracvgpgp             real        /1./      #frac of vgp in vgradp eng terms
 fetx(0:nx+1,0:ny+1)   _real [W]  #total energy flow through a poloidal cell face
 fety(0:nx+1,0:ny+1)   _real [W]  #total energy flow through a radial cell face
 pdrift(0:nx+1,0:ny+1) _real [W/m^3] #power in bringing new ion to flow velocity
+pmrada(0:nx+1,0:ny+1) _real [W]     #total atom radiated power due to mol. processes
+pmradm(0:nx+1,0:ny+1) _real [W]     #total mol. radiated power due to mol. processes
+pmpot(0:nx+1,0:ny+1)  _real [W]     #tot. pot E (bind e) due to mol. processes
+pmloss(0:nx+1,0:ny+1) _real [W]     #total power lost by electrons and ions due
+                                    #to molecular processes
 peirad(0:nx+1,0:ny+1) _real [W]     #tot. power lost by electrons and ions in
                                     #rad., ion. and dissoc.
 png2ni(0:nx+1,0:ny+1) _real [W]     #power exchange bwt. neutral and ion
@@ -2023,7 +2035,7 @@ feiyosn_use(0:nx+1,0:ny+1)  _real  [J/s m**2]    #user-set Ti energy flux
 vy_cft(0:nx+1,0:ny+1,1:nisp) _real [m/s]  #calc vy from fniyos_use (fix flux)
 vyte_cft(0:nx+1,0:ny+1)     _real  [m/s]  #calc vyte from feeyos_use (fix flux)
 vyti_cft(0:nx+1,0:ny+1)     _real  [m/s]  #calc vyte from feiyos_use (fix flux)
-nuiz(0:nx+1,0:ny+1,ngsp)    _real  [1/s]  #ionization rate (=ne*sigma*v)
+nuiz(0:nx+1,0:ny+1,ngsp)    _real  [1/s]  #gas depl rate (=ne*sigma*v)
 nucx(0:nx+1,0:ny+1,ngsp)    _real  [1/s]  #charge-exchg rate for neut(sigv*ni)
 nucxi(0:nx+1,0:ny+1,nisp)   _real  [1/s]  #charge-exchg rate for ion (sigv*ng)
 nueli(0:nx+1,0:ny+1,nisp)   _real  [1/s]  #elast scatt rate for ion (sigv*ng)
@@ -2073,17 +2085,21 @@ psort(0:nx+1,0:ny+1,1:nisp)   _real  [part/s]  # ioniz. source for plasma (>0)
 psorxrc(0:nx+1,0:ny+1,1:nisp) _real  [part/s]  # cell ctr cx &recomb. for ions (<0)
 psorxr(0:nx+1,0:ny+1,1:nisp)  _real  [part/s]  # cell ave cx &recomb. for ions (<0)
 psor_tmpov(0:nx+1,0:ny+1)     _real  [part/s]  # work array for psor,etc for ave
-psorgc(0:nx+1,0:ny+1,1:ngsp)  _real  [part/s]  # cell ctr ioniz. sor neutral (<0)
-psorg(0:nx+1,0:ny+1,1:ngsp)   _real  [part/s]  # cell ave ioniz. sor neutral (<0)
+psorgc(0:nx+1,0:ny+1,1:ngsp)  _real  [part/s]  # cell ctr part sor neutral (<0)
+psorg(0:nx+1,0:ny+1,1:ngsp)   _real  [part/s]  # cell ave part sor neutral (<0)
 psorrgc(0:nx+1,0:ny+1,1:ngsp) _real  [part/s]  # cell ctr recomb. source for neutrals
 psorrg(0:nx+1,0:ny+1,1:ngsp)  _real  [part/s]  # cell ave recomb. source for neutrals
 psorcxgc(0:nx+1,0:ny+1,1:ngsp) _real [part/s]  # cell ctr cx source for neutrals
 psorcxg(0:nx+1,0:ny+1,1:ngsp) _real  [part/s]  # cell ave cx source for neutrals
 psori(0:nx+1,0:ny+1,1:nisp)   _real  [part/s]  # impurity gas source
-psordis(0:nx+1,0:ny+1)        _real  [part/s]  # diss. source of hydrogen
+psordis(0:nx+1,0:ny+1,1:nisp) _real  [part/s]  # hyd. ion part source/sink from H2
+psordisg(0:nx+1,0:ny+1,1:ngsp) _real  [part/s]  # gas part source/sink from H2
 psorbgg(0:nx+1,0:ny+1,1:ngsp) _real  [part/s]  # diag artific neut backg source
 psorbgz(0:nx+1,0:ny+1)        _real  [part/s]  # diag artific impur backg source
 erliz(0:nx+1,0:ny+1)          _real  [J/s]     # H rad'n loss for ioniz'n
+edisse(0:nx+1,0:ny+1)         _real  [J/s]     # Elec E loss due to mol interactions
+emolia(0:nx+1,0:ny+1)         _real  [J/s]     # i/a E change due to mol interactions
+eiamoldiss(0:nx+1,0:ny+1)     _real  [J/s]     # i/a enegy density incr, mol diss
 erlrc(0:nx+1,0:ny+1)          _real  [J/s]     # H rad'n loss for recom'n
 vsoreec(0:nx+1,0:ny+1)	      _real  [J/s]     # cell ctr tot elec vol eng source
 vsoree(0:nx+1,0:ny+1)	      _real  [J/s]     # cell ave tot elec vol eng source
@@ -3328,8 +3344,8 @@ ebindz(za:integer, zn:integer)                   real function
       	# in zn   nuclear charge
 wtottim()					 subroutine
       	# writes out timing information
-rundt()						 subroutine
-      	# time-advances solution using nksol with dtreal
+rundt()                         subroutine
+       # time-advances solution using nksol with dtreal
 domain_dc()					 subroutine
       	# calculates indices of domains for domain decomposition
 map_var_jac()					 subroutine
