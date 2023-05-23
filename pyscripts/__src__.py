@@ -1,1 +1,1 @@
-__src__ = '/Users/meyer8/gitstuff/uedge2'
+__src__ = '/Users/meyer8/gitstuff/UEDGE'
