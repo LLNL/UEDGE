@@ -297,9 +297,9 @@ class UeRun():
         counts, bins = histogram((data['internaleq'][()]+\
             data['internalspecies']*nspecies)-0.5, bins=nbins, 
             range=(-0.5,6.5))
-        h, e = histogram(data['internaleq'][()] - 0.5, bins=6, 
+        h, e = histogram(data['internaleq'][()] - 0.5, bins=7, 
             range=(-0.5,6.5))
-        ax[0].bar([x for x in range(1,7)], h, width=1, edgecolor='k',
+        ax[0].bar([x for x in range(7)], h, width=1, edgecolor='k',
             color=(0, 87/255, 183/255))
         ax[0].hist(bins[3*data['nisp'][()]:-1], bins[3*data['nisp'][()]:], 
             weights=counts[3*data['nisp'][()]:], edgecolor='k', 
@@ -333,11 +333,11 @@ class UeRun():
         for i in range(len(data['itrouble'])):
             coord = data['troubleindex'][()][i]
             if equation is None:
-                frequency[coord[0]-1, coord[1]-1] += 1
-            elif iequation == data['troubleeq'][()][i]:
-                frequency[coord[0]-1, coord[1]-1] += 1
+                frequency[coord[0], coord[1]] += 1
+            elif iequation == data['internaleq'][()][i]:
+                frequency[coord[0], coord[1]] += 1
 
-        polys.set_cmap('Reds')
+        polys.set_cmap('binary')
         polys.set_array(frequency.reshape(((nx+2)*(ny+2),)))
 
         cbar = f.colorbar(polys, ax=ax[1])
