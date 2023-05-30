@@ -28,7 +28,6 @@ class TestRun(unittest.TestCase):
         """
         This is run pre-test.
         """
-        import uedge as ue
 
     def test_one(self):
         """
