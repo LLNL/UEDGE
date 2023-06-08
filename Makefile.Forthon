@@ -2,10 +2,12 @@ DEBUG = -v --fargs "-Ofast -DFORTHON -cpp" # -g #--fargs "-C=array" #--fargs "-C
 
 SO = so
 PUBLICHOME = 
-BUILDDIR = ../build
-DIRLIST = com aph api bbb flx grd svr wdf
-MYPYTHON = python2
-FORTHON = Forthon
+BUILDDIR = build
+DIRLIST = com aph api bbb flx grd svr wdf ncl
+MYPYTHON = python3
+FORTHON = Forthon3
+BUILDBASE = -v --build-base $(BUILDDIR)
+INSTALLARGS = --pkgbase uedge $(BUILDBASE) 
 ##MYPYTHON = /home1/rognlien/Python2/Python-2.4.2/python
 
 # Following 2 variables set in Makefile.PETSc, if used (if unset, ignored)
@@ -13,35 +15,47 @@ FORTHON = Forthon
 # PETSC-UEDGE =
 # PETSC-COM =
 
-all: mppl2f90 compy.$(SO) aphpy.$(SO) apipy.$(SO) bbbpy.$(SO) flxpy.$(SO) grdpy.$(SO) svrpy.$(SO) wdfpy.$(SO)
+all: mppl2f90 $(BUILDDIR)/compydep $(BUILDDIR)/grdpydep $(BUILDDIR)/flxpydep $(BUILDDIR)/bbbpydep $(BUILDDIR)/svrpydep $(BUILDDIR)/wdfpydep $(BUILDDIR)/aphpydep $(BUILDDIR)/apipydep $(BUILDDIR)/nclpydep
 	rm -f uedgeC.so
 
 mppl2f90:
 	(export PYTHONPATH=.:./pyscripts; $(MYPYTHON) convertor)
 
-compy.$(SO): com/blasext.F com/brent.F com/comutil.F com/misc.F com/mnbrak.F com/dsum.f com/dummy_py.f com/error.f com/getmsg.f com/ssum.f com/$(PETSC-COM) com/com.v
-	(cd com;$(FORTHON) --builddir $(BUILDDIR) -a $(FCOMP) $(DEBUG) -f blasext.F com brent.F comutil.F misc.F mnbrak.F dsum.f dummy_py.f error.f getmsg.f ssum.f $(PETSC-COM))
+$(BUILDDIR)/compydep: com/blasext.F com/brent.F com/comutil.F com/misc.F com/mnbrak.F com/dsum.f com/dummy_py.f com/error.f com/getmsg.f com/ssum.f com/$(PETSC-COM) com/com.v
+	$(FORTHON) -a $(INSTALLARGS) -a $(FCOMP) $(DEBUG) --interfacefile com/com.v -f com/blasext.F com com/brent.F com/comutil.F com/misc.F com/mnbrak.F com/dsum.f com/dummy_py.f com/error.f com/getmsg.f com/ssum.f $(PETSC-COM)
+	touch $@
 
-aphpy.$(SO): compy.$(SO) aph/aphrates.F aph/aphread.F aph/aph.v
-	(cd aph;$(FORTHON) --builddir $(BUILDDIR)  -a $(FCOMP) $(DEBUG) -f aphrates.F aph aphread.F)
+$(BUILDDIR)/aphpydep: $(BUILDDIR)/compydep aph/aphrates.F aph/aphread.F aph/aph.v
+	$(FORTHON) -a $(INSTALLARGS)  -a $(FCOMP) $(DEBUG) --interfacefile aph/aph.v -f aph/aphrates.F aph aph/aphread.F
+	touch $@
 
-apipy.$(SO): compy.$(SO) api/apifcn.F api/apip93.F api/apisorc.F api/fimp.F api/fmombal.F api/inelrates.F api/sputt.F api/api.v com/com.v
-	(cd api;$(FORTHON) --builddir $(BUILDDIR)  -a $(FCOMP) $(DEBUG) -d com -f apifcn.F api apip93.F apisorc.F fimp.F fmombal.F inelrates.F sputt.F)
+$(BUILDDIR)/apipydep: $(BUILDDIR)/compydep api/apifcn.F api/apip93.F api/apisorc.F api/fimp.F api/fmombal.F api/inelrates.F api/sputt.F api/api.v com/com.v
+	$(FORTHON) -a $(INSTALLARGS)  -a $(FCOMP) $(DEBUG) --interfacefile api/api.v -d com -f api/apifcn.F api api/apip93.F api/apisorc.F api/fimp.F api/fmombal.F api/inelrates.F api/sputt.F
+	touch $@
 
-bbbpy.$(SO): compy.$(SO) bbb/boundary.F bbb/convert.F bbb/geometry.F bbb/griddubl.F bbb/oderhs.F bbb/odesetup.F bbb/odesolve.F bbb/potencur.F bbb/turbulence.F bbb/ext_neutrals.F bbb/bbb.v com/com.v
-	(cd bbb;$(FORTHON) --builddir $(BUILDDIR)  -a $(FCOMP) $(DEBUG) --macros ../com/com.v $(READLINE) -d com -f boundary.F bbb convert.F geometry.F griddubl.F oderhs.F odesetup.F odesolve.F potencur.F turbulence.F ext_neutrals.F)
+$(BUILDDIR)/bbbpydep: $(BUILDDIR)/compydep bbb/boundary.F bbb/convert.F bbb/geometry.F bbb/griddubl.F bbb/oderhs.F bbb/odesetup.F bbb/odesolve.F bbb/potencur.F bbb/turbulence.F bbb/ext_neutrals.F bbb/bbb.v com/com.v 
+	$(FORTHON) -a $(INSTALLARGS)  -a $(FCOMP) --interfacefile bbb/bbb.v $(DEBUG) --macros com/com.v $(READLINE) -d com -f bbb/boundary.F bbb bbb/convert.F bbb/geometry.F bbb/griddubl.F bbb/oderhs.F bbb/odesetup.F bbb/odesolve.F bbb/potencur.F bbb/turbulence.F bbb/ext_neutrals.F 
+	touch $@
 
-flxpy.$(SO): compy.$(SO) flx/flxcomp.F flx/flxdriv.F flx/flxread.F flx/flxwrit.F flx/flx.v com/com.v
-	(cd flx;$(FORTHON) --builddir $(BUILDDIR)  -a $(FCOMP) $(DEBUG) -d com -f flxcomp.F flx flxdriv.F flxread.F flxwrit.F)
+$(BUILDDIR)/flxpydep: $(BUILDDIR)/compydep flx/flxcomp.F flx/flxdriv.F flx/flxread.F flx/flxwrit.F flx/flx.v com/com.v
+	$(FORTHON) -a $(INSTALLARGS)  -a $(FCOMP) $(DEBUG) --interfacefile flx/flx.v -d com -f flx/flxcomp.F flx flx/flxdriv.F flx/flxread.F flx/flxwrit.F
+	touch $@
 
-grdpy.$(SO): compy.$(SO) grd/grdcomp.F grd/grddriv.F grd/grdinit.F grd/grdread.F grd/grdwrit.F grd/grd.v com/com.v
-	(cd grd;$(FORTHON) --builddir $(BUILDDIR)  -a $(FCOMP) $(DEBUG) -d com -f grdcomp.F grd grddriv.F grdinit.F grdread.F grdwrit.F)
+$(BUILDDIR)/grdpydep: $(BUILDDIR)/compydep grd/grdcomp.F grd/grddriv.F grd/grdinit.F grd/grdread.F grd/grdwrit.F grd/grd.v com/com.v
+	$(FORTHON) -a $(INSTALLARGS)  -a $(FCOMP) $(DEBUG) --interfacefile grd/grd.v -d com -f grd/grdcomp.F grd grd/grddriv.F grd/grdinit.F grd/grdread.F grd/grdwrit.F
+	touch $@
 
-svrpy.$(SO): svr/daspk.F svr/nksol.F svr/svrut1.F svr/svrut2.F svr/svrut3.F svr/svrut4.F svr/vodpk.F svr/uoa.F svr/daux1.f svr/$(PETSC-UEDGE) svr/svr.v
-	(cd svr;$(FORTHON) --builddir $(BUILDDIR)  -a $(FCOMP) $(DEBUG) -f daspk.F svr nksol.F svrut1.F svrut2.F svrut3.F svrut4.F vodpk.F uoa.F daux1.f $(PETSC-UEDGE))
+$(BUILDDIR)/svrpydep: $(BUILDDIR)/bbbpydep svr/daspk.F svr/nksol.F svr/svrut1.F svr/svrut2.F svr/svrut3.F svr/svrut4.F svr/vodpk.F svr/uoa.F svr/daux1.f svr/$(PETSC-UEDGE) svr/svr.v
+	$(FORTHON) -a $(INSTALLARGS)  -a $(FCOMP) $(DEBUG) --interfacefile svr/svr.v --macros bbb/bbb.v -d bbb -f svr/daspk.F svr svr/nksol.F svr/svrut1.F svr/svrut2.F svr/svrut3.F svr/svrut4.F svr/vodpk.F svr/uoa.F svr/daux1.f $(PETSC-UEDGE)
+	touch $@
 
-wdfpy.$(SO): wdf/wdf.F wdf/wdf.v
-	(cd wdf;$(FORTHON) --builddir $(BUILDDIR)  -a $(FCOMP) $(DEBUG) wdf)
+$(BUILDDIR)/wdfpydep: wdf/wdf.F wdf/wdf.v
+	$(FORTHON) -a $(INSTALLARGS)  -a $(FCOMP) $(DEBUG) --interfacefile wdf/wdf.v -f wdf/wdf.F wdf
+	touch $@
+
+$(BUILDDIR)/nclpydep: ncl/ncl_driver.m ncl/ncl.v ncl/nclass_mod.f ncl/rarray_copy.f ncl/rarray_sum.f ncl/rarray_zero.f  ncl/u_erf.f ncl/u_lu_backsub.f ncl/u_lu_decomp.f ncl/write_mod.f
+	$(FORTHON) -a $(INSTALLARGS)  -a $(FCOMP) $(DEBUG) --interfacefile ncl/ncl.v -f ncl/ncl_driver.F ncl ncl/nclass_mod.f ncl/rarray_copy.f ncl/rarray_sum.f ncl/rarray_zero.f  ncl/u_erf.f ncl/u_lu_backsub.f ncl/u_lu_decomp.f ncl/write_mod.f
+
 
 public: all
 	publishpyuedge90.py $(PUBLICHOME)
@@ -55,6 +69,7 @@ update:
 clean:
 	find . -depth -name build -exec rm -rf {} \;
 	find . -depth -name __pycache__ -exec rm -rf {} \;
+	find . -name \*.pyc -exec rm {} \;
 	find . -name \*.F -exec rm {} \;
 	touch uedgeC_Forthon.c
 

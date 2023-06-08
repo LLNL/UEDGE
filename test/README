@@ -1,0 +1,10 @@
+Tests in level_1 are adapted from the same tests in basis.  They don't
+test anything in UEDGE except for its connection to a correct Basis
+library, but are still useful as an initial sanity check.
+
+Tests in level_2 are expected to compute a solution from some set of
+initial conditions, then write a pdb file containing selected variables.
+The pdb file should be named <testfile>.pdb.  The pdbdiff utility is
+used to compare the output against a reference file assumed to be good.
+The comparison tolerance is set within the do-test script itself, and
+is the same for all tests.

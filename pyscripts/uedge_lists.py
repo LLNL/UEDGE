@@ -6,7 +6,7 @@
 
 import uedge
 import re
-packages =  [uedge.com,uedge.aph,uedge.api,uedge.bbb,uedge.flx,uedge.grd,uedge.svr,uedge.wdf]
+packages =  [uedge.com,uedge.aph,uedge.api,uedge.bbb,uedge.flx,uedge.grd,uedge.svr,uedge.wdf,uedge.ncl]
 
 
 def packagename2object(package):
@@ -114,3 +114,14 @@ def list_variables_regex(r,verbose=False,veryverbose=False,vars=None):
      else:
          return list(set(ret) & set(vars))
 
+def varlistattr(a):
+     """
+     Return list of variables with the given attribute. Includes the package
+     prefix for use in file save functions.
+     """
+     ret = []
+     for p in packages:
+        for var in p.varlist():
+           if a in p.getvarattr(var).split():
+              ret.append(p.name()+'.'+var)
+     return ret

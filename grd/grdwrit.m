@@ -1549,7 +1549,7 @@ c     surface and move poloidally 'upstream'
 c     smooth the newly-constructed angle-like surfaces:
          do k=1, nsmoothx
             do ii=1, nrcell-1
-               call smoothx(rmm(0,ii),zmm(0,ii),0,nym,0,nym,quadrant)
+               call smoothx(rmm(0:nym,ii),zmm(0:nym,ii),0,nym,0,nym,quadrant)
             enddo
          enddo
 
@@ -2019,7 +2019,7 @@ c     Straight line between iy-1 and iy+1 points on angle-like surface
 
 c     Intersection of straight line with x,ycurveg is (xcu,ycu):
          call intersect2(rupstream,zupstream,1,nupstream,
-     &                   xcrv(i1crv),ycrv(i1crv),i1crv,i2crv,
+     &                   xcrv,ycrv,i1crv,i2crv,
      &                   xcu,ycu,kcu,icu,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,886) j,iy
@@ -2040,7 +2040,7 @@ c     Segmented line through iy-1, iy and iy+1 points on angle-like surface
 
 c     Intersection of segmented line with x,ycurveg is (xcp,ycp):
          call intersect2(rdnstream,zdnstream,1,ndnstream,
-     &                   xcrv(i1crv),ycrv(i1crv),i1crv,i2crv,
+     &                   xcrv,ycrv,i1crv,i2crv,
      &                   xcp,ycp,kcp,icp,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,887) j,iy
@@ -2131,10 +2131,10 @@ Use(Dimensions)     #
 
 c     Store half-space data in temporary arrays:
       do iv=0,4
-         call s2copy(nxm+2, nym+2, rm(0,0,iv), 1, nxm+2, 
-     .                                      rmt(0,0,iv), 1, nxm+2)
-         call s2copy(nxm+2, nym+2, zm(0,0,iv), 1, nxm+2, 
-     .                                      zmt(0,0,iv), 1, nxm+2)
+         call s2copy(nxm+2, nym+2, rm(0:nxm+1,0:nym+1,iv), 1, nxm+2, 
+     .                              rmt(0:nxm+1,0:nym+1,iv), 1, nxm+2)
+         call s2copy(nxm+2, nym+2, zm(0:nxm+1,0:nym+1,iv), 1, nxm+2, 
+     .                              zmt(0:nxm+1,0:nym+1,iv), 1, nxm+2)
       enddo
 
 c     The left half of dnbot maps directly to the lower-left quadrant

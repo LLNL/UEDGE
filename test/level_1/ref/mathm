@@ -1,0 +1,14 @@
+Starting Basis global memory monitoring
+#
+# MATHM - matrix tests
+#
+ 
+errortrp("off")
+echo = no
+ok a
+ok b
+ok c
+ok d
+ok e
+ok f
+Ending Basis global memory monitoring

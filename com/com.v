@@ -261,12 +261,20 @@ geometry	character*16 /"snull"/
 				# ='snowflake45' for Ryutov's theta~45 deg
 				# ='snowflake75' for Ryutov's theta~75 deg
 				# ='snowflake105' for Ryutov's theta~105 deg
+				# ='snowflake135' for Ryutov's theta~135 deg
+				# ='snowflake165' for Ryutov's theta~165 deg
 				# ='dnXtarget' for dnbot with Xtarget
 nxc		integer	/4/	# center index of x-grid, normally nx/2,
                                 # OR
                                 # guard cell index for 'dnbot' symmetry b.c.
 simagxs         real            # "shared" value of simagx from flx package
 sibdrys         real            # "shared" value of sibdry from flx package
+nxpt2msh        integer /0/     # number of 1D cells above ixpt2 reset/no-cross
+nxpt2psh        integer /0/     # number of 1D cells below ixpt2 reset/no-cross
+zxpt2msh        real /0.01/ [m] # spacing iy=1 1D vertices reset above ixpt2
+rxpt2msh        real /0.0/  [m] # spacing iy=1 1D vertices reset above ixpt2
+zxpt2psh        real /0.01/ [m] # spacing iy=1 1D vertices reset below ixpt2
+rxpt2psh        real /0.0/  [m] # spacing iy=1 1D vertices reset below ixpt2
 ismpsym         integer /0/     # =1 re-constructs "guard" cells at midplane
                                 # of "dnbot" via up/down symmetry
 isudsym         integer /0/     #=1 up-down symmetric setup (only down part is modeled)
@@ -326,6 +334,7 @@ istabon	integer	/7/ +restart
 #	= 14 H.Scott data; add rtau=Ly-a opacity, lin. interp; ehrtau.dat
 #	= 15 H.Scott data; add rtau=Ly-a opacity, log interp; ehrtau.dat
 #	= 16 table look-up using 'b2frates_hyd' file data, log-log interp
+#	= 17 tab look-up; latest DEGAS2/PPPL rates: ehr5.dat (23 Apr 2015)
 
 reset_core_og			integer /0/
         # flag to force diff stencil orthog in core; use if isupstreamx=1

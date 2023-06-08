@@ -13,6 +13,7 @@ except:
 import sys,os,__main__
 
 import numpy as np
+from numpy import array,tanh,exp,arange
 ArrayType = np.ndarray
 
 if sys.hexversion >= 0x03000000:
@@ -24,32 +25,33 @@ if sys.hexversion >= 0x03000000:
 from . import uedgeC
 from .uedgeC import *
 
-from Forthon import *
+#from Forthon import *
 
 if sys.hexversion >= 0x03000000:
 
-    from .compy import *
-    from .svrpy import *
-    from .grdpy import *
-    from .flxpy import *
-    from .bbbpy import *
-    from .wdfpy import *
-    from .apipy import *
-    from .aphpy import *
+    from .compy import com
+    from .grdpy import grd
+    from .flxpy import flx
+    from .bbbpy import bbb
+    from .svrpy import svr
+    from .wdfpy import wdf
+    from .apipy import api
+    from .aphpy import aph
+    from .nclpy import ncl
 else:
-    from wdfpy import *
-    from svrpy import *
-    from grdpy import *
-    from flxpy import *
-    from bbbpy import *
-    from apipy import *
-    from aphpy import *
-    from compy import *
+    from wdfpy import wdf
+    from grdpy import grd
+    from flxpy import flx
+    from bbbpy import bbb
+    from svrpy import svr
+    from apipy import api
+    from aphpy import aph
+    from compy import com
+    from nclpy import ncl
 
 import time
 import os.path
 import __main__
-warp_version = "$Id: uedge.py,v 7.4 2019/11/12 21:10:56 meyer8 Exp $"
 # import all of the neccesary packages
 
 
@@ -60,9 +62,6 @@ def gettypecode(x):
 def oldnonzero(a):
     return a.nonzero()[0]
 
-# Print a greeting
-# mmiah: Actually, lets not.
-# print "Welcome to PyUedge"
 # Import the uedgeC shared object which contains all of UEDGE
 try:
     import PyPDB
@@ -76,9 +75,6 @@ except:
     except:
         # print "pypdb not found."
         pass
-#    raise
-#  mmiah: Why are we reraising the exception?  We don't
-#         necessarily need PyPDB
 
 # --- The UEDGE modules must be imported in the order below because of
 # --- linking dependencies.

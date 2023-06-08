@@ -3,18 +3,20 @@
  *
  * Purpose: bring some C methods into Fortran
  *
- * $Id: handlers.c,v 7.0 2018/02/28 18:32:49 meyer8 Exp $
+ * $Id: handlers.c,v 7.1 2021/03/05 21:58:20 meyer8 Exp $
  *
  */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+#include <unistd.h>
+#include <fcntl.h>
 
 #if defined(FC_FUNC)
-FC_FUNC(fcntl, FCNTL)(int *fildes, int *cmd, int *args) {
+int FC_FUNC(fcntl, FCNTL)(int *fildes, int *cmd, int *args) {
 #else
-fcntl_(int *fildes, int *cmd, int *args) {
+int fcntl_(int *fildes, int *cmd, int *args) {
 #endif
   int i;
   i = fcntl(*fildes, *cmd, *args);
@@ -22,9 +24,9 @@ fcntl_(int *fildes, int *cmd, int *args) {
 }
 
 #if defined(FC_FUNC)
-FC_FUNC(rdfile, RDFILE)(int *fildes, char *buf, int *nbyte) {
+int FC_FUNC(rdfile, RDFILE)(int *fildes, char *buf, int *nbyte) {
 #else
-rdfile_(int *fildes, char *buf, int *nbyte) {
+int rdfile_(int *fildes, char *buf, int *nbyte) {
 #endif
   int i;
   i = read(*fildes, buf, *nbyte);

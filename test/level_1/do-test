@@ -1,0 +1,201 @@
+#!/bin/csh -f
+#
+# DO_TEST - automatic test script for UEDGE level_1 tests
+#
+
+setenv LC_ALL    C
+setenv LANGUAGE  C
+
+set GenRef   = FALSE
+set Passed   = ""
+set Failed   = ""
+set Leaked   = ""
+set Lvl      = 1
+set Tests    = ""
+
+set RM   = "rm -f"
+set DIFF = /usr/bin/diff
+
+set Arch = `$BASIS_ROOT/bin/cfgman use`
+
+set Base = `pwd`
+set Base = $Base:h
+set Base = $Base:h
+set Root = $Base/dev/$Arch
+set BinD = $Root/bin
+
+setenv UEDGE $Base/test
+setenv UEDGE_SCRIPTS $Base/test/scripts
+
+if (-e $BinD/xuedge) then
+   set Code = $BinD/xuedge
+else
+   echo "Can't find executable code to run in $BinD"
+   exit(1)
+endif
+
+touch foo~
+$RM *~ *.err mem*.diff
+
+set BTests = ""
+foreach i ([0-9a-z]*)
+   if (!(-d $i)) then
+      if ($i != "do-test") then
+         set BTests = ( $BTests $i )
+      endif
+   endif
+end
+
+set Threads = ""
+set ZeroSp  = ( /z 2 )
+set PSMM    = ""
+set Verbose = FALSE
+
+while ($#argv > 0)
+  switch ($1)
+     case -c:
+          shift
+          set Code = $1
+          breaksw
+     case -h:
+          echo "Usage: do-test [-c exec] [-h] [-p #] [-r] [-t #] [-v] [-z #] [test]+"
+          echo "   -c  use code specified"
+          echo "   -h  this help message"
+          echo "   -p  use PSMM with specified max size"
+          echo "   -r  generate the reference files"
+          echo "   -t  run with # threads"
+          echo "   -v  run verbose mode"
+          echo "   -z  zero space value is #"
+          exit(1)
+          breaksw
+     case -p:
+          shift
+          set PSMM = ( /m $1 )
+          breaksw
+     case -r:
+          set GenRef = TRUE
+          breaksw
+     case -t:
+          shift
+          set Threads = ( /t $1 )
+          breaksw
+     case -v:
+          set Verbose = TRUE
+          breaksw
+     case -z:
+          shift
+          set ZeroSp = ( /z $1 )
+          breaksw
+     default:
+          set Tests = ( $Tests $1 )
+          breaksw
+  endsw
+  shift
+end
+
+if ("$Tests" == "") then
+   set Tests = ( $BTests )
+endif
+
+touch foo.000
+$RM *.00*
+
+if (!(-d $Arch)) then
+   mkdir $Arch
+endif
+
+echo "Testing $Code"
+if ("$PSMM" != "") then
+   echo "        zero space = $ZeroSp[2] and protection limit = $PSMM[2]"
+else
+   echo "        zero space = $ZeroSp[2] and no special memory protection"
+endif
+
+pushd $Arch >& /dev/null
+
+setenv BASIS_PATH ../data
+
+foreach i ($Tests)
+   echo -n "  $i"
+   set SRC = $i
+   set RES = $SRC.res
+   set REF = ../ref/$i
+   set DIF = $RES.diff
+
+   touch $i.foo
+   $RM $i*
+
+   set Opts    = ( /n /v /g $Threads $PSMM $ZeroSp )
+   if ($Verbose == TRUE) then
+      echo ""
+      echo "xuedge $Opts read ../$SRC -> $RES"
+   endif
+   $Code $Opts read ../$SRC >& $RES
+   set tstatus = $status
+
+   if ($tstatus == 255) then
+      echo "	(OMITTED)"
+
+   else if ($tstatus != 0) then
+      set Failed = ( $Failed $i )
+      echo "	(CRASHED)"
+
+   else if (($GenRef == TRUE) || (!(-e $REF))) then
+      awk '$1 !~ /PROC/ || $4 !~ /HOST/ { print }' $RES >! $REF
+      $RM $RES
+      echo "	(ADDED)"
+
+   else
+
+      mv $RES $RES.tmp
+      awk '$1 !~ /PROC/ || $4 !~ /HOST/ { print }' $RES.tmp >! $RES
+      $RM $RES.tmp
+
+      $DIFF $RES $REF >& $DIF
+      set ErrCmp = $status
+
+      grep "Block:" $RES >& /dev/null
+      if ($status == 0) then
+         set Leaked = ( $Leaked $i )
+         echo "	(LEAKED)"
+      else if ($ErrCmp != 0) then
+         set Failed = ( $Failed $i )
+	 echo "	(FAILED)"
+      else
+         set Passed = ( $Passed $i )
+         $RM $RES $DIF
+         echo " "
+      endif
+   endif
+   touch $SRC.000
+   $RM $SRC.0*
+end
+
+touch foo.mpg foo.s00
+$RM *.s00 *.mpg
+
+popd >& /dev/null
+
+if ("$Leaked" != "") then
+   set Err = 0
+   echo ""
+   echo "The following level $Lvl tests had memory leaks"
+   echo "   $Leaked"
+   echo "In test/level_$Lvl/$Arch see *.res and *.res.diff files for details"
+endif
+
+if ("$Failed" == "") then
+   set Err = 0
+   echo ""
+   echo "All level $Lvl tests passed"
+   echo ""
+else
+   set Err = 1
+   echo ""
+   echo "The following level $Lvl tests failed"
+   echo "   $Failed"
+   echo "In test/level_$Lvl/$Arch see *.res and *.res.diff files for details"
+   echo ""
+endif
+
+exit($Err)

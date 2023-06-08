@@ -65,10 +65,10 @@
       iw=ivl+ndim
 
       call newuob(n, npt, x, rhobeg, rhoend, iprint, maxfun, 
-     .            w_uoa(ixb), w_uoa(ixo), w_uoa(ixn), w_uoa(ixp), 
-     .            w_uoa(ifv), w_uoa(igq), w_uoa(ihq), w_uoa(ipq), 
-     .            w_uoa(ibmat), w_uoa(izmat), ndim, w_uoa(id), 
-     .            w_uoa(ivl), w_uoa(iw))
+     .            w_uoa(ixb:), w_uoa(ixo:), w_uoa(ixn:), w_uoa(ixp:), 
+     .            w_uoa(ifv:), w_uoa(igq:), w_uoa(ihq:), w_uoa(ipq:), 
+     .            w_uoa(ibmat:), w_uoa(izmat:), ndim, w_uoa(id:), 
+     .            w_uoa(ivl:), w_uoa(iw:))
 
       return
 

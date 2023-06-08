@@ -1,0 +1,122 @@
+errortrp("off")
+echo = no
+
+#Ranf test script.
+#    Created 9/20/96 by Fred N. Fritsch.
+#    9/23/96  Added tests for getmult and setmult. (FNF)
+#    9/24/96  Reversed order of first5 for code correction. (FNF)
+#    9/26/96  Modified to read defseed, defmult, s2000 from PDB file
+#             seedranf, for a platform-independent test. (FNF)
+
+<< "This script tests the ranf random number generator family."
+<< "It requires PDB file seedranf to be in the current directory."
+<< "CAUTION: this must be run in a fresh copy of Basis, so that"
+<< "         no ranf() calls have been executed yet."
+<< "  All is well unless you see lines beginning '**ERROR:'."
+<< "-----------------------------------------------------------"
+
+restore seedranf #This is assumed to define defseed, defmult, s2000
+integer i, iseed48(2), imult48(2), saveseed(2)
+real first5(5) = [0.580114, 0.950513, 0.786371, 0.297620, 0.453700]
+real maxdif, val(5)
+double r3000=0.15042525971471, tol, value
+
+# Verify that the starting seed is the Cray default.
+getranf(&iseed48)
+if ((iseed48(1).ne.defseed(1)).or.(iseed48(2).ne.defseed(2))) then
+   << "**ERROR: initial seed = " << iseed48(2) << " " << iseed48(1)
+   << "         default seed = " << defseed(2) << " " << defseed(1)
+endif
+
+# Check the first five values against what we expect.
+val = ranf(iota(5))
+maxdif = max( abs(val-first5) )
+if (maxdif.gt.2.E-5) then
+   << "**ERROR: First five numbers disagree from expected by " << maxdif
+endif
+
+# Verify that the starting multiplier is the Cray default.
+getmult(&imult48)
+if ((imult48(1).ne.defmult(1)).or.(imult48(2).ne.defmult(2))) then
+   << "**ERROR: initial mult = " << imult48(2) << " " << imult48(1)
+   << "         default mult = " << defmult(2) << " " << defmult(1)
+endif
+
+# Check that setmult bumps up to next odd value.
+imult48 = [234567890, 1234]
+setmult(imult48); getmult(&imult48)
+if ((imult48(1).ne.234567891).or.(imult48(2).ne.1234)) then
+   << "**ERROR: multranf set " << imult48(2) << " " << imult48(1)
+   << "             expected   1234 234567891"
+endif
+
+# Check that setmult(0) resets to the default multiplier.
+imult48 = [0, 0]
+setmult(imult48); getmult(&imult48)
+if ((imult48(1).ne.defmult(1)).or.(imult48(2).ne.defmult(2))) then
+   << "**ERROR: setmult(0) failed to reset to default"
+endif
+
+# Check that seedranf(0) resets to the default seed.
+seedranf(0); getranf(&iseed48)
+if ((iseed48(1).ne.defseed(1)).or.(iseed48(2).ne.defseed(2))) then
+   << "**ERROR: seedranf(0) failed to reset to default"
+endif
+
+# Now reset the generator with s2000, generate 1000 numbers,
+# and compare result with r3000.
+setranf(s2000)
+do i=1,1000
+   value = ranf()
+enddo
+tol = max(5.e-14, 5*d1mach(3))
+if (abs(value-r3000).gt.tol) then
+   << "**ERROR: value = " << value << "; expect r3000 = " << r3000
+endif
+
+# Check that seedranf bumps up to next odd value.
+seedranf(123456788); getranf(&iseed48)
+if ((iseed48(1).ne.123456789).or.(iseed48(2).ne.0)) then
+   << "**ERROR: seedranf set " << iseed48(2) << " " << iseed48(1)
+   << "             expected   0 123456789" 
+endif
+
+# Check that mixranf does the same thing.
+mixranf(123456788,&iseed48)
+if ((iseed48(1).ne.123456789).or.(iseed48(2).ne.0)) then
+   << "**ERROR: mixranf returned " << iseed48(2) << " " << iseed48(1)
+   << "                 expected   0 123456789"
+endif
+
+# Check that the return value from mixranf "random" case can actually
+# be used to re-set the same sequence.
+mixranf(0,&saveseed)
+do i=1,5
+   value = ranf()
+enddo
+r3000 = value
+setranf(saveseed)
+do i=1,5
+   value = ranf()
+enddo
+if (value.ne.r3000) then
+   << "**ERROR: mixranf reset gave value = " << value
+   << "                   expected r3000 = " << r3000
+endif
+
+# Verify that mixranf can successfully reset to default seed.
+mixranf(-1,&iseed48)
+if ((iseed48(1).ne.defseed(1)).or.(iseed48(2).ne.defseed(2))) then
+   << "**ERROR: mixranf(-1,...) failed to reset to default"
+endif
+
+# Finally check that mixranf "random" case gives different seed.
+mixranf(0,&iseed48)
+if ((iseed48(1).eq.defseed(1)).and.(iseed48(2).eq.defseed(2))) then
+   << "**ERROR: mixranf(0,...) reset to default"
+endif
+if ((iseed48(1).eq.saveseed(1)).and.(iseed48(2).eq.saveseed(2))) then
+   << "**ERROR: mixranf(0,...) reset to previous value"
+endif
+
+read testltab

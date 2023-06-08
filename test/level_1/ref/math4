@@ -1,0 +1,8 @@
+Starting Basis global memory monitoring
+errortrp("off")
+echo = no
+Test checksum function
+Checksum integer: before = 140307565 after = 140316237
+Checksum real: before = 74968632 after = 75207960
+Literal table begins with 0 entries at line 3.
+Ending Basis global memory monitoring

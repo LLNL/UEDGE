@@ -70,13 +70,13 @@ c     if nxpt > 1 as in a full double-null configuration.
 
 c ... Loop over impurity sources, doing the outer and inner walls.
       do isor = 1, nzsor
-         call imp_sorc (nxd, nzsptd, iszsorlb(1,isor),
-     .                  ixzbego(1,isor), ixzendo(1,isor), ixp1o,
-     .                  ximpo(1,isor), wimpo(1,isor), impsoro(1,isor),
+         call imp_sorc (nxd, nzsptd, iszsorlb(1:,isor),
+     .                  ixzbego(1:,isor), ixzendo(1:,isor), ixp1o,
+     .                  ximpo(1:,isor), wimpo(1:,isor), impsoro(1:,isor),
      .                                               xcwo, syo, fnzyso)
-         call imp_sorc (nxd, nzsptd, iszsorlb(1,isor),
-     .                  ixzbegi(1,isor), ixzendi(1,isor), ixp1i,
-     .                  ximpi(1,isor), wimpi(1,isor), impsori(1,isor),
+         call imp_sorc (nxd, nzsptd, iszsorlb(1:,isor),
+     .                  ixzbegi(1:,isor), ixzendi(1:,isor), ixp1i,
+     .                  ximpi(1:,isor), wimpi(1:,isor), impsori(1:,isor),
      .                                               xcwi, syi, fnzysi)
       enddo
    

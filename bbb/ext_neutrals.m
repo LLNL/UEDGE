@@ -2614,13 +2614,15 @@ c!nopdbend
 c!nopdbinteger function pfopen(len, str, mode)
 c!nopdbinteger len
 c!nopdbcharacter*256 str
-c!nopdbcharacter*4 mode
+c!nopdbcharacter*1 mode
 c!nopdbpfopen = -1
 c!nopdbstop
 c!nopdbend
-c!nopdbinteger function pfwrta(fileid, len, str)
-c!nopdbinteger fileid,len
+c!nopdbinteger function pfwrta(fileid, len, str,tlen,type,dum)
+c!nopdbinteger fileid,len,tlen
 c!nopdbcharacter*256 str
+c!nopdbcharacter*6 type
+c!nopdbreal dum(*)
 c!nopdbpfwrta = -1
 c!nopdbstop
 c!nopdbend

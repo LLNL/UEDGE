@@ -69,7 +69,10 @@ alfxt   real      /4.0/     #exponent coeff. for x (axial) grid nonuiformity
 isadjalfxt integer /0/      #=1 changes alfxt slightly for smooth dx at ixpt2 
 tctr    real      /0./      #relative location of dx maximum;0, left; 1., right
 bpolfix real [T]   /.3/     #poloidal B-field for cartesian grid
-btfix   real [T]   /5./     #total B-field for cartesian grid 
+btfix   real [T]   /5./     #total B-field for cartesian grid
+rmajfix real [m]   /1.0/    #reference major radius for cartesian/cylindrical grid
+sigma_bpol real []  /0.0/   #exponent for poloidal field for cartesian/cylindrical grid
+sigma_btor real []  /0.0/   #exponent for toroidal field for cartesian/cylindrical grid  
 isgdistort integer /0/      #switch to distort poloidal grid
 agsindx real       /0./     #max amplitude shift of poloidal cell face linear
  			    #linear in radial index iy

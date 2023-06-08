@@ -30,16 +30,21 @@ def Allot(s):
     return s
 def Nopdb(s):
     if os.getenv('PACT_DIR') == None:
-        if (s.find("c!nopdb")+1):
+        if s.startswith("c!nopdb"):
             s=s.replace("c!nopdb","       ")
     return s
 def Petsc(s):
     if os.getenv('PETSC_DIR') != None:
         if os.getenv('PARALLEL') == None:
-           if (s.find("cunipetsc")+1):
+           if s.startswith("cunipetsc"):
                s=s.replace("cunipetsc","")
-        if (s.find("cpetsc")+1):
+        if s.startswith("cpetsc"):
             s=s.replace("cpetsc","")
+    return s
+def Omp(s):
+    if os.getenv('OMP') != None:
+        if s.startswith("c!omp"):
+            s=s.replace("c!omp","     ")
     return s
 
 saved_dec=0
@@ -154,6 +159,7 @@ M2Fsubrules = [("#","!"),Use2use,
                ("c!include ","#include "),
                Nopdb,
                Petsc,
+               Omp,
                Allot,
                Elseifthen,
                MoveDecs

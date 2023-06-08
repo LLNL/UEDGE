@@ -1,5 +1,5 @@
 c-----------------------------------------------------------------------
-c $Id: odesetup.m,v 7.19 2020/05/26 02:44:34 rognlien1 Exp $
+c $Id: odesetup.m,v 7.26 2022/11/30 23:10:58 meyer8 Exp $
 c
 c!include "bbb.h"
 c!include "../com/com.h"
@@ -43,7 +43,6 @@ c-----------------------------------------------------------------------
       Use(Imprad)              # isimpon
       Use(Reduced_ion_interface)   # misotope,natomic,nchstate
       Use(Ynorm)               # iscolnorm
-      Use(Aux)                 # igsp
       Use(Selec)               # xlinc,xrinc,yinc
       Use(Bcond)               # nwsor,igspsori
       Use(Parallv)             # nxg,nyg
@@ -61,6 +60,8 @@ cc      Use(Rccoef)
       character*60 runid
       integer iprt_tfcx_warn
       data iprt_tfcx_warn/1/
+      #Former Aux module variables
+      integer igsp
 
 *=======================================================================
 *//computation//
@@ -171,7 +172,7 @@ c----------------------------------------------------------------------c
             endif
          endif
          call gchange("Xpoint_indices",0)
-         call readgridpars("gridue",runid)  #define/redefine iysptrx1 etc
+         call readgridpars(trim(GridFileName),runid)  #define/redefine iysptrx1 etc
          nx = nxm - abs(nxomit)
          ny = nym - nyomitmx
       endif	# end if-test on gengrid
@@ -270,7 +271,8 @@ c ... Check if tfcx or tfcy set in input file
         endif
 c ... Check if isnfmiy=1 when geometry is snowflake > SF15
       if (geometry=="snowflake45" .or. geometry=="snowflake75" .or.
-     .    geometry=="snowflake105" .or. geometry=="snowflake145") then
+     .    geometry=="snowflake105" .or. geometry=="snowflake135" .or.
+     .    geometry=="snowflake165") then
          if (isnfmiy == 1) then
             call xerrab('*** ERROR: isnfmiy=1 not option here; set to 0')
          endif
@@ -327,6 +329,10 @@ c...  Calculate actual number of equations (some may be turned-off)
       ipar(1) = neq
       ubw = (numvar+numvarbwpad)*(nx+ixpt2(nxpt)-max(0,ixpt1(1))+4)
       lbw = (numvar+numvarbwpad)*(nx+ixpt2(nxpt)-max(0,ixpt1(1))+4)
+      if (isphion*isnewpot == 1) then  #phi eqn  4th order in y; larger bandw
+         ubw = 4*numvar*nx
+	 lbw = 4*numvar*nx
+      endif
       if (xlinc.gt.20 .and. xrinc.gt.20 .and. yinc.gt.20) then
          ubw = neq       # use full matrix & search full range for Jacobian
          lbw = neq       # use full matrix & search full range for Jacobian
@@ -677,7 +683,6 @@ c-----------------------------------------------------------------------
                     # xcs,xfs,xcwi,xcwo,yyc,yyf
       Use(Xpoint_indices)      # ixlb,ixpt1,ixpt2,ixrb,iysptrx1,iysptrx2
       Use(Math_problem_size)   # neqmx,numvar
-      Use(Aux)      # ix,iy,igsp,tv
       Use(UEint)    # newgeo,newaph,restart,initsol,ttbeg,
                     # tinit,tscal,ngscal,xgscal,minu,ziin,ixgb
       Use(Grid)     # ig
@@ -722,6 +727,7 @@ c-----------------------------------------------------------------------
       Use(Save_terms) # psorcold, etc
       Use(Cut_indices)	# ixcut1,iycut1,ixcut2,iycut2,ixcut3,iycut3
                         # ixcut4,iycut4
+      Use(Gradients) #eymask1d
 
 
 *  -- external routines --
@@ -735,6 +741,9 @@ c-----------------------------------------------------------------------
       integer ixmp4, jx, jy
       real diffustotal, factor
       integer ifld_fcs, ifld_lcs, igsp_lcs, jz
+      #Former Aux module variables
+      integer ix,iy,igsp
+      real tv
 
 *=======================================================================
 *//computation//
@@ -883,8 +892,8 @@ c      call sfill (neq, 1., sfscal(1), 1)
 c ... Set initial values of time-step arrays if svrpkg=nksol
       if ((svrpkg .eq. "nksol") .or. (svrpkg.eq."petsc")) then
         call s2fill (nx+2, ny+2, 1.e20, dtoptx, 1, nx+2)
-        call sfill (neq, 1.e20, dtoptv, 1)
-        call sfill (neq, 1.e20, dtuse, 1)
+        call sfill (neq, 1.e20, dtoptv(:), 1)
+        call sfill (neq, 1.e20, dtuse(:), 1)
       endif
 
 c ... Set normalization constants for the yl variables seen by solvers.
@@ -975,21 +984,21 @@ c...  If using FORTHON (Python), use delpy to set del as del is special word
       srtolpk = del / rtolv(igrid)
 
 c...  Set boundary conditions for Te,i on walls if arrays are zero
-      if (tewalli(nx+1).lt.1.e-10) call sfill (nx+2,tedge,tewalli(0),1)
-      if (tiwalli(nx+1).lt.1.e-10) call sfill (nx+2,tedge,tiwalli(0),1)
-      if (tewallo(nx+1).lt.1.e-10) call sfill (nx+2,tedge,tewallo(0),1)
-      if (tiwallo(nx+1).lt.1.e-10) call sfill (nx+2,tedge,tiwallo(0),1)
+      if (tewalli(nx+1).lt.1.e-10) call sfill (nx+2,tedge,tewalli(0:),1)
+      if (tiwalli(nx+1).lt.1.e-10) call sfill (nx+2,tedge,tiwalli(0:),1)
+      if (tewallo(nx+1).lt.1.e-10) call sfill (nx+2,tedge,tewallo(0:),1)
+      if (tiwallo(nx+1).lt.1.e-10) call sfill (nx+2,tedge,tiwallo(0:),1)
 
 c...  Initialize external eng fluxes to 0 if ext_flags=0 as used anyway
       if (isextpltmod == 0) then
         do jx = 1, nxpt
-          call sfill(ny+2,0.,feixextlb(0,jx),1)
-          call sfill(ny+2,0.,feixextrb(0,jx),1)
+          call sfill(ny+2,0.,feixextlb(0:,jx),1)
+          call sfill(ny+2,0.,feixextrb(0:,jx),1)
         enddo
       endif
       if (isextwallmod == 0) then
-        call sfill(nx+2,0.,feiyexti(0),1)
-        call sfill(nx+2,0.,feiyexto(0),1)
+        call sfill(nx+2,0.,feiyexti(0:),1)
+        call sfill(nx+2,0.,feiyexto(0:),1)
       endif
 
 c...  Set boundary conditions for lyni on walls; if isulynix=0, use lyni
@@ -1022,8 +1031,8 @@ c...  Set boundary conditions for lyni on walls; if isulynix=0, use lyni
 
 c...  Set values of sheath potential/Te to 3.0 if values are zero
       do jx=1,nxpt
-        if (kappal(ny+1,jx).lt.1.e-10) call sfill (ny+2,3.0,kappal(0,jx),1)
-        if (kappar(ny+1,jx).lt.1.e-10) call sfill (ny+2,3.0,kappar(0,jx),1)
+        if (kappal(ny+1,jx).lt.1.e-10) call sfill (ny+2,3.0,kappal(0:,jx),1)
+        if (kappar(ny+1,jx).lt.1.e-10) call sfill (ny+2,3.0,kappar(0:,jx),1)
       enddo
 
 c ... Initialize Multicharge rate table dimensions
@@ -1170,8 +1179,8 @@ c        for a single-null magnetic configuration.
 
 c...  set arrays to possibly zero out the neutral diffusive velocity
 c     arising from grad Ti
-      call sfill(nx+2, 1., fgtdx(0), 1)
-      call sfill(ny+2, 1., fgtdy(0), 1)
+      call sfill(nx+2, 1., fgtdx(0:), 1)
+      call sfill(ny+2, 1., fgtdy(0:), 1)
       do jx = 1, nxpt # gradT can cause BC prob.;only flux matters
          if (ixmnbcl==1) fgtdx(ixlb(jx)) = gcfacgtx
 	 if (ixmxbcl==1) fgtdx(ixrb(jx)) = gcfacgtx
@@ -1180,20 +1189,20 @@ c     arising from grad Ti
       if (iymxbcl==1) fgtdy(ny) = gcfacgty
 
 c...  set flux-limit arrays and account for turning-off at boundaries
-      call sfill(nx+2, flalfe, flalfea(0), 1)
-      call sfill(nx+2, flalfi, flalfia(0), 1)
-      call sfill(nx+2, flalfv, flalfva(0), 1)
+      call sfill(nx+2, flalfe, flalfea(0:), 1)
+      call sfill(nx+2, flalfi, flalfia(0:), 1)
+      call sfill(nx+2, flalfv, flalfva(0:), 1)
       do igsp = 1, 10
-        call sfill(nx+2, flalfgx(igsp), flalfgxa(0,igsp), 1)
-        call sfill(nx+2, flalfgxy(igsp), flalfgxya(0,igsp), 1)
-        call sfill(ny+2, flalfgy(igsp), flalfgya(0,igsp), 1)
+        call sfill(nx+2, flalfgx(igsp), flalfgxa(0:,igsp), 1)
+        call sfill(nx+2, flalfgxy(igsp), flalfgxya(0:,igsp), 1)
+        call sfill(ny+2, flalfgy(igsp), flalfgya(0:,igsp), 1)
       enddo
-      call sfill(nx+2, flalfvgx, flalfvgxa(0), 1)
-      call sfill(nx+2, flalfvgxy, flalfvgxya(0), 1)
-      call sfill(ny+2, flalfvgy, flalfvgya(0), 1)
-      call sfill(nx+2, flalftgx, flalftgxa(0), 1)
-ccc      call sfill(nx+2, flalftgxy, flalftgxya(0), 1)
-      call sfill(ny+2, flalftgy, flalftgya(0), 1)
+      call sfill(nx+2, flalfvgx, flalfvgxa(0:), 1)
+      call sfill(nx+2, flalfvgxy, flalfvgxya(0:), 1)
+      call sfill(ny+2, flalfvgy, flalfvgya(0:), 1)
+      call sfill(nx+2, flalftgx, flalftgxa(0:), 1)
+ccc      call sfill(nx+2, flalftgxy, flalftgxya(0:), 1)
+      call sfill(ny+2, flalftgy, flalftgya(0:), 1)
 
       do jx = 1, nxpt  #loop over x-points
         if (isplflxl==0) then
@@ -1262,7 +1271,7 @@ c ... Set impurity sources on inner and outer walls.
 
 c ... Initialize molecular thermal equilibration array in case not computed
       do igsp = 1,ngsp
-        call s2fill (nx+2, ny+2, 0.0e0, eqpg(0,0,igsp), 1, nx+2)
+        call s2fill (nx+2, ny+2, 0.0e0, eqpg(0:,0:,igsp), 1, nx+2)
       enddo
       
 *---  bbbbbb begin ifloop b  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
@@ -1274,14 +1283,14 @@ c ... Initialize molecular thermal equilibration array in case not computed
 
 *  -- initialize the density and velocity
       do ifld = 1, nisp
-         call s2fill (nx+2, ny+2, nibeg(ifld), ni(0,0,ifld), 1, nx+2)
+         call s2fill (nx+2, ny+2, nibeg(ifld), ni(0:,0:,ifld), 1, nx+2)
       enddo
       do ifld = 1, nisp
-         call s2fill (nx+2, ny+2, 0.0e0, uu(0,0,ifld), 1, nx+2)
-         call s2fill (nx+2, ny+2, 0.0e0, vy(0,0,ifld), 1, nx+2)
-         call s2fill (nx+2, ny+2, 0.0e0, up(0,0,ifld), 1, nx+2)
-         call s2fill (nx+2, ny+2, 0.0e0, frici(0,0,ifld), 1, nx+2)
-         call s2fill (nx+2, ny+2, 0.0e0, nuvl(0,0,ifld), 1, nx+2)
+         call s2fill (nx+2, ny+2, 0.0e0, uu(0:,0:,ifld), 1, nx+2)
+         call s2fill (nx+2, ny+2, 0.0e0, vy(0:,0:,ifld), 1, nx+2)
+         call s2fill (nx+2, ny+2, 0.0e0, up(0:,0:,ifld), 1, nx+2)
+         call s2fill (nx+2, ny+2, 0.0e0, frici(0:,0:,ifld), 1, nx+2)
+         call s2fill (nx+2, ny+2, 0.0e0, nuvl(0:,0:,ifld), 1, nx+2)
       enddo
 
 *  -- initialize the gas and electron density
@@ -1324,7 +1333,7 @@ c...  This is redundant with above if ngsp=1, but done to set nginit
 
 c...  Initialize 4th order fluxes
       do ifld = 1, nisp
-        call s2fill (nx+2, ny+2, 0., fniy4ord(0,0,ifld), 1, nx+2)
+        call s2fill (nx+2, ny+2, 0., fniy4ord(0:,0:,ifld), 1, nx+2)
       enddo
 
 *  -- Initialize temperatures, potential, currents, and some nonog-fluxes.
@@ -1648,12 +1657,12 @@ c...  If phis(nx-1,ny-1)=0., reset to constant 40 volts
      .                      call s2fill (nx+2, ny+2, 40., phi, 1, nx+2)
 
          do 610 ifld = 1, nisp
-            call intpvar (nis(0,0,ifld), ni(0,0,ifld), 0, nxold, nyold)
-            call intpvar (ups(0,0,ifld), up(0,0,ifld), 1, nxold, nyold)
+            call intpvar (nis(0:,0:,ifld), ni(0:,0:,ifld), 0, nxold, nyold)
+            call intpvar (ups(0:,0:,ifld), up(0:,0:,ifld), 1, nxold, nyold)
  610     continue
          do 620 igsp = 1, ngsp
-            call intpvar (ngs(0,0,igsp), ng(0,0,igsp), 0, nxold, nyold)
-            call intpvar (tgs(0,0,igsp), tg(0,0,igsp), 0, nxold, nyold)
+            call intpvar (ngs(0:,0:,igsp), ng(0:,0:,igsp), 0, nxold, nyold)
+            call intpvar (tgs(0:,0:,igsp), tg(0:,0:,igsp), 0, nxold, nyold)
  620     continue
 
 c...  Reset gas density to minimum if too small or negative
@@ -1700,14 +1709,14 @@ c...  Check if any ion density is zero
       call s2fill (nx+2, ny+2, 0., frice, 1, nx+2)
 
       do ifld = 1, nisp
-         call s2fill (nx+2, ny+2, 0., vytan(0,0,ifld), 1, nx+2)
-         call s2fill (nx+2, ny+2, 0., nm(0,0,ifld), 1, nx+2)
-         call s2fill (nx+2, ny+2, 0., psorc(0,0,ifld), 1, nx+2)
-         call s2fill (nx+2, ny+2, 0., psorxr(0,0,ifld), 1, nx+2)
-         call s2fill (nx+2, ny+2, 0., msor(0,0,ifld), 1, nx+2)
-         call s2fill (nx+2, ny+2, 0., msorxr(0,0,ifld), 1, nx+2)
-         call s2fill (nx+2, ny+2, 0., nucxi(0,0,ifld), 1, nx+2)
-         call s2fill (nx+2, ny+2, 0., nueli(0,0,ifld), 1, nx+2)
+         call s2fill (nx+2, ny+2, 0., vytan(0:,0:,ifld), 1, nx+2)
+         call s2fill (nx+2, ny+2, 0., nm(0:,0:,ifld), 1, nx+2)
+         call s2fill (nx+2, ny+2, 0., psorc(0:,0:,ifld), 1, nx+2)
+         call s2fill (nx+2, ny+2, 0., psorxr(0:,0:,ifld), 1, nx+2)
+         call s2fill (nx+2, ny+2, 0., msor(0:,0:,ifld), 1, nx+2)
+         call s2fill (nx+2, ny+2, 0., msorxr(0:,0:,ifld), 1, nx+2)
+         call s2fill (nx+2, ny+2, 0., nucxi(0:,0:,ifld), 1, nx+2)
+         call s2fill (nx+2, ny+2, 0., nueli(0:,0:,ifld), 1, nx+2)
       enddo
 
       do ifld = 1, nisp   # test that s2fill does the right thing
@@ -1730,12 +1739,13 @@ c...  Check if any ion density is zero
 ccc      write(*,*)  'Just initialized psorc, etc.in ueinit; nisp = ',nisp
 
       do ifld = 1, nusp
-         call s2fill (nx+2, ny+2, 0., fmixy(0,0,ifld), 1, nx+2)
-         call s2fill (nx+2, ny+2, 0., frici(0,0,ifld), 1, nx+2)
+         call s2fill (nx+2, ny+2, 0., fmixy(0:,0:,ifld), 1, nx+2)
+         call s2fill (nx+2, ny+2, 0., frici(0:,0:,ifld), 1, nx+2)
       enddo
 
       do igsp = 1, ngsp
-         call s2fill (nx+2, ny+2, 0., fngxy(0,0,igsp), 1, nx+2)
+         call s2fill (nx+2, ny+2, 0., fngxy(0:,0:,igsp), 1, nx+2)
+         call s2fill (nx+2, ny+2, 0., fegxy(0:,0:,igsp), 1, nx+2)
       enddo
 
       do 713 ifld = 1, nisp
@@ -1753,12 +1763,12 @@ ccc      write(*,*)  'Just initialized psorc, etc.in ueinit; nisp = ',nisp
  713  continue
 
 c...  Set boundary conditions for ni and Te,i on walls if end-element zero
-      if (nwalli(nx+1).lt.1.e-10) call sfill (nx+2,nwalli(0),nwalli(0),1)
-      if (nwallo(nx+1).lt.1.e-10) call sfill (nx+2,nwallo(0),nwallo(0),1)
-      if (tewalli(nx+1).lt.1.e-10) call sfill (nx+2,tedge,tewalli(0),1)
-      if (tiwalli(nx+1).lt.1.e-10) call sfill (nx+2,tedge,tiwalli(0),1)
-      if (tewallo(nx+1).lt.1.e-10) call sfill (nx+2,tedge,tewallo(0),1)
-      if (tiwallo(nx+1).lt.1.e-10) call sfill (nx+2,tedge,tiwallo(0),1)
+      if (nwalli(nx+1).lt.1.e-10) call sfill (nx+2,nwalli(0),nwalli(0:),1)
+      if (nwallo(nx+1).lt.1.e-10) call sfill (nx+2,nwallo(0),nwallo(0:),1)
+      if (tewalli(nx+1).lt.1.e-10) call sfill (nx+2,tedge,tewalli(0:),1)
+      if (tiwalli(nx+1).lt.1.e-10) call sfill (nx+2,tedge,tiwalli(0:),1)
+      if (tewallo(nx+1).lt.1.e-10) call sfill (nx+2,tedge,tewallo(0:),1)
+      if (tiwallo(nx+1).lt.1.e-10) call sfill (nx+2,tedge,tiwallo(0:),1)
 
       call convert
       if (svrpkg.eq.'daspk') then
@@ -1818,7 +1828,7 @@ c ... Set variable-normalization array.
       call set_var_norm (iscolnorm, neq, numvar, yl, norm_cons,
      .                   floor_cons, suscal)
 c...  Need sfscal initialized in jac_calc if not continuing
-      if (icntnunk .eq. 0) call sfill (neq, 1., sfscal(1), 1)
+      if (icntnunk .eq. 0) call sfill (neq, 1., sfscal(1:), 1)
 
 c...  set the stretching array for the poloidal coordinate used in the
 c...  poloidal diffusion for the neutral gas
@@ -1839,6 +1849,18 @@ cccMER NOTE: only use sxgsol beyond outermost separatrix
 c ... Enable Jac stencil comp if not parallel
       if (isjacstnlon == 1) then
         call domain_dc   # comp Jacobian stencil ivl2gstnl
+      endif
+
+c...  Set eymask1d to give ey=0 in core+sep for 1d SOL pot (isphicore0=1)
+      eymask1d = 1.  #2D array initialization
+      if (isphicore0 == 1) then  #only solve pot eqn in SOL; phi_core const
+        do jx = 1, nxpt
+          do iy = 0, iysptrx
+            do ix = ixpt1(jx)+1, ixpt2(jx)
+              eymask1d(ix,iy) = 0.
+            enddo
+          enddo
+        enddo
       endif
 
       return
@@ -1866,7 +1888,7 @@ Use(Parallv)            # nxg,nyg
 Use(Indices_domain_dcg) # ndomain,isddcon
 Use(Npes_mpi)           # mype
 c     local variables --
-      integer ix,iy
+      integer ix,iy,jx
 
 c...  Set cut indices (duplicative for now, but used for snowflake)
       ixcut1 = ixpt1(1)
@@ -1881,8 +1903,6 @@ c...  Set cut indices (duplicative for now, but used for snowflake)
       endif
 
       do iy = 0, ny+1
-         ixm1(0,iy) = 0
-         ixp1(0,iy) = 1
          if (ndomain==1 .or. isddcon==2 .or. isglobal==1) then
                                              # no x-domain decomposition
             iym1a(0,iy) = max(0,iy-1)
@@ -1910,6 +1930,7 @@ c ...  First case is the default geometry=snull
                   ixm1(ix,iy) = ix-1
                   ixp1(ix,iy) = ix+1
                endif
+
                if (geometry=="dnull") then  #3 conditions for 1-cell cases
                  if (ixpt2(1)==ixpt1(1)+1.or.ixpt2(2)==ixpt1(2)+1) then
                   call xerrab("***Error: Single pol cell not supported")
@@ -2049,19 +2070,19 @@ c ...  First case is the default geometry=snull
                   endif
                endif	# end of geometry=="snowflake75"
 			   
-			   if (geometry=="snowflake105") then	# AK 10 DEC 2018
+               if (geometry=="snowflake105") then	# AK 10 DEC 2018
                   if ((iy .le. iycut1) .and. (ix .eq. ixcut1)) then
                      ixm1(ix,iy) = ix-1
                      ixp1(ix,iy) = ixcut4+1
                   elseif ((iy .le. iycut1) .and. (ix .eq. ixcut1+1)) then
                      ixm1(ix,iy) = ixcut4
                      ixp1(ix,iy) = ix+1
-					 if ((ixcut2 .eq. ixcut1+1) .and. (iy .le. iycut1)) then
+                     if ((ixcut2 .eq. ixcut1+1) .and. (iy .le. iycut1)) then
                         ixp1(ix,iy) = ixcut3+1
                      endif
                   elseif ((iy .le. iycut2) .and. (ix .eq. ixcut2)) then
                      ixm1(ix,iy) = ix-1
-					 if ((ixcut2 .eq. ixcut1+1) .and. (iy .le. iycut1)) ixm1(ix,iy) = ixcut4
+                     if ((ixcut2 .eq. ixcut1+1) .and. (iy .le. iycut1)) ixm1(ix,iy) = ixcut4
                      ixp1(ix,iy) = ixcut3+1
                   elseif ((iy .le. iycut2) .and. (ix .eq. ixcut2+1)) then
                      ixm1(ix,iy) = ixcut3
@@ -2074,7 +2095,7 @@ c ...  First case is the default geometry=snull
                      ixp1(ix,iy) = ix+1
                   elseif ((iy .le. iycut4) .and. (ix .eq. ixcut4)) then
                      ixm1(ix,iy) = ix-1
-					 if (ixcut4.eq.ixcut3+1) ixm1(ix,iy) = ixcut2
+                     if (ixcut4.eq.ixcut3+1) ixm1(ix,iy) = ixcut2	# never satisfied???
                      ixp1(ix,iy) = ixcut1+1
                   elseif ((iy .le. iycut4) .and. (ix .eq. ixcut4+1)) then
                      ixm1(ix,iy) = ixcut1
@@ -2084,6 +2105,76 @@ c ...  First case is the default geometry=snull
                      ixp1(ix,iy) = ix+1
                   endif
                endif	# end of geometry=="snowflake105"
+
+               if (geometry=="snowflake135") then	# MER 24 JUL 2020
+                  if ((iy .le. iycut1) .and. (ix .eq. ixcut1)) then
+                     ixm1(ix,iy) = ix-1
+                     ixp1(ix,iy) = ixcut4+1
+                  elseif ((iy .le. iycut1) .and. (ix .eq. ixcut1+1)) then
+                     ixm1(ix,iy) = ixcut4
+                     ixp1(ix,iy) = ix+1
+                     if ((ixcut2 .eq. ixcut1+1) .and. (iy .le. iycut1)) then
+                        ixp1(ix,iy) = ixcut3+1
+                     endif
+                  elseif ((iy .le. iycut2) .and. (ix .eq. ixcut2)) then
+                     ixm1(ix,iy) = ix-1
+                     if ((ixcut2 .eq. ixcut1+1) .and. (iy .le. iycut1)) ixm1(ix,iy) = ixcut4
+                     ixp1(ix,iy) = ixcut3+1
+                  elseif ((iy .le. iycut2) .and. (ix .eq. ixcut2+1)) then
+                     ixm1(ix,iy) = ixcut3
+                     ixp1(ix,iy) = ix+1
+                  elseif ((iy .le. iycut3) .and. (ix .eq. ixcut3)) then
+                     ixm1(ix,iy) = ix-1
+                     ixp1(ix,iy) = ixcut2+1
+                  elseif ((iy .le. iycut3) .and. (ix .eq. ixcut3+1)) then
+                     ixm1(ix,iy) = ixcut2
+                     ixp1(ix,iy) = ix+1
+                  elseif ((iy .le. iycut4) .and. (ix .eq. ixcut4)) then
+                     ixm1(ix,iy) = ix-1
+                     ixp1(ix,iy) = ixcut1+1
+                  elseif ((iy .le. iycut4) .and. (ix .eq. ixcut4+1)) then
+                     ixm1(ix,iy) = ixcut1
+                     ixp1(ix,iy) = ix+1
+                  else	# when cuts do not interfere
+                     ixm1(ix,iy) = ix-1
+                     ixp1(ix,iy) = ix+1
+                  endif
+               endif	# end of geometry=="snowflake135"
+
+               if (geometry=="snowflake165") then	# MER 24 JUL 2020
+                  if ((iy .le. iycut1) .and. (ix .eq. ixcut1)) then
+                     ixm1(ix,iy) = ix-1
+                     ixp1(ix,iy) = ixcut4+1
+                  elseif ((iy .le. iycut1) .and. (ix .eq. ixcut1+1)) then
+                     ixm1(ix,iy) = ixcut4
+                     ixp1(ix,iy) = ix+1
+                  elseif ((iy .le. iycut2) .and. (ix .eq. ixcut2)) then
+                     ixm1(ix,iy) = ix-1
+                     ixp1(ix,iy) = ixcut3+1
+                  elseif ((iy .le. iycut2) .and. (ix .eq. ixcut2+1)) then
+                     ixm1(ix,iy) = ixcut3
+                     ixp1(ix,iy) = ix+1
+                  elseif ((iy .le. iycut3) .and. (ix .eq. ixcut3)) then
+                     ixm1(ix,iy) = ix-1
+                     ixp1(ix,iy) = ixcut2+1
+                  elseif ((iy .le. iycut3) .and. (ix .eq. ixcut3+1)) then
+                     ixm1(ix,iy) = ixcut2
+                     ixp1(ix,iy) = ix+1
+                     if ((ixcut4 .eq. ixcut3+1) .and. (iy .le. iycut4)) then
+                        ixp1(ix,iy) = ixcut1+1
+                     endif
+                  elseif ((iy .le. iycut4) .and. (ix .eq. ixcut4)) then
+                     ixm1(ix,iy) = ix-1
+                     if (ixcut4 .eq. ixcut3+1) ixm1(ix,iy) = ixcut2
+                     ixp1(ix,iy) = ixcut1+1
+                  elseif ((iy .le. iycut4) .and. (ix .eq. ixcut4+1)) then
+                     ixm1(ix,iy) = ixcut1
+                     ixp1(ix,iy) = ix+1
+                  else	# when cuts do not interfere
+                     ixm1(ix,iy) = ix-1
+                     ixp1(ix,iy) = ix+1
+                  endif
+               endif	# end of geometry=="snowflake165"
 
                if (geometry=="isoleg") then	# TDR 03 Dec 2014
                   if ((iy .le. iycut1) .and. (ix .eq. ixcut1)) then
@@ -2156,8 +2247,12 @@ c ...  First case is the default geometry=snull
              enddo  # 3rd loop over ix
            endif
          endif
-         ixm1(nx+1,iy) = nx
-         ixp1(nx+1,iy) = nx+1
+         do jx = 1, nxpt  #fix poloidal bdrys for multiple nulls
+           ixm1(ixlb(jx),iy) = ixlb(jx)
+           ixp1(ixlb(jx),iy) = ixlb(jx)+1
+           ixm1(ixrb(jx)+1,iy) = ixrb(jx)
+           ixp1(ixrb(jx)+1,iy) = ixrb(jx)+1
+         enddo
       enddo  # end do-loop over iy
 
 c...  Special fix for core-only cases
@@ -6625,24 +6720,24 @@ c ... Resize arrays and copy data to appropriate arrays
       call gchange("Interp",0)
 c ... Copy nisg -> ni, upsg -> up, etc
       do  ifld = 1, nisp
-          call s2copy (nx+2, ny+2, nisg(0,0,ifld), 1, nx+2,
-     .            ni(0,0,ifld), 1, nx+2)
-          call s2copy (nx+2, ny+2, nisg(0,0,ifld), 1, nx+2,
-     .            nis(0,0,ifld), 1, nx+2)
+          call s2copy (nx+2, ny+2, nisg(0:,0:,ifld), 1, nx+2,
+     .            ni(0:,0:,ifld), 1, nx+2)
+          call s2copy (nx+2, ny+2, nisg(0:,0:,ifld), 1, nx+2,
+     .            nis(0:,0:,ifld), 1, nx+2)
       enddo
 
       do ifld = 1, nusp
-         call s2copy (nx+2, ny+2, upsg(0,0,ifld), 1, nx+2,
-     .            up(0,0,ifld), 1, nx+2)
-         call s2copy (nx+2, ny+2, upsg(0,0,ifld), 1, nx+2,
-     .            ups(0,0,ifld), 1, nx+2)
+         call s2copy (nx+2, ny+2, upsg(0:,0:,ifld), 1, nx+2,
+     .            up(0:,0:,ifld), 1, nx+2)
+         call s2copy (nx+2, ny+2, upsg(0:,0:,ifld), 1, nx+2,
+     .            ups(0:,0:,ifld), 1, nx+2)
       enddo
 
       do igsp = 1, ngsp
-         call s2copy (nx+2, ny+2, ngsg(0,0,igsp), 1, nx+2,
-     .            ng(0,0,igsp), 1, nx+2)
-         call s2copy (nx+2, ny+2, ngsg(0,0,igsp), 1, nx+2,
-     .            ngs(0,0,igsp), 1, nx+2)
+         call s2copy (nx+2, ny+2, ngsg(0:,0:,igsp), 1, nx+2,
+     .            ng(0:,0:,igsp), 1, nx+2)
+         call s2copy (nx+2, ny+2, ngsg(0:,0:,igsp), 1, nx+2,
+     .            ngs(0:,0:,igsp), 1, nx+2)
       enddo
 
       call s2copy (nx+2, ny+2, tesg, 1, nx+2, te, 1, nx+2)
@@ -6657,12 +6752,12 @@ c ... Copy nisg -> ni, upsg -> up, etc
       endif
 
       do igmh = 0, 4  # mesh (R,Z) coordinates set to global
-         call s2copy (nx+2, ny+2, rmg(0,0,igmh), 1, nx+2,
-     .            rm(0,0,igmh), 1, nx+2)
-         call s2copy (nx+2, ny+2, zmg(0,0,igmh), 1, nx+2,
-     .            zm(0,0,igmh), 1, nx+2)
-         call s2copy (nx+2, ny+2, psig(0,0,igmh), 1, nx+2,
-     .            psi(0,0,igmh), 1, nx+2)
+         call s2copy (nx+2, ny+2, rmg(0:,0:,igmh), 1, nx+2,
+     .            rm(0:,0:,igmh), 1, nx+2)
+         call s2copy (nx+2, ny+2, zmg(0:,0:,igmh), 1, nx+2,
+     .            zm(0:,0:,igmh), 1, nx+2)
+         call s2copy (nx+2, ny+2, psig(0:,0:,igmh), 1, nx+2,
+     .            psi(0:,0:,igmh), 1, nx+2)
       enddo
       call s2copy (nx+2,ny+2,lcong,1,nx+2,lcon,1,nx+2)
       call s2copy (nx+2,ny+2,lconeg,1,nx+2,lcone,1,nx+2)
@@ -6731,24 +6826,24 @@ c ... Resize arrays and copy data to appropriate arrays
       call gchange("Interp",0)
 c ... Copy nisg -> ni, upsg -> up, etc
       do  ifld = 1, nisp
-          call s2copy (nx+2, ny+2, nisg(0,0,ifld), 1, nx+2,
-     .            ni(0,0,ifld), 1, nx+2)
-          call s2copy (nx+2, ny+2, nisg(0,0,ifld), 1, nx+2,
-     .            nis(0,0,ifld), 1, nx+2)
+          call s2copy (nx+2, ny+2, nisg(0:,0:,ifld), 1, nx+2,
+     .            ni(0:,0:,ifld), 1, nx+2)
+          call s2copy (nx+2, ny+2, nisg(0:,0:,ifld), 1, nx+2,
+     .            nis(0:,0:,ifld), 1, nx+2)
       enddo
 
       do ifld = 1, nusp
-         call s2copy (nx+2, ny+2, upsg(0,0,ifld), 1, nx+2,
-     .            up(0,0,ifld), 1, nx+2)
-         call s2copy (nx+2, ny+2, upsg(0,0,ifld), 1, nx+2,
-     .            ups(0,0,ifld), 1, nx+2)
+         call s2copy (nx+2, ny+2, upsg(0:,0:,ifld), 1, nx+2,
+     .            up(0:,0:,ifld), 1, nx+2)
+         call s2copy (nx+2, ny+2, upsg(0:,0:,ifld), 1, nx+2,
+     .            ups(0:,0:,ifld), 1, nx+2)
       enddo
 
       do igsp = 1, ngsp
-         call s2copy (nx+2, ny+2, ngsg(0,0,igsp), 1, nx+2,
-     .            ng(0,0,igsp), 1, nx+2)
-         call s2copy (nx+2, ny+2, ngsg(0,0,igsp), 1, nx+2,
-     .            ngs(0,0,igsp), 1, nx+2)
+         call s2copy (nx+2, ny+2, ngsg(0:,0:,igsp), 1, nx+2,
+     .            ng(0:,0:,igsp), 1, nx+2)
+         call s2copy (nx+2, ny+2, ngsg(0:,0:,igsp), 1, nx+2,
+     .            ngs(0:,0:,igsp), 1, nx+2)
       enddo
 
       call s2copy (nx+2, ny+2, tesg, 1, nx+2, te, 1, nx+2)
@@ -6763,12 +6858,12 @@ c ... Copy nisg -> ni, upsg -> up, etc
       endif
 
       do igmh = 0, 4  # mesh (R,Z) coordinates set to global
-         call s2copy (nx+2, ny+2, rmg(0,0,igmh), 1, nx+2,
-     .            rm(0,0,igmh), 1, nx+2)
-         call s2copy (nx+2, ny+2, zmg(0,0,igmh), 1, nx+2,
-     .            zm(0,0,igmh), 1, nx+2)
-         call s2copy (nx+2, ny+2, psig(0,0,igmh), 1, nx+2,
-     .            psi(0,0,igmh), 1, nx+2)
+         call s2copy (nx+2, ny+2, rmg(0:,0:,igmh), 1, nx+2,
+     .            rm(0:,0:,igmh), 1, nx+2)
+         call s2copy (nx+2, ny+2, zmg(0:,0:,igmh), 1, nx+2,
+     .            zm(0:,0:,igmh), 1, nx+2)
+         call s2copy (nx+2, ny+2, psig(0:,0:,igmh), 1, nx+2,
+     .            psi(0:,0:,igmh), 1, nx+2)
       enddo
       call s2copy (nx+2,ny+2,lcong,1,nx+2,lcon,1,nx+2)
       call s2copy (nx+2,ny+2,lconeg,1,nx+2,lcone,1,nx+2)
@@ -7318,8 +7413,8 @@ cc        dens(1) = (4.*dens(2) - dens(3))/3.  # 2nd order Boundary condition
      .               vrz(ix-1)*0.5*(dens(ix  )+dens(ix-1))
           drhs(ix) = -( drz(ix  )*(dens(ix+1)-dens(ix  )) - 
      .                  drz(ix-1)*(dens(ix  )-dens(ix-1)) )/delx
-          gampz(ix) = vrz(ix)*0.5*(dens(ix+1)+dens(ix)) - \
-                      drz(ix)*(dens(ix+1)-dens(ix  ))/delx
+          gampz(ix) = vrz(ix)*0.5*(dens(ix+1)+dens(ix)) - 
+     .                drz(ix)*(dens(ix+1)-dens(ix  ))/delx
           dens(ix) = dens(ix) + (-vrhs(ix) - drhs(ix) + sp*delx)*dtdx
         enddo
         if (tim > timo(ito)+delto .and. ito<ntim) then   # store solution

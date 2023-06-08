@@ -57,7 +57,8 @@ c     radiation rate --
          erl1 = erl11 + fje*(erl12-erl11)
 
 c----------------------------------------------------------------------c
-      elseif (istabon>9 .and. istabon<14) then # logarith. interp on Stotler-95
+      elseif ((istabon>9 .and. istabon<14) .or. istabon .eq. 17) then 
+c     log-log interp on Stotler DEGAS2 tables
 
          jr = 1
 
@@ -138,7 +139,7 @@ c     radiation rate --
 
 c----------------------------------------------------------------------c
       else				# write error message
-         call xerrab('function erl1 not defined for istabon > 15')
+         call xerrab('function erl1 not defined for istabon > 17')
       endif
 
       return
@@ -203,7 +204,8 @@ c     radiation rate --
          erl2 = erl21 + fje*(erl22-erl21)
 
 c----------------------------------------------------------------------c
-      elseif (istabon>9 .and. istabon<14) then # log. interp. of Stotler-95
+      elseif ((istabon>9 .and. istabon<14) .or. istabon .eq. 17) then 
+c     log-log interp on Stotler DEGAS2 tables
 
          jr = 1
 
@@ -284,7 +286,7 @@ c     radiation rate --
 
 c-----------------------------------------------------------------------
       else				# write error message
-         call xerrab('function erl2 not defined for istabon > 15')
+         call xerrab('function erl2 not defined for istabon > 17')
       endif
 
       return
@@ -311,6 +313,7 @@ c     local variables --
       real kdum
       integer zn,za,zamax
       external mcrates
+      real rcxcopy
 
 c     Compute rate parameter for k--->k-1 charge exchange on neutral hydrogen
 c     k               = initial charge state
@@ -385,7 +388,8 @@ c----------------------------------------------------------------------c
          zn=1     # nuclear charge for hydrogenic species
          zamax=1  # maximum atomic charge for hydrogenic species
          za=1     # compute c-x rate for this charge state
-         call mcrates(n0,t0,t0,za,zamax,zn,kdum,kdum,rcx)
+         call mcrates(n0,t0,t0,za,zamax,zn,kdum,kdum,rcxcopy)
+         rcx=rcxcopy
 
 c----------------------------------------------------------------------c
       else     #     use analytic model (hydrogen) for all other istabon
@@ -638,6 +642,7 @@ c     local variables --
       real xuse,yuse,vlog10rra
       real kdum
       integer zn,za,zamax
+      real rracopy
 
 c     Compute rate parameter for k--->k-1 recombination
 c     k               = initial charge state
@@ -772,7 +777,8 @@ c                       use polynomial fit from Bob Campbell -  8/93
          rra = srecf(te/ev,ne)
 
 c----------------------------------------------------------------------c
-      elseif (istabon>9 .and. istabon<14) then  # use log interp on Stotler
+      elseif ((istabon>9 .and. istabon<14) .or. istabon .eq. 17) then 
+c     log-log interp on Stotler DEGAS2 tables
          jr = 1
 c     compute abscissae --
          zloge=log(te/ev)
@@ -854,7 +860,8 @@ c----------------------------------------------------------------------c
             zn=1     # nuclear charge for hydrogenic species
             zamax=1  # maximum atomic charge for hydrogenic species
             za=1     # compute recombination rate for this charge state
-            call mcrates(ne,te,te,za,zamax,zn,kdum,rra,kdum)
+            call mcrates(ne,te,te,za,zamax,zn,kdum,rracopy,kdum)
+            rra=rracopy
 
 c----------------------------------------------------------------------c
       endif
@@ -892,6 +899,7 @@ c     local variables --
       real kdum
       integer zn,za,zamax
       external mcrates
+      real rsacopy
 
 c     Compute rate parameter for k--->k+1 ionization by electrons
 c     k               = initial charge state
@@ -1027,7 +1035,8 @@ c                       use polynomial fit from Bob Campbell -  8/93
          rsa = sionf(te/ev,ne)
 
 c----------------------------------------------------------------------c
-      elseif (istabon>9 .and. istabon<14) then  # log interp on Stotler
+      elseif ((istabon>9 .and. istabon<14) .or. istabon .eq. 17) then 
+c     log-log interp on Stotler DEGAS2 tables
 
          jr = 1
 
@@ -1111,7 +1120,8 @@ c----------------------------------------------------------------------c
             zn=1     # nuclear charge for hydrogenic species
             zamax=1  # maximum atomic charge for hydrogenic species
             za=0     # compute ionization rate for this charge state
-            call mcrates(ne,te,te,za,zamax,zn,rsa,kdum,kdum)
+            call mcrates(ne,te,te,za,zamax,zn,rsacopy,kdum,kdum)
+            rsa=rsacopy
 
 c----------------------------------------------------------------------c
       endif

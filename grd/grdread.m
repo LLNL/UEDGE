@@ -59,7 +59,7 @@ c     read dimensioning parameters and allot storage space for arrays --
 
       read(iunit) nxefit,nyefit
 c     set length for 2-d spline workspace --
-      nwork = nxefit*nyefit + 
+      nwork = nxefit*nyefit +
      .         2*max(kxord*(nxefit+1),kyord*(nyefit+1))
       call gallot("Comflxgrd",0)
       call rdflx2(iunit)
@@ -150,12 +150,15 @@ Use(Dim)              # nxm,nym
 Use(Xpoint_indices)   # ixlb,ixpt1,ixmdp,ixpt2,ixrb,iysptrx1,iysptrx2
       character*(*) fname, runid
       integer nuno,ios
+      real simagxs_tmp, sibdrys_tmp
       external freeus,remark,xerrab,gallot,rdgrid
 
 c     Read mesh parameters from a UEDGE code grid data file
-
+      simagxs_tmp=0
+      sibdrys_tmp=0
       call freeus (nuno)
-      open (nuno, file=fname, form='formatted', iostat=ios,
+      write(*,*) 'Reading grid from file:',trim(fname)
+      open (nuno, file=trim(fname), form='formatted', iostat=ios,
      &      status='old')
       if (ios .ne. 0) then
          call xerrab("**** requested grid data file not found")
@@ -171,7 +174,9 @@ c     Read mesh parameters from a UEDGE code grid data file
          read(nuno,1999) ixlb(2),ixpt1(2),ixmdp(2),ixpt2(2),ixrb(2)
 	 if (geometry=="dnXtarget") nxc = ixmdp(1)
       else
-         read(nuno,1999) nxm,nym,ixpt1(1),ixpt2(1),iysptrx1(1)
+         read(nuno,'( 5i4, :, f16.10, f16.10 )') nxm,nym,ixpt1(1),ixpt2(1),iysptrx1(1), simagxs_tmp, sibdrys_tmp
+         simagxs = simagxs_tmp
+         sibdrys = sibdrys_tmp
          ixlb(1)=0
          ixrb(1)=nxm
          iysptrx2(1)=iysptrx1(1)
@@ -193,12 +198,15 @@ Use(Dim)              # nxm,nym
 Use(Xpoint_indices)   # ixlb,ixpt1,ixmdp,ixpt2,ixrb,iysptrx1,iysptrx2
       character*(*) fname, runid
       integer nuno,ios
+      real simagxs_tmp, sibdrys_tmp
       external freeus,remark,xerrab,gallot,rdgrid
 
 c     Read a UEDGE code grid data file
-
+      simagxs_tmp=0
+      sibdrys_tmp=0
       call freeus (nuno)
-      open (nuno, file=fname, form='formatted', iostat=ios,
+      write(*,*) 'Reading grid from file:',trim(fname)
+      open (nuno, file=trim(fname), form='formatted', iostat=ios,
      &      status='old')
       if (ios .ne. 0) then
          call xerrab("**** requested grid data file not found")
@@ -214,7 +222,9 @@ c     Read a UEDGE code grid data file
          read(nuno,1999) ixlb(2),ixpt1(2),ixmdp(2),ixpt2(2),ixrb(2)
 	 if (geometry=="dnXtarget") nxc = ixmdp(1)
       else
-         read(nuno,1999) nxm,nym,ixpt1(1),ixpt2(1),iysptrx1(1)
+         read(nuno,'( 5i4, :, f16.10, f16.10 )' ) nxm,nym,ixpt1(1),ixpt2(1),iysptrx1(1), simagxs_tmp, sibdrys_tmp
+         simagxs = simagxs_tmp
+         sibdrys = sibdrys_tmp
          ixlb(1)=0
          ixrb(1)=nxm
          iysptrx2(1)=iysptrx1(1)
@@ -269,7 +279,7 @@ ifelse([WORDSIZE],64,\
       end
 
 #----------------------------------------------------------------------#
- 
+
       subroutine setidim
       implicit none
 Use(Dimflxgrd)	#jdim,npts,noregs
@@ -281,9 +291,9 @@ Use(Mmod)
 Use(Xmesh)
       integer region
       external gchange
- 
+
 c     Set angle-like parameters and allocate space for arrays --
- 
+
       if ( (geometry .eq. "dnbot") .or. (geometry .eq. "dnull") .or.
      .     (geometry == "isoleg") .or. (islimon .ne. 0) ) then
          nxuse(1) = max(0,nxcore(igrid,1)-1)  # nxcore includes guard cells
@@ -292,7 +302,7 @@ c     Set angle-like parameters and allocate space for arrays --
          nxuse(1) = nxcore(igrid,1)           # nxcore specifies the number
          nxuse(2) = nxcore(igrid,2)           # of finite-size cells
       endif
- 
+
 c     Set some angle-surface parameters --
       idim=0
       do region=1,noregs
@@ -302,12 +312,12 @@ c     Set some angle-surface parameters --
          ilmax(region) = ixpoint(3,region) + nxleg(igrid,region)
          idim = max( idim, ilmax(region) )
       enddo
- 
+
 c     Allocate space for angle-dependent arrays --
          call gchange("Linkco",0)
          call gchange("Inmesh",0)
          call gchange("Mmod",0)
- 
+
 c     and for poloidal mesh distribution data --
          call gchange("Xmesh",0)
 

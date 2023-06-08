@@ -1,0 +1,23 @@
+errortrp("off")
+echo = no
+
+<< "Test checksum function"
+
+integer a(10) = 413.0*sin(iota(10))
+real b(100)   = cos(iota(100)/100.0)
+
+integer csa, csb, dsa, dsb
+
+csa = checksum(a)
+csb = checksum(b)
+
+a(8)  = a(7) + a(8)
+b(47) = 1.001*b(47)
+
+dsa = checksum(a)
+dsb = checksum(b)
+
+<< "Checksum integer: before = " << csa << " after = " << dsa
+<< "Checksum real: before = " << csb << " after = " << dsb
+
+read testltab

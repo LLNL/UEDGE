@@ -109,7 +109,7 @@ bbb.cfqybf = 1.             #turns on bbb.vycb contrib to radial current
 bbb.cfq2bf = 1.             #turns on bbb.v2cb contrib to perp["2"] current
 bbb.isnewpot = 1
 bbb.rnewpot = 1.		
-bbb.iphibcc = 0		#set bbb.phi[,1] uniform poloidally		
+bbb.iphibcc = 3		#set bbb.phi[,1] uniform poloidally		
 
 # Restart from bbb.a pfb savefile
 bbb.restart = 1		#Begin from savefile, not estimated profiles

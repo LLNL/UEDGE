@@ -27,4 +27,3 @@ glbtmdat.f:
 
 ENDRULE
 
-ONEXIT = system("./builder/dcefixup")

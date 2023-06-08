@@ -1,0 +1,7 @@
+Starting Basis global memory monitoring
+errortrp("off")
+echo = no
+If all is well, this test will compute quietly for a while and
+terminate normally.  If you get ERROR messages, try math1.
+Literal table begins with 0 entries at line 3.
+Ending Basis global memory monitoring

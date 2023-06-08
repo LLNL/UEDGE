@@ -5290,7 +5290,8 @@ C
 C        Last call to adjust block positioning.
 C
 cmer (12 Sep 2006) REINSTATE SCOPY deleted by Gary Smith
-         CALL SCOPY (NORDP1, 0.E0, 0, G(IR,1), MDG)
+cmer (11 Nov 2021) Change to SFILL as SCOPY can't be called with a scalar
+         CALL SFILL (NORDP1, 0.E0, G(IR,1), MDG)
 cmer         do i0 = 1, nordp1*mdg, mdg
 cmer            g(ir-1+i0,1) = 0.
 ctdr can also fix by using:           if (ir-1+i0 .le. mdg) g(ir-1+i0,1) = 0.

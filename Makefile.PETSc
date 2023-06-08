@@ -5,7 +5,7 @@ FARGS       = --fargs  -I$(PETSC_DIR) --fargs -I$(PETSC_DIR)/$(PETSC_ARCH)/inclu
 #FCOMP       = -F g95 $(FARGS)
 FCOMP       = $(FARGS)
 
-include Makefile.Forthon
+include Makefile.Forthon3
 
 MYPYTHONP = python-uedge
 SETUPOPTS   = --petsc

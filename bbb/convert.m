@@ -11,7 +11,6 @@ c-----------------------------------------------------------------------
       Use(UEpar)       # cniatol,cngatol,cupatol,cteatol,ctiatol,cphiatol,
                        # tolbf,isnionxy,isuponxy,isteonxy,istionxy,isngonxy,
                        # isphionxy
-      Use(Aux)         # ix,iy,igsp,iv,ix1,ix2
       Use(Lsode)       # rtolv,rtol,atol,yl
       Use(Compla)
       Use(Indexes)     # igyl
@@ -26,6 +25,8 @@ c-----------------------------------------------------------------------
 c...  local variables
       real bfac, ntemp
       integer ifld,isfirstvar
+      #Former Aux module variables
+      integer ix,iy,igsp,iv,ix1,ix2
 
       isfirstvar = 0   #flag signals first var at ix,iy found
       iv = 0
@@ -172,6 +173,9 @@ c ... The other variables are added in the routine convr_auxo
       integer is, ie, js, je
       integer ifld, id
       integer inegt, inegng, inegni, ixneg, iyneg, ifldneg, igspneg
+      #Former Aux module variables
+      integer ix,iy,igsp,ix1,ix2
+      real t1,t2
 
 c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
       Use(Dim)                 # nx,ny,nhsp,nzsp,nisp,nusp,ngsp
@@ -182,7 +186,6 @@ c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
       Use(UEpar)       # itrap_negt,itrap_negng,
                        # isnionxy,isuponxy,isteonxy,istionxy,
                        # isngonxy,isphionxy
-      Use(Aux)         # ix,iy,igsp,ix1,ix2,t1,t2
       Use(Selec)       # yinc,ixm1,ixp1
       Use(Indexes)
       Use(Comgeo)
@@ -218,6 +221,12 @@ c_mpi      integer ierr
       else
          js = iyl
          je = iyl
+      endif
+
+c... Added the following for OMPPandf1rhs call (added by .J.Guterl)
+      if(ixl .lt. 0 .and. iyl.ge.0) then
+         js = max(1-iymnbcl,iyl-yinc)
+         je = min(ny+iymxbcl,iyl+yinc)
       endif
 
         do 20 iy = js, je
@@ -366,7 +375,7 @@ c++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 c ***** end of subroutines convsr_vo ********
 c-----------------------------------------------------------------------
-      subroutine convsr_aux (ixl, iyl, yl)
+      subroutine convsr_aux (ixl, iyl)
 
 c...  Calculates various plasmas quantities used repeatedly in pandf
 
@@ -374,13 +383,15 @@ c...  Calculates various plasmas quantities used repeatedly in pandf
 
 *  -- input arguments
       integer ixl, iyl, inc
-      real yl(1)
 *  -- local variables
       real ntemp
       integer is, ie, js, je, k, l
       integer ifld, id
       integer impflag, inegt, inegng
       integer jx,ixlp1,ixlp2,ixrm1
+      #Former Aux module variables
+      integer ix,iy,igsp,ix1,ix2
+      real t1,t2
 *  -- external functions
       real zimp, rnec, zeffc, intpnog
 
@@ -390,7 +401,6 @@ c...  Calculates various plasmas quantities used repeatedly in pandf
       Use(Compla)      # ,zi,zeff,zimpc
       Use(Ynorm)       # isflxvar,temp0,nnorm,ennorm,fnorm,n0,n0g
       Use(UEpar)       # itrap_negt,itrap_negng
-      Use(Aux)         # ix,iy,igsp,ix1,ix2,t1,t2
       Use(Selec)       # yinc,ixm1,ixp1
       Use(Indexes)
       Use(Comgeo)      # xcs, yyc
@@ -401,7 +411,8 @@ c...  Calculates various plasmas quantities used repeatedly in pandf
       Use(Imprad)      # isimpon
       Use(Interp)      # nis,tis,phis,nxold,nyold
       Use(Share)       # nysol,nyomitmx
-      Use(RZ_grid_info)   # rm,zm      
+      Use(RZ_grid_info)   # rm,zm 
+      Use(Volsrc)      # pondpot     
 
 *  -- procedures --
       real interpte,interpti,interpphi,interpni,interppri,interpng,
@@ -484,6 +495,12 @@ c                               # interpolate 2-D array with a 5-point stencil
       else
          js = iyl
          je = iyl
+      endif
+
+c... Added the following for OMPPandf1rhs call (added by .J.Guterl)
+      if(ixl .lt. 0 .and. iyl.ge.0) then
+         js = max(0,iyl-yinc)
+         je = min(ny+1,iyl+yinc)
       endif
 
       do iy = js, je
@@ -721,8 +738,9 @@ C ... Calculate pgy0,1 only if ineudif=2, i.e. grad_pg option
 	    gtex(ix,iy) = (te(ix1,iy)-te(ix,iy))*gxf(ix,iy)
             gtix(ix,iy) = (ti(ix1,iy)-ti(ix,iy))*gxf(ix,iy)
             gprx(ix,iy) = gprx(ix,iy) + gpex(ix,iy)
-cccmer Replaced isphion->isphion+isphiofft below to correct Jacobian problem
-            if (isphion+isphiofft .eq. 1) then  
+            gpondpotx(ix,iy) = (pondpot(ix1,iy)-pondpot(ix,iy))*
+     .                                                     gxf(ix,iy)
+            if (isphion+isphiofft .eq. 1) then  #ponderom eff in phi if on
                ex(ix,iy) = (phi(ix,iy)-phi(ix1,iy))*gxf(ix,iy)
             endif
          enddo
@@ -748,7 +766,8 @@ c Tom:  add comments here to explain the indices used on do 30 and 29
      .                     ney0(ix,iy)*tey0(ix,iy)) / dynog(ix,iy)
             gtey(ix,iy) = (tey1(ix,iy) - tey0(ix,iy)) / dynog(ix,iy)
             gtiy(ix,iy) = (tiy1(ix,iy) - tiy0(ix,iy)) / dynog(ix,iy)
-            ey(ix,iy) = - (phiy1(ix,iy) - phiy0(ix,iy)) / dynog(ix,iy)
+            ey(ix,iy) = - eymask1d(ix,iy)*
+     .                      (phiy1(ix,iy) - phiy0(ix,iy)) / dynog(ix,iy)
             gpry(ix,iy) = gpry(ix,iy) + gpey(ix,iy)
    29    continue
          ix = ixp1(ie,iy)
@@ -756,7 +775,8 @@ c Tom:  add comments here to explain the indices used on do 30 and 29
      .                  ney0(ix,iy)*tey0(ix,iy)) / dynog(ix,iy)
          gtey(ix,iy) = (tey1(ix,iy) - tey0(ix,iy)) / dynog(ix,iy)
          gtiy(ix,iy) = (tiy1(ix,iy) - tiy0(ix,iy)) / dynog(ix,iy)
-         ey(ix,iy) = - (phiy1(ix,iy) - phiy0(ix,iy)) / dynog(ix,iy)
+         ey(ix,iy) = -eymask1d(ix,iy)*
+     .                  (phiy1(ix,iy) - phiy0(ix,iy)) / dynog(ix,iy)
          gpry(ix,iy) = gpry(ix,iy) + gpey(ix,iy)
  30   continue
 
@@ -887,11 +907,12 @@ c...  Simple averages are used
 
 *  -- local variables
       integer is,ie,js,je,jx,ifld
+      #Former Aux module variables
+      integer ix,iy,igsp,ix1,ix2
 
       Use(Dim)            # nx,ny,nhsp,nzsp,nisp,nusp,ngsp
       Use(Xpoint_indices) # ixpt1,ixpt2,iysptrx1
       Use(Compla)         # ni,up,..,niv,upv,
-      Use(Aux)            # ix,iy,igsp,ix1,ix2
       Use(Selec)          # ixp1
       Use(Share)          # nysol,nyomitmx
       
@@ -915,7 +936,7 @@ c.. Do all interior cells as 4-pt ave to upper vertex; reset X-point below
 
           do igsp = 1, ngsp
             ngv(ix,iy,igsp) =0.25*(ng(ix,iy,  igsp) + ng(ix1,iy,  igsp) +
-     .                             ni(ix,iy+1,igsp) + ng(ix2,iy+1,igsp) )
+     .                             ng(ix,iy+1,igsp) + ng(ix2,iy+1,igsp) )
           enddo
 
         enddo
@@ -924,8 +945,6 @@ c.. Do all interior cells as 4-pt ave to upper vertex; reset X-point below
 c.. Do all x-bdry cells as 2-pt y-ave to upper vertex
       do ix = 0, nx+1, nx+1   
         do iy = 1, ny    # note: corner cells relegated to y-bdry here
-          ix1 = ixp1(ix,iy)
-          ix2 = ixp1(ix,iy+1)
           tev(ix,iy) = 0.5*( te(ix,iy) + te(ix,iy+1) )
           tiv(ix,iy) = 0.5*( ti(ix,iy) + ti(ix,iy+1) )
           phiv(ix,iy) = 0.5*( phi(ix,iy) + phi(ix,iy+1) )

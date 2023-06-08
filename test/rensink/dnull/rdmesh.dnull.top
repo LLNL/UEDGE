@@ -1,0 +1,68 @@
+# This is top half of double-null
+
+	geometry="dnbot"
+	call neqdsk	# read simagx and sibdry from EFIT
+# Use un-normalized psi values in psitop and psibot
+	integer n
+	do n=1,nym+1
+	   psitop(n) = simagx+(sibdry-simagx)*psi0_mp_inner(nym-n+1)
+	   psitop(jdim-n+1) = simagx+(sibdry-simagx)*psi0_mp_outer(nym-n+1)
+	enddo
+	psitop(nym+2) = simagx
+	do n=1,nym+1
+	   psibot(n) = simagx+(sibdry-simagx)*psi0_dp_upper_inner(nym-n+1)
+	   psibot(jdim-n+1) = simagx+(sibdry-simagx)*psi0_dp_upper_outer(nym-n+1)
+	enddo
+	psibot(nym+2) = simagx
+
+# For upper half only:
+	iseqdskr=1
+	psitop=-psitop
+	psibot=-psibot
+
+# inputs for x-mesh:
+	nxleg(1,) = [2,2]
+	nxcore(1,)= [3,4]
+	kxmesh=1
+# mesh refinement near x-point
+	slpxt=1.0
+	nxxpt = 0		#=0: no mesh refinement
+	nxmod = 2
+	isrefxptn = 1
+	nsmoothx = 3
+	alfxpt2u = 1e-10
+	alfxpt2l = 1e-10
+
+# construct the mesh:
+flxrun
+
+# Find the separatrix strike points on the divertor plates
+isspnew=1		#=1: calculate new strike points
+			#=0: use rvsin,zvsin,rvsout,zvsout from aeqdsk
+# To calculate strike points, replace (xlim,ylim) arrays from EFIT
+# with simplified plate definitions:
+$a=xlim
+$b=ylim
+$c=nlim
+read plate.d3d_top	# use simplified plate definitions
+nlim=nplate1
+allot("xlim",nlim)
+allot("ylim",nlim)
+xlim=rplate1
+ylim=zplate1
+   call findstrike(jsptrx(1),&rstrike(1),&zstrike(1))
+nlim=nplate2
+allot("xlim",nlim)
+allot("ylim",nlim)
+xlim=rplate2
+ylim=zplate2
+   call findstrike(jsptrx(2),&rstrike(2),&zstrike(2))
+nlim=$c
+allot("xlim",nlim)
+allot("ylim",nlim)
+xlim=$a
+ylim=$b
+
+grdrun
+
+

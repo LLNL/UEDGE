@@ -14,7 +14,6 @@
       Use(Math_problem_size)   # neqmx
       Use(Timing)
       Use(UEpar)    # istep,iter,svrpkg,isdtsfscal
-      Use(Aux)      # ix,iy,igsp,iv
       Use(Lsode)    # mmaxu,dtmax,dtinit,maxpoly,yl,yldot
       Use(Solver_work_arrays)   # liw,lrp,iwork,rwork
       Use(Jac_work_arrays)      # lwp, liwp
@@ -23,6 +22,7 @@
       Use(Grid)     # ngrid,ig,imeth,ijac,iyld,yldmax
       Use(Stat)
       Use(Ynorm)    # suscal,sfscal
+      Use(Ident_vars) # exmain_evals
       Use(Oldpla)
       Use(Decomp)   # ubw,lbw
       Use(Jacaux)   # yldot1,yldot0,issfon
@@ -73,6 +73,8 @@ c     local variables
       real tbout, dtreal_sav, initguess(neq), snesans(neq), snesminusnksol
       real fnrm, fnew
       integer i,ifld,lid,ilg
+      #Former Aux module variables
+      integer ix,iy,igsp,iv
 
       real(Size4) gettime, sec4
 
@@ -90,7 +92,7 @@ c ... Save initial time and set accumulated times to zero.
       ttjstor = 0.
       ttjrnorm = 0.
       ttjreorder = 0.
-	  
+
 c ... Set switch to time other packages if this one is being timed.
       call sapitim (istimingon)
 
@@ -109,7 +111,7 @@ c...  time-dependent solvers(imeth=0) and Newton solvers(imeth=1)
       endif
       istep_nk = 0   # not inside if test for switching from nksol to daspk
       iter = 0
-	  
+
 *  -- initialize the system --
       if (ismpion.eq.0) then  # Serial version
         call ueinit
@@ -123,20 +125,20 @@ c_mpicvode        call fcvspgmr2 (jpre, igs, maxkd, delt_pv)
 *  -- continue looping until istep=nsteps, then go to resetting parameters --
    10 continue
       if (istep .ge. nsteps .or. istep_nk .ge. nsteps_nk) goto 200
-       
+
 *    -- set old-time values -- but only if mesh size not changing
         if(nxold == nx .and. nyold == ny) then
           do ifld = 1, nisp
-            call s2copy (nx+2, ny+2, nis(0,0,ifld), 1, nx+2,
-     .            ni0(0,0,ifld), 1, nx+2)
-            call s2copy (nx+2, ny+2, ups(0,0,ifld), 1, nx+2,
-     .            up0(0,0,ifld), 1, nx+2)
-            call s2copy (nx+2, ny+2, vy(0,0,ifld), 1, nx+2,
-     .            vy0(0,0,ifld), 1, nx+2)
+            call s2copy (nx+2, ny+2, nis(0:,0:,ifld), 1, nx+2,
+     .            ni0(0:,0:,ifld), 1, nx+2)
+            call s2copy (nx+2, ny+2, ups(0:,0:,ifld), 1, nx+2,
+     .            up0(0:,0:,ifld), 1, nx+2)
+            call s2copy (nx+2, ny+2, vy(0:,0:,ifld), 1, nx+2,
+     .            vy0(0:,0:,ifld), 1, nx+2)
           enddo
           do igsp = 1, ngsp
-            call s2copy (nx+2, ny+2, ngs(0,0,igsp), 1, nx+2,
-     .            ng0(0,0,igsp), 1, nx+2)
+            call s2copy (nx+2, ny+2, ngs(0:,0:,igsp), 1, nx+2,
+     .            ng0(0:,0:,igsp), 1, nx+2)
           enddo
           call s2copy (nx+2, ny+2, tes, 1, nx+2, te0, 1,nx+2)
           call s2copy (nx+2, ny+2, tis, 1, nx+2, ti0, 1,nx+2)
@@ -247,7 +249,7 @@ c_mpicvode          CALL FCVODE (tout, ts, yl, itask, istate)
          write(*,*)
          call xerrab("")
        endif
-	   
+
        if (svrpkg.eq.'daspk') then # gather some data
          hu(istep+1,igrid) = rwork(3)
          nst(istep+1,igrid) = iwork(11)
@@ -291,7 +293,7 @@ c_mpicvode          CALL FCVODE (tout, ts, yl, itask, istate)
            endif
          else
             call sfill (neq, 1., sfscal(1), 1)
-         endif        
+         endif
          if((svrpkg .eq. 'nksol') .or.(svrpkg .eq. 'petsc') ) then  #not above issfon because newton poss
             call set_dt(neq, yl, yldot)  # sets dtuse for time-step models
             if (isdtsfscal.eq.1) call sfsetnk (neq, yl, suscal, sfscal)
@@ -367,6 +369,8 @@ cpetsc      if ((svrpkg.eq.'nksol' .and. npes.eq.1) .or. (snesdebug. eq. 1)) the
      .                 lrw,iwork,liw,iopts,iterm,psetnk,psolnk,mfnksol,
      .                 mdif,ipflag,icflag,icnstr,rlx,epscon1,epscon2,
      .                 icntnunk,adjf1)
+
+            if (iterm .eq. 1) exmain_evals = exmain_evals + 1
 *-------------------------------------------------------------------------
 cpetsc      endif
 cpetsc      if (snesdebug. eq. 1) then
@@ -491,10 +495,10 @@ c ... Average old and new values to damp oscillations if dtdamp > 0.
 
       if (istate .ge. 0) then
          do ifld = 1, nisp
-            call s2copy (nx+2, ny+2, ni(0,0,ifld), 1, nx+2,
-     .                   nil(0,0,ifld), 1, nx+2)
-            call s2copy (nx+2, ny+2, up(0,0,ifld), 1, nx+2,
-     .                   upl(0,0,ifld), 1, nx+2)
+            call s2copy (nx+2, ny+2, ni(0:,0:,ifld), 1, nx+2,
+     .                   nil(0:,0:,ifld), 1, nx+2)
+            call s2copy (nx+2, ny+2, up(0:,0:,ifld), 1, nx+2,
+     .                   upl(0:,0:,ifld), 1, nx+2)
          enddo
 
             call s2copy (nx+2, ny+2, te, 1, nx+2, tel, 1, nx+2)
@@ -502,8 +506,8 @@ c ... Average old and new values to damp oscillations if dtdamp > 0.
             call s2copy (nx+2, ny+2, phi, 1, nx+2, phil, 1, nx+2)
 
          do igsp = 1, ngsp
-            call s2copy (nx+2, ny+2, ng(0,0,igsp), 1, nx+2,
-     .                   ngl(0,0,igsp), 1, nx+2)
+            call s2copy (nx+2, ny+2, ng(0:,0:,igsp), 1, nx+2,
+     .                   ngl(0:,0:,igsp), 1, nx+2)
          enddo
       endif
 
@@ -994,263 +998,20 @@ c ... Writes out total timing data
       end
 c---------------------------------------------------------------------------c
 
-c***************************************************
-c Subroutine to advance UEDGE eqns with a time-step
-c***************************************************
-
-      subroutine rundt
-
-      implicit none
-
-      Use(Dim)              # nx,ny,nisp,ngsp
-      Use(Npes_mpi)         # mype,ismpion
-      Use(Aux)              # ix,iy,ifld,igsp
-      Use(Math_problem_size) # neqmx to dimension some arrays
-      Use(Grid)             # ngrid to dimension some arrays
-      Use(Interp)           # nis,ups,tes,tis,ngs,phis
-      Use(Bcond)            # Incoming fluxes, bbb.{iflcore,pcorei,pcoree}
-      Use(Parallv)          # nxg,nyg
-      Use(Compla)           # ni,up,te,ti,ng,phi
-      Use(Stat)             # nfe,nni
-      Use(Time_dep_nwt)     # dtreal,dtphi,deldt
-      Use(Lsode)            # yldot,yl,mfnksol,iterm,itermx,icntnunk,neq
-      Use(Timary)           # ni_stor, etc., control params from rdinitdt
-      Use(Ynorm)            # sfscal
-      Use(UEint)            # newgeo
-
-c...  Local variables
-      integer ir,i_stor,nfe_tot,ii1,ii2,ifld,inorm_exit
-      real fnrm_old,dt_stor,deldt_0,dtreal_sav
-      real psum
-
-c...  Look at calling parameters
-c      if (mype .eq. 0) then
-c        write(*, *) "rundt: entered.  dtreal = ", dtreal, ", dt_tot = ",
-c     .    dt_tot, ", t_stop = ", t_stop
-c        write(*, *) "rundt: entered.  pcorei = ", pcorei, ", pcoree = ",
-c     .    pcoree
-c      endif
-
-c ... Set initial timestep based on dt_init_rundt
-      dtreal = min(dtreal, dt_init_rundt)
-
-c ... Now initial value large to disable for subsequent calls
-      dt_init_rundt = 1.e30  
-
-c ... If a parallel run, call rundt means mesh already calc
-      if(ismpion == 1) then
-        newgeo = 0
-      endif
-      
-c ... Some initialization
-      if (n_stor > 1) dt_stor = (tstor_e - tstor_s)/(n_stor - 1)
-      i_stor = 1
-      inorm_exit = 0
-c      if (mype .eq. 0) then
-c        write(*, *) "rundt: before pandf1, yl = ", yl
-c        write(*, *) "rundt: before pandf1, yldot = ", yldot
-c      endif
-      call pandf1(-1, -1, 0, neq, 1., yl, yldot)
-      if (mype .eq. 0) then
-c        write(*, *) "rundt: after pandf1, yl = ", yl
-c        write(*, *) "rundt: after pandf1, yldot = ", yldot
-c        write(*, *) "rundt: after pandf1, sfscal= ", sfscal
-      endif
-      fnrm_old = 0.
-      do iv = 1, neq
-        psum = (yldot(iv)*sfscal(iv))**2
-c        write(*, *) "psum[", iv, "] = ", psum
-        fnrm_old = fnrm_old + (yldot(iv)*sfscal(iv))**2
-c        fnrm_old = fnrm_old + psum
-c        write(*, *) "fnrm_old[", iv, "] = ", fnrm_old
-      enddo
-      fnrm_old = sqrt(fnrm_old)
-
-c ... Augment time-step from input by scale factor removed in loop ii1
-      dtreal = dtreal/mult_dt
-
-c ... Debug output
-c      if (mype .eq. 0) then
-c        write(*, *) "neq = ", neq, ", fnrm_old = ", fnrm_old, ",
-c     .    mult_dt = ", mult_dt
-c      endif
-
-c ... Major timestep loop if dt changes; has imbedded 2nd loop for const dt
-      do ii1 = 1, ii1max
-        if (ismfnkauto==1) mfnksol = 3
-        if (irev == 0) then
-          dtreal = 3*dtreal                #first move forward after reduction
-          dtphi = rdtphidtr*dtreal
-          if (ismfnkauto==1 .and. dtreal > dtmfnk3) mfnksol = -3
-          deldt =  3*deldt
-        else
-          dtreal = mult_dt*dtreal
-          dtphi = rdtphidtr*dtreal
-          if (ismfnkauto==1 .and. dtreal > dtmfnk3) mfnksol = -3
-          deldt =  mult_dt*deldt
-          dtreal = min(dtreal,dt_max)
-          dtphi = rdtphidtr*dtreal
-        endif
-        dtreal = min(dtreal, t_stop-dt_tot)  #set timestep to stop at t_stop
-        dtreal = max(dtreal, 1.e-10)
-        if (ismfnkauto==1 .and. dtreal > dtmfnk3) mfnksol = -3
-        deldt = min(deldt,deldt_0)
-        deldt = max(deldt,deldt_min)
-        nsteps_nk=1
-        ftol = ftol_dt/(1 + 100*dtreal/dt_max) # better converg at large dt
-        ftol = max(ftol, 1.e-9)
-        itermx = itermx_dt
-        if (iprtrundt >= 1 .and. mype <= 0) then
-          print *," "
-          print 110, ii1, dtreal
-          print *, "----------------------------------------------------"
-        endif
-  110   format ("*** Number time-step changes =",i3,"  and dt = ",e9.3,
-     .              " sec")
-        if (ii1>1 .or. initjac==1) then        # first time calc Jac if initjac=1
-          icntnunk = 0
-          ftol = min(ftol_dt, 0.01*fnrm_old)
-          ftol = max(ftol, 1.e-9)
-          call exmain
-          newgeo = 0                    # for all subsequent calls
-          if (iterm == 1) then
-            dt_tot = dt_tot + dtreal
-            nfe_tot = nfe_tot + nfe(1,1)
-            do iv = 1, neq
-               ylodt(iv) = yl(iv)
-            enddo
-            call pandf1 (-1, -1, 0, neq, 1., yl, yldot)
-            fnrm_old = 0.
-            do iv = 1, neq
-               fnrm_old = fnrm_old + (yldot(iv)*sfscal(iv))**2
-            enddo
-            fnrm_old = sqrt(fnrm_old)
-            ii2 = 1
-            if (iprtrundt == 1 .and. mype <= 0) then
-              print 120, ii2, fnrm_old
-              print 130, nfe(1,1), nni(1,1), npe(1,1)
-            endif
- 120        format ("Step number at this dtreal = ",i3," ; initial fnrm = ",
-     .                     e9.3)
- 130        format ("Number of func eval = ",i3," ; nonlin iters = ",
-     .                     i3," ; precondJac eval = ",i3)
-          endif
-        endif
-
-        icntnunk = 1        # nksol continues without recalc Jac
-
-c ...   Loop over ii2 with constant timestep for ii2max steps
-        do ii2 = 2, ii2max
-          if (dt_tot>.99999999999*t_stop.and.iprtrundt >= 1.) then
-           if (mype <= 0) then
-            print *,' '
-            print *,'**************************************************'
-            print *,'***  SUCCESS: frnm < ftol and dt_tot = t_stop  ***'
-            print *,'**************************************************'
-           endif
-            inorm_exit = 1
-            if (iprtrundt >= 1 .and. mype <= 0) then
-              print 140, dt_tot, dtreal, yl(ipt), ipt
-              print *,' '
-            endif
-            exit      # exits from ii2 loop
-          endif
- 140      format ("Total time = " ,e10.4, "; Timestep = " ,e9.3,
-     .                    "; yl(ipt) = ",e9.3,"; ipt = ",i3)
-
-          if (iterm == 1) then
-            itermx = itermx_dt
-            dtreal = min(dtreal, t_stop-dt_tot)  #set timestep to stop at t_stop
-            dtreal = max(dtreal, 1.e-10)
-            ftol = min(ftol_dt, 0.01*fnrm_old)
-            ftol = max(ftol, 1.e-9)
-            call exmain
-            newgeo = 0                    # for all subsequent calls
-            if (iterm == 1) then
-              do iv = 1, neq
-                 ylodt(iv) = yl(iv)
-              enddo
-              call pandf1 (-1, -1, 0, neq, 1., yl, yldot)
-              fnrm_old = 0.
-              do iv = 1, neq
-                fnrm_old = fnrm_old + (yldot(iv)*sfscal(iv))**2
-              enddo
-              fnrm_old = sqrt(fnrm_old)
-              if (iprtrundt >= 1 .and. mype <= 0) then
-                print 120, ii2, fnrm_old
-                print 130, nfe(1,1), nni(1,1), npe(1,1)
-              endif
-              dt_tot = dt_tot + dtreal
-              nfe_tot = nfe_tot + nfe(1,1)
-
-##       Store variables if a storage time has been crossed
-              if (dt_tot >= dt_stor*i_stor .and. i_stor<=n_stor) then
-                do iy = 0, ny+1
-                  do ix = 0, nx+1
-                    do ifld = 1, nisp
-                      ni_stor(i_stor,ix,iy,ifld) = ni(ix,iy,ifld)
-                      up_stor(i_stor,ix,iy,ifld) = up(ix,iy,ifld)
-                    enddo
-                      te_stor(i_stor,ix,iy) = te(ix,iy)
-                      ti_stor(i_stor,ix,iy) = ti(ix,iy)
-                      phi_stor(i_stor,ix,iy) = phi(ix,iy)
-                    do igsp = 1, ngsp
-                      ng_stor(i_stor,ix,iy,igsp) = ng(ix,iy,igsp)
-                    enddo
-                  enddo
-                enddo
-                tim_stor(i_stor) = dt_tot
-                nfe_stor(i_stor) = nfe_tot
-                dtreal_stor(i_stor) = dtreal
-                i_stor = i_stor + 1
-              endif
-##          End of storage section
-            endif  # End of inner iterm == 1 test
-          endif    # End of outer iterm == 1 test
-        enddo    # End of the ii2 loop
-
-c ...   Check stopping condition or non-convergence before increasing dtreal
-        if (inorm_exit == 1) exit  #inorm_exit set in loop ii2 just above
-
-        irev = irev - 1      # continue to increment negatively
-        if (iterm .ne. 1) then  # reset various quantities in prep for dt decrease
-           irev = 1
-           dtreal = dtreal/(3*mult_dt)  # extra 1/3 factor removed top i11 loop
-           dtphi = rdtphidtr*dtreal
-           if (ismfnkauto==1 .and. dtreal > dtmfnk3) mfnksol = -3
-           deldt = deldt/(3*mult_dt)
-           iterm = 1
-        endif
-
-      enddo      # End of the main ii1 loop
-      if (inorm_exit==0 .and. mype<=0) then # failure exit for main ii1 loop
-        print *,' '
-        print *,'***********************************************'
-        print *,'***  Exiting with a failure of convergence  ***'
-        print 150, dt_tot, t_stop, fnrm_old
- 150    format ("Total time = " ,e10.4, "; Timestep = " ,e9.3,"; fnrm = ",
-     .           e9.3)
-      endif
-
-      return
-      end
-c ***  End of subroutine rundt -----------------------------------c
-c-----------------------------------------------------------------c
-
       subroutine interptrans
 
 c ... Routine calculates flux surface averages particle and
 c ... energy sources for the UEDGE interpretive mode.
 c ... Note in SOL, averages are from X-point to X-point; divertor
-c ... omitted. Also, in the SOL, poloidal fluxes are ignored 
-c ... (model inaccurate); in core, average to 0. First, read input 
+c ... omitted. Also, in the SOL, poloidal fluxes are ignored
+c ... (model inaccurate); in core, average to 0. First, read input
 c ... file, then read rdfitdata_new, then execute once with
 c ... issfon=0 and ftol=1e20, and finally read this file.
 
       implicit none
       Use(Dim)            # nx,ny
       Use(Xpoint_indices) # ixpt1,ixpt2
-      Use(Aux)            # ix,iy,ixmp
+      Use(Aux)            # ixmp
       Use(Interprettrans) # del_wicv,del_wecv,... for interpolation
       Use(Comgeo)         # gyf
       Use(Bcond)          # curcore,pcoree,pcorei
@@ -1286,6 +1047,9 @@ c ... Local variables
       real fracl,fracr,gamrecycc,sycore0
       real sycore(0:ny+1),sycoregyf(0:ny+1),vtoty(0:ny+1)
       integer ncells,ifld
+      #Former Aux module variables
+      integer ix,iy
+
 
 
 c ... ##########################################################
@@ -1316,7 +1080,7 @@ c ... ##########################################################
       call exmain
       issfon = 1
       ftol = 1.e-8
-      
+
 c ... ##########################################################
 c ... # Calculate terms in eqns; 1st particle source/radial flux
 c ... ##########################################################
@@ -1334,7 +1098,7 @@ c ... # For testing with UEDGE solution, compute curcore(1)
 
       pfmpg(0) = gyf(ixmp,0)*sycore(0)/sycoregyf(0)
       gamp(0) = (curcore(1)/qe - gamrecycc)/sycore(0)
- 
+
       do iy = 1, ny   # inclu
         vtoty(iy) = 0.
 	sycore(iy) = 0.
@@ -1350,14 +1114,14 @@ c ... # For testing with UEDGE solution, compute curcore(1)
         enddo
         do ix = ixpt1(1)+1, ixpt2(1)
 	  del_sp(iy) = del_sp(iy) + psor(ix,iy,1)/vtoty(iy)
-          del_dndt(iy) = del_dndt(iy) + ni(ix,iy,1)*vol(ix,iy) / 
+          del_dndt(iy) = del_dndt(iy) + ni(ix,iy,1)*vol(ix,iy) /
      .                                         (taudndt(iy)*vtoty(iy))
           del_deedt(iy) = del_deedt(iy) + 1.5*te(ix,iy)*ni(ix,iy,1)*
      .                           vol(ix,iy) / (taudeedt(iy)*vtoty(iy))
           del_deidt(iy) = del_deidt(iy) + 1.5*ti(ix,iy)*ni(ix,iy,1)*
      .                           vol(ix,iy) / (taudeidt(iy)*vtoty(iy))
         enddo
-        gamp(iy) = gamp(iy-1)*sycore(iy-1)/sycore(iy) + 
+        gamp(iy) = gamp(iy-1)*sycore(iy-1)/sycore(iy) +
      .               (del_sp(iy)-del_dndt(iy))*vtoty(iy)/sycore(iy)
         pfmpg(iy) = gyf(ixmp,iy)*sycore(iy)/sycoregyf(iy)
         do ix = ixpt1(1)+1, ixpt2(1)
@@ -1552,7 +1316,7 @@ c ...   Set values over SOL and PF; core reset next
             if (ziin(ifld) > 0.) then
               vy_use(ix,iy,ifld) = 0.
                 # now for PF and SOL regions
-                if(iy<=iysptrx .and. (ix<=ixpt1(1).or.ix>=ixpt2(1))) 
+                if(iy<=iysptrx .and. (ix<=ixpt1(1).or.ix>=ixpt2(1)))
      .                                                       then
                   dif_use(ix,iy,ifld) = dif_int(iysptrx) + difni_pf
                 elseif(iy > iysptrx) then
@@ -1560,7 +1324,7 @@ c ...   Set values over SOL and PF; core reset next
                 endif
               endif
             enddo
-              if(iy<=iysptrx .and. (ix<=ixpt1(1).or.ix>=ixpt2(1))) 
+              if(iy<=iysptrx .and. (ix<=ixpt1(1).or.ix>=ixpt2(1)))
      .                                                       then
                 kye_use(ix,iy) = kye_int(iysptrx) + kye_pf
                 kyi_use(ix,iy) = kyi_int(iysptrx) + kyi_pf
@@ -1762,7 +1526,7 @@ c Subroutine to interpolate Osborne/Groebner DIII-D profiles
 c************************************************************
 
       subroutine interp_neteti
-       
+
       implicit none
       Use(Dim)              # ny,num_elem
       Use(Xpoint_indices)   # iysptrx
@@ -1845,7 +1609,7 @@ c...    Interpolate values from data file onto UEDGE mesh
             endif
           enddo
         enddo
-        
+
 c...    THIRD, do the Ti profile, begin by reading data
         if (isprofvspsi == 1) then  #profiles provided vs psi
           if (idata==1) call read_exp_fit('ti_vs_psi_expt1')
@@ -1882,9 +1646,9 @@ c...    Interpolate values from data file onto UEDGE mesh
         enddo
 
        enddo   # End of large loop over idata
- 
+
       return
-      end   
+      end
 c ***  End of subroutine interp_neteti --------------------------------c
 c----------------------------------------------------------------------c
 
@@ -1902,7 +1666,7 @@ c     only outputs results for the par and ser builds.
 c *** ----------------------------------------------------------------- c
       subroutine outputstats
       implicit none
-      
+
       integer :: one=1
 
 cpetsc      if (one.eq.1) then

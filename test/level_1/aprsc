@@ -1,0 +1,110 @@
+errortrp("off")
+echo = no
+
+<< "--------------------------------------------------------------------------"
+<< "Character = a  (dec/oct/hex)"
+character a = "a"
+formdesc = "dec"
+a
+formdesc = "oct"
+a
+formdesc = "hex"
+a
+formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+<< "Character = wxyz  (dec/oct/hex)"
+character*4 a1 = "wxyz"
+formdesc = "dec"
+a1
+formdesc = "oct"
+a1
+formdesc = "hex"
+a1
+formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+<< "Integer = 39524  (dec/oct/hex)"
+integer b = 39524
+formdesc = "dec"
+b
+formdesc = "oct"
+b
+formdesc = "hex"
+b
+formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+<< "Logical = true  (dec/oct/hex)"
+logical c = true
+formdesc = "dec"
+c
+formdesc = "oct"
+c
+formdesc = "hex"
+c
+formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+<< "Range = 589:636  (dec/oct/hex)"
+range d = 589:636
+formdesc = "dec"
+d
+formdesc = "oct"
+d
+formdesc = "hex"
+d
+formdesc = "dec"
+
+#<< "--------------------------------------------------------------------------"
+#<< "Address = 8192  (dec/oct/hex)"
+#Address e = 8192
+#e
+
+<< "--------------------------------------------------------------------------"
+<< "Real = 3.000123456789  (dec/oct/hex)"
+real w = 3.000123456789
+formdesc = "dec"
+w
+formdesc = "oct"
+w
+formdesc = "hex"
+w
+formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+<< "Double = 8.000000123456789  (dec/oct/hex)"
+double x = 8.000000123456789
+formdesc = "dec"
+x
+formdesc = "oct"
+x
+formdesc = "hex"
+x
+formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+<< "Complex = cmplx(1.234,3.14159)  (dec/oct/hex)"
+complex y = cmplx(1.234,3.14159)
+formdesc = "dec"
+y
+formdesc = "oct"
+y
+formdesc = "hex"
+y
+formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+<< "Double complex = dcmplx(1.234,3.14159)  (dec/oct/hex)"
+double complex z = dcmplx(1.234,3.14159)
+formdesc = "dec"
+z
+formdesc = "oct"
+z
+formdesc = "hex"
+z
+formdesc = "dec"
+
+<< "--------------------------------------------------------------------------"
+
+quit

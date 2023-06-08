@@ -1,6 +1,6 @@
 
 UEDGE is in a transitional phase from running in the BASIS environment, 
-developed at LLNL, to Python. This version, tagged $Name: V7_09_01 $, can 
+developed at LLNL, to Python. This version, tagged $Name:  $, can 
 run in both environments. If you have interest in the Basis version of 
 UEDGE contact Bill Meyer (meyer8@llnl.gov). New installations of the 
 Basis version are discouraged as there is no longer any official support 

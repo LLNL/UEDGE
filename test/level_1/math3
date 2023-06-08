@@ -1,0 +1,114 @@
+errortrp("off")
+echo = no
+
+<< "Test inverse trig functions and complex truncation"
+
+integer j, k, n=10, nff=16
+real eps, rv(10), rv2(10), var, var2, x=1.3
+double deps, dx=1.4
+
+function fracdiff(a, b, epsilon, msg)
+   chameleon num, den
+   integer n, m
+
+   n = length(a)
+   m = length(b)
+   if (n .ne. m) then
+      remark("Objects of different size")
+      remark(msg)
+
+   else
+      num = abs(a - b) ! ones(n)
+      den = 0.5*(abs(a) + abs(b)) ! ones(n)
+      if (num .gt. epsilon*den) then
+         remark(msg)
+      endif
+   endif
+endf
+
+real xv(9), xvo(9)
+complex c, cv(n)
+double complex dc, dcv(n)
+double dv(9)
+
+dv = 0.15*iota(9)
+do j=1, 9
+     xv(j) = dv(j)
+enddo
+
+c   = cmplx(0.22, 0.3)
+dc  = dcmplx(0.22, 0.3)
+
+cv  = 0.02*cmplx(iota(n), iota(n))
+dcv = 0.11*dcmplx(iota(n), iota(n))
+
+eps  = max(11.0*r1mach(4), 1.0e-10)
+deps = max(11.0*d1mach(4), 1.0e-10)
+
+# Check inverse trig functions for scalar arguments.
+fracdiff(asin(sin(x)),  x,                                    eps, "ERROR 1")
+fracdiff(asin(sin(c)),  c,                                    eps, "ERROR 2")
+fracdiff(asin(sin(dx)), dx,                                  deps, "ERROR 3")
+fracdiff(asin(sin(dc)), dc,                                  deps, "ERROR 4")
+
+fracdiff(acos(cos(x)),  x,                                    eps, "ERROR 5")
+fracdiff(acos(cos(c)),  c,                                    eps, "ERROR 6")
+fracdiff(acos(cos(dx)), dx,                                  deps, "ERROR 7")
+fracdiff(acos(cos(dc)), dc,                                  deps, "ERROR 8")
+
+fracdiff(atan(tan(x)),  x,                                    eps, "ERROR 9")
+fracdiff(atan(tan(c)),  c,                                    eps, "ERROR 10")
+fracdiff(atan(tan(dx)), dx,                                  deps, "ERROR 11")
+fracdiff(atan(tan(dc)), dc,                                  deps, "ERROR 12")
+
+# Check inverse trig functions for vector arguments.
+fracdiff(asin(sin(xv)),  xv,                                  eps, "ERROR 13")
+fracdiff(asin(sin(dv)),  dv,                                 deps, "ERROR 14")
+fracdiff(asin(sin(cv)),  cv,                                  eps, "ERROR 15")
+fracdiff(asin(sin(dcv)), dcv,                                deps, "ERROR 16")
+
+fracdiff(acos(cos(xv)),  xv,                                  eps, "ERROR 17")
+fracdiff(acos(cos(cv)),  cv,                                  eps, "ERROR 18")
+fracdiff(acos(cos(dv)),  dv,                                 deps, "ERROR 19")
+fracdiff(acos(cos(dcv)), dcv,                                deps, "ERROR 20")
+
+fracdiff(atan(tan(xv)),  xv,                                  eps, "ERROR 21")
+fracdiff(atan(tan(cv)),  cv,                                  eps, "ERROR 22")
+fracdiff(atan(tan(dv)),  dv,                                 deps, "ERROR 23")
+fracdiff(atan(tan(dcv)), dcv,                                deps, "ERROR 24")
+
+# Check aint, and anint
+
+integer iref(5)  = [  0,   1,   1,   2,   3]
+integer inref(5) = [  0,   1,   1,   1,   0]
+real atref(5)   = [0.0, 0.0, 1.0, 1.0, 2.0]
+real arref(5)   = [0.0, 1.0, 1.0, 2.0, 3.0]
+real ar(5)      = [0.1, 0.8, 1.2, 1.9, 2.5]
+double ad(5)    = [0.111, 0.847, 1.203, 1.999, 2.581]
+
+complex ac(5)
+double complex adc(5)
+
+do j = 1, 5
+     ac(j)  = ar(j)*exp(0.1*pi*j*cmplx(0.0, 1.0))
+     adc(j) = ad(j)*exp(0.1*pi*j*dcmplx(0.0, 1.0))
+enddo
+
+fracdiff(nint(ar),    iref,  eps, "ERROR 25")
+fracdiff(aint(ar),   atref,  eps, "ERROR 26")
+fracdiff(anint(ar),  arref,  eps, "ERROR 27")
+
+fracdiff(nint(ad),    iref, deps, "ERROR 28")
+fracdiff(aint(ad),   atref, deps, "ERROR 29")
+fracdiff(anint(ad),  arref, deps, "ERROR 30")
+
+fracdiff(nint(ac),   inref,  eps, "ERROR 28")
+fracdiff(aint(ac),   atref,  eps, "ERROR 29")
+fracdiff(anint(ac),  arref,  eps, "ERROR 30")
+
+fracdiff(nint(adc),  inref, deps, "ERROR 31")
+fracdiff(aint(adc),  atref, deps, "ERROR 32")
+fracdiff(anint(adc), arref, deps, "ERROR 33")
+
+
+read testltab

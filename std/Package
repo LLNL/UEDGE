@@ -1,7 +1,0 @@
-PKG = std
-
-Real8
-
-VDF=std.v
-
-SM=	std_cns.m	std_fnc.m	std_rnd.m

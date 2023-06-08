@@ -8,6 +8,7 @@
 from .uedge import *
 from .ruthere import *
 from .uexec import *
+from numpy import zeros
         
 # IMPORT HDF5 routines for saving solutions below
 from .hdf5 import *
