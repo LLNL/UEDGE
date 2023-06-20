@@ -2331,8 +2331,10 @@ c ... Set up nuiz & sources for hydrogen molecular gas
         endif
         do iy = iys1, iyf6
          do ix = ixs1, ixf6
-           nuiz(ix,iy,2) = ne(ix,iy) * (
-     .                          svdiss( te(ix,iy) ) + sigvi_floor )
+           nuiz(ix,iy,2) = ne(ix,iy) * (  #.. Tom 
+     .                          svdiss( te(ix,iy) )
+     .                        + cfizmol*rsa(te(ix,iy),ne_sgvi,rtau(ix,iy),0)
+     .                        + sigvi_floor )
            massfac = 16*mi(1)/(3*(mg(2)+mi(1)))
            nuix(ix,iy,2)= fnuizx*nuiz(ix,iy,2) + 
      .                           massfac*( kelighi(2)*ni(ix,iy,1)+
