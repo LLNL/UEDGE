@@ -2612,7 +2612,7 @@ c
 c  Logic here is specialized; only ifld=2 (igsp=1) has viscosity calc.
 c  If more neutral species have full parallel mom eqn, need to redo loops
          if(isupgon(1) .eq. 1 .and. zi(ifld) .eq. 0)then
-            do 936 iy = j1,j5
+            do 936 iy = j1,j6
                iyp1 = min(iy+1,ny+1)
                do 937 ix = i1,i6
 c
