@@ -1636,7 +1636,7 @@ c     extrapolate upstream slightly from the initial point
 
 c     Intersection of (cmeshx,y) with upstream reference surface
          call intersect2(rupstream,zupstream,1,nupstream,
-     &                   xmsh,ymsh,i1msh,i2msh,
+     &                   xmsh(i1msh:i2msh),ymsh(i1msh:i2msh),i1msh,i2msh,
      &                   xmu,ymu,kmu,imu,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,885) j
@@ -1674,7 +1674,7 @@ c     Normalize
 
 c     Intersection of (x,ycurveg) with upstream reference surface
          call intersect2(rupstream,zupstream,1,nupstream,
-     &                   xcrv,ycrv,i1crv,i2crv,
+     &                   xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                   xcu,ycu,kcu,icu,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,886) j
@@ -1698,7 +1698,7 @@ c     reference surface:
 
 c     Intersection of (x,ycurveg) with new divertor plate
          call intersect2(rplate,zplate,1,nplate,
-     &                    xcrv,ycrv,i1crv,i2crv,
+     &                    xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                    xcp,ycp,kcp,icp,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,887) j
@@ -1831,7 +1831,7 @@ c     Define some temporary variables for (xcurveg,ycurveg) surface data
 
 c     Intersection of reference surface with x,ycurveg
          call intersect2(rupstream,zupstream,1,nupstream,
-     &                   xcrv,ycrv,i1crv,i2crv,
+     &                   xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                   xcu,ycu,kcu,icu,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,886) j
@@ -1847,7 +1847,7 @@ c     reference surface:
 
 c     Intersection of divertor plate surface with x,ycurveg)
          call intersect2(rplate,zplate,1,nplate,
-     &                    xcrv,ycrv,i1crv,i2crv,
+     &                    xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                    xcp,ycp,kcp,icp,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,887) j
@@ -2137,7 +2137,7 @@ c        index of first point below top-of-mesh is imt+1
 
 c     Intersection of (cmeshx,y) with upstream reference surface
          call intersect2(rupstream,zupstream,1,nupstream,
-     &                   xmsh,ymsh,i1msh,i2msh,
+     &                   xmsh(i1msh:i2msh),ymsh(i1msh:i2msh),i1msh,i2msh,
      &                   xmu,ymu,kmu,imu,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,880) j
@@ -2174,7 +2174,7 @@ c----------------------------------------------------------------------c
 
 c     Intersection of (x,ycurveg) with top-of-mesh surface
          call intersect2(rtop,ztop,1,ntop,
-     &                   xcrv,ycrv,i1crv,i2crv,
+     &                   xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                   xct,yct,kct,ict,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,884) j
@@ -2190,7 +2190,7 @@ c        index of first point below top-of-mesh is ict+1
 
 c     Intersection of (x,ycurveg) with upstream reference surface
          call intersect2(rupstream,zupstream,1,nupstream,
-     &                   xcrv,ycrv,i1crv,i2crv,
+     &                   xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                   xcu,ycu,kcu,icu,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,885) j
@@ -2207,7 +2207,7 @@ c        Ensure that upstream surface lies "below" top-of-mesh surface
 
 c     Intersection of (x,ycurveg) with downstream reference surface
          call intersect2(rdnstream,zdnstream,1,ndnstream,
-     &                   xcrv,ycrv,i1crv,i2crv,
+     &                   xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                   xcd,ycd,kcd,icd,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,886) j
@@ -2226,7 +2226,7 @@ c     Intersection of (x,ycurveg) with new divertor plate
 c     NOTE: start the search at the top-of-mesh index, ict, to avoid
 c           a possible problem with multiple intersections (MER 95/09/05)
          call intersect2(rplate,zplate,1,nplate,
-     &                    xcrv,ycrv,ict,i2crv,
+     &                    xcrv(ict:i2crv),ycrv(ict:i2crv),ict,i2crv,
      &                    xcp,ycp,kcp,icp,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,888) j
@@ -2239,7 +2239,7 @@ c        index of first point below new divertor plate is icp+1
 
 c     Intersection of (x,ycurveg) with old divertor plate
          call intersect2(rplate0,zplate0,1,nplate0,
-     &                    xcrv,ycrv,i1crv,i2crv,
+     &                    xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                    xcp0,ycp0,kcp0,icp0,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,890) j
@@ -2339,7 +2339,7 @@ c     Intersection of x,ycurveg with ith angle (orthogonal) surface
                za(3)=cmeshy0(i,j+1)
             endif
             call intersect2(ra,za,1,na,
-     &                    xcrv,ycrv,i1crv,i2crv,
+     &                    xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                    xca,yca,kca,ica,fuzzm,ierr)
             if (ierr .ne. 0) then
                write (STDOUT,891) j,i
@@ -2479,7 +2479,7 @@ c     Straight line between j-1 and j+1 points on angle-like surface
 
 c     Intersection of straight line with x,ycurveg is (xcu,ycu):
          call intersect2(rupstream,zupstream,1,nupstream,
-     &                   xcrv,ycrv,i1crv,i2crv,
+     &                   xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                   xcu,ycu,kcu,icu,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,886) j,i
@@ -2500,7 +2500,7 @@ c     Segmented line through j-1, j and j+1 points on angle-like surface
 
 c     Intersection of segmented line with x,ycurveg is (xcp,ycp):
          call intersect2(rdnstream,zdnstream,1,ndnstream,
-     &                   xcrv,ycrv,i1crv,i2crv,
+     &                   xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                   xcp,ycp,kcp,icp,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,887) j,i
@@ -3300,7 +3300,7 @@ c           Define top-of-mesh surface
 	    endif
 c           Intersection of (x,ycurveg) with top-of-mesh surface
             call intersect2(rtop,ztop,1,ntop,
-     &                   xcurveg(1:lim2,j),ycurveg(1:lim2,j),lim1,lim2,
+     &                   xcurveg(lim1:lim2,j),ycurveg(lim1:lim2,j),lim1,lim2,
      &                   xct,yct,kct,ict,fuzzm,ierr)
             if (ierr .ne. 0) then
                write (STDOUT,884) j
@@ -4104,10 +4104,8 @@ c     use exponential form --
      .                     xc,yc,i1c,i2c,fuzz,ierr)
       implicit none
       integer i1min,i1max,i2min,i2max,i1c,i2c,ierr
-c     real x1(i1min:i1max),y1(i1min:i1max)
-c     real x2(i2min:i2max),y2(i2min:i2max),xc,yc,fuzz
-      real x1(*),y1(*)
-      real x2(*),y2(*),xc,yc,fuzz
+      real x1(i1min:i1max),y1(i1min:i1max)
+      real x2(i2min:i2max),y2(i2min:i2max),xc,yc,fuzz
 
 c     Find the intersection of the two segmented curves :
 c        (x1(i),y1(i)) i=i1min,i1max and (x2(i),y2(i)) i=i2min,i2max
@@ -5140,7 +5138,7 @@ c     Define some temporary variables for (cmeshx,y) surface data
       enddo
 c     Intersection of (cmeshx,y) with flamefront surface
       call intersect2(rff,zff,1,nff,
-     &                xmsh,ymsh,i1msh,i2msh,
+     &                xmsh(i1msh:i2msh),ymsh(i1msh:i2msh),i1msh,i2msh,
      &                xmff,ymff,kmff,imff,fuzzm,ierr)
       if (ierr .ne. 0) then
          write (STDOUT,801) j
@@ -5195,7 +5193,7 @@ c        index of first point below top-of-mesh is imt+1
 
 c     Intersection of (x,ycurveg) with top-of-mesh surface
          call intersect2(rtop,ztop,1,ntop,
-     &                   xcrv,ycrv,i1crv,i2crv,
+     &                   xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                   xct,yct,kct,ict,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,884) j
@@ -5211,7 +5209,7 @@ c        index of first point below top-of-mesh is ict+1
 
 c     Intersection of (x,ycurveg) with upstream reference surface
          call intersect2(rupstream,zupstream,1,nupstream,
-     &                   xcrv,ycrv,i1crv,i2crv,
+     &                   xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                   xcu,ycu,kcu,icu,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,885) j
@@ -5228,7 +5226,7 @@ c        Ensure that upstream surface lies "below" top-of-mesh surface
 
 c     Intersection of (x,ycurveg) with flamefront surface
          call intersect2(rff,zff,1,nff,
-     &                   xcrv,ycrv,i1crv,i2crv,
+     &                   xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                   xcff,ycff,kcff,icff,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,886) j
@@ -5247,7 +5245,7 @@ c     Intersection of (x,ycurveg) with divertor plate
 c     NOTE: start the search at the top-of-mesh index, ict, to avoid
 c     a possible problem with multiple intersections (MER 95/09/05)
          call intersect2(rplate,zplate,1,nplate,
-     &                    xcrv,ycrv,ict,i2crv,
+     &                    xcrv(ict:i2crv),ycrv(ict:i2crv),ict,i2crv,
      &                    xcp,ycp,kcp,icp,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,888) j
@@ -5309,7 +5307,7 @@ c     Intersection of x,ycurveg with ith angle (orthogonal) surface
                za(3)=cmeshy3(i,j+1)
             endif
             call intersect2(ra,za,1,na,
-     &                    xcrv,ycrv,i1crv,i2crv,
+     &                    xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                    xca,yca,kca,ica,fuzzm,ierr)
             if (ierr .ne. 0) then
                write (STDOUT,891) j,i
@@ -5794,7 +5792,7 @@ c----------------------------------------------------------------------c
 
 c     Intersection of (x,ycurveg) with new top-of-mesh surface
          call intersect2(rtop,ztop,1,ntop,
-     &                   xcrv,ycrv,i1crv,i2crv,
+     &                   xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                   xct,yct,kct,ict,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,884) j
@@ -5805,7 +5803,7 @@ c        index of first point below top-of-mesh is ict+1
 
 c     Intersection of (x,ycurveg) with old top-of-mesh surface
          call intersect2(rtop0,ztop0,1,ntop0,
-     &                   xcrv,ycrv,i1crv,i2crv,
+     &                   xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                   xct0,yct0,kct0,ict0,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,885) j
@@ -5816,7 +5814,7 @@ c        index of first point below top-of-mesh is ict0+1
 
 c     Intersection of (x,ycurveg) with bottom surface
          call intersect2(rbot,zbot,1,nbot,
-     &                   xcrv,ycrv,i1crv,i2crv,
+     &                   xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                   xcb,ycb,kcb,icb,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,886) j
@@ -5869,7 +5867,7 @@ c     Intersection of x,ycurveg with ith angle (orthogonal) surface
                za(3)=cmeshy0(i,j+1)
             endif
             call intersect2(ra,za,1,na,
-     &                    xcrv,ycrv,i1crv,i2crv,
+     &                    xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                    xca,yca,kca,ica,fuzzm,ierr)
             if (ierr .ne. 0) then
                write (STDOUT,891) j,i
