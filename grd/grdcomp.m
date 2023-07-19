@@ -642,33 +642,37 @@ c     construction of the mesh
 c     loop over all regions --
       do 800 region=1,noregs
 
-      do 2208 j=jmin(region),jmax(region)
-         do 2208 l=1,mseg
-            do 2208 k=1,npts
+      do j=jmin(region),jmax(region)
+         do l=1,mseg
+            do k=1,npts
                splcoef(k,l,j)=0.0
                xknts(k,l,j)=0.0
- 2208 continue
+            end do
+         end do
+      end do
 c
-      do 2212 j=jmin(region),jmax(region)
-         do 2212 l=1,npts
+      do j=jmin(region),jmax(region)
+         do l=1,npts
             isegment(l,j)=0
- 2212 continue
+         end do
+      end do
 c
-      do 2209 j=jmin(region),jmax(region)
+      do j=jmin(region),jmax(region)
          nseg(j)=0
-         do 2209 l=1,mseg
+         do l=1,mseg
             isys(l,j)=0
             istartg(l,j)=0
             iendg(l,j)=0
             ncap7(l,j)=0
             m(l,j)=0
- 2209 continue
+         end do
+      end do
 c
-      do 2210 k=1,npts
+      do k=1,npts
          wg(k)=1.0
          xtrans(k)=0.0
          ytrans(k)=0.0
- 2210 continue
+      end do
   800 continue          # end of loop over regions
 
       return
