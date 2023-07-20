@@ -266,6 +266,7 @@ c-------End of function rcxr_zn6b---------------------------------------
       character*256 mcfilename(*)
       character*256 fname
       Use(Multicharge)
+      Use(Math_problem_size)  # neqmx
       Use(Lsode)        # iprint
       Use(Impdata)      #apidir
 

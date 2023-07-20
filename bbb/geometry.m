@@ -448,6 +448,7 @@ c  ---------------------------------------------------------------------
 
       implicit none
       Use(Dim)            # nx,ny
+      Use(Math_problem_size) # neqmx
       Use(Share)          # nxomit,nxc,nxleg,nxcore,geometry,ismpsym
       Use(Xpoint_indices) # ixpt1,ixpt2,iysptrx1,iysptrx2,iysptrx
       Use(RZ_grid_info)   # rm,zm,psi,br,bz,bpol,bphi,b
