@@ -2033,7 +2033,7 @@ c     Straight line between iy-1 and iy+1 points on angle-like surface
 
 c     Intersection of straight line with x,ycurveg is (xcu,ycu):
          call intersect2(rupstream,zupstream,1,nupstream,
-     &                   xcrv,ycrv,i1crv,i2crv,
+     &                   xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                   xcu,ycu,kcu,icu,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,886) j,iy
@@ -2054,7 +2054,7 @@ c     Segmented line through iy-1, iy and iy+1 points on angle-like surface
 
 c     Intersection of segmented line with x,ycurveg is (xcp,ycp):
          call intersect2(rdnstream,zdnstream,1,ndnstream,
-     &                   xcrv,ycrv,i1crv,i2crv,
+     &                   xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                   xcp,ycp,kcp,icp,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,887) j,iy

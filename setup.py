@@ -11,7 +11,7 @@ from Forthon.compilers import FCompiler
 import getopt
 import logging
 
-version='8.0.0'
+version='8.0.4.1'
 
 try:
     os.environ['PATH'] += os.pathsep + site.USER_BASE + '/bin'
@@ -187,7 +187,7 @@ setup(name="uedge",
 
       cmdclass={'build': uedgeBuild, 'clean': uedgeClean},
       test_suite="pytests",
-      install_requires=['forthon', 'mppl','easygui'],
+      install_requires=['forthon', 'easygui'],
       # note that include_dirs may have to be expanded in the line above
       classifiers=['Programming Language :: Python',
                    'Programming Language :: Python :: 3']
