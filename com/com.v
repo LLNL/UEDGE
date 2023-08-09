@@ -14,20 +14,20 @@ glbwrlog(ioun)          function
 
 ***** Dim:
 # Variables that contain widely-used dimensions
-nx	integer	/8/ +griddata	# number of cells in x (poloidal) direc. (see also nxm)
-ny	integer	/4/ +griddata	# number of cells in y (radial) direction
+nx	integer	/8/	# number of cells in x (poloidal) direc. (see also nxm)
+ny	integer	/4/	# number of cells in y (radial) direction
 nxm	integer	/8/	# total number of cells in x direc.; nxm = nx+|nxomit|
 nym     integer /4/     # total number of cells in y direc.; nym = ny+nyomitmx
 nxpt	integer /1/	# number of x-points in (R,Z) simulation domain
-nhsp	integer	/1/	+input # number of hydrogenic species
-nzsp(1:ngspmx-1) integer /5*0/ +input # number of impurity species per gas species
+nhsp	integer	/1/	# number of hydrogenic species
+nzsp(1:ngspmx-1) integer /5*0/ # number of impurity species per gas species
 nzspt   integer /1/     # total number of impurity species
 nzspmx  integer	   /10/	# maximum of nzsp(igsp) used for storage allocation
-nisp	integer	/1/	+input # number of ion species
-nusp	integer		+input # number of parallel momentum equations
-nfsp	integer		+input # number of cont. eqns or flux species (calc internal)
-ngsp	integer	/1/ +input +regrid	# number of gas species
-nhgsp   integer /1/     +input # number of hydrogen gas species (prepare for tritium)
+nisp	integer	/1/	# number of ion species
+nusp	integer		# number of parallel momentum equations
+nfsp	integer		# number of cont. eqns or flux species (calc internal)
+ngsp	integer	/1/ +restart +regrid	# number of gas species
+nhgsp   integer /1/     # number of hydrogen gas species (prepare for tritium)
 imx     integer /50/    # size in x of Zagorski arrays
 imy     integer /40/    # size in y of Zagorski arrays
 lnst	integer /43/    # size of impurity species(?) for Zagorski
@@ -60,25 +60,25 @@ bcentr  real    [Tesla]
      # reference toroidal field
 rcentr  real    [m]
      # major radius where vacuum toroidal field is bcentr
-rmagx   real    [m] +griddata
+rmagx   real    [m]
      # major radius of magnetic axis
-zmagx   real    [m] +griddata
+zmagx   real    [m]
      # vertical position of magnetic axis
-simagx  real    [volt-sec/radian] +griddata
+simagx  real    [volt-sec/radian]
      # poloidal magnetic flux at the magnetic axis
-sibdry  real    [volt-sec/radian] +griddata
+sibdry  real    [volt-sec/radian]
      # poloidal magnetic flux at primary x-point
-sibdry1  real    [volt-sec/radian] +griddata
+sibdry1  real    [volt-sec/radian]
      # poloidal magnetic flux at the lower x-point
-sibdry2  real    [volt-sec/radian] +griddata
+sibdry2  real    [volt-sec/radian]
      # poloidal magnetic flux at the upper x-point
 xdim    real    [m]
      # horizontal (radial) extent of EFIT computational grid
 zdim    real    [m]
      # vertical extent of EFIT computational grid
-zmid	real	[m] +griddata
+zmid	real	[m]
      # vertical height of midplane above bottom of EFIT mesh
-zshift	real	[m] +griddata
+zshift	real	[m]
      # vertical shift of EFIT data to put z=0 at the bottom
 workk(nxefit)   _real
      # dummy array for neqdsk output
@@ -96,9 +96,9 @@ rbdry(nbdry)    _real   [m]
      # radial coordinates of last closed flux surface from EFIT
 zbdry(nbdry)    _real   [m]
      # vertical coordinates of last closed flux surface from EFIT
-xlim(nlim)      _real   [m] +griddata
+xlim(nlim)      _real   [m]
      # radial coordinates of limiter/vessel boundary from EFIT
-ylim(nlim)      _real   [m] +griddata
+ylim(nlim)      _real   [m]
      # vertical coordinates of limiter/vessel boundary from EFIT
 bscoef(nxefit,nyefit)    _real
      # 2-d spline coefficients 
@@ -150,25 +150,25 @@ eshot   integer
      # shot number from EFIT
 etime   real    [msec]
      # time slice from EFIT
-rseps   real    [m] +griddata
+rseps   real    [m]
      # major radius of lower x-point
-zseps   real    [m] +griddata
+zseps   real    [m]
      # vertical position of lower x-point
-rseps1   real    [m] +griddata
+rseps1   real    [m]
      # major radius of lower x-point
-zseps1  real    [m] +griddata
+zseps1  real    [m]
      # vertical position of lower x-point
-rseps2   real    [m] +griddata
+rseps2   real    [m]
      # major radius of upper x-point
-zseps2  real    [m] +griddata
+zseps2  real    [m]
      # vertical position of upper x-point
-rvsin   real    [m] +griddata
+rvsin   real    [m]
      # major radius of inboard strike point
-zvsin   real    [m] +griddata
+zvsin   real    [m]
      # vertical position of inboard strike point
-rvsout  real    [m] +griddata
+rvsout  real    [m]
      # major radius of outboard strike point
-zvsout  real    [m] +griddata
+zvsout  real    [m]
      # vertical position of outboard strike point
 mco2v	integer	/3/
      # number of vertical co2 chords
@@ -203,18 +203,18 @@ aeqdskfname  character*128 /'aeqdsk'/
 
 ***** RZ_grid_info:
 # RZ grid location data and magnetic-field info at those locations
-rm(0:nxm+1,0:nym+1,0:4)     _real [m]    +griddata # radial cell position, 0 is center
-zm(0:nxm+1,0:nym+1,0:4)     _real [m]    +griddata # vertical cell position, 0 is center
-rmt(0:nxm+1,0:nym+1,0:4)    _real [m]    +griddata # temp rad cell position, 0 is center
-zmt(0:nxm+1,0:nym+1,0:4)    _real [m]    +griddata # temp vert cell position, 0 is center
+rm(0:nxm+1,0:nym+1,0:4)     _real [m]    # radial cell position, 0 is center
+zm(0:nxm+1,0:nym+1,0:4)     _real [m]    # vertical cell position, 0 is center
+rmt(0:nxm+1,0:nym+1,0:4)    _real [m]    # temp rad cell position, 0 is center
+zmt(0:nxm+1,0:nym+1,0:4)    _real [m]    # temp vert cell position, 0 is center
 rv(0:nxm+2,-1:nym+1)        _real [m]    # rad position velocity cell corner
 zv(0:nxm+2,-1:nym+1)        _real [m]    # vert position velocity cell corner
-psi(0:nxm+1,0:nym+1,0:4)    _real [Tm^2] +griddata # polodial magnetic flux
-br(0:nxm+1,0:nym+1,0:4)     _real [T]    +griddata # radial magnetic field, 0 is center
-bz(0:nxm+1,0:nym+1,0:4)     _real [T]    +griddata # vert magnetic field, 0 is center
-bpol(0:nxm+1,0:nym+1,0:4)   _real [T]    +griddata # pol. magnetic field, 0 is center
-bphi(0:nxm+1,0:nym+1,0:4)   _real [T]    +griddata # tor.l magnetic field, 0 is center
-b(0:nxm+1,0:nym+1,0:4)      _real [T]    +griddata # total magnetic field, 0 is center
+psi(0:nxm+1,0:nym+1,0:4)    _real [Tm^2] # polodial magnetic flux
+br(0:nxm+1,0:nym+1,0:4)     _real [T]    # radial magnetic field, 0 is center
+bz(0:nxm+1,0:nym+1,0:4)     _real [T]    # vert magnetic field, 0 is center
+bpol(0:nxm+1,0:nym+1,0:4)   _real [T]    # pol. magnetic field, 0 is center
+bphi(0:nxm+1,0:nym+1,0:4)   _real [T]    # tor.l magnetic field, 0 is center
+b(0:nxm+1,0:nym+1,0:4)      _real [T]    # total magnetic field, 0 is center
 bsqr(0:nxm+1,0:nym+1)       _real [T]    # B**2 at density-cell center
 b12(0:nxm+1,0:nym+1)        _real [T]    # B**0.5 at vel-cell center/dens face
 b12ctr(0:nxm+1,0:nym+1)     _real [T]    # B**0.5 at density-cell center
@@ -233,26 +233,26 @@ bg(0:nxm+1,0:nym+1,0:4)     _real [T]    # global total B field, 0 is center
 
 ***** Share:
 # Variables used by more than one package
-nycore(30)	integer	/30*0/	+regrid +gridgen
+nycore(30)	integer	/30*0/	+regrid
    # number of radial zones in the core region of the edge plasma
-nysol(30)	integer	/30*2/	+regrid +gridgen
+nysol(30)	integer	/30*2/	+regrid
    # number of radial zones in the open flux surface region of the edge plasma
-nyout(30)	integer	/30*0/	+regrid +gridgen
+nyout(30)	integer	/30*0/	+regrid
    # number of radial zones beyond second separatrix of full double-null
-nxleg(30,2)	integer	/0, 59*2/	+regrid +gridgen
+nxleg(30,2)	integer	/0, 59*2/	+regrid
    # number of cells along divertor legs:  (,1) inside, (,2) outside
-nxcore(30,2)	integer	/0, 59*4/	+regrid +gridgen
+nxcore(30,2)	integer	/0, 59*4/	+regrid
    # number of cells along core boundary:  (,1) inside, (,2) outside
-nxomit		integer /0/ +gridgen
+nxomit		integer /0/
    # number of x-cells to omit from ix=0; if <0, omit from ix=nx for fluid eqns
    # done typically for isfixlb=1,2 cases with reflection b.c. at left boundary
-nxxpt +gridgen
+nxxpt
    # number of extra poloidal cells at x-point (per quadrant)
-nyomitmx	integer /0/ +gridgen
+nyomitmx	integer /0/
    # number of y-cells to omit from iy=ny; used to do core only for fluid eqns
 igrid		integer	/1/	# loop index for which grid; e.g., nysol(igrid)
-isgriduehdf5   integer /0/   +input
-geometry	character*16 /"snull"/ +input
+isgriduehdf5   integer /0/  
+geometry	character*16 /"snull"/
 				# specifies magnetic configuration, e.g.,
 				# ='snull' for lower single null
 				# ='uppersn' for upper single null
@@ -268,18 +268,18 @@ geometry	character*16 /"snull"/ +input
 nxc		integer	/4/	# center index of x-grid, normally nx/2,
                                 # OR
                                 # guard cell index for 'dnbot' symmetry b.c.
-simagxs         real            +griddata # "shared" value of simagx from flx package
-sibdrys         real            +griddata # "shared" value of sibdry from flx package
+simagxs         real            # "shared" value of simagx from flx package
+sibdrys         real            # "shared" value of sibdry from flx package
 nxpt2msh        integer /0/     # number of 1D cells above ixpt2 reset/no-cross
 nxpt2psh        integer /0/     # number of 1D cells below ixpt2 reset/no-cross
 zxpt2msh        real /0.01/ [m] # spacing iy=1 1D vertices reset above ixpt2
 rxpt2msh        real /0.0/  [m] # spacing iy=1 1D vertices reset above ixpt2
 zxpt2psh        real /0.01/ [m] # spacing iy=1 1D vertices reset below ixpt2
 rxpt2psh        real /0.0/  [m] # spacing iy=1 1D vertices reset below ixpt2
-ismpsym         integer /0/     +gridgen # =1 re-constructs "guard" cells at midplane
+ismpsym         integer /0/     # =1 re-constructs "guard" cells at midplane
                                 # of "dnbot" via up/down symmetry
-isudsym         integer /0/     +input #=1 up-down symmetric setup (only down part is modeled)
-islimon		integer	/0/ +input
+isudsym         integer /0/     #=1 up-down symmetric setup (only down part is modeled)
+islimon		integer	/0/
 	# option switch to apply b.c.'s at ix_lim and ix_lim+1
 	# =1 turns on limiter/continuity b.c.'s
 ix_lim          integer
@@ -288,8 +288,8 @@ iy_lims         integer	/9999/
 	# radial index of 1st flux surface where limiter b.c.'s apply
 theta_split	real	/1.570796326794896/
 	# (computed) poloidal angle where in/outboard regions of the mesh meet
-isnonog		integer /0/	+input # is 9-point (non-orthog) differencing on
-ismmon          integer /0/ +gridgen
+isnonog		integer /0/	# is 9-point (non-orthog) differencing on
+ismmon          integer /0/
 	# flag that controls mesh modification
 	#      = 0    strictly orthogonal mesh and divertor plates
 	#      = 1    non-orthogonal mesh, compressed distrib'n on each surface
@@ -297,24 +297,24 @@ ismmon          integer /0/ +gridgen
 	#      = 3    combination of options 1 and 2 using weight factor
         #             wtmesh1
 isoldgrid       integer /0/     # =1 returns to pre-1/25/96 nonorthog grid
-isgrdsym        integer /0/	+gridgen # =1 makes symmetric grid for mhdgeo.ne.1,
+isgrdsym        integer /0/	# =1 makes symmetric grid for mhdgeo.ne.1,
                                 # requires nxm,ixpt2 even
 cutlo           real  /1.e-300/ #rough range of a small number(avoids R1MACH(2))
                                 #CAUTION; this could be machine dependent
                                 #1.e-300 is generally conservative for 64-bit
                                 #words; on SUN double-p (e-330); C-90 (e-2500)
 epslon		real /1e-6/     #scale factor for relative guard-cell size
-spheromak	integer /0/	+input # =0 for tokamak, use vacuum toroidal field
+spheromak	integer /0/	# =0 for tokamak, use vacuum toroidal field
 				# =1 for spheromak, use bphi=fpoloidal(psi)/rm
-isfrc	integer	/0/	+gridgen # =1 for field-reversed-configuration mesh options
-ishalfm	integer	/0/	+gridgen # =1 for doing outboard half-mesh only
-isbphicon integer /0/   +gridgen # =0 gives bphi=bcentrg*rcentrg/rm; =1 gives bphi=bcentrg
+isfrc	integer	/0/	# =1 for field-reversed-configuration mesh options
+ishalfm	integer	/0/	# =1 for doing outboard half-mesh only
+isbphicon integer /0/   # =0 gives bphi=bcentrg*rcentrg/rm; =1 gives bphi=bcentrg
 nhdf      integer /1/   # number of hydrogenic b2frates-format data files
 hdfilename(1:12)   Filename  /12*'b2frates'/  # names of hydrogenic data files
 nzdf	  integer /1/	# number of impurity   b2frates-format data files
-mcfilename(1:12)   Filename  /12*'b2frates'/  +input # names of impurity   data files
-coronalimpfname  character*120 /'mist.dat'/   +input # name coronal impurity rate file
-istabon	integer	/7/ +input
+mcfilename(1:12)   Filename  /12*'b2frates'/  # names of impurity   data files
+coronalimpfname  character*120 /'mist.dat'/   # name coronal impurity rate file
+istabon	integer	/7/ +restart
                        #turns on look-up table for hydrogenic rate coefficients
 #	= 0  simple analytic rates and constant energy loss per ionization
 #	= 1  table look-up from ADPAK; rates.adpak
@@ -342,14 +342,14 @@ reset_core_og			integer /0/
 
 ***** Xpoint_indices:
 # target plate, x-point and separatrix indices
-ixlb(1:nxpt)	_integer +griddata	# ix index of left boundary
-ixpt1(1:nxpt)	_integer +griddata	# ix index of first x-point
-ixmdp(1:nxpt)	_integer +griddata	# ix index of midplane
-ixpt2(1:nxpt)	_integer +griddata	# ix index of second x-point
-ixrb(1:nxpt)	_integer +griddata	# ix index of right boundary
-iysptrx1(1:nxpt)	_integer +griddata	# iy index of first x-point
-iysptrx2(1:nxpt)	_integer +griddata	# iy index of second x-point
-iysptrx			integer	 +griddata	# iy index of last closed flux surface
+ixlb(1:nxpt)	_integer	# ix index of left boundary
+ixpt1(1:nxpt)	_integer	# ix index of first x-point
+ixmdp(1:nxpt)	_integer	# ix index of midplane
+ixpt2(1:nxpt)	_integer	# ix index of second x-point
+ixrb(1:nxpt)	_integer	# ix index of right boundary
+iysptrx1(1:nxpt)	_integer	# iy index of first x-point
+iysptrx2(1:nxpt)	_integer	# iy index of second x-point
+iysptrx			integer		# iy index of last closed flux surface
 
 ***** Cut_indices:
 # Indices for cut location (in x) and length (in y)
@@ -621,18 +621,18 @@ rtlqa(0:rtnt,0:rtnn,0:rtnsd-1)	_real
      # ln(rtqa) where rtqa[eV*m**3/s] is 'b2frates' data for elec energy loss
 rtlcx(0:rtnt,0:rtnn,0:rtnsd-1)	_real
      # ln(rtcx); rtcx[m**3/s] is 'b2frates' data for c-x on neutral hydrogen
-iscxfit	 real /1./ +input	# flag for C ion c-x on neutral H
+iscxfit	 real /1./	# flag for C ion c-x on neutral H
      #=0 use analytic forms in Braams' rate package
      #=1 use polynomial fit to C.F. Maggi curves (1997)
      #=2 same as =1, except Z=1 has lower rate from Pigarov
-isrtndep  integer /1/ +input   # flag for turning on ne-dep atomic rates when
+isrtndep  integer /1/   # flag for turning on ne-dep atomic rates when
      # ismctab=2 (impurities) and/or istabon=16 (hydrogen)
 mcfformat(1:12) integer /12*0/ # flag read from mcfilename rate files to distingu
      # pre-2012 format (0) from 2012 format (1) for rates;
      # assoc. with how ebindz is used.
-chgstate_format(0:rtnsd-1) _integer +input # flag denoting data format used for
+chgstate_format(0:rtnsd-1) _integer # flag denoting data format used for
      # each charge state; see mcfformat
-ispradextrap integer /0/ +input #=1 extrapolated neutral prad below table min
+ispradextrap integer /0/ #=1 extrapolated neutral prad below table min
 
 ***** Fitdata:
 # Arrays and variables for the tanh and b-spline fits to DIII-D radial profiles
