@@ -39,47 +39,47 @@ integer niwdim	integer
 
 ***** Analgrd:
 # common block with parameters for cylindrical & rectangular (IDEAL) grid
-radm    real [m] /-1.e-4/   #minimum "radius" of cylinder or slab
-radx    real [m]  /0.04/    #maximum "radius" of cylinder or slab
-rad0    real [m]   /0./     #location of "radial" separ'x for cylinder or slab
-rscalcore real [ ] /1./     #scale fac to change radial dimen. of core region
-za0     real [m]   /0./     #position of left-hand axial boundary position
-zax     real [m]   /1./     #position of right-hand axial boundary position
-zaxpt   real [m]   /.75/    #position of x-point; uniform grid to here
-tiltang real [deg] /0./     #inc. tilt angle of the divertor plate from 90 deg.
-ixsnog  integer    /1/	    #poloidal ix where nonorthogonal mesh begins
-zxpt_reset real [m] /0./    #reset x-pt2 here if >0 for single-region mesh
-alfyt   real      /-2./     #exponent coeff. for y (radial) grid nonuiformity
-tnoty   real      /0./      #shift if r(t)~del_r*tanh radial mesh profile
-sratiopf real      /0./     #ratio of effec. alfyt in priv. flux region; calc
-                            #internally to give same expans. rate if =0.
-alfxt   real      /4.0/     #exponent coeff. for x (axial) grid nonuiformity
-isadjalfxt integer /0/      #=1 changes alfxt slightly for smooth dx at ixpt2 
-tctr    real      /0./      #relative location of dx maximum;0, left; 1., right
-bpolfix real [T]   /.3/     #poloidal B-field for cartesian grid
-btfix   real [T]   /5./     #total B-field for cartesian grid
-rmajfix real [m]   /1.0/    #reference major radius for cartesian/cylindrical grid
-sigma_bpol real []  /0.0/   #exponent for poloidal field for cartesian/cylindrical grid
-sigma_btor real []  /0.0/   #exponent for toroidal field for cartesian/cylindrical grid
-isgdistort integer /0/      #switch to distort poloidal grid
-agsindx real       /0./     #max amplitude shift of poloidal cell face linear
+radm    real [m] /-1.e-4/   +gridgen #minimum "radius" of cylinder or slab
+radx    real [m]  /0.04/    +gridgen #maximum "radius" of cylinder or slab
+rad0    real [m]   /0./     +gridgen #location of "radial" separ'x for cylinder or slab
+rscalcore real [ ] /1./     +gridgen #scale fac to change radial dimen. of core region
+za0     real [m]   /0./     +gridgen #position of left-hand axial boundary position
+zax     real [m]   /1./     +gridgen #position of right-hand axial boundary position
+zaxpt   real [m]   /.75/    +gridgen #position of x-point; uniform grid to here
+tiltang real [deg] /0./     +gridgen #inc. tilt angle of the divertor plate from 90 deg.
+ixsnog  integer    /1/	    +gridgen #poloidal ix where nonorthogonal mesh begins
+zxpt_reset real [m] /0./    +gridgen #reset x-pt2 here if >0 for single-region mesh
+alfyt   real      /-2./     +gridgen #exponent coeff. for y (radial) grid nonuiformity
+tnoty   real      /0./      +gridgen #shift if r(t)~del_r*tanh radial mesh profile
+sratiopf real      /0./     +gridgen #ratio of effec. alfyt in priv. flux region; calc
+                            +gridgen #internally to give same expans. rate if =0.
+alfxt   real      /4.0/     +gridgen #exponent coeff. for x (axial) grid nonuiformity
+isadjalfxt integer /0/      +gridgen #=1 changes alfxt slightly for smooth dx at ixpt2 
+tctr    real      /0./      +gridgen #relative location of dx maximum;0, left; 1., right
+bpolfix real [T]   /.3/     +gridgen #poloidal B-field for cartesian grid
+btfix   real [T]   /5./     +gridgen #total B-field for cartesian grid
+rmajfix real [m]   /1.0/    +gridgen #reference major radius for cartesian/cylindrical grid
+sigma_bpol real []  /0.0/   +gridgen #exponent for poloidal field for cartesian/cylindrical grid
+sigma_btor real []  /0.0/   +gridgen #exponent for toroidal field for cartesian/cylindrical grid
+isgdistort integer /0/      +gridgen #switch to distort poloidal grid
+agsindx real       /0./     +gridgen #max amplitude shift of poloidal cell face linear
  			    #linear in radial index iy
-agsrsp  real       /0./     #max amplitude shift of poloidal cell face linear
+agsrsp  real       /0./     +gridgen #max amplitude shift of poloidal cell face linear
                             #in real space - use either asgindx or asgrsp/not b
-iynod   integer    /0/      #iy about which asgindx distortion is centered
-rnod    real       /0./     #value of y about which asgrsp distortion centered
-ixdstar integer    /1/      #ix where poloidal distortion begins
+iynod   integer    /0/      +gridgen #iy about which asgindx distortion is centered
+rnod    real       /0./     +gridgen #value of y about which asgrsp distortion centered
+ixdstar integer    /1/      +gridgen #ix where poloidal distortion begins
 
 ***** Torannulus:
-acore	real [m]   /0.5/    #minor radius of core-edge bdry for mhdgeo=2
-rm0	real [m]   /2./     #major radius of annulus for mhdgeo=2
-edgewid real [m]   /0.1/    #width of simulated edge region for mhdgeo=2
-dthlim  real [rad] /1e-4/   #polodial angular width of limiter cell
-bpol0   real [T]   /0.2/    #poloidal B-field for mhdgeo=2 (annulus)
-btor0   real [T]   /2./     #toroidal B-field for mhdgeo=2 on axis
-radf(0:nym+1,0:4) _real [m] # minor radius of cells for mhdgeo=2
-thpf(1:nxm,0:4)   _real [m] # poloidal angle of cells for mhdgeo=2
-ibpmodel integer   /0/      #=0, Bpol=bpol0; =1, Bpol=bpol0*rm0/R
+acore	real [m]   /0.5/    +gridgen #minor radius of core-edge bdry for mhdgeo=2
+rm0	real [m]   /2./     +gridgen #major radius of annulus for mhdgeo=2
+edgewid real [m]   /0.1/    +gridgen #width of simulated edge region for mhdgeo=2
+dthlim  real [rad] /1e-4/   +gridgen #polodial angular width of limiter cell
+bpol0   real [T]   /0.2/    +gridgen #poloidal B-field for mhdgeo=2 (annulus)
+btor0   real [T]   /2./     +gridgen #toroidal B-field for mhdgeo=2 on axis
+radf(0:nym+1,0:4) _real [m] +gridgen # minor radius of cells for mhdgeo=2
+thpf(1:nxm,0:4)   _real [m] +gridgen # poloidal angle of cells for mhdgeo=2
+ibpmodel integer   /0/      +gridgen #=0, Bpol=bpol0; =1, Bpol=bpol0*rm0/R
  
 ***** Magmirror:
 zu(1:nxm,1:nym,0:4)   _real [m] #axial postions of vertices & center (0)
@@ -195,23 +195,23 @@ iwsla(niwdim)	_integer
 
 ***** Inmesh:
 # input data from user
-isspnew		integer		/0/
+isspnew		integer		/0/ +gridgen
 	# flag for source of strike-point data
 	# isspnew = 0 --> strike point data from eqdsk files
 	#         = 1 --> user-specified values (rstrike(1:2),zstrike(1:2))
-rstrike(1:2)	real	[m]
+rstrike(1:2)	real	[m] +gridgen
 	# radial position of inboard:outboard strike point
-zstrike(1:2)	real	[m]
+zstrike(1:2)	real	[m] +gridgen
 	# vertical position of inboard:outboard strike point
-istpnew		integer		/0/
+istpnew		integer		/0/ +gridgen
 	# flag for source of first-seed-point data (top of mesh)
 	# istpnew = 0 --> 1st seed point at midplane for "dnbot"
 	#         = 1 --> user-specified values (rtpnew(1:2),ztpnew(1:2))
-rtpnew(1:2)	real	[m]
+rtpnew(1:2)	real	[m] +gridgen
 	# radial position of first inboard:outboard seed point
-ztpnew(1:2)	real	[m]
+ztpnew(1:2)	real	[m] +gridgen
 	# vertical position of first inboard:outboard seed point
-istptest(1:2)	     integer	/2*0/
+istptest(1:2)	     integer	/2*0/ +gridgen
 	# flag for algorithm that defines top-of-mesh on inboard, (1), 
 	# and outboard, (2), separatrix flux contours:
 	# = 0  -->  test on R only
@@ -219,10 +219,10 @@ istptest(1:2)	     integer	/2*0/
 	# = 2  -->  test on Z only
 ilmax(1:2)	integer
 	# index of last angle surface ( at divertor plate ) in each region
-seedxp(idim,noregs)     _real
+seedxp(idim,noregs)     _real +gridgen
 	# normalized distance along core segment of separatrix
 	# measured from first seed point (=0.) to x-point (=100.)
-seedxpxl(idim,noregs)   _real
+seedxpxl(idim,noregs)   _real +gridgen
 	# normalized distance along divertor leg of separatrix measured from
 	# x-point (=0.) to last seed point (=100.) 
 seed(idim,noregs)	_real
@@ -245,7 +245,7 @@ y0g(noregs)      _real
 	# vertical position of the first seed point on the separatrix
 ylast(noregs)      _real
 	# vertical position of the last seed point on the separatrix
-isztest(1:2)	     integer	/2*0/
+isztest(1:2)	     integer	/2*0/ +gridgen
 	# flag for algorithm that defines end-of-mesh on inboard, (1), 
 	# and outboard, (2), separatrix flux contours:
 	# = 0  -->  test on R only
@@ -253,7 +253,7 @@ isztest(1:2)	     integer	/2*0/
 	# = 2  -->  test on Z only
 epslon_lim	real  /1.e-3/
 	# ratio of limiter guard-cell x-width to adjacent cell
-dalpha       real /5./
+dalpha       real /5./ +gridgen
         # fuzziness or overlap (in degrees) of angle limits associ. with alpha1
 
 ***** Transit:
@@ -295,7 +295,7 @@ iendc(noregs)    _integer
 
 ***** UEgrid:
 # input/output data for defining the grid in the UEDGE code
-ixtop   integer
+ixtop   integer +gridgen
 	# ix index of top "angle" surface opposite the x-point
 
 ***** Mmod:
@@ -352,11 +352,11 @@ rtop2(ntop2)	_real	[m]
 ztop2(ntop2)	_real	[m]
 	# vertical position of data points on the outboard top-of-mesh
 	# reference surface
-istream			integer	/0/
+istream			integer	/0/ +gridgen
 	# option parameter for defining fixed upstream reference surface
 	# istream=0	midplane+cut(ismmon=1) or top-of-mesh(ismmon=2)
 	# istream=1	user-defined upstream surface arrays
-isupstreamx			integer	/0/
+isupstreamx			integer	/0/ +gridgen
 	# option parameter for defining fixed upstream reference surface
 	# isupstreamx=0	midplane+cut(ismmon=1) or top-of-mesh(ismmon=2)
 	# isupstreamx=1	orthogonal surface (SOL and PF) through x-point
@@ -392,23 +392,23 @@ rdnstream2(ndnstream2)	_real	[m]
 zdnstream2(ndnstream2)	_real	[m]
 	# vertical position of data points on the outboard downstream
 	# reference surface
-iplate			integer	/0/
+iplate			integer	/0/ +gridgen
 	# option parameter for defining divertor plates
 	# iplate=0	orthogonal plates
 	# iplate=1	user-defined divertor plates
-nplate1	integer
+nplate1	integer +gridgen
 	# number of data points on the inboard divertor plate surface
-rplate1(nplate1)	_real	[m]
+rplate1(nplate1)	_real	[m] +gridgen
 	# radial position of data points on the inboard divertor plate surface
-zplate1(nplate1)	_real	[m]
+zplate1(nplate1)	_real	[m] +gridgen
 	# vertical position of data points on the inboard divertor plate
 	# surface
-nplate2	integer
+nplate2	integer +gridgen
 	# number of data points on the outboard divertor plate surface
-rplate2(nplate2)	_real	[m]
+rplate2(nplate2)	_real	[m] +gridgen
 	# radial position of data points on the outboard divertor plate
 	# surface
-zplate2(nplate2)	_real	[m]
+zplate2(nplate2)	_real	[m] +gridgen
 	# vertical position of data points on the outboard divertor plate
 	# surface
 ntop		integer
@@ -455,17 +455,17 @@ zplate0(nptmp)		_real	[m]
 	# temporary array for subroutine meshmod
 dsnorm(idim)		_real
 	# temporary array for subroutine meshmod2
-wtold	real	/0.5/
+wtold	real	/0.5/ +gridgen
 	# weight factor for spatial smoothing of angle-like mesh surfaces
 	# wtold=1.0 ==> no smoothing
 	# wtold=0.5 ==> (1,2,1) relative weighting of (j-1,j,j+1)
 	# wtold=0.0 ==> (1,0,1) relative weighting of (j-1,j,j+1)
-nsmooth	integer	/2/
+nsmooth	integer	/2/ +gridgen
 	# number of times to apply the smoothing algorithm to each
 	# angle-like surface after non-orthogonal plate construction
-fuzzm	real	[m]	/1.0e-08/
+fuzzm	real	[m]	/1.0e-08/ +gridgen
 	# a measure of the "fuzziness" in meshpoint coordinates  
-delmax	real	[m]	/1.0e-08/
+delmax	real	[m]	/1.0e-08/ +gridgen
 	# estimated maximum deviation of mesh points from exact flux
 	# surfaces (used only in subroutine smooth)
 wtmesh1	real	/0.5/
@@ -475,7 +475,7 @@ wtmesh1	real	/0.5/
 wtm1(idim)	_real
 	# temporary array of weight factors for merging limiter mesh
 	# with original (unmodified) mesh
-dmix0	real	/0./
+dmix0	real	/0./ +gridgen
 	# normalized poloidal mixing length for combining mesh0 with mesh12
 	# =0. --> abrupt  change from orthogonal mesh to mesh12 at upstream 
         #         position
@@ -509,20 +509,20 @@ dsmesh3(idim)	_real
 dsmeshff(idim)	_real
 	# temporary array for subroutine meshff
 	# distance from top-of-mesh to modified meshpoints (flamefront)
-cwtffu		real	/1./
+cwtffu		real	/1./ +gridgen
 	# exponent for weight function variation between x-point and flamefront
 	# wt(ix)=wtff*fac(ix)**cwtff where fac(ix) varies linearly from
 	# zero at xpoint to unity at flamefront.
-cwtffd		real	/1./
+cwtffd		real	/1./ +gridgen
 	# exponent for weight function variation between flamefront and plate
 	# wt(ix)=wtff*fac(ix)**cwtff where fac(ix) varies linearly from
 	# zero at plate to unity at flamefront.
-isxtform	integer	/1/
+isxtform	integer	/1/ +gridgen
 	# flag for choosing various forms of x(ix) near flamefront
 	# =1 --> specify slope factor at flamefront only (default)
 	# =2 --> specify slope factor at flamefront and upstream
 	# =3 --> specify slope factor at flamefront, upstream and downstream
-iswtform	integer /0/
+iswtform	integer /0/ +gridgen
 	# flag for choosing various forms of weight factors near flamefront
 	# =0 --> wt(ix)=wtff for all ix (default)
 	# =1 --> wt(ix)~wtff*abs(ix-ixlimit)**cwtff between flamefront and
@@ -543,7 +543,7 @@ slpxffd1	real
 	# slope factor at downstream limit (plate) of flamefront mesh
 	# slpxuu < 1  makes mesh finer
 	# slpxuu > 1  makes mesh coarser
-nxdff1		integer		/0/
+nxdff1		integer		/0/ +gridgen
 	# number of cells between flame front and divertor plate
 	# on inner leg (region 1)
 wtff2		real
@@ -568,26 +568,26 @@ nxdff2		integer		/0/
 
 ***** Refinex:
 # data used for mesh refinement near the x-point
-isrefxptn	integer	/1/
+isrefxptn	integer	/1/ +gridgen
 	# flag for choosing x-point mesh refinement algorithm
 	# =0  old interpolation method
 	# =1  new flux-surface-based method
-nxmod	integer	/2/
+nxmod	integer	/2/ +gridgen
 	# number of 'upstream' poloidal cells (per quadrant) in the
 	# original mesh that we modify by calling subroutine refinex
-alfxptl real /1./	# use as alfxpt for cells below(l) the x-pt;
+alfxptl real /1./ +gridgen	# use as alfxpt for cells below(l) the x-pt;
         # frac=(i/(nxxpt+nxmod))**alfxpt for extra x-pt grid spacing below x-pt
-alfxpt2l real /1./	# use as alfxpt2 for cells below(l) the x-pt;
+alfxpt2l real /1./ +gridgen	# use as alfxpt2 for cells below(l) the x-pt;
         # frac2=(i/(nxxpt+nxmod-1))**alfxpt2 for mixing fixed lngth & 
 	# flux-surface length in adding extra x-pt cells below x-pt
-alfxptu real /1./	# use as alfxpt for cells above(u) the x-pt;	
+alfxptu real /1./ +gridgen	# use as alfxpt for cells above(u) the x-pt;	
         # frac=(i/(nxxpt+nxmod))**alfxpt for extra x-pt grid spacing above x-pt
-alfxpt2u real /1./	# use as alfxpt2 for cells above(u) the x-pt;	
+alfxpt2u real /1./ +gridgen	# use as alfxpt2 for cells above(u) the x-pt;	
         # frac2=(i/(nxxpt+nxmod-1))**alfxpt2 for mixing fixed lngth & 
 	# flux-surface length in adding extra x-pt cells above x-pt
-alfxpt  real /1./	# work var for alfxptl,u for below(l)/above(u) x-pt
+alfxpt  real /1./ +gridgen	# work var for alfxptl,u for below(l)/above(u) x-pt
         # frac=(i/(nxxpt+nxmod))**alfxpt for setting extra x-pt grid spacing
-alfxpt2 real /1./	# work var for alfxptsl,u for below(l)/above(u) x-pt
+alfxpt2 real /1./ +gridgen	# work var for alfxptsl,u for below(l)/above(u) x-pt
         # frac2=(i/(nxxpt+nxmod-1))**alfxpt2 for mixing fixed lngth & 
 	# flux-surface length in adding extra x-pt cells
 rsu(0:nym+2)	_real	[m]
@@ -617,7 +617,7 @@ rmm(0:nym,0:nxm)	_real	[m]
 zmm(0:nym,0:nxm)	_real	[m]
 	# working array that contains z-coord's of angle-like surfaces
 	# in refined region near x-point
-nsmoothx	integer	/8/
+nsmoothx	integer	/8/ +gridgen
 	# number of times to apply the smoothing algorithm to each
 	# angle-like surface after mesh refinement near the x-point
 
@@ -629,21 +629,21 @@ xdat(ndat) 	_real	[m]
 	# data values for xfcn
 tdat(ndat) 	_real
 	# data values for t
-kxmesh  integer /1/
+kxmesh  integer /1/ +gridgen
 	# switch parameter for choosing model that defines x-mesh :
 	#       kxmesh=0        use old model (manual def. of seed points)
 	#       kxmesh=1        use linear*rational form for x(t)
 	#       kxmesh=2        use linear*exponential form for x(t)
 	#       kxmesh=3        use spline form for x(t)
 	#       kxmesh=4        use exponential+spline form for x(t)
-slpxt	real	/1.0/
+slpxt	real	/1.0/ +gridgen
 	# slope enhancement factor for x(t) near the "top" of the core
 	# plasma
-alfx(2)		real	/2*0.1/
+alfx(2)		real	/2*0.1/ +gridgen
 	# log( dx(n+1)/dx(n) ) for 'gas' cells near the divertor plates
-dxgas(2)	real	[m]
+dxgas(2)	real	[m] +gridgen
 	# poloidal size of first 'gas' cell at inboard and outboard plates
-nxgas(2)	integer
+nxgas(2)	integer +gridgen
 	# number of poloidal 'gas' cells at inboard and outboard plates
 dt1	real
 	# normalized-index distance (t) from inboard plate to 'extra' data
@@ -655,19 +655,19 @@ dt2	real
 	# point
 dx2	real	[m]
 	# physical distance (x) from outboard plate to 'extra' data point
-ileft	integer	/0/
+ileft	integer	/0/ +gridgen
 	# type of end condition at the left endpoint
 	#     = 1  first derivative specified by dleft
 	#     = 2  second derivative specified by dleft
-dleft	real	/0.0/	[m]
+dleft	real	/0.0/	[m] +gridgen
 	# derivative at left endpoint
-iright	integer	/0/
+iright	integer	/0/ +gridgen
 	# type of end condition at the right endpoint
 	#     = 1  first derivative specified by dright
 	#     = 2  second derivative specified by dright
-dright	real	/0.0/	[m]
+dright	real	/0.0/	[m] +gridgen
 	# derivative at right endpoint
-kord	integer	/4/	# order of spline (=4 for cubic interpolation)
+kord	integer	/4/ +gridgen	# order of spline (=4 for cubic interpolation)
 ndatp2	integer	/NDATP2/ 	# NDATP2 = NDAT+2
 kntopt	integer	/1/		# knot selection option flag
 tknt(ndatp2+4)	_real		# knot locations
@@ -697,15 +697,15 @@ iysptrxu	integer	# radial index of cells just inside the separatrix
 
 ***** Expseed:
         # variables to control exponential poloidal mesh in sub exponseed
-fraclplt(2)   real  /.6,.6/     #frac of divertor leg with near-plate spacing
-alfxdiv(2)    real /.18,.18/    #exponential factor for cell-size expansion
-alfxcore(2)   real  /.4,.4/     #exponential factor for cell-size expansion
-shift_seed_leg(2)  real /0.,0./ #shift in seed away from Xpt toward plate
-shift_seed_core(2) real /1.,1./ #shift in seed away from Xpt toward top
-nxlplt(2)   integer     /12,12/ #num poloidal cells in leg-plate region
-nxlxpt(2)   integer     /4,4/   #num pol cells in leg-xpt region; 
+fraclplt(2)   real  /.6,.6/  +gridgen    #frac of divertor leg with near-plate spacing
+alfxdiv(2)    real /.18,.18/ +gridgen    #exponential factor for cell-size expansion
+alfxcore(2)   real  /.4,.4/  +gridgen    #exponential factor for cell-size expansion
+shift_seed_leg(2)  real /0.,0./ +gridgen #shift in seed away from Xpt toward plate
+shift_seed_core(2) real /1.,1./ +gridgen #shift in seed away from Xpt toward top
+nxlplt(2)   integer     /12,12/ +gridgen #num poloidal cells in leg-plate region
+nxlxpt(2)   integer     /4,4/   +gridgen #num pol cells in leg-xpt region; 
 			        #note nxlplt+nxlxpt = nxleg (must check)
-fcorenunif  real        /0.8/   #frac pol core mesh with expon mesh
+fcorenunif  real        /0.8/   +gridgen #frac pol core mesh with expon mesh
 
 ***** Xfcn:
 	# contains various x-mesh functional forms
