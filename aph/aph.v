@@ -13,9 +13,12 @@ sgvcxc   real [m^2/s] /2.e-14/# const. value of sigv_cx for issgvcxc=1;
 isaphdir integer       /1/    #=1 uses aphdir; =0 uses explicit rate file names
 aphdir	character*120 # name of directory containing data files
 data_directory	character*120 # another dirname containing data files. This is to be be passed in
+isaphdir integer       /1/    +input #=1 uses aphdir; =0 uses explicit rate file names
+aphdir	character*120 +input # name of directory containing data files
+data_directory	character*120 +input # another dirname containing data files. This is to be be passed in
 
 ***** Ionization_energy:
-erad	real [eV] /25./ # tot elec engy loss/ioniz (rad+binding) if istabon=0
+erad	real [eV] /25./ +input # tot elec engy loss/ioniz (rad+binding) if istabon=0
 
 ***** Rtdata:
 # hydrogenic rate table data from ADPAK via Braams' rate code

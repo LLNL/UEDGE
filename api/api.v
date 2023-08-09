@@ -40,7 +40,7 @@ getprad(nx,ny,ngsp,te,ne:real,ng:real,afrac,atau,
 ***** Impurity_transport:
 # variable specifying radial transport rate of impurities
 dnimp		real	/1./	[m**2/s]
-methimp         integer /33/   # specifies interp. for finite diff. for (y,x)
+methimp         integer /33/   +input # specifies interp. for finite diff. for (y,x)
                                # 66 is log interp., 77 inverse interp.,
                                # otherwise linear interp.
 csexpn		real    /0./   # exponent for reducing impurity || vel from
