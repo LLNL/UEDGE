@@ -1,12 +1,15 @@
 SYSTEM HP700
-Macros = ../../sptodp
+Macros = ../../sptodp ../../dimvars
 CC = cc -Aa +e
 
 SYSTEM SUN4 SOL SGI RS6000 AXP CS2 IRIX64 LINUX
-Macros = ../../sptodp
+Macros = ../../sptodp ../../dimvars
 ## CC = acc  # Think this is not necessary & causes problems on some platforms
 
 SYSTEM J90
 FORT         = f90
 FF           = -G1 -v -V
 MPPL_DEFINES = -DCOMPILER=F90   # don't think this matters, but...
+
+SYSTEM LINUX64
+Macros = ../../sptodp ../../dimvars
