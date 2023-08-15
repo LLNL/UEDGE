@@ -1,2 +1,2 @@
 
-__src__ = '/Users/meyer8/holm10uedge'
+__src__ = '/home/meyer8/UEDGE'

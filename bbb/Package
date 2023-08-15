@@ -1,7 +1,7 @@
 PKG = bbb
 POINTER = cray
 
-VDF = bbb_basis.v
+VDF = bbb.v
 
 NVDF = ../com/com_basis.v
 

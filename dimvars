@@ -1,0 +1,3 @@
+
+define([Com_Dim_Vars],[ifelse([$*],,[Dim],[Dim([$*])])])
+define([Grd_Dim_Vars],[ifelse([$*],,[Dimflxgrd],[Dimflxgrd([$*])])])
