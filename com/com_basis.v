@@ -2,6 +2,7 @@ com   # Data and routines used in multiple packages
 {
 MXMISO=5        # maximum number of charged isotopes; also must set in api.v
 ngspmx = 6	# maximum number of gas species; also must set in bbb.v
+isgriduehdf5 = 0  # makes this not setable from parser in basis, only python
 }
 
 ***** OMFIT:
@@ -251,7 +252,6 @@ nxxpt
 nyomitmx	integer /0/
    # number of y-cells to omit from iy=ny; used to do core only for fluid eqns
 igrid		integer	/1/	# loop index for which grid; e.g., nysol(igrid)
-isgriduehdf5   integer /0/  
 geometry	character*16 /"snull"/
 				# specifies magnetic configuration, e.g.,
 				# ='snull' for lower single null
@@ -276,12 +276,6 @@ zxpt2msh        real /0.01/ [m] # spacing iy=1 1D vertices reset above ixpt2
 rxpt2msh        real /0.0/  [m] # spacing iy=1 1D vertices reset above ixpt2
 zxpt2psh        real /0.01/ [m] # spacing iy=1 1D vertices reset below ixpt2
 rxpt2psh        real /0.0/  [m] # spacing iy=1 1D vertices reset below ixpt2
-nxpt1msh        integer /0/     #..zml number of 1D cells above ixpt1 reset/no-cross
-nxpt1psh        integer /0/     #..zml number of 1D cells below ixpt1 reset/no-cross
-zxpt1msh        real /0.01/ [m] #..zml spacing iy=1 1D vertices reset above ixpt1
-rxpt1msh        real /0.0/  [m] #..zml spacing iy=1 1D vertices reset above ixpt1
-zxpt1psh        real /0.01/ [m] #..zml spacing iy=1 1D vertices reset below ixpt1
-rxpt1psh        real /0.0/  [m] #..zml spacing iy=1 1D vertices reset below ixpt1
 ismpsym         integer /0/     # =1 re-constructs "guard" cells at midplane
                                 # of "dnbot" via up/down symmetry
 isudsym         integer /0/     #=1 up-down symmetric setup (only down part is modeled)

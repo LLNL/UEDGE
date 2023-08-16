@@ -3846,7 +3846,7 @@ yielh(imx+1)	       _real
 yielz(imx+1,lnst+1)    _real
 
 ***** Ident_vars:
-uedge_ver  character*80 /'$Name:  $'/
+uedge_ver  character*80 /'$Name: 8.0.4.0$'/
 uedge_date character*80 /'Version date in README_Uedge_vers in dir uedge'/
 session_id  integer /0/ # Identifier for use with uetools
 max_session_id  integer /0/ # Identifier for max allocated runs, use with uetools
