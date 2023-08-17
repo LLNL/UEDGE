@@ -1,6 +1,6 @@
 from .uedge import *
-from pathlib import Path
 from os import path
+from pathlib import Path
 try:
     from uedge.__version__ import __version__
     from uedge.__src__ import __src__

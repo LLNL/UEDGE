@@ -6596,7 +6596,7 @@ c ...    If a parallel run, send and gather data to PE0 first
                   call comp_vertex_vals  # gen plasma/neut values at rm,zm(,,4)
                endif
             endif
-         write(6,*) "Interpolants created; mype =", mype
+         if (iprint .ge. 1) write(6,*) "Interpolants created; mype =", mype
          endif
 
   100 continue
