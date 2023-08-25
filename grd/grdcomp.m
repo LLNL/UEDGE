@@ -5599,12 +5599,12 @@ c     outboard regions of the mesh
 
 c     For inboard region of the mesh:
       nsplit1=nptnma+1
-      call gchange("com.Limiter",0)
+      call gchange("Limiter",0)
       call getlim1
 
 c     For outboard region of the mesh:
       nsplit2=nlimu-nptnma+2
-      call gchange("com.Limiter",0)
+      call gchange("Limiter",0)
       call getlim2
 
       return
