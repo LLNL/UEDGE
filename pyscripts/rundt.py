@@ -245,14 +245,21 @@ class UeRun():
         return f
 
 
-    def failureanalysis(savefname, equation=None, N=slice(None)):
+    def failureanalysis(savefname, equation=None, N=slice(None), geometry=False):
         from h5py import File
         from os.path import exists
         from matplotlib.pyplot import subplots
         from numpy import histogram, zeros
         from matplotlib.collections import PolyCollection
         
-        f, ax = subplots(2,1, figsize=(10, 7))
+        # TODO: add option for plotting offending cell on geometric grid
+        if geometry is True:
+            f, ax = subplots(1,2, figsize=(12, 8), 
+                gridspec_kw={'width_ratios': [1, 1.2]})
+            f.subplots_adjust(top=0.98)
+        else:
+            f, ax = subplots(2,1, figsize=(10, 7))
+
         if not exists(savefname):
             print('File {} not found. Aborting!'.format(savefname))
             return
@@ -299,13 +306,27 @@ class UeRun():
             frequency = zeros((nx+2, ny+2))
 
             cells = []
-            for i in range(nx+2):
-                for j in range(ny+2):
-                    cells.append([[i-.5, j-.5], [i+.5, j-.5], 
-                        [i+.5, j+.5], [i-.5, j+.5]])
+            if geometry is True:
+                try:
+                    rm = file['grid/com/rm'][()] 
+                    zm = file['grid/com/zm'][()] 
+                except:
+                    raise KeyError('Grid data not found in {}'.format(\
+                        savefname))
+                for i in range(nx+2):
+                    for j in range(ny+2):
+                        cell = []
+                        for k in [1, 2, 4, 3]:
+                            cell.append((rm[i, j, k], zm[i, j, k]))
+                        cells.append(cell)
+            else:
+                for i in range(nx+2):
+                    for j in range(ny+2):
+                        cells.append([[i-.5, j-.5], [i+.5, j-.5], 
+                            [i+.5, j+.5], [i-.5, j+.5]])
 
-            polys = PolyCollection(cells, edgecolors='k', linewidth=0.5, 
-                linestyle=':')
+            polys = PolyCollection(cells, edgecolors='k', 
+                linewidth=0.5-0.45*geometry, linestyle=':')
                 
             for i in range(len(data['itrouble'][N])):
                 coord = data['troubleindex'][N][i]
@@ -314,25 +335,33 @@ class UeRun():
                 elif iequation == data['internaleq'][N][i]:
                     frequency[coord[0], coord[1]] += 1
 
-        polys.set_cmap('binary')
+        if geometry is False:
+            polys.set_cmap('binary')
+        else:
+            polys.set_cmap('binary')
         polys.set_array(frequency.reshape(((nx+2)*(ny+2),)))
 
         cbar = f.colorbar(polys, ax=ax[1])
         cbar.ax.set_ylabel('N trouble'+' for {}'.format(equation)*\
             (equation is not None), va='bottom', labelpad=20)
 
-        ax[1].plot([.5, nx+.5, nx+.5, .5, .5], [.5, .5, ny+.5, ny+.5, .5], 
-            'k-', linewidth=1)
 
         ax[1].set_xlabel('Poloidal index')
         ax[1].set_ylabel('Radial index')
         ax[1].add_collection(polys)
-        ax[1].plot([.5, nx+.5],[iysptrx+.5, iysptrx+.5], 'k-', 
-            linewidth=1)
-        ax[1].plot([ixpt1+.5, ixpt1+.5], [.5, iysptrx+.5], 'k-', 
-            linewidth=1)
-        ax[1].plot([ixpt2+.5, ixpt2+.5], [.5, iysptrx+.5], 'k-', 
-            linewidth=1)
+        if geometry is False:
+            ax[1].plot([.5, nx+.5, nx+.5, .5, .5], [.5, .5, ny+.5, ny+.5, .5], 
+                'k-', linewidth=1)
+            ax[1].plot([.5, nx+.5],[iysptrx+.5, iysptrx+.5], 'k-', 
+                linewidth=1)
+            ax[1].plot([ixpt1+.5, ixpt1+.5], [.5, iysptrx+.5], 'k-', 
+                linewidth=1)
+            ax[1].plot([ixpt2+.5, ixpt2+.5], [.5, iysptrx+.5], 'k-', 
+                linewidth=1)
+        else:
+            ax[1].set_aspect('equal')
+            ax[1].set_ylim((0.95*zm.min(), 1.05*zm.max()))
+            ax[1].set_xlim((0.95*rm.min(), 1.05*rm.max()))
 
         file.close()
         return f
@@ -980,8 +1009,10 @@ class UeRun():
                 self.converge(dtreal=dtreal, savedir='.', 
                     savefname=self.savefname.format('{:.4e}_dtrun'.format(\
                     dtdelta).replace('.','p')).replace('.hdf5',''), 
-                    message='Solving for delta={:.5e}'.format(self.delta),
+                    message='Solving for delta={:.3f}%'.format(self.dtdelta*100),
                     ii1max=ii1max, **kwargs)
+                if bbb.iterm == 1:
+                    self.lastsuccess = dtdelta
                 # Ensure original values are still being kept track of
                 self.orig = orig_cont
                 bbb.incpset = incpset_cont 
