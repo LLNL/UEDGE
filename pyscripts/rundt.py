@@ -1009,7 +1009,7 @@ class UeRun():
                 self.converge(dtreal=dtreal, savedir='.', 
                     savefname=self.savefname.format('{:.4e}_dtrun'.format(\
                     dtdelta).replace('.','p')).replace('.hdf5',''), 
-                    message='Solving for delta={:.3f}%'.format(self.dtdelta*100),
+                    message='Solving for delta={:.3f}%'.format(dtdelta*100),
                     ii1max=ii1max, **kwargs)
                 if bbb.iterm == 1:
                     self.lastsuccess = dtdelta
@@ -1029,8 +1029,8 @@ class UeRun():
                 print('===== CONTINUATION SOLVE FAILED =====')
                 print('=====================================')
                 setvar(self.lastsuccess)
-                print('Last successful step for {}: {:.4e}'.format(self.var, 
-                    self.lastsuccess)
+                print('Progress upon abortion: {:.3e}%'.format(
+                    self.lastsuccess*100)
                 )
                 return False
             else:
@@ -1111,16 +1111,16 @@ class UeRun():
         for key, subdict in self.var.items():
             if isinstance(subdict['target'], list):
                 subdict['target'] = array(subdict['target'])
-            if index is not None:
-                try:
-                    getattr(self.pkgobj, self.var)[self.index]
-                except:
-                    raise ValueError('{} does not accommodate requested indices!'.format(key))
             for pkg in package():
                 pkgobj = packageobject(pkg)
                 if key in pkgobj.varlist():
                     subdict['pkg'] = pkg
                     subdict['pkgobj'] = pkgobj
+            if subdict['index'] is not None:
+                try:
+                    getattr(subdict['pkgobj'], key)[subdict['index']]
+                except:
+                    raise ValueError('{} does not accommodate requested indices!'.format(key))
             subdict['origvar'] = deepcopy(getvar(key, subdict))
             subdict['deltavar'] = deepcopy(subdict['target'] - subdict['origvar'])
             try:
