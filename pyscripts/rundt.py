@@ -800,7 +800,7 @@ class UeRun():
         initres=1000,
         deltafac=2,
         dtdeltafac=2,
-#        staticiter_max=8,
+        staticiter_max=3,
         dtlim=1e4,
         ii1max=150,
         saveres=7,
@@ -819,6 +819,8 @@ class UeRun():
                 set, ensure target has the matching, appropriate dimensions
                 or is a float
         dt - time-step used when solving using continuation
+        staticiter_max - maximum consequtive static iterations before callong 
+                time-depenent run
         dtreal - time-step used when resorting to time-dependent solve
         ftol - ftol to be attained
         iicont_max - iterations in continuation loop
@@ -874,7 +876,8 @@ class UeRun():
             """ Checks whether case is converged at target value of var """
             from time import time
             from datetime import timedelta
-            if (self.lastsuccess + self.delta) >= 1:
+            self.lastsuccess += min(self.delta, 1-self.lastsuccess)
+            if self.lastsuccess >= 1:
                 print('\n===== TARGET VALUE ACHIEVED: REDUCE FNORM ====')
                 staticiter()
                 bbb.dtreal = 1e20
@@ -884,16 +887,13 @@ class UeRun():
                 print('++++++++++++++++++++++++++++++++++++++++')
                 print('Total runtime: {}'.format(timedelta(
                         seconds=round(time()-self.tstart))))
-                self.savesuccess('SUCCESS_{}_{}.hdf5'.format(self.var, 
-                    '{:.5e}'.format(self.lastsuccess).replace('.','p'))
-                )
+                self.savesuccess('SUCCESS_{}.hdf5'.format(self.savedir))
                 self.restorevalues()
                 return True
             else:
-                self.lastsuccess += self.delta
                 if self.isave >= self.saveres:
                     self.isave = 0
-                    self.savesuccess(self.savefname.format('{:.7e}'.format(self.lastsuccess).replace('.','p')))
+                    self.savesuccess(self.savefname.format('{:.3f}'.format(self.lastsuccess).replace('.','p')))
                 else:
                     self.isave += 1
 
@@ -1007,7 +1007,7 @@ class UeRun():
                     dtdeltafac /=2
             if abort is False:
                 self.converge(dtreal=dtreal, savedir='.', 
-                    savefname=self.savefname.format('{:.4e}_dtrun'.format(\
+                    savefname=self.savefname.format('{:.3f}_dtrun'.format(\
                     dtdelta).replace('.','p')).replace('.hdf5',''), 
                     message='Solving for delta={:.3f}%'.format(dtdelta*100),
                     ii1max=ii1max, **kwargs)
@@ -1029,7 +1029,7 @@ class UeRun():
                 print('===== CONTINUATION SOLVE FAILED =====')
                 print('=====================================')
                 setvar(self.lastsuccess)
-                print('Progress upon abortion: {:.3e}%'.format(
+                print('Progress upon abortion: {:.3f}%'.format(
                     self.lastsuccess*100)
                 )
                 return False
@@ -1070,7 +1070,7 @@ class UeRun():
             if exists(self.savedir):
                 rmtree(self.savedir)
         # Finalize savename w/ placeholder
-        self.savefname = '{}/delta{{}}.hdf5'.format(self.savedir)
+        self.savefname = '{}/progress{{}}.hdf5'.format(self.savedir)
         makedirs(self.savedir)
         # Additional variables to be stored in save files
         self.classvars = {}
@@ -1084,6 +1084,7 @@ class UeRun():
         self.cutoff = cutoff
         # Set up control flags
         start = True
+        nstaticiter = 0
         iicont = 0
         iicont_fail = 0
         dtiter = 0
@@ -1135,7 +1136,7 @@ class UeRun():
             self.classsetup['initial_{}'.format(key)] = getvar(key, subdict)
             self.classsetup['delta_{}'.format(key)] = subdict['deltavar']
             self.classsetup['target_{}'.format(key)] = subdict['target']
-            if isinstance(subdict['index'], tuple):
+            if isinstance(subdict['index'], (tuple, slice)):
                 self.classsetup['index_{}'.format(key)] = str(subdict['index']).encode("ascii", "ignore")
             elif subdict['index'] is not None:
                 self.classsetup['index_{}'.format(key)] = subdict['index']
@@ -1231,8 +1232,9 @@ class UeRun():
                                     dtcall=True
                                 else:
                                     dtcall=False
+                                nstaticiter += 1
                             # Enter loop for time-dependent simulations
-                            if (bbb.iterm != 1) or (dtcall is True):
+                            if (bbb.iterm != 1) or (dtcall is True) or (nstaticiter==staticiter_max):
                                 print('===== ENTER TIME-DEPENDENT SOLVE =====')
                                 if dtsolve(dtdeltafac) is False:
                                     return
@@ -1268,6 +1270,7 @@ class UeRun():
                     # Check whether to increment time-step
                     if iicont == iicont_max-1:
                         print('\n===== INNER LOOP COMPLETED: ADVANCING DELTA =====')
+                        nstaticiter = 0
                         self.delta *= 1.1*deltafac
                     else:
                         print('\n===== SUCCESS: ADVANCING VARIABLE =====')
