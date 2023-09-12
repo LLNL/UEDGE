@@ -89,7 +89,7 @@ class UeRun():
             '{:.4e}\n'.format(self.classvars['dtrealfail'][-1]))
         print('** yl for troublemaker equation:\n' + \
             '{:.4e}\n'.format(self.classvars['ylfail'][-1]))
-        print('** yl*sfscal for troublemaker equation:\n' + \
+        print('** yldot*sfscal for troublemaker equation:\n' + \
             '{:.4e}\n'.format(self.classvars['yldotsfscalfail'][-1]))
     
     def savesuccess(self, savename, fnrm=None):
