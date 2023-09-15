@@ -39,9 +39,6 @@ class UeRun():
         self.setupvars['ixpt2'] = self.setupvars['ixpt2'][0]        
         super().__init__(*args, **kwargs)
 
-    def testfunc(self):
-        print('TESTFUNC')
-
     def itroub(self):
         ''' Function that displays information on the problematic equation '''
         from numpy import mod, argmax, where, array, argmin
