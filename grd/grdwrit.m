@@ -150,11 +150,7 @@ c        Then, map data into full-space arrays, assuming symmetry:
          call add_guardc_tp
          call magnetics(0,nxm+1,1,nym)
          call symmetrize_magnetics
-         if (isgriduehdf5 .eq. 1) then
-            call parsestr('import uedge.gridue as gue;gue.write_gridue()')
-         else
-            call writednf (fname, runidarg)
-         endif
+         call writednf (fname, runidarg)
       else
 c        write the outboard half of the full double null geometry,
 c        excluding the PLANET guard cells near the x-points.
@@ -430,11 +426,7 @@ Use(Refinex)        # isrefxptn
       call magnetics(1,nxm,1,nym)
 
 #     Finally, write out the data --
-      if (isgriduehdf5 .eq. 1) then
-        call parsestr('import uedge.gridue as gue;gue.write_gridue()')
-      else
-        call writedata (fname, runidarg)
-      endif
+      call writedata (fname, runidarg)
 
       return
       end
@@ -449,7 +441,7 @@ Use(Comflxgrd)
 Use(Dimensions)
 Use(Inmesh)
 Use(Linkco)
-Use(Share)        # nxxpt, isgriduehdf5
+Use(Share)        # nxxpt
       character*(*) fname, runidarg
       external gallot, wrsndata
 
@@ -464,7 +456,6 @@ Use(Share)        # nxxpt, isgriduehdf5
       call gallot("RZ_grid_info",0)
 
       call wrsndata (fname, runidarg)
-      
 
       return
       end
@@ -588,12 +579,7 @@ Use(Refinex)        # isrefxptn
       call magnetics(ixmin,nxm,1,nym)
 
 #     Finally, write out the data --
-
-      if (isgriduehdf5 .eq. 1) then
-        call parsestr('import uedge.gridue as gue;gue.write_gridue()')
-      else
-        call writedata (fname, runidarg)
-      endif
+      call writedata (fname, runidarg)
 
       return
       end

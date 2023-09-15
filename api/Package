@@ -3,7 +3,7 @@ POINTER = cray
 
 VDF = api_basis.v
 
-NVDF = ../com/com_basis.v ../bbb/bbb_basis.v
+NVDF = ../com/com.v
 
 SM = apifcn.m apip93.m apisorc.m fimp.m inelrates.m fmombal.m sputt.m
 
