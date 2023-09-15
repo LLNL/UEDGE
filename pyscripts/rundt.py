@@ -39,6 +39,9 @@ class UeRun():
         self.setupvars['ixpt2'] = self.setupvars['ixpt2'][0]        
         super().__init__(*args, **kwargs)
 
+    def testfunc(self):
+        print('TESTFUNC')
+
     def itroub(self):
         ''' Function that displays information on the problematic equation '''
         from numpy import mod, argmax, where, array, argmin
@@ -111,11 +114,6 @@ class UeRun():
         for var in ['nfe', 'dt_tot', 'dtreal']:
             if var in self.classvars:
                 self.classvars[var].append(deepcopy(getattr(bbb, var)))
-        try:
-            self.save('{}_UeCase.hdf5'.format(savefname.split('.')[0]))
-        except:
-            pass
-
         self.save_intermediate(savename)
 
     def store_timeslice(self):
@@ -128,6 +126,7 @@ class UeRun():
 
     def save_intermediate(self, savename):
         from uedge.hdf5 import hdf5_save
+        from os.path import exists
         from uedge import bbb, com
         from h5py import File
 
@@ -137,38 +136,32 @@ class UeRun():
         for var in [ 'nisp', 'ngsp', 'nhsp', 'nhgsp', 'nzsp']:
             self.__setattr__(var, com.__getattribute__(var))
 
-        try:
-            hdf5_save(savename)
-        except:
+
+
+        if not exists('/'.join(savename.split('/')[:-1])):
             print('Folder {} not found, saving output to cwd...'\
                 .format(savename.split('/')[0]))
             hdf5_save(savename)
-
-        # Try to store ready-made Case-file, if possible
-        # TODO: Figure out how to do this??
-        try:
-            self.save(savename.replace('.hdf5', '_UeCase.hdf5'))
-        except:
-            pass
-
-        try:
-            file = File(savename, 'r+')
-        except:
-            raise
-
-        file.require_group('convergence')
-        group = file['convergence']
-        group.create_dataset('t_start', data=self.tstart)
-        group.create_dataset('equationkey', data=self.equationkey)
-        for var, value in self.setupvars.items():
-            group.create_dataset(var, data=value)
-        for var, value in self.classsetup.items():
-            group.create_dataset(var, data=value)
-        for var in self.classvars:
-            group.create_dataset(var, data=self.classvars[var])
-
-        file.close()
+            
     
+
+        try:
+            self.save(savename)#.replace('.hdf5', '_UeCase.hdf5'))
+        except:
+            hdf5_save(savename)
+
+        with File(savename, 'r+') as file:
+            file.require_group('convergence')
+            group = file['convergence']
+            group.create_dataset('t_start', data=self.tstart)
+            group.create_dataset('equationkey', data=self.equationkey)
+            for var, value in self.setupvars.items():
+                group.create_dataset(var, data=value)
+            for var, value in self.classsetup.items():
+                group.create_dataset(var, data=value)
+            for var in self.classvars:
+                group.create_dataset(var, data=self.classvars[var])
+
     def convergenceanalysis(self, savefname, fig=None,
         xaxis = 'exmain', logx = False, color='k', label=None,
         ylim = (None, None)):
@@ -363,7 +356,6 @@ class UeRun():
             ax[1].set_ylim((0.95*zm.min(), 1.05*zm.max()))
             ax[1].set_xlim((0.95*rm.min(), 1.05*rm.max()))
 
-        file.close()
         return f
 
 
