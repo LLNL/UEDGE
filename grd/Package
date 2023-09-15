@@ -1,7 +1,7 @@
 PKG = grd
 POINTER = cray
 
-VDF = grd_basis.v
+VDF = grd.v
 
 NVDF = ../com/com.v
 

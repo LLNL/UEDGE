@@ -10,6 +10,10 @@ nispmxngspmx = nispmx*ngspmx # tot numb ion*gas species
 nstramx = 10 # maximum number of strata for MC neutrals code
 }
 
+***** Com_Dim_Vars hidden:    
+dim_vars_hidden     integer    # Do not edit this group. It is used to build
+                               # the Basis version of the code. 
+
 ***** Math_problem_size:
 neqmx		integer		# number of math. eqns to be solved/integrated
 numvar		integer		# number of physical variables per cell
