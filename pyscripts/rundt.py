@@ -16,7 +16,7 @@ ion()
 
 class UeRun():
     ''' Class containing information on run '''
-    def __init__(self, n_stor = False):
+    def __init__(self, *args, n_stor = False, **kwargs):
         from numpy import array        
         from uedge import bbb, com
         # TODO: Add restore/recover from timeslice
@@ -37,7 +37,10 @@ class UeRun():
                 self.setupvars[var] = getattr(com, var)
         self.setupvars['ixpt1'] = self.setupvars['ixpt1'][0]
         self.setupvars['ixpt2'] = self.setupvars['ixpt2'][0]        
+        super().__init__(*args, **kwargs)
 
+    def testfunc(self):
+        print('TESTFUNC')
 
     def itroub(self):
         ''' Function that displays information on the problematic equation '''
@@ -169,7 +172,7 @@ class UeRun():
 
         file.close()
     
-    def convergenceanalysis(savefname, fig=None,
+    def convergenceanalysis(self, savefname, fig=None,
         xaxis = 'exmain', logx = False, color='k', label=None,
         ylim = (None, None)):
         from h5py import File
@@ -245,7 +248,7 @@ class UeRun():
         return f
 
 
-    def failureanalysis(savefname, equation=None, N=slice(None), geometry=False):
+    def failureanalysis(self, savefname, equation=None, N=slice(None), geometry=False):
         from h5py import File
         from os.path import exists
         from matplotlib.pyplot import subplots
@@ -966,6 +969,9 @@ class UeRun():
                     bbb.ftol = ftol_orig
                     print('\n===== STATIC FNRM REDUCTION FAILED =====\n')
                     return False
+            self.savesuccess(self.savefname.format('{:.3f}_staticiter'.format(\
+                    self.lastsuccess).replace('.','p')
+                ))
             print('===== CONVERGED AT STEADY STATE: RETURNING TO MAIN LOOP =====')
             bbb.dtreal = dtreal_orig
             bbb.ftol = ftol_orig
@@ -992,6 +998,7 @@ class UeRun():
             bbb.ftol = 1e-8
             abort = False
             # Ensure a first time-step can be taken
+            dtdelta = self.lastsuccess + dtdeltafac*(1-self.lastsuccess)/100
             while bbb.iterm != 1:
                 dtdelta = self.lastsuccess + dtdeltafac*(1-self.lastsuccess)/100
                 setvar(dtdelta)
@@ -1133,6 +1140,7 @@ class UeRun():
                 
         self.classsetup = {}
         for key, subdict in self.var.items():
+            self.setupvars[key] = getattr(subdict['pkgobj'], key)
             self.classsetup['initial_{}'.format(key)] = getvar(key, subdict)
             self.classsetup['delta_{}'.format(key)] = subdict['deltavar']
             self.classsetup['target_{}'.format(key)] = subdict['target']
