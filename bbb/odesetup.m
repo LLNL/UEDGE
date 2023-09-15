@@ -6552,7 +6552,7 @@ c_mpi         call MPI_BARRIER(uedgeComm, myfoo)
 
 *     -- For the continuation mode (icntnunk=1), be sure a Jacobian was
 *     -- calculated on the previous step, i.e., ijac > 0
-         if (icntnunk==1 .and. ijactot<=1 .and. svrpkg=='nksol') then
+         if (icntnunk==1 .and. ijactot<1 .and. svrpkg=='nksol') then
             call xerrab('**Error: need initial Jacobian-pair for icntnunk=1')
          endif
 
@@ -6596,7 +6596,7 @@ c ...    If a parallel run, send and gather data to PE0 first
                   call comp_vertex_vals  # gen plasma/neut values at rm,zm(,,4)
                endif
             endif
-         write(6,*) "Interpolants created; mype =", mype
+         if (iprint .ge. 1) write(6,*) "Interpolants created; mype =", mype
          endif
 
   100 continue
