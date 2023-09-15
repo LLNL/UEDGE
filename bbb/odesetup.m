@@ -6552,7 +6552,7 @@ c_mpi         call MPI_BARRIER(uedgeComm, myfoo)
 
 *     -- For the continuation mode (icntnunk=1), be sure a Jacobian was
 *     -- calculated on the previous step, i.e., ijac > 0
-         if (icntnunk==1 .and. ijactot<=1 .and. svrpkg=='nksol') then
+         if (icntnunk==1 .and. ijactot<1 .and. svrpkg=='nksol') then
             call xerrab('**Error: need initial Jacobian-pair for icntnunk=1')
          endif
 
