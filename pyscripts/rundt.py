@@ -158,6 +158,7 @@ class UeRun():
                 group.create_dataset(var, data=value)
             for var in self.classvars:
                 group.create_dataset(var, data=self.classvars[var])
+        print('Intermediate solution written to {}'.format(savename))
 
     def convergenceanalysis(self, savefname, fig=None,
         xaxis = 'exmain', logx = False, color='k', label=None,
