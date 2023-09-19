@@ -187,7 +187,7 @@ setup(name="uedge",
 
       cmdclass={'build': uedgeBuild, 'clean': uedgeClean},
       test_suite="pytests",
-      install_requires=['forthon', 'easygui'],
+      install_requires=['forthon'],
       # note that include_dirs may have to be expanded in the line above
       classifiers=['Programming Language :: Python',
                    'Programming Language :: Python :: 3']
