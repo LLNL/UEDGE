@@ -395,7 +395,7 @@ class UeRun():
         dt_kill=1e-14, t_stop=100, dt_max=100, ftol_min = 1e-9, incpset=7,
         n_stor=0, storedist='lin', numrevjmax=2, numfwdjmax=1, numtotjmax=0, 
         tstor=(1e-3, 4e-2), ismfnkauto=True, dtmfnk3=5e-4, mult_dt=3.4, 
-        reset=True, initjac=False, rdtphidtr=1e20, deldt_min=0.04, rlx=0.9,
+        reset=True, initjac=True, rdtphidtr=1e20, deldt_min=0.04, rlx=0.9,
 
         tsnapshot=None, savedir='../solutions', ii2increase=0, savefname=None,
         message=None):
@@ -606,12 +606,8 @@ class UeRun():
             if message is not None:
                 print(message)
             # Take timestep and see if abort requested
-            try:
-                if self.exmain_isaborted(self):
-                    return
-            except:
-                if self.exmain_isaborted():
-                    return
+            if self.exmain_isaborted():
+                return
             # Increase time
             # Verify time-step was successful
             if (bbb.iterm != 1):
@@ -619,8 +615,8 @@ class UeRun():
                     self.restorevalues(self)
                 except:
                     self.restorevalues()
-                self.message('Error: converge an initial time-step first; then ' + \
-                    're-execute command', seppad='*')
+                self.message('Error: converge an initial time-step first; '
+                    'then re-execute command', seppad='*')
                 return
         bbb.incpset = incpset
         bbb.itermx = itermx
@@ -696,14 +692,11 @@ class UeRun():
                 # Take timestep and see if abort requested
                 if message is not None:
                     print(message)
-                try :
-                    if self.exmain_isaborted(self):
-                        return
-                except:
-                    if self.exmain_isaborted():
-                        return
-                self.classvars['ii1'].append(ii1)
-                self.classvars['ii2'].append(ii2)
+                if self.exmain_isaborted():
+                    return
+                if bbb.iterm == 1:
+                    self.classvars['ii1'].append(ii1)
+                    self.classvars['ii2'].append(ii2)
                 if issuccess(self, t_stop, ftol_min, savefname):
                     return
             bbb.icntnunk = 2
@@ -722,14 +715,11 @@ class UeRun():
                         separator='')
                     if message is not None:
                         print(message)
-                    try:
-                        if self.exmain_isaborted(self):
-                            return
-                    except:
-                        if self.exmain_isaborted():
-                            return
-                    self.classvars['ii1'].append(ii1)
-                    self.classvars['ii2'].append(ii2)
+                    if self.exmain_isaborted():
+                        return
+                    if bbb.iterm == 1:
+                        self.classvars['ii1'].append(ii1)
+                        self.classvars['ii2'].append(ii2)
                     if issuccess(self, t_stop, ftol_min, savefname):
                         return
                     self.message("Total time = {:.4E}; Timestep = {:.4E}".format(\
