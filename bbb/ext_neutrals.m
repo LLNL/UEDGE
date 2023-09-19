@@ -173,10 +173,10 @@ c     call gchange("MCN_sources",0) #wsor, sni, ... see
 
 c ... Write uedge plasma data
       if(isechocmdon) then
-        cmd="call writemcnfile("""//trim(bkufile)//""","""//trim(runid)//""")"
+        cmd="call writemcnfile("""//trim(bkufile)//""","""//trim(runid_ext)//""")"
         print *,trim(cmd)
       else
-	    call writemcnfile(bkufile,runid)	  	  	 
+	    call writemcnfile(bkufile,runid_ext)	  	  	 
       end if
 
 c ... Process plasma data into degas2 background file format 

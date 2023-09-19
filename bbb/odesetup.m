@@ -7378,7 +7378,7 @@ c... ** End of subroutine uedge_reset -------------------- c
       delt = courant*min(delx/vrzmax, 0.5*delx**2/drzmax)
       write(*,*) 'delt = ',delt
       dtdx = delt/delx
-      delto = tend/float(ntim)
+      delto = tendoned/float(ntim)
       ito = 1
       timo(1) = 0.
 
@@ -7414,7 +7414,7 @@ cc          dens(1) = (4.*dens(2) - dens(3))/3.     # Update boundary vals
             gampzt(ix,ito) = gampz(ix)
           enddo
         endif
-        if (tim > tend) exit
+        if (tim > tendoned) exit
       enddo
       return
       end
