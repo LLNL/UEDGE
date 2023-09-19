@@ -40,6 +40,8 @@ C     INCLUDE "CYIELD"
 cdtr      include    'cyield'
 
       Use(Cyield)   # ceth,cetf,cq,ntars,cidata
+      Use(Math_problem_size) # neqmx
+      Use(Lsode)    # iprint
 
       real ETH(7,12), ETF(7,12), Q(7,12), EBD(12)
       LOGICAL IDATA(7,12)
@@ -199,9 +201,11 @@ C
       IF (CIZB.EQ.6) MATP = 5
       IF (CIZB.EQ.8) MATP = 7
 cdtr      IF (CNEUTD.EQ.1) MATP = CBOMBF
-      WRITE (*,*) 'TARGET MATERIAL IS     ' , TARMAT(MATT)
-      WRITE (*,*) 'BOMBARDING IONS ARE    ' , PLAMAT(MATP)
+      if (iprint .ne. 0) then
+        WRITE (*,*) 'TARGET MATERIAL IS     ' , TARMAT(MATT)
+        WRITE (*,*) 'BOMBARDING IONS ARE    ' , PLAMAT(MATP)
 cdtr      IF (CNEUTD.EQ.1) CALL PRI ('         WITH ZIMP', CBOMBZ)
+      endif
       RETURN
       END
 C

@@ -3,6 +3,6 @@ POINTER = cray
 
 VDF = wdf.v
 
-NVDF = ../com/com.v
+NVDF = ../com/com_basis.v
 
 SM = wdf.m

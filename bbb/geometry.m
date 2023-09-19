@@ -448,6 +448,7 @@ c  ---------------------------------------------------------------------
 
       implicit none
       Use(Dim)            # nx,ny
+      Use(Math_problem_size) # neqmx
       Use(Share)          # nxomit,nxc,nxleg,nxcore,geometry,ismpsym
       Use(Xpoint_indices) # ixpt1,ixpt2,iysptrx1,iysptrx2,iysptrx
       Use(RZ_grid_info)   # rm,zm,psi,br,bz,bpol,bphi,b
@@ -456,6 +457,7 @@ c  ---------------------------------------------------------------------
       Use(UEpar)          # thetar
       Use(Phyvar)         # pi
       Use(Bfield)         # b0old
+      Use(Lsode)          # iprint
       Use(Npes_mpi)       # mype
       Use(Comgeo)         # area_core
 *  -- local scalars --
@@ -487,7 +489,7 @@ c            write(6,*) "Calling flxrun in globalmesh."
          else
             fname = trim(GridFileName)
             call readgrid(fname, runid)
-            write(*,*) 'Read file "', fname, '" with runid:  ', runid
+            if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*) 'Read file "', fname, '" with runid:  ', runid
             write(*,*)
          endif
       elseif (mhdgeo .eq. 2) then
@@ -497,23 +499,23 @@ c            write(6,*) "Calling flxrun in globalmesh."
          else
             fname = trim(GridFileName)
             call readgrid(fname, runid)
-            write(*,*) 'Read file "', fname, '" with runid:  ', runid
+            if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*) 'Read file "', fname, '" with runid:  ', runid
             write(*,*)
          endif
       elseif (mhdgeo .eq. 0) then
          call idealgrd
-         write(*,*) '**** mhdgeo=0: cylindrical grid generated *****'
+         if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*) '**** mhdgeo=0: cylindrical grid generated *****'
       elseif (mhdgeo .eq. -1) then
          call idealgrd
-         write(*,*) '**** mhdgeo=-1: cartesian grid generated *****'
+         if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*) '**** mhdgeo=-1: cartesian grid generated *****'
       elseif (mhdgeo .eq. -2) then
          call mirrorgrd
-         write(*,*) '**** mhdgeo=-2: mag mirror grid generated *****'
+         if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*) '**** mhdgeo=-2: mag mirror grid generated *****'
       else
-         write(*,*) '**** mhdgeo < -1: reading grid from file *****'
+         if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*) '**** mhdgeo < -1: reading grid from file *****'
          fname = trim(GridFileName)
          call readgrid(fname, runid)
-         write(*,*) 'Read file "', fname, '" with runid:  ', runid
+         if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*) 'Read file "', fname, '" with runid:  ', runid
          write(*,*)
       endif
 
@@ -635,6 +637,7 @@ c-----------------------------------------------------------------------
       Use(Indices_domain_dcl) # ixmnbcl,ixmxbcl
       Use(Math_problem_size)  # neqmx
       Use(Npes_mpi)       # mype
+      Use(Lsode)          # iprint
 
 *  -- local scalars --
       integer nj, iu, ik, ij, jx, iysi, iyso, iyp1, ix_last_core_cell,
@@ -680,7 +683,7 @@ c ...   Need to fix ixpt2(1) modified by grdrun is geometry=isoleg
          else
             fname = trim(GridFileName)
             call readgrid(fname, runid)
-            write(*,*) 'Read file "', fname, '" with runid:  ', runid
+            if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*) 'Read file "', fname, '" with runid:  ', runid
 c ...  now that the grid is read in, we can manipulate dnull for nxomit>0
             if (geometry=="dnull" .and. nxpt==2) then
               if (nxomit >= ixlb(2)) then
@@ -702,7 +705,7 @@ c ...  now that the grid is read in, we can manipulate dnull for nxomit>0
          else
             fname = trim(GridFileName)
             call readgrid(fname, runid)
-            write(*,*) 'Read file "', fname, '" with runid:  ', runid
+            if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*) 'Read file "', fname, '" with runid:  ', runid
             write(*,*)
          endif
       elseif (mhdgeo .eq. 0) then
@@ -718,7 +721,7 @@ c ...  now that the grid is read in, we can manipulate dnull for nxomit>0
          write(*,*) '**** mhdgeo < -1: reading grid from file *****'
          fname = trim(GridFileName)
          call readgrid(fname, runid)
-         write(*,*) 'Read file "', fname, '" with runid:  ', runid
+         if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*) 'Read file "', fname, '" with runid:  ', runid
          write(*,*)
       endif
 
