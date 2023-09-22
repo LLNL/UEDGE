@@ -2471,13 +2471,28 @@ c...  Force fluxes and gradients on cuts to be zero for half-space problems
             ix1 = ixm1(ix,iy)
             ix2 = ixp1(ix,iy)
             nexface = 0.5*(ne(ix2,iy)+ne(ix,iy))
-            t1 =.5*cvgp*(upe(ix,iy)*rrv(ix,iy)*
-     .              ave(gx(ix,iy),gx(ix2,iy))*gpex(ix,iy)/gxf(ix,iy) +
-     .                   upe(ix1,iy)*rrv(ix1,iy)*
-     .              ave(gx(ix,iy),gx(ix1,iy))*gpex(ix1,iy)/gxf(ix1,iy) )
-            t2 = 1.e-20* 0.25*(fqp(ix,iy)+fqp(ix1,iy))*
-     .                (ex(ix,iy)+ex(ix1,iy))/gx(ix,iy)
-            seec(ix,iy) = seec(ix,iy) + t1*vol(ix,iy) - t2
+            if (oldseec .gt. 0) then
+                t1 =.5*cvgp*(upe(ix,iy)*rrv(ix,iy)*
+     .                  ave(gx(ix,iy),gx(ix2,iy))*gpex(ix,iy)/gxf(ix,iy) +
+     .                  upe(ix1,iy)*rrv(ix1,iy)*
+     .                  ave(gx(ix,iy),gx(ix1,iy))*gpex(ix1,iy)/gxf(ix1,iy) )
+                t2 = 1.e-20* 0.25*(fqp(ix,iy)+fqp(ix1,iy))*
+     .                  (ex(ix,iy)+ex(ix1,iy))/gx(ix,iy)
+                seec(ix,iy) = seec(ix,iy) + t1*vol(ix,iy) - t2
+            else
+                iyp1 = min(iy+1,ny+1)
+                iym1 = max(iy-1,0)
+                t1 = .5*cvgp*( vex(ix,iy)*
+     .                  ave(gx(ix,iy),gx(ix2,iy))*gpex(ix,iy)/gxf(ix,iy) +
+     .                  vex(ix1,iy)*
+     .                  ave(gx(ix,iy),gx(ix1,iy))*gpex(ix1,iy)/gxf(ix1,iy) )
+                t2 = .5*cvgp*( vey(ix,iy)*
+     .                  ave(gy(ix,iy),gy(ix,iyp1))*gpey(ix,iy)/gyf(ix,iy) +
+     .                  vey(ix,iy)*
+     .                  ave(gy(ix,iy),gy(ix,iym1))*gpey(ix,iym1)/gyf(ix,iym1)
+     .                                                            )
+                seec(ix,iy) = seec(ix,iy) + (t1+t2)*vol(ix,iy)
+            endif
             if (nusp-isupgon(1).eq.1) smoc(ix,iy,1)=(( -cpgx*gpex(ix,iy)-
      .                   qe*nexface*gpondpotx(ix,iy) )*rrv(ix,iy)  +
      .                     pondomfpare_use(ix,iy) )*sx(ix,iy)/gxf(ix,iy)
