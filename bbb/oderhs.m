@@ -2480,6 +2480,8 @@ c...  Force fluxes and gradients on cuts to be zero for half-space problems
      .                  (ex(ix,iy)+ex(ix1,iy))/gx(ix,iy)
                 seec(ix,iy) = seec(ix,iy) + t1*vol(ix,iy) - t2
             else
+                iyp1 = min(iy+1,ny+1)
+                iym1 = max(iy-1,0)
                 t1 = .5*cvgp*( vex(ix,iy)*
      .                  ave(gx(ix,iy),gx(ix2,iy))*gpex(ix,iy)/gxf(ix,iy) +
      .                  vex(ix1,iy)*
