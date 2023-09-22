@@ -6506,6 +6506,7 @@ c ---------------------------------------------------------------------c
       Use(Npes_mpi)            # npes,mype,ispmion
       Use(UEint)               # isallloc
       Use(Rccoef)              # isoutwall
+      Use(Coefeq)              # jhswitch, oldseec
 c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
 
       integer ifake  #forces Forthon scripts to put implicit none above here
@@ -6537,6 +6538,26 @@ c_mpi         call MPI_BARRIER(uedgeComm, ierr)
 	   write(*,*) 'UEDGE version ',uedge_ver
            icall = 1
          endif
+
+c   Check model switches for UEDGE updates/bugs
+      if (oldseec .gt. 0) then
+            write(*,*) "        **** WARNING ****"
+            write(*,*) "Using old, deprecated seec model"
+            write(*,*) "Set switch oldseec = 0 to use new model "
+            write(*,*) "The old  model will be removed from"
+            write(*,*) "future versions of UEDGE"
+            write(*,*) "Please set oldseec = 0 "
+            write(*,*) ""
+      endif
+      if (jhswitch .gt. 0) then
+            write(*,*) "           **** WARNING ****"
+            write(*,*) "Switch jhswitch > 0 is deprecated and should not"
+            write(*,*) "be used. The option jhswitch > 0 will be removed" 
+            write(*,*) "from future versions of UEDGE."
+            write(*,*) "Please set jhswitch = 0 "
+            write(*,*) ""
+      endif
+
 
 c_mpi         call MPI_BARRIER(uedgeComm, myfoo)
 

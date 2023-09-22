@@ -317,6 +317,7 @@ cfvgpy(1:nispmx) real /nispmx*1./ #Coefs for y components of v.grad(p) in ti-eq
 cfbgt     real      /0./    #Coef for the B x Grad(T) terms.
 cfjhf     real      /1./    #Coef for convective cur (fqp) heat flow
 jhswitch  integer   /0/     #Coef for the Joule-heating terms
+oldseec   integer   /1/     #Switch for Joule-heating bugfix
 cf2ef     real      /0./    #Coef for ExB drift in 2-direction
 cfyef     real      /0./    #Coef for ExB drift in y-direction
 cftef     real      /0./    #Coef for ExB drift in toroidal direction
