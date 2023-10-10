@@ -25,8 +25,14 @@ class UeRun():
         # NOTE: No -> Utilize direct I/O from file instead
         self.tstart = time()
         self.numvar = bbb.numvar
-        self.nx = com.nx
-        self.ny = com.ny
+        try:
+            self.nx
+        except:
+            self.nx = com.nx
+        try:
+            self.ny
+        except:
+            self.ny = com.ny
         self.ixpt1 = com.ixpt1[0]
         self.ixpt2 = com.ixpt2[0]
         self.iysptrx = com.iysptrx
