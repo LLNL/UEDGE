@@ -596,6 +596,8 @@ class UeRun():
         bbb.rlx = rlx
         bbb.dtreal = dtreal
         bbb.ftol = ftol
+        ii1 = 0
+        ii2 = 0
         if (bbb.iterm == 1) and (bbb.ijactot > 0):
             self.message('Initial successful time-step exists', separator='')
         else:
@@ -776,7 +778,7 @@ class UeRun():
         iicont_fail_max=3,
         cutoff=1e6,
         itermx=5,
-        incpset=5,
+        incpset=8,
         initres=1000,
         deltafac=2,
         dtdeltafac=2,
@@ -975,9 +977,9 @@ class UeRun():
             bbb.ftol = 1e-8
             abort = False
             # Ensure a first time-step can be taken
-            dtdelta = self.lastsuccess + dtdeltafac*(1-self.lastsuccess)/100
+            dtdelta = self.lastsuccess + dtdeltafac/100
             while bbb.iterm != 1:
-                dtdelta = self.lastsuccess + dtdeltafac*(1-self.lastsuccess)/100
+                dtdelta = self.lastsuccess + dtdeltafac/100
                 setvar(dtdelta)
                 if self.exmain_isaborted():
                     setvar(self.lastsuccess)
@@ -1130,7 +1132,9 @@ class UeRun():
 
         # Record original solver settings            
         self.orig = {}
-        for ovar in ['itermx', 'dtreal', 'icntnunk', 'ftol', 'incpset']:
+        for ovar in ['itermx', 'dtreal', 'icntnunk', 'ftol', 'incpset',
+            'ismmaxuc', 'mmaxu'        
+        ]:
             self.orig[ovar] = deepcopy(getattr(bbb, ovar))
         # Take the initial time-step
         changevar()
@@ -1139,6 +1143,8 @@ class UeRun():
         bbb.ftol = ftol
         bbb.incpset = incpset
         bbb.itermx = itermx
+#        bbb.ismmaxuc = 0
+#        bbb.mmaxu = 70
         if (bbb.iterm == 1) and (bbb.ijactot > 0):
             self.message('Initial successful time-step exists', separator='')
         else:
