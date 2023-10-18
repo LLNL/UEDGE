@@ -1897,9 +1897,10 @@ C
 C     Load Y and H*YPRIME into PHI(*,1) and PHI(*,2).
 C
       ITEMP = LPHI + NEQ
-      DO 380 I = 1,NEQ
+      DO I = 1,NEQ
          RWORK(LPHI + I - 1) = Y(I)
-380      RWORK(ITEMP + I - 1) = H*YPRIME(I)
+         RWORK(ITEMP + I - 1) = H*YPRIME(I)
+      END DO
 C
       GO TO 500
 C
@@ -2984,8 +2985,9 @@ C
       IF(KNEW.EQ.KM1)GO TO 540
       IF(K.EQ.IWM(LMXORD)) GO TO 550
       IF(KP1.GE.NS.OR.KDIFF.EQ.1)GO TO 550
-      DO 510 I=1,NEQ
-510      DELTA(I)=E(I)-PHI(I,KP2)
+      DO I=1,NEQ
+         DELTA(I)=E(I)-PHI(I,KP2)
+      END DO
       ERKP1 = (1.0E0/(K+2))*SDWNRM(NEQ,DELTA,VT,RPAR,IPAR)
       TERKP1 = (K+2)*ERKP1
       IF(K.GT.1)GO TO 520
