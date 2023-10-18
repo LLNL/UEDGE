@@ -107,19 +107,21 @@ c
 c
 c   ionization rate
 c
-      do 200 i = 1,ntev
+      do i = 1,ntev
        read(us,1000) tevb(i),(rsi(i,k),k=0,nz-1)
-       do 201 k = 0,nz-1
- 201    rsi(i,k) = rsi(i,k)*crni*rl/cs
- 200  continue
+       do k = 0,nz-1
+        rsi(i,k) = rsi(i,k)*crni*rl/cs
+       end do
+      end do
 c
 c   recombination rate
 c
-      do 210 i = 1,ntev
+      do i = 1,ntev
        read(us,1000) tevb(i),(rre(i,k),k=1,nz)
-       do 211 k = 1,nz
- 211    rre(i,k) = rre(i,k)*crni*rl/cs
- 210  continue
+       do k = 1,nz
+        rre(i,k) = rre(i,k)*crni*rl/cs
+       end do
+      end do
 c
 c   radiative power rate
 c
@@ -134,11 +136,12 @@ c       write(*,*) i,(rpwr(i,k),k=0,nz)
 c
 c   CX recomb. rate
 c
-      do 230 i = 1,ntev
+      do i = 1,ntev
        read(us,1000) tevb(i),(rrcx(i,k),k=1,nz)
-       do 231 k = 1,nz
- 231    rrcx(i,k) = rrcx(i,k)*crni*rl/cs
- 230  continue
+       do k = 1,nz
+        rrcx(i,k) = rrcx(i,k)*crni*rl/cs
+       end do
+      end do
 c
 c ... Scale temperature scale for multi-charge rates to code units.
       do i = 1, ntev
