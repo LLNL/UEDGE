@@ -1708,9 +1708,10 @@ C Load and invert the EWT array.  (H is temporarily set to 1.0.) -------
       NQ = 1
       H = ONE
       CALL EWSET (N, ITOL, RTOL, ATOL, RWORK(LYH), RWORK(LEWT))
-      DO 120 I = 1, N
+      DO I = 1, N
         IF (RWORK(I+LEWT-1) .LE. ZERO) GO TO 621
- 120    RWORK(I+LEWT-1) = ONE/RWORK(I+LEWT-1)
+        RWORK(I+LEWT-1) = ONE/RWORK(I+LEWT-1)
+      END DO
       IF (H0 .NE. ZERO) GO TO 180
 C Call VHIN to set initial step size H0 to be attempted. ---------------
       CALL VHIN (N, T, RWORK(LYH), RWORK(LF0), F, RPAR, IPAR, TOUT,
@@ -1817,9 +1818,10 @@ C-----------------------------------------------------------------------
         CALL XERRWV (MSG, 56, 113, 0, 0, 0, 0, 2, TN, RCFL)
         ENDIF
  255  CONTINUE
-      DO 260 I = 1, N
+      DO I = 1, N
         IF (RWORK(I+LEWT-1) .LE. ZERO) GO TO 510
- 260    RWORK(I+LEWT-1) = ONE/RWORK(I+LEWT-1)
+        RWORK(I+LEWT-1) = ONE/RWORK(I+LEWT-1)
+      END DO
  270  TOLSF = UROUND*VNORML (N, RWORK(LYH), RWORK(LEWT))
       IF (TOLSF .LE. ONE) GO TO 280
       TOLSF = TOLSF*TWO
@@ -1978,12 +1980,13 @@ C KFLAG = -5.  F returned IFAIL .ne. 0 repeatedly in corrector loop. ---
 C Compute IMXER if relevant. -------------------------------------------
  560  BIG = ZERO
       IMXER = 1
-      DO 570 I = 1, N
+      DO I = 1, N
         SIZE = ABS(RWORK(I+LACOR-1)*RWORK(I+LEWT-1))
         IF (BIG .GE. SIZE) GO TO 570
         BIG = SIZE
         IMXER = I
  570    CONTINUE
+      END DO
       IWORK(16) = IMXER
 C Set Y vector, T, and optional outputs. -------------------------------
  580  CONTINUE
@@ -2279,19 +2282,22 @@ C-----------------------------------------------------------------------
       CRATE = ONE
       NSLP = NST
       IF (IERPJ .NE. 0) GO TO 420
- 250  DO 260 I = 1, N
- 260    ACOR(I) = ZERO
+ 250  DO I = 1, N
+        ACOR(I) = ZERO
+      END DO
  270  IF (MITER .NE. 0) GO TO 350
 C-----------------------------------------------------------------------
 C In the case of functional iteration, update Y directly from
 C the result of the last function evaluation.
 C-----------------------------------------------------------------------
-      DO 290 I = 1, N
+      DO I = 1, N
         SAVF(I) = RL1*(H*SAVF(I) - YH(I,2))
- 290    Y(I) = SAVF(I) - ACOR(I)
+        Y(I) = SAVF(I) - ACOR(I)
+      END DO
       DEL = VNORML (N, Y, EWT)
-      DO 300 I = 1, N
- 300    Y(I) = YH(I,1) + SAVF(I)
+      DO I = 1, N
+        Y(I) = YH(I,1) + SAVF(I)
+      END DO
       CALL SCOPY (N, SAVF, 1, ACOR, 1)
       GO TO 400
 C-----------------------------------------------------------------------
@@ -2300,8 +2306,9 @@ C and solve the linear system with that as right-hand side and
 C A as coefficient matrix.  The correction is scaled by the factor
 C 2/(1+RC) to account for changes in H*RL1 since the last JAC call.
 C-----------------------------------------------------------------------
- 350  DO 360 I = 1, N
- 360    VSAV(I) = HRL1*SAVF(I) - (RL1*YH(I,2) + ACOR(I))
+ 350  DO I = 1, N
+        VSAV(I) = HRL1*SAVF(I) - (RL1*YH(I,2) + ACOR(I))
+      END DO
       CALL VSOLPK (Y, SAVF, VSAV, EWT, WM, IWM, F, PSOL, IERSL,
      1             RPAR, IPAR)
       NNI = NNI + 1
@@ -2314,8 +2321,9 @@ C-----------------------------------------------------------------------
       IF (IERSL .GT. 0) GO TO 410
       DEL = VNORML (N, VSAV, EWT)
       CALL SAXPY (N, ONE, VSAV, 1, ACOR, 1)
-      DO 380 I = 1, N
- 380    Y(I) = YH(I,1) + ACOR(I)
+      DO I = 1, N
+        Y(I) = YH(I,1) + ACOR(I)
+      END DO
 C-----------------------------------------------------------------------
 C Test for convergence.  If M.gt.0, an estimate of the convergence
 C rate constant is stored in CRATE, and this is used in the test.
@@ -2598,16 +2606,18 @@ C-----------------------------------------------------------------------
 C The initial residual is the vector b.  Apply scaling to b, and test
 C for an immediate return with x = 0 or x = b.
 C-----------------------------------------------------------------------
-      DO 10 I = 1, N
- 10     V(I,1) = B(I)*WGHT(I)
+      DO I = 1, N
+        V(I,1) = B(I)*WGHT(I)
+      END DO
       BNRM0 = SNRM2 (N, V, 1)
       BNRM = BNRM0
       IF (BNRM0 .GT. DELTA) GO TO 30
       IF (MNEWT .GT. 0) GO TO 20
       CALL SCOPY (N, B, 1, X, 1)
       RETURN
- 20   DO 25 I = 1, N
- 25     X(I) = 0.0E0
+ 20   DO I = 1, N
+        X(I) = 0.0E0
+      END DO
       RETURN
  30   CONTINUE
 C Apply inverse of left preconditioner to vector b. --------------------
@@ -2619,17 +2629,19 @@ C Apply inverse of left preconditioner to vector b. --------------------
       IF (IER .NE. 0) GO TO 300
  40   IF (JPRE .EQ. 0 .OR. JPRE .EQ. 2) GO TO 55
 C Calculate norm of scaled vector V(*, 1) and normalize it. ------------
-      DO 50 I = 1, N
- 50     V(I,1) = B(I)*WGHT(I)
+      DO I = 1, N
+        V(I,1) = B(I)*WGHT(I)
+      END DO
       BNRM = SNRM2 (N, V, 1)
       DELTA = DELTA*(BNRM/BNRM0)
  55   TEM = 1.0E0/BNRM
       CALL SSCAL (N, TEM, V(1,1), 1)
 C Zero out the HES array. ----------------------------------------------
-      DO 65 J = 1, MAXL
-        DO 60 I = 1, MAXLP1
- 60        HES (I,J) = 0.0E0
- 65     CONTINUE
+      DO J = 1, MAXL
+        DO I = 1, MAXLP1
+           HES (I,J) = 0.0E0
+        END DO
+      END DO
 C-----------------------------------------------------------------------
 C Main loop to compute the vectors V(*,2) to V(*,MAXL).
 C The running product PROD is needed for the convergence test.
@@ -2662,20 +2674,22 @@ C-----------------------------------------------------------------------
         IF ((LL.GT.KMP) .AND. (KMP.LT.MAXL)) THEN
           IF (LL .EQ. KMP+1) THEN
             CALL SCOPY (N, V(1,1), 1, DL, 1)
-            DO 75 I = 1, KMP
+            DO I = 1, KMP
               IP1 = I + 1
               I2 = I*2
               S = Q(I2)
               C = Q(I2-1)
-              DO 70 K = 1, N
- 70             DL(K) = S*DL(K) + C*V(K,IP1)
- 75           CONTINUE
+              DO K = 1, N
+                DL(K) = S*DL(K) + C*V(K,IP1)
+              END DO
+            END DO
             ENDIF
           S = Q(2*LL)
           C = Q(2*LL-1)/SNORMW
           LLP1 = LL + 1
-          DO 80 K = 1, N
- 80         DL(K) = S*DL(K) + C*V(K,LLP1)
+          DO K = 1, N
+            DL(K) = S*DL(K) + C*V(K,LLP1)
+          END DO
           DLNRM = SNRM2 (N, DL, 1)
           RHO = RHO*DLNRM
           ENDIF
@@ -2706,17 +2720,20 @@ C-----------------------------------------------------------------------
  200  CONTINUE
       LL = LGMR
       LLP1 = LL + 1
-      DO 210 K = 1, LLP1
- 210    B(K) = 0.0E0
+      DO K = 1, LLP1
+        B(K) = 0.0E0
+      END DO
       B(1) = BNRM
       CALL SHELS (HES , MAXLP1, LL, Q, B)
-      DO 220 K = 1, N
- 220    X(K) = 0.0E0
-      DO 230 I = 1, LL
+      DO K = 1, N
+        X(K) = 0.0E0
+      END DO
+      DO I = 1, LL
         CALL SAXPY (N, B(I), V(1,I), 1, X, 1)
- 230    CONTINUE
-      DO 240 I = 1, N
- 240    X(I) = X(I)/WGHT(I)
+      END DO
+      DO I = 1, N
+        X(I) = X(I)/WGHT(I)
+      END DO
       IF (JPRE .LE. 1) RETURN
       CALL PSOL (N, TN, Y, SAVF, WK, HB0, WP, IWP, X, 2,
      1          IER, RPAR, IPAR)
@@ -2844,14 +2861,16 @@ C
 C-----------------------------------------------------------------------
       NFAIL = 0
 C Set vtem = D * v. ----------------------------------------------------
-      DO 10 I = 1, N
- 10     VTEM(I) = V(I)/WGHT(I)
+      DO I = 1, N
+        VTEM(I) = V(I)/WGHT(I)
+      END DO
       IF (JPRE .GE. 2) GO TO 30
 C
 C JPRE = 0 or 1.  Save y in Z and increment Y by VTEM. -----------------
       CALL SCOPY (N, Y, 1, Z, 1)
-      DO 20 I = 1, N
- 20     Y(I) = Z(I) + VTEM(I)*scaleps
+      DO I = 1, N
+        Y(I) = Z(I) + VTEM(I)*scaleps
+      END DO
       SIG = scaleps
       RSIG = 1.0E0/scaleps
       FAC = HB0*RSIG
@@ -2864,14 +2883,16 @@ C JPRE = 2 or 3.  Apply inverse of right preconditioner to VTEM. -------
       NPSL = NPSL + 1
       IF (IERP .NE. 0) GO TO 100
 C Calculate l-2 norm of (D-inverse) * VTEM. ----------------------------
-      DO 40 I = 1, N
- 40     Z(I) = VTEM(I)*WGHT(I)
+      DO I = 1, N
+        Z(I) = VTEM(I)*WGHT(I)
+      END DO
       RSIG = SNRM2 (N, Z, 1)/scaleps
       SIG = 1.0E0/RSIG
 C Save y in Z and increment Y by VTEM/norm. ----------------------------
       CALL SCOPY (N, Y, 1, Z, 1)
- 45   DO 50 I = 1, N
- 50     Y(I) = Z(I) + VTEM(I)*SIG
+ 45   DO I = 1, N
+        Y(I) = Z(I) + VTEM(I)*SIG
+      END DO
       FAC = HB0*RSIG
 C
 C For all JPRE, call F with incremented Y argument, and restore Y. -----
@@ -2888,10 +2909,12 @@ C For all JPRE, call F with incremented Y argument, and restore Y. -----
         ENDIF
       CALL SCOPY (N, Z, 1, Y, 1)
 C Set Z = (I - HB0*Jacobian) * VTEM, using difference quotient. --------
-      DO 70 I = 1, N
- 70     Z(I) = FTEM(I) - SAVF(I)
-      DO 80 I = 1, N
- 80     Z(I) = VTEM(I) - FAC*Z(I)
+      DO I = 1, N
+        Z(I) = FTEM(I) - SAVF(I)
+      END DO
+      DO I = 1, N
+        Z(I) = VTEM(I) - FAC*Z(I)
+      END DO
 C Apply inverse of left preconditioner to Z, if nontrivial. ------------
       IF (JPRE .EQ. 0 .OR. JPRE .EQ. 2) GO TO 85
       CALL PSOL (N, TN, Y, SAVF, FTEM, HB0, WP, IWP, Z, 1,
@@ -2900,8 +2923,9 @@ C Apply inverse of left preconditioner to Z, if nontrivial. ------------
       IF (IERP .NE. 0) GO TO 100
  85   CONTINUE
 C Apply D-inverse to Z and return. -------------------------------------
-      DO 90 I = 1, N
- 90     Z(I) = Z(I)*WGHT(I)
+      DO I = 1, N
+        Z(I) = Z(I)*WGHT(I)
+      END DO
       IER = 0
       RETURN
 C
@@ -2994,8 +3018,9 @@ C-----------------------------------------------------------------------
       IF (MNEWT .GT. 0) GO TO 10
       CALL SCOPY (N, B, 1, X, 1)
       RETURN
- 10   DO 20 I = 1, N
- 20     X(I) = 0.0E0
+ 10   DO I = 1, N
+        X(I) = 0.0E0
+      END DO
       RETURN
 C Apply inverse of left preconditioner to vector b. --------------------
  30   IER = 0
@@ -3075,40 +3100,52 @@ C-----------------------------------------------------------------------
      1   LRVK1 /3/, LIVK1 /11/
 C
       IF (JOB .EQ. 2) GO TO 100
-      DO 10 I = 1, LENRV1
- 10     RSAV(I) = RVOD1(I)
-      DO 12 I = 1, LENRV2
- 12     RSAV(LENRV1+I) = RVOD2(I)
+      DO I = 1, LENRV1
+        RSAV(I) = RVOD1(I)
+      END DO
+      DO I = 1, LENRV2
+        RSAV(LENRV1+I) = RVOD2(I)
+      END DO
       IOFF = LENRV1 + LENRV2
-      DO 14 I = 1, LRVK1
- 14     RSAV(IOFF+I) = RVPK1(I)
+      DO I = 1, LRVK1
+        RSAV(IOFF+I) = RVPK1(I)
+      END DO
 C
-      DO 20 I = 1, LENIV1
- 20     ISAV(I) = IVOD1(I)
-      DO 22 I = 1, LENIV2
- 22     ISAV(LENIV1+I) = IVOD2(I)
+      DO I = 1, LENIV1
+        ISAV(I) = IVOD1(I)
+      END DO
+      DO I = 1, LENIV2
+        ISAV(LENIV1+I) = IVOD2(I)
+      END DO
       IOFF = LENIV1 + LENIV2
-      DO 24 I = 1, LIVK1
- 24     ISAV(IOFF+I) = IVPK1(I)
+      DO I = 1, LIVK1
+        ISAV(IOFF+I) = IVPK1(I)
+      END DO
 C
       RETURN
 C
  100  CONTINUE
-      DO 110 I = 1, LENRV1
- 110     RVOD1(I) = RSAV(I)
-      DO 112 I = 1, LENRV2
- 112     RVOD2(I) = RSAV(LENRV1+I)
+      DO I = 1, LENRV1
+         RVOD1(I) = RSAV(I)
+      END DO
+      DO I = 1, LENRV2
+         RVOD2(I) = RSAV(LENRV1+I)
+      END DO
       IOFF = LENRV1 + LENRV2
-      DO 114 I = 1, LRVK1
- 114    RVPK1(I) = RSAV(IOFF+I)
+      DO I = 1, LRVK1
+        RVPK1(I) = RSAV(IOFF+I)
+      END DO
 C
-      DO 120 I = 1, LENIV1
- 120     IVOD1(I) = ISAV(I)
-      DO 122 I = 1, LENIV2
- 122     IVOD2(I) = ISAV(LENIV1+I)
+      DO I = 1, LENIV1
+         IVOD1(I) = ISAV(I)
+      END DO
+      DO I = 1, LENIV2
+         IVOD2(I) = ISAV(LENIV1+I)
+      END DO
       IOFF = LENIV1 + LENIV2
-      DO 124 I = 1, LIVK1
- 124    IVPK1(I) = ISAV(IOFF+I)
+      DO I = 1, LIVK1
+        IVPK1(I) = ISAV(IOFF+I)
+      END DO
 C
       RETURN
 C----------------------- End of Subroutine VKSRC -----------------------
@@ -3209,16 +3246,18 @@ C Looping point for iteration. -----------------------------------------
  50   CONTINUE
 C Estimate the second derivative as a difference quotient in f. --------
       T1 = T0 + HG
-      DO 60 I = 1, N
- 60     Y(I) = Y0(I) + HG*YDOT(I)
+      DO I = 1, N
+        Y(I) = Y0(I) + HG*YDOT(I)
+      END DO
       IFAIL = 0
       CALL F (N, T1, Y, TEMP, RPAR, IPAR, IFAIL)
       IF (IFAIL .NE. 0) THEN
         HNEW = PT2*HG
         GO TO 75
         ENDIF
-      DO 70 I = 1, N
- 70     TEMP(I) = (TEMP(I) - YDOT(I))/HG
+      DO I = 1, N
+        TEMP(I) = (TEMP(I) - YDOT(I))/HG
+      END DO
       YDDNRM = VNORML (N, TEMP, EWT)
 C Get the corresponding new value of h. --------------------------------
       IF (YDDNRM*HUB*HUB .GT. TWO) THEN
@@ -3347,11 +3386,13 @@ C
       IC = 1
       IF (K .EQ. 0) GO TO 15
       JJ1 = L - K
-      DO 10 JJ = JJ1, NQ
- 10     IC = IC*JJ
+      DO JJ = JJ1, NQ
+        IC = IC*JJ
+      END DO
  15   C = float(IC)
-      DO 20 I = 1, N
- 20     DKY(I) = C*YH(I,L)
+      DO I = 1, N
+        DKY(I) = C*YH(I,L)
+      END DO
       IF (K .EQ. NQ) GO TO 55
       JB2 = NQ - K
       DO 50 JB = 1, JB2
@@ -3360,11 +3401,13 @@ C
         IC = 1
         IF (K .EQ. 0) GO TO 35
         JJ1 = JP1 - K
-        DO 30 JJ = JJ1, J
- 30       IC = IC*JJ
+        DO JJ = JJ1, J
+          IC = IC*JJ
+        END DO
  35     C = float(IC)
-        DO 40 I = 1, N
- 40       DKY(I) = C*YH(I,JP1) + S*DKY(I)
+        DO I = 1, N
+          DKY(I) = C*YH(I,JP1) + S*DKY(I)
+        END DO
  50     CONTINUE
       IF (K .EQ. 0) RETURN
  55   R = H**(-K)
@@ -3583,8 +3626,9 @@ C-----------------------------------------------------------------------
       I1 = 1 + (NEWQ + 1)*LDYH
       I2 = (MAXORD + 1)*LDYH
       IF (I1 .GT. I2) GO TO 120
-      DO 110 I = I1, I2
- 110    YH1(I) = ZERO
+      DO I = I1, I2
+        YH1(I) = ZERO
+      END DO
  120  IF (NEWQ .LE. MAXORD) GO TO 140
       FLOTL = float(LMAX)
       IF (MAXORD .LT. NQ-1) THEN
@@ -3612,10 +3656,10 @@ C-----------------------------------------------------------------------
       IF (NEWQ .LE. MAXORD) GO TO 50
 C Rescale the history array for a change in H by a factor of ETA. ------
  150  R = ONE
-      DO 180 J = 2, L
+      DO J = 2, L
         R = R*ETA
         CALL SSCAL (N, R, YH(1,J), 1 )
- 180    CONTINUE
+      END DO
       H = HSCAL*ETA
       HSCAL = H
       RC = RC*ETA
@@ -3628,11 +3672,12 @@ C RC is the ratio of new to old values of the coefficient H/EL(2)=h/l1.
 C-----------------------------------------------------------------------
  200  TN = TN + H
       I1 = NQNYH + 1
-      DO 220 JB = 1, NQ
+      DO JB = 1, NQ
         I1 = I1 - LDYH
-        DO 210 I = I1, NQNYH
- 210      YH1(I) = YH1(I) + YH1(I+LDYH)
- 220  CONTINUE
+        DO I = I1, NQNYH
+          YH1(I) = YH1(I) + YH1(I+LDYH)
+        END DO
+      END DO
       CALL VSET
       RL1 = ONE/EL(2)
       RC = RC*(RL1/PRL1)
@@ -3655,11 +3700,12 @@ C-----------------------------------------------------------------------
         ETAMAX = ONE
         TN = TOLD
         I1 = NQNYH + 1
-        DO 430 JB = 1, NQ
+        DO JB = 1, NQ
           I1 = I1 - LDYH
-          DO 420 I = I1, NQNYH
- 420        YH1(I) = YH1(I) - YH1(I+LDYH)
- 430      CONTINUE
+          DO I = I1, NQNYH
+            YH1(I) = YH1(I) - YH1(I+LDYH)
+          END DO
+        END DO
         IF (NFLAG .LT. -1) GO TO 680
         IF (ABS(H) .LE. HMIN*ONEPSM) GO TO 670
         IF (NCF .EQ. MXNCF) GO TO 670
@@ -3721,9 +3767,10 @@ C-----------------------------------------------------------------------
       NST = NST + 1
       HU = H
       NQU = NQ
-      DO 470 IBACK = 1, NQ
+      DO IBACK = 1, NQ
         I = L - IBACK
- 470    TAU(I+1) = TAU(I)
+        TAU(I+1) = TAU(I)
+      END DO
       TAU(1) = H
       DO 480 J = 1, L
         CALL SAXPY (N, EL(J), ACOR, 1, YH(1,J), 1 )
@@ -3751,11 +3798,12 @@ C-----------------------------------------------------------------------
       NFLAG = -2
       TN = TOLD
       I1 = NQNYH + 1
-      DO 520 JB = 1, NQ
+      DO JB = 1, NQ
         I1 = I1 - LDYH
-        DO 510 I = I1, NQNYH
- 510      YH1(I) = YH1(I) - YH1(I+LDYH)
- 520  CONTINUE
+        DO I = I1, NQNYH
+          YH1(I) = YH1(I) - YH1(I+LDYH)
+        END DO
+      END DO
       IF (ABS(H) .LE. HMIN*ONEPSM) GO TO 660
       ETAMAX = ONE
       IF (KFLAG .LE. KFC) GO TO 530
@@ -3789,8 +3837,9 @@ C-----------------------------------------------------------------------
       CALL F (N, TN, Y, SAVF, RPAR, IPAR, IFAIL)
       NFE = NFE + 1
       IF (IFAIL .NE. 0) GO TO 670
-      DO 550 I = 1, N
- 550    YH(I,2) = H*SAVF(I)
+      DO I = 1, N
+       YH(I,2) = H*SAVF(I)
+      END DO
       NQWAIT = 10
       GO TO 200
 C-----------------------------------------------------------------------
@@ -3817,8 +3866,9 @@ C Compute ratio of new H to current H at the current order less one. ---
       IF (L .EQ. LMAX) GO TO 580
 C Compute ratio of new H to current H at current order plus one. -------
       CNQUOT = (TQ(5)/CONP)*(H/TAU(2))**L
-      DO 575 I = 1, N
- 575    SAVF(I) = ACOR(I) - CNQUOT*YH(I,LMAX)
+      DO I = 1, N
+        SAVF(I) = ACOR(I) - CNQUOT*YH(I,LMAX)
+      END DO
       DUP = VNORML (N, SAVF, EWT)/TQ(3)
       ETAQP1 = ONE/((BIAS3*DUP)**(ONE/(FLOTL + ONE)) + ADDON)
  580  IF (ETAQ .GE. ETAQP1) GO TO 590
@@ -3968,57 +4018,65 @@ C Set coefficients for Adams methods. ----------------------------------
  110  HSUM = H
       EM(1) = ONE
       FLOTNQ = FLOTL - ONE
-      DO 115 I = 2, L
- 115    EM(I) = ZERO
+      DO I = 2, L
+        EM(I) = ZERO
+      END DO
       DO 150 J = 1, NQM1
         IF ((J .NE. NQM1) .OR. (NQWAIT .NE. 1)) GO TO 130
         S = ONE
         CSUM = ZERO
-        DO 120 I = 1, NQM1
+        DO I = 1, NQM1
           CSUM = CSUM + S*EM(I)/float(I+1)
- 120      S = -S
+          S = -S
+        END DO
         TQ(1) = EM(NQM1)/(FLOTNQ*CSUM)
  130    RXI = H/HSUM
-        DO 140 IBACK = 1, J
+        DO IBACK = 1, J
           I = (J + 2) - IBACK
- 140      EM(I) = EM(I) + EM(I-1)*RXI
+          EM(I) = EM(I) + EM(I-1)*RXI
+        END DO
         HSUM = HSUM + TAU(J)
  150    CONTINUE
 C Compute integral from -1 to 0 of polynomial and of x times it. -------
       S = ONE
       EM0 = ZERO
       CSUM = ZERO
-      DO 160 I = 1, NQ
+      DO I = 1, NQ
         FLOTI = float(I)
         EM0 = EM0 + S*EM(I)/FLOTI
         CSUM = CSUM + S*EM(I)/(FLOTI+ONE)
- 160    S = -S
+        S = -S
+      END DO
 C In EL, form coefficients of normalized integrated polynomial. --------
       S = ONE/EM0
       EL(1) = ONE
-      DO 170 I = 1, NQ
- 170    EL(I+1) = S*EM(I)/float(I)
+      DO I = 1, NQ
+        EL(I+1) = S*EM(I)/float(I)
+      END DO
       XI = HSUM/H
       TQ(2) = XI*EM0/CSUM
       TQ(5) = XI/EL(L)
       IF (NQWAIT .NE. 1) GO TO 300
 C For higher order control constant, multiply polynomial by 1+x/xi(q). -
       RXI = ONE/XI
-      DO 180 IBACK = 1, NQ
+      DO IBACK = 1, NQ
         I = (L + 1) - IBACK
- 180    EM(I) = EM(I) + EM(I-1)*RXI
+        EM(I) = EM(I) + EM(I-1)*RXI
+      END DO
 C Compute integral of polynomial. --------------------------------------
       S = ONE
       CSUM = ZERO
-      DO 190 I = 1, L
+      DO I = 1, L
         CSUM = CSUM + S*EM(I)/float(I+1)
- 190    S = -S
+        S = -S
+      END DO
       TQ(3) = FLOTL*EM0/CSUM
       GO TO 300
 C
 C Set coefficients for BDF methods. ------------------------------------
- 200  DO 210 I = 3, L
- 210    EL(I) = ZERO
+ 200  DO I = 3, L
+        EL(I) = ZERO
+      END DO
       EL(1) = ONE
       EL(2) = ONE
       ALPH0 = -ONE
@@ -4033,18 +4091,20 @@ C In EL, construct coefficients of (1+x/xi(1))*...*(1+x/xi(j+1)). ------
         RXI = H/HSUM
         JP1 = J + 1
         ALPH0 = ALPH0 - ONE/float(JP1)
-        DO 220 IBACK = 1, JP1
+        DO IBACK = 1, JP1
           I = (J + 3) - IBACK
- 220      EL(I) = EL(I) + EL(I-1)*RXI
+          EL(I) = EL(I) + EL(I-1)*RXI
+        END DO
  230    CONTINUE
       ALPH0 = ALPH0 - ONE/float(NQ)
       RXIS = -EL(2) - ALPH0
       HSUM = HSUM + TAU(NQM1)
       RXI = H/HSUM
       AHATN0 = -EL(2) - RXI
-      DO 235 IBACK = 1, NQ
+      DO IBACK = 1, NQ
         I = (NQ + 2) - IBACK
- 235    EL(I) = EL(I) + EL(I-1)*RXIS
+        EL(I) = EL(I) + EL(I-1)*RXIS
+      END DO
  240  T1 = ONE - AHATN0 + ALPH0
       T2 = ONE + float(NQ)*T1
       TQ(2) = ABS(ALPH0*T2/T1)
@@ -4132,8 +4192,9 @@ C-----------------------------------------------------------------------
  100  CONTINUE
       IF (IORD .EQ. 1) GO TO 180
 C Order decrease. ------------------------------------------------------
-      DO 110 J = 1, LMAX
- 110    EL(J) = ZERO
+      DO J = 1, LMAX
+        EL(J) = ZERO
+      END DO
       EL(2) = ONE
       HSUM = ZERO
       DO 130 J = 1, NQM2
@@ -4141,25 +4202,29 @@ C Construct coefficients of x*(x+xi(1))*...*(x+xi(j)). -----------------
         HSUM = HSUM + TAU(J)
         XI = HSUM/HSCAL
         JP1 = J + 1
-        DO 120 IBACK = 1, JP1
+        DO IBACK = 1, JP1
           I = (J + 3) - IBACK
- 120      EL(I) = EL(I)*XI + EL(I-1)
+          EL(I) = EL(I)*XI + EL(I-1)
+        END DO
  130    CONTINUE
 C Construct coefficients of integrated polynomial. ---------------------
-      DO 140 J = 2, NQM1
- 140    EL(J+1) = float(NQ)*EL(J)/float(J)
+      DO J = 2, NQM1
+        EL(J+1) = float(NQ)*EL(J)/float(J)
+      END DO
 C Subtract correction terms from YH array. -----------------------------
       DO 170 J = 3, NQ
-        DO 160 I = 1, N
- 160      YH(I,J) = YH(I,J) - YH(I,L)*EL(J)
+        DO I = 1, N
+          YH(I,J) = YH(I,J) - YH(I,L)*EL(J)
+        END DO
  170    CONTINUE
       RETURN
 C Order increase. ------------------------------------------------------
 C Zero out next column in YH array. ------------------------------------
  180  CONTINUE
       LP1 = L + 1
-      DO 190 I = 1, N
- 190    YH(I,LP1) = ZERO
+      DO I = 1, N
+        YH(I,LP1) = ZERO
+      END DO
       RETURN
 C-----------------------------------------------------------------------
 C Stiff option...
@@ -4168,8 +4233,9 @@ C-----------------------------------------------------------------------
  200  CONTINUE
       IF (IORD .EQ. 1) GO TO 300
 C Order decrease. ------------------------------------------------------
-      DO 210 J = 1, LMAX
- 210    EL(J) = ZERO
+      DO J = 1, LMAX
+        EL(J) = ZERO
+      END DO
       EL(3) = ONE
       HSUM = ZERO
       DO 230 J = 1, NQM2
@@ -4177,19 +4243,22 @@ C Construct coefficients of x*x*(x+xi(1))*...*(x+xi(j)). ---------------
         HSUM = HSUM + TAU(J)
         XI = HSUM/HSCAL
         JP1 = J + 1
-        DO 220 IBACK = 1, JP1
+        DO IBACK = 1, JP1
           I = (J + 4) - IBACK
- 220      EL(I) = EL(I)*XI + EL(I-1)
+          EL(I) = EL(I)*XI + EL(I-1)
+        END DO
  230    CONTINUE
 C Subtract correction terms from YH array. -----------------------------
       DO 250 J = 3, NQ
-        DO 240 I = 1, N
- 240      YH(I,J) = YH(I,J) - YH(I,L)*EL(J)
+        DO I = 1, N
+          YH(I,J) = YH(I,J) - YH(I,L)*EL(J)
+        END DO
  250    CONTINUE
       RETURN
 C Order increase. ------------------------------------------------------
- 300  DO 310 J = 1, LMAX
- 310    EL(J) = ZERO
+ 300  DO J = 1, LMAX
+        EL(J) = ZERO
+      END DO
       EL(3) = ONE
       ALPH0 = -ONE
       ALPH1 = ONE
@@ -4205,17 +4274,19 @@ C Construct coefficients of x*x*(x+xi(1))*...*(x+xi(j)). ---------------
         PROD = PROD*XI
         ALPH0 = ALPH0 - ONE/float(JP1)
         ALPH1 = ALPH1 + ONE/XI
-        DO 320 IBACK = 1, JP1
+        DO IBACK = 1, JP1
           I = (J + 4) - IBACK
- 320      EL(I) = EL(I)*XIOLD + EL(I-1)
+          EL(I) = EL(I)*XIOLD + EL(I-1)
+        END DO
         XIOLD = XI
  330    CONTINUE
  340  CONTINUE
       T1 = (-ALPH0 - ALPH1)/PROD
 C Load column L + 1 in YH array. ---------------------------------------
       LP1 = L + 1
-      DO 350 I = 1, N
- 350    YH(I,LP1) = T1*YH(I,LMAX)
+      DO I = 1, N
+        YH(I,LP1) = T1*YH(I,LMAX)
+      END DO
 C Add correction terms to YH array. ------------------------------------
       NQP1 = NQ + 1
       DO 370 J = 3, NQP1
