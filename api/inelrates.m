@@ -51,23 +51,25 @@ c     is given in the variable inelrad (formerly carbavg.dat).
       read(us,inrad)
       close (us)
 c
-      do 102 i = 1,ncaset
+      do i = 1,ncaset
        terad(i)=terad(i)*1.602e-19/ctemp
- 102  continue
+      end do
 c
-      do 103 i = 1,ncasent
-       rntau(i)=rntau(i)*crni*rl/cs
- 103  continue
+      do i = 1,ncasent
+        rntau(i)=rntau(i)*crni*rl/cs
+      end do
 c
 c
-      do 111 i = 1,ncaset
-       do 111 j = 1,ncaseno
-        do 111 k = 1,ncasent
+      do i = 1,ncaset
+       do j = 1,ncaseno
+        do k = 1,ncasent
 c
-        radrate(i,j,k)=radrate(i,j,k)*crni*rl*1.602e-19
+         radrate(i,j,k)=radrate(i,j,k)*crni*rl*1.602e-19
      .                /cs/ctemp/1.5
 c
- 111  continue
+        end do
+       end do
+      end do  
 c
 c----------------------------------------------------------------------c
       elseif (impflag .eq. 2) then
