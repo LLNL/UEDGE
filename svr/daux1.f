@@ -13,20 +13,24 @@ c-----------------------------------------------------------------------
 c
       go to (10, 20, 30, 40), itol
  10   continue
-      do 15 i = 1,n
- 15     ewt(i) = rtol(1)*dabs(ycur(i)) + atol(1)
+      do i = 1,n
+        ewt(i) = rtol(1)*dabs(ycur(i)) + atol(1)
+      end do
       return
  20   continue
-      do 25 i = 1,n
- 25     ewt(i) = rtol(1)*dabs(ycur(i)) + atol(i)
+      do i = 1,n
+        ewt(i) = rtol(1)*dabs(ycur(i)) + atol(i)
+      end do
       return
  30   continue
-      do 35 i = 1,n
- 35     ewt(i) = rtol(i)*dabs(ycur(i)) + atol(1)
+      do i = 1,n
+        ewt(i) = rtol(i)*dabs(ycur(i)) + atol(1)
+      end do
       return
  40   continue
-      do 45 i = 1,n
- 45     ewt(i) = rtol(i)*dabs(ycur(i)) + atol(i)
+      do i = 1,n
+        ewt(i) = rtol(i)*dabs(ycur(i)) + atol(i)
+      end do
       return
 c----------------------- end of subroutine dewset ----------------------
       end
