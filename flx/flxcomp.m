@@ -20,13 +20,14 @@ c     insert a sub-grid into the EFIT mesh --
       call refine
 
 c     *** clear the working arrays
-      do 20 kk=1,jdim
+      do kk=1,jdim
          ilast(kk)=0
          npoint(kk)=0
-      do 20 ll=1,npts
-         xcurve(ll,kk)=0.0
-         ycurve(ll,kk)=0.0
-   20 continue
+         do ll=1,npts
+           xcurve(ll,kk)=0.0
+           ycurve(ll,kk)=0.0
+         end do
+      end do
 
 c     initialize the contour indexing variables
       ncmin=0
