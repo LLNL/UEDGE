@@ -2890,7 +2890,7 @@ c...  Subroutine to shift cell vertices near ix=ixpt2 for 1D flux tube ...
       Use(Share)          # nxomit,nxpt2msh,nxpt2psh,rxpt2msh,zxpt2psh
 
 c...  local scalars
-      integer ix,ix2,ix1 #..zml
+      integer ix,ix2,ix1 
       real lenginc,theta
 
       if (nxomit .ge. 0) then
@@ -2917,7 +2917,7 @@ c...  Second, fix iy=1 cell vertices below X-point
         zm(ix+1,1,3) = zm(ix,1,4)
       enddo
 
-#..   zml do the inner X-pt
+#..   the inner X-pt
 #..
 #..
       if (nxomit .ge. 0) then

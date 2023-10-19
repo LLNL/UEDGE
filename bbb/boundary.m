@@ -772,12 +772,12 @@ c... BC for neutral gas temperature/energy at iy=0
             iv = idxtg(ix,0,igsp)
             if (isixcore(ix)==1) then
               if (istgcore(igsp) == 0) then  #set to ti
-                yldot(iv)=nurlxg*(ti(ix,0)*cftgticore(igsp)  #..zml
+                yldot(iv)=nurlxg*(ti(ix,0)*cftgticore(igsp) 
      .                            -tg(ix,0,igsp))/(temp0*ev)
               elseif (istgcore(igsp) == 1) then   # set to tgcore
                 yldot(iv)=nurlxg*(tgcore(igsp)*ev-tg(ix,0,igsp))/
      .                                                      (temp0*ev)
-              elseif (istgcore(igsp) == 2) then  #..zml
+              elseif (istgcore(igsp) == 2) then 
                 #if (isupgon(igsp)==1) then
                   t0 = max(tg(ix,0,igsp),tgmin*ev)
                   vyn = sqrt( 0.5*t0/(pi*mg(igsp)) )
@@ -813,7 +813,7 @@ c... BC for neutral gas temperature/energy at iy=0
                 yldot(iv) =  -nurlxg*( fegy(ix,0,igsp) + 2*cgengmw*
      .                               ng(ix,1,igsp)*vyn*t0*sy(ix,0) )/
      .                                     (sy(ix,0)*vpnorm*ennorm)
-              elseif (istgpfc(igsp) == 4)  #..zml
+              elseif (istgpfc(igsp) == 4) 
         	t0 = max(tg(ix,0,igsp),tgmin*ev)
                 vyn = sqrt( 0.5*t0/(pi*mg(igsp)) )
                 nharmave = 2.*(ng(ix,0,igsp)*ng(ix,1,igsp)) /
@@ -1345,7 +1345,7 @@ ccc  - - - - - - - - - - - - - -
      .                         0.5*(ti(ix,ny) + ti(ix,ny+1))/
      .                            (gyf(ix,ny)*lytix(2,ix)) )/(temp0*ev)
            elseif (istiwc .eq. 4) then   #heat flux ~bcei*ti*elec_flux
-             t0 = max(tg(ix,ny+1,1), tgmin*ev)  #..zml
+             t0 = max(tg(ix,ny+1,1), tgmin*ev) 
              fngyw=0.25*sqrt(8*t0/(pi*mg(1)))*ng(ix,ny,1)*sy(ix,ny)
              yldot(iv2) = nurlxi*( feiy(ix,ny) - bceiw*ne(ix,ny)*
      .                             vey(ix,ny)*sy(ix,ny)*ti(ix,ny+1) -
@@ -1477,7 +1477,7 @@ c... BC for neutral gas temperature/energy at iy=ny+1
               yldot(iv) =  nurlxg*( fegy(ix,ny,igsp) - 2*cgengmw*
      .                              ng(ix,ny,igsp)*vyn*t0*sy(ix,ny) )/
      .                                      (sy(ix,ny)*vpnorm*ennorm)
-            elseif (istgwc(igsp) == 4)  #..zml
+            elseif (istgwc(igsp) == 4) 
 	      t0 = max(tg(ix,ny+1,igsp),tgmin*ev)
               vyn = sqrt( 0.5*t0/(pi*mg(igsp)) )
               nharmave = 2.*(ng(ix,ny,igsp)*ng(ix,ny+1,igsp)) /
@@ -1563,7 +1563,7 @@ c...  Now do the corners: the ion density corners are done elsewhere
      .            ( ng(ixlb(jx)+1,ny+1,igsp) - ng(ixlb(jx),ny+1,igsp) )
      .                                                      / n0g(igsp)
              endif
-             if(istgonxy(ixlb(jx),ny+1,igsp)==1) then  #..zml
+             if(istgonxy(ixlb(jx),ny+1,igsp)==1) then 
                yldot(idxtg(ixlb(jx),ny+1,igsp)) = nurlxg*
      .            ( 0.5*(tg(ixlb(jx)+1,ny+1,igsp)+tg(ixlb(jx),ny,igsp))
      .                                       - tg(ixlb(jx),ny+1,igsp) )
@@ -1610,7 +1610,7 @@ c...  Now do the corners: the ion density corners are done elsewhere
      .            ( ng(ixrb(jx),ny+1,igsp) - ng(ixrb(jx)+1,ny+1,igsp) )
      .                                                      / n0g(igsp)
              endif
-             if(istgonxy(ixrb(jx)+1,ny+1,igsp)==1) then  #..zml
+             if(istgonxy(ixrb(jx)+1,ny+1,igsp)==1) then 
                yldot(idxtg(ixrb(jx)+1,ny+1,igsp)) = nurlxg*
      .            ( 0.5*(tg(ixrb(jx),ny+1,igsp)+tg(ixrb(jx)+1,ny,igsp)) 
      .                               - tg(ixrb(jx)+1,ny+1,igsp) )
@@ -1795,7 +1795,7 @@ c     First, the density equations --
               iv1 = idxn(ixt,iy,ifld)
               if (isupgon(1)==1 .and. zi(ifld)==0.0) then   ## neutrals
                 if (recylb(iy,1,jx) .gt. 0.) then           # recycling
-                  t0 = max(tg(ixt1,iy,1),tgmin*ev)  #..zml
+                  t0 = max(tg(ixt1,iy,1),tgmin*ev) 
                   vxn = 0.25 * sqrt( 8*t0/(pi*mi(ifld)) )
                   yldot(iv1) = -nurlxg *
      .             (fnix(ixt,iy,ifld) + recylb(iy,1,jx)*fnix(ixt,iy,1) -
@@ -1804,7 +1804,7 @@ c     First, the density equations --
      .                 fngxslb(iy,1,jx) ) / (vpnorm*n0(ifld)*sx(ixt,iy))
                 elseif (recylb(iy,1,jx) <=  0. .and. 
      .                  recylb(iy,1,jx) >= -1.) then  # recylb is albedo
-                  t0 = max(tg(ixt,iy,1),tgmin*ev)  #..zml
+                  t0 = max(tg(ixt,iy,1),tgmin*ev) 
                   vyn = sqrt( 0.5*t0/(pi*mi(1)) )
                   yldot(iv1) = -nurlxg * ( fnix(ixt,iy,ifld) +
      .             (1+recylb(iy,1,jx))*ni(ixt,iy,ifld)*vyn*sx(ixt,iy) )/
@@ -1900,7 +1900,7 @@ c       Next, the momentum equations --
               endif # end if-test on isupss
             endif # end if-test on isupgon
           endif # end if-test on isuponxy
-          if (zi(ifld)==0.0) then  #..zml
+          if (zi(ifld)==0.0) then 
             kfeix = kfeix - cftiexclg*cfvcsx(ifld)*0.5*sx(ixt,iy)
      .                     *visx(ixt1,iy,ifld)*gx(ixt1,iy)
      .           *( up(ixt1,iy,ifld)**2 - up(ixt,iy,ifld)**2 )
@@ -2034,7 +2034,7 @@ cc                  bcen = recyce*bcil(iy,jx) - 0.5*mi(1)*(up(ixt,iy,2)**2 -
 cc     .               recyce*upi(ixt,iy,1)**2)/(recylb(iy,1,jx)*ti(ixt,iy))
 cc               endif
 cc               if (recyce .le. 0) bcen = 0.  # gets back to old case
-               #..zml
+
                  yldot(iv2) = -nurlxi*(totfeixl(iy,jx)
      .                        -totfnix*ti(ixt,iy)*bcil(iy,jx)+ 
      .            cftiexclg*( -cfneut*fnix(ixt,iy,iigsp)*tg(ixt,iy,1)*bcen
@@ -2200,7 +2200,7 @@ c ... Neutral temperature - test if tg eqn is on, then set BC
               yldot(iv) =  -nurlxg*( fegx(ixt,iy,igsp) + 2*cgengmpl*
      .                            ng(ixt1,iy,igsp)*vxn*t0*sx(ixt,iy) )/
      .                                     (sx(ixt,iy)*vpnorm*ennorm)
-            elseif (istglb(igsp) == 4)  #..zml
+            elseif (istglb(igsp) == 4) 
 	      if (isupgon(igsp)==1) then
                 if (recylb(iy,igsp,jx) .gt. 0.) then
                   t0 = max(tg(ixt1,iy,igsp),tgmin*ev)
@@ -2451,7 +2451,7 @@ c     First, the density equations --
               iv1 = idxn(ixt,iy,ifld)
               if (isupgon(1)==1 .and. zi(ifld)==0.0) then   ## neutrals
                 if (recyrb(iy,1,jx) .gt. 0.) then           # recycling
-                  t0 = max(tg(ixt1,iy,1),tgmin*ev)  #..zml
+                  t0 = max(tg(ixt1,iy,1),tgmin*ev) 
                   vxn = 0.25 * sqrt( 8*t0/(pi*mi(ifld)) )
                   yldot(iv1) = nurlxg *
      .               (fnix(ixt1,iy,ifld) + recyrb(iy,1,jx)*fnix(ixt1,iy,1) +
@@ -2460,7 +2460,7 @@ c     First, the density equations --
      .                - fngxsrb(iy,1,jx) ) / (vpnorm*n0(ifld)*sx(ixt1,iy))
                 elseif (recyrb(iy,1,jx) <=  0. .and. 
      .                  recyrb(iy,1,jx) >= -1.) then   # recyrb is albedo
-                  t0 = max(tg(ixt1,iy,1),tgmin*ev)  #..zml
+                  t0 = max(tg(ixt1,iy,1),tgmin*ev) 
                   vyn = sqrt( 0.5*t0/(pi*mi(1)) )
                   yldot(iv1) = nurlxg * ( fnix(ixt1,iy,ifld) -
      .                 (1+recyrb(iy,1,jx))*ni(ixt,iy,ifld)*vyn*sx(ixt1,iy) )/
@@ -2568,7 +2568,7 @@ c Finally set unused up(ixt,,) = up(ixt1,,); note ixt~nx+1
               yldot(iv) =nurlxu*(up(ixt1,iy,ifld)-up(ixt,iy,ifld))/vpnorm
             endif # end if-test on isupgon
           endif # end if-test on isupon
-          if (zi(ifld)==0.0) then  #..zml
+          if (zi(ifld)==0.0) then 
             kfeix = kfeix - cftiexclg*cfvcsx(ifld)*0.5*sx(ixt1,iy)
      .                     *visx(ixt1,iy,ifld)*gx(ixt1,iy)
      .           *( up(ixt1,iy,ifld)**2 - up(ixt2,iy,ifld)**2 ) 
@@ -2709,7 +2709,7 @@ cc               else
 cc                  bcen = 0.
 cc               endif
 cc               if (recyce .le. 0) bcen = 0.  # gets back to old case
-               #..zml
+
                  yldot(iv2) = nurlxi*(totfeixr(iy,jx)
      .                        -totfnix*bcir(iy,jx)*ti(ixt,iy)+
      .            cftiexclg*( -cfneut*fnix(ixt1,iy,iigsp)*bcen*tg(ixt,iy,1)
@@ -2875,7 +2875,7 @@ c ... Neutral temperature - test if tg eqn is on, then set BC
               yldot(iv) =  nurlxg*( fegx(ixt1,iy,igsp) - 2*cgengmpl*
      .                            ng(ixt1,iy,igsp)*vxn*t0*sx(ixt1,iy) )/
      .                                     (sx(ixt1,iy)*vpnorm*ennorm)
-            elseif (istgrb(igsp) == 4)  #..zml
+            elseif (istgrb(igsp) == 4) 
 	      if (isupgon(igsp)==1) then
                 if (recyrb(iy,igsp,jx) .gt. 0.) then
                   t0 = max(tg(ixt1,iy,igsp),tgmin*ev)
@@ -3561,7 +3561,7 @@ c ... Now set iseqalg=1 for boundary equations and potential equation
 	    if (isngonxy(ix,0,igsp).eq.1) then
                iseqalg(idxg(ix,0,igsp)) = 1
 	    endif 
-	    if (istgonxy(ix,0,igsp).eq.1) then  #..zml
+	    if (istgonxy(ix,0,igsp).eq.1) then 
                iseqalg(idxtg(ix,0,igsp)) = 1
 	    endif
    9       continue
@@ -3596,7 +3596,7 @@ c ... Now set iseqalg=1 for boundary equations and potential equation
 	    if (isngonxy(0,iy,igsp).eq.1) then
 	       iseqalg(idxg(0,iy,igsp)) = 1
 	    endif
-	    if (istgonxy(0,iy,igsp).eq.1) then  #..zml
+	    if (istgonxy(0,iy,igsp).eq.1) then 
                iseqalg(idxtg(0,iy,igsp)) = 1
 	    endif
    13      continue
@@ -3629,7 +3629,7 @@ c ... Now set iseqalg=1 for boundary equations and potential equation
 	    if (isngonxy(nx+1,iy,igsp).eq.1) then
                iseqalg(idxg(nx+1,iy,igsp)) = 1
 	    endif
-	    if (istgonxy(nx+1,iy,igsp).eq.1) then  #..zml
+	    if (istgonxy(nx+1,iy,igsp).eq.1) then 
                iseqalg(idxtg(nx+1,iy,igsp)) = 1
 	    endif
    17      continue
@@ -3661,7 +3661,7 @@ c ... Now set iseqalg=1 for boundary equations and potential equation
             if (isngonxy(ix,ny+1,igsp).eq.1) then
                iseqalg(idxg(ix,ny+1,igsp)) = 1
 	    endif
-	    if (istgonxy(ix,ny+1,igsp).eq.1) then  #..zml
+	    if (istgonxy(ix,ny+1,igsp).eq.1) then 
                iseqalg(idxtg(ix,ny+1,igsp)) = 1
 	    endif
    22      continue
@@ -3718,7 +3718,7 @@ c ... Check for double-null symmetry boundaries
               iseqalg(idxg(nxc,iy,igsp)) = 1
               iseqalg(idxg(nxc+1,iy,igsp)) = 1
             endif
-            if (istgonxy(nxc,iy,igsp)*istgonxy(nxc+1,iy,igsp)==1) then #..zml
+            if (istgonxy(nxc,iy,igsp)*istgonxy(nxc+1,iy,igsp)==1) then 
               iseqalg(idxtg(nxc,iy,igsp)) = 1
               iseqalg(idxtg(nxc+1,iy,igsp)) = 1
             endif
@@ -3762,7 +3762,7 @@ c ... Check for an interior limiter surface
               iseqalg(idxg(ix_lim,iy,igsp)) = 1
               iseqalg(idxg(ix_lim+1,iy,igsp)) = 1
             endif
-            if (istgonxy(ix_lim,iy,igsp)*istgonxy(ix_lim+1,iy,igsp)==1) then #..zml
+            if (istgonxy(ix_lim,iy,igsp)*istgonxy(ix_lim+1,iy,igsp)==1) then 
               iseqalg(idxtg(ix_lim,iy,igsp)) = 1
               iseqalg(idxtg(ix_lim+1,iy,igsp)) = 1
             endif
@@ -3801,9 +3801,9 @@ c ... Check for upper target plates
      .                            iseqalg(idxg(ixrb(1)+1,iy,igsp)) = 1
             if (isngonxy(ixlb(2),iy,igsp)==1) 
      .                            iseqalg(idxg(ixlb(2),iy,igsp)) = 1
-            if (istgonxy(ixrb(1)+1,iy,igsp)==1)  #..zml
+            if (istgonxy(ixrb(1)+1,iy,igsp)==1) 
      .                            iseqalg(idxtg(ixrb(1)+1,iy,igsp)) = 1
-            if (istgonxy(ixlb(2),iy,igsp)==1)  #..zml
+            if (istgonxy(ixlb(2),iy,igsp)==1) 
      .                            iseqalg(idxtg(ixlb(2),iy,igsp)) = 1
           enddo
           if (isphionxy(ixrb(1)+1,iy)==1) 

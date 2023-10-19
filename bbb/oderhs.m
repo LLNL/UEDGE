@@ -740,7 +740,7 @@ c     Set ix index for outer midplane turbulence
          ixmp2 = ixpt1(1) + nxomit + 3*(ixpt2(1)-ixpt1(1))/4
       endif
 
-c     ..zml set switches for adding Tg from a default Ti case
+c     set switches for adding Tg from a default Ti case
       if ((istiexclg .eq. 1) .and. (istiinclg_test.ne.1)) cftiexclg = 0.0
 
 c     Set switches for neutrals-related source terms in plasma equations
@@ -1972,7 +1972,6 @@ c     Ionization of neutral hydrogen by electrons and recombination--
                psorgc(ix,iy,igsp) = -ng(ix,iy,igsp)*nuiz(ix,iy,igsp)*vol(ix,iy) +
      .                              psorbgg(ix,iy,igsp)
                psorc(ix,iy,ifld) = - psorgc(ix,iy,igsp)
-               #..zml cfdiss: the fraction of neutrals that are from diss
                psordis(ix,iy) = cfdiss*psorc(ix,iy,1)  # overwritten below if ishymol=1
                psorxrc(ix,iy,ifld) = -ni(ix,iy,ifld)*nurc(ix,iy,igsp)*vol(ix,iy)
                psorrgc(ix,iy,igsp) = -psorxrc(ix,iy,ifld)
@@ -2572,7 +2571,7 @@ c...  Add friction part of Q_e here
 c ... Now include seic contribution from hydrogen atoms if isupgon=1
 c ... Then "ion" species 2 (redundant as gas species 1) is hydr atom
 
-      if(isupgon(1)==1 .and. zi(2)<1.e-20) then # .and. istgon(1)==0) then  #..zml
+      if(isupgon(1)==1 .and. zi(2)<1.e-20) then # .and. istgon(1)==0) then 
         if(cfvgpx(2) > 0.) then
           do iy = j2, j5
             do ix = i2, i5
@@ -2625,7 +2624,7 @@ c  If more neutral species have full parallel mom eqn, need to redo loops
                do 937 ix = i1,i6
 c
                   ix1 = ixm1(ix,iy)
-                  vtn = sqrt(max(tg(ix,iy,1),tgmin*ev)/mi(ifld))  #..zml
+                  vtn = sqrt(max(tg(ix,iy,1),tgmin*ev)/mi(ifld))
  		  qfl = flalfvgxa(ix)*nm(ix,iy,ifld)*vtn**2
                   if(isvisxn_old == 1) then
                     lmfpn = 1./(sigcx * 
@@ -2660,7 +2659,7 @@ c    Now do y-direction; use ni on up y-face
                   tgupyface = 0.25*( tg(ix,iy,1)+
      .                         tg(ix,iyp1,1)+tg(ix2,iy,1)+
      .                         tg(ix3,iyp1,1) )
-                  vtn = sqrt(max(tgupyface,tgmin*ev)/mi(ifld))  #..zml
+                  vtn = sqrt(max(tgupyface,tgmin*ev)/mi(ifld))
                   nmxface = 0.5*(nm(ix,iy,ifld)+nm(ix2,iy,ifld))
                   ngupyface = 0.25*( ni(ix,iy,ifld)+
      .                         ni(ix,iyp1,ifld)+ni(ix2,iy,ifld)+
@@ -3032,7 +3031,7 @@ c IJ 2016/10/10	add cfneutsor_ei multiplier to control fraction of neutral energ
                qshx = cshx * (tg(ix,iy,1)-tg(ix1,iy,1)) * gxf(ix,iy)
 	       hcxn(ix,iy) = cshx  / 
      .                      (1 + (abs(qshx/qflx))**flgamtg)**(1./flgamtg)
-               hcxi(ix,iy) = hcxi(ix,iy) +   #..zml
+               hcxi(ix,iy) = hcxi(ix,iy) + 
      .                          cftiexclg*cfneut*cfneutsor_ei*hcxn(ix,iy)
 c          Now for the radial flux limit - good for nonorthog grid too
                qfly = flalftgya(iy) * sqrt(tgavey/mi(iigsp)) * noavey *
@@ -3043,7 +3042,7 @@ c          Now for the radial flux limit - good for nonorthog grid too
                qshy = cshy * (tgy0(ix,iy1,1)-tgy1(ix,iy1,1))/dynog(ix,iy)
                hcyn(ix,iy) = cshy / 
      .                      (1 + (abs(qshy/qfly))**flgamtg)**(1./flgamtg)
-               hcyi(ix,iy) = hcyi(ix,iy) +   #..zml
+               hcyi(ix,iy) = hcyi(ix,iy) + 
      .                          cftiexclg*cfneut*cfneutsor_ei*hcyn(ix,iy)
 c     
   63        continue
@@ -3138,7 +3137,7 @@ c..   Now radial direction
      .                     cfhcygc(igsp)*noavey*kyg_use(ix,iy,igsp)
           enddo
         enddo
-        if (igsp.eq.1 .and. isupgon(igsp).eq.1) then  #..zml for D0 using hcx/yn
+        if (igsp.eq.1 .and. isupgon(igsp).eq.1) then 
           hcxg(:,:,igsp) = hcxn(:,:)
           hcyg(:,:,igsp) = hcyn(:,:)
         endif
@@ -3152,10 +3151,8 @@ c ... Gas molecule thermal equipartition with hydrogen ions and atoms
         do iy = j1, j6
           do ix = i1, i6
 	    nhi_nha = ni(ix,iy,1)+ni(ix,iy,2)
-            eqpg(ix,iy,igsp) = cftgeqp*ng(ix,iy,igsp)*nhi_nha*
-     .                                            keligig(igsp)
-            #if (igsp.eq.1 .and. istiexclg.eq.1)   #..zml, not precise
-            #if (istiexclg.eq.1)  #..zml exclude D0 in eqpg, add it later.
+#            eqpg(ix,iy,igsp) = cftgeqp*ng(ix,iy,igsp)*nhi_nha*
+#     .                                            keligig(igsp)
             eqpg(ix,iy,igsp) = cftgeqp*ng(ix,iy,igsp)*
      .                   (ni(ix,iy,1)+cftiexclg*ni(ix,iy,2))*keligig(igsp)
           enddo
@@ -3574,7 +3571,7 @@ c     The density-stencil dxnog has to be averaged as well.
                endif
 c...  Now flux limit with flalfvgxy if ifld=2
                if (ifld==2) then
-                 t0 = max(tg(ix,iy,1),tgmin*ev)  #..zml
+                 t0 = max(tg(ix,iy,1),tgmin*ev)
                  vtn = sqrt(t0/mg(1))
                  qfl = flalfvgxya(ix)*0.5*(sx(ix,iy)+sx(ix1,iy))*vtn**2*
      .                                        nm(ix,iy,ifld) + cutlo
@@ -3755,7 +3752,7 @@ c     The main ions, momentum coupling:
 c     The neutral species, momentum coupling AND other source terms:
                       resmo(ix,iy,iigsp) =   # TR resmo(ix,iy,ifld) #IJ 2016
      .                    - cmneut * cmneutsor_mi * uesor_up(ix,iy,1) 
-     .                    -sx(ix,iy) * rrv(ix,iy) *  #..zml 
+     .                    -sx(ix,iy) * rrv(ix,iy) * 
      .                       cpgx*( cftiexclg*(ni(ix2,iy,iigsp)*ti(ix2,iy)-
      .                                ni(ix,iy,iigsp)*ti(ix,iy))+
      .                              (1.0-cftiexclg)*
@@ -3995,21 +3992,21 @@ c IJ 2016/10/10	add cfneutsor_ei multiplier to control fraction of neutral energ
          if ((isupgon(1) .eq. 1) .and. (ifld .eq. iigsp)) then  #neutrals
             do 726 iy = j4, j8
                do 725 ix = i1, i5
-                  floxi(ix,iy) = floxi(ix,iy) +  #..zml
+                  floxi(ix,iy) = floxi(ix,iy) +
      .                 cftiexclg*cfcvti*2.5*cfneut*cfneutsor_ei*fnix(ix,iy,ifld) 
  725           continue   # next correct for incoming neut pwr = 0
                do jx = 1, nxpt  #if at plate, sub (1-cfloxiplt)*neut-contrib
                  if(ixmnbcl==1) then  #real plate-need for parallel UEDGE
                    iixt = ixlb(jx) #left plate
                    if(fnix(iixt,iy,ifld) > 0.) then
-                     floxi(iixt,iy) = floxi(iixt,iy) - (1.-cfloxiplt)*  #..zml
+                     floxi(iixt,iy) = floxi(iixt,iy) - (1.-cfloxiplt)*
      .                 cftiexclg*cfcvti*2.5*cfneut*cfneutsor_ei*fnix(iixt,iy,ifld)
                    endif
                  endif
                  if(ixmxbcl==1) then #real plate-need for parallel UEDGE
                    iixt = ixrb(jx) # right plate
                    if(fnix(iixt,iy,ifld) < 0.) then
-                     floxi(iixt,iy) = floxi(iixt,iy) - (1.-cfloxiplt)*  #..zml
+                     floxi(iixt,iy) = floxi(iixt,iy) - (1.-cfloxiplt)*
      .                 cftiexclg*cfcvti*2.5*cfneut*cfneutsor_ei*fnix(iixt,iy,ifld)
                    endif
                    floxi(ixrb(jx)+1,iy) = 0.0e0  #cosmetic
@@ -4049,7 +4046,7 @@ c IJ 2016/10/10	add cfneutsor_ei multiplier to control fraction of neutral energ
          if ((isupgon(1) .eq. 1) .and. (ifld .eq. iigsp)) then
             do iy = j1, j5
                do ix = i4, i8
-                  floyi(ix,iy) = floyi(ix,iy)  #..zml
+                  floyi(ix,iy) = floyi(ix,iy)
      .                 + cftiexclg*cfneut * cfneutsor_ei * 2.5 * fniy(ix,iy,ifld)
                enddo
             enddo
@@ -4057,12 +4054,12 @@ c ...       Make correction at walls to prevent recyc neutrals injecting pwr
             do ix = i4, i8
               if (matwallo(ix) > 0 .and. recycwot(ix,1)>0.) then
                 fniy_recy = max(recycwot(ix,1)*fac2sp*fniy(ix,ny,1), 0.)
-                floyi(ix,ny) = floyi(ix,ny) +   #..zml
+                floyi(ix,ny) = floyi(ix,ny) + 
      .                 cftiexclg*cfneut*cfneutsor_ei*2.5*(1.-cfloygwall)*fniy_recy
               endif
               if (matwalli(ix) > 0 .and. recycwit(ix,1,1)>0.) then
                 fniy_recy = min(recycwit(ix,1,1)*fac2sp*fniy(ix,0,1), 0.)
-                floyi(ix,0) = floyi(ix,0) +    #..zml
+                floyi(ix,0) = floyi(ix,0) +
      .                 cftiexclg*cfneut*cfneutsor_ei*2.5*(1.-cfloygwall)*fniy_recy
               endif
             enddo 
@@ -4188,7 +4185,7 @@ c...Add the charge-exhange neutral contributions to ion+neutral temp eq.
 
          do 141 iy = j4, j8
             do 142 ix = i1, i5
-               floxi(ix,iy) = floxi(ix,iy) +  #..zml
+               floxi(ix,iy) = floxi(ix,iy) +
      .          cftiexclg*cfneut*cfneutsor_ei*cngtgx(1)*cfcvti*2.5*fngx(ix,iy,1)
  142        continue
             floxi(nx+1,iy) = 0.0e0
@@ -4198,7 +4195,7 @@ c...Add the charge-exhange neutral contributions to ion+neutral temp eq.
 
          do 145 iy = j1, j5
             do 144 ix = i4, i8
-               floyi(ix,iy) = floyi(ix,iy)  #..zml
+               floyi(ix,iy) = floyi(ix,iy)
      .             + cftiexclg*cfneut*cfneutsor_ei*cngtgy(1)*2.5*fngy(ix,iy,1)
  144        continue
  145     continue
@@ -4326,7 +4323,7 @@ c --- a nonorthogonal mesh because of niy1,0 - see def. of hcyn
                feixy(ix,iy) = exp( 0.5*
      .                       (log(ti(ix2,iy)) + log(ti(ix,iy))) )*
      .                           ( (fcdif*kyi+kyi_use(ix,iy))*0.5*
-     .                                     (nit(ix2,iy)+nit(ix,iy))  #..zml
+     .                                     (nit(ix2,iy)+nit(ix,iy))
      .          + cftiexclg*cfneut*cfneutsor_ei*0.25*(hcyn(ix ,iy)+hcyn(ix ,iy1)
      .                              +hcyn(ix2,iy)+hcyn(ix4,iy1)) ) *
      .                                 (  grdnv/cos(angfx(ix,iy))
@@ -4424,7 +4421,7 @@ c ... ## IJ 2016/10/19 add MC neutral flux
               seg_ue(ix,iy,jfld)=-( (fegx_ue(ix,iy,jfld)-fegx_ue(ix1,iy,  jfld))
      .                   + fluxfacy*(fegy_ue(ix,iy,jfld)-fegy_ue(ix, iy-1,jfld)) )
      .                  *( (ni(ix,iy,jfld)*ti(ix,iy))/(ni(ix,iy,jfld)*ti(ix,iy)) )
-              resei(ix,iy) = resei(ix,iy) +   #..zml
+              resei(ix,iy) = resei(ix,iy) +
      .                    cftiexclg*cmneutdiv*cmneutdiv_feg*seg_ue(ix,iy,jfld)
               reseg(ix,iy,1) = reseg(ix,iy,1) +
      .                             cmneutdiv*cmneutdiv_feg*seg_ue(ix,iy,jfld)
@@ -4555,10 +4552,10 @@ c to the friction force between neutrals and ions
      .                              *(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
                temp4 = cfnidhg2*0.25*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
      .                              *(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
-               tv = cfticx*nucx(ix,iy,1)*ng(ix,iy,1)*vol(ix,iy) #..zml
-               t0 = 1.5*( tg(ix,iy,1)* (psor(ix,iy,1)+tv)  #..zml
+               tv = cfticx*nucx(ix,iy,1)*ng(ix,iy,1)*vol(ix,iy)
+               t0 = 1.5*( tg(ix,iy,1)* (psor(ix,iy,1)+tv)
      .                     -ti(ix,iy) * (psorrg(ix,iy,1)+tv) )
-               resei(ix,iy) = resei(ix,iy) + w0(ix,iy)  #..zml
+               resei(ix,iy) = resei(ix,iy) + w0(ix,iy)
      .             + cfneut * cfneutsor_ei * cfnidh * 0.5*mi(1) * 
      .                          ( (t1-t2)*(t1-t2)+temp3+temp4 ) * 
      .                    (  psor(ix,iy,1) + cftiexclg*psorrg(ix,iy,1)
@@ -4566,18 +4563,18 @@ c to the friction force between neutrals and ions
      .              + (1.0-cftiexclg) * t0
      .             + cftiexclg * cfneut * cfneutsor_ei * cnsor
      .               *( eion*ev+cfnidhdis*
-     .                  0.5*mg(1)*(t2*t2+temp3+temp4) )*psordis(ix,iy) #..zml
-     .             + cfnidh2*  #..zml cfnidh2 should be 0!!! =1 for testing only mi and mg are mixed used here since mi=mg. Should be modified later.
+     .                  0.5*mg(1)*(t2*t2+temp3+temp4) )*psordis(ix,iy) 
+     .             + cfnidh2* 
      .                       ( -mi(1)*t1*t2*(psor(ix,iy,1)+tv)
      .                         +0.5*mi(1)*t1*t1*
      .                          (psor(ix,iy,1)+psorrg(ix,iy,1)+2*tv) )
-               reseg(ix,iy,1) = reseg(ix,iy,1) + pwrsorg(ix,iy,1) #..zml
+               reseg(ix,iy,1) = reseg(ix,iy,1) + pwrsorg(ix,iy,1)
      .                            - t0+0.5*mg(1) * ( (t1-t2)*(t1-t2)
      .                                              +temp3+temp4 )
      .                            * (psorrg(ix,iy,1)+tv)
      .                            + ( eion*ev + cfnidh*cfnidhdis*
      .                   0.5*mg(1)*(t2*t2+temp3+temp4) )*psordis(ix,iy)
-     .                     + cfnidh2*  #..zml cfnidh2 should be 0!!! =1 for testing only mi and mg are mixed used here since mi=mg. Should be modified later.
+     .                     + cfnidh2* 
      .                       ( -mg(1)*t1*t2*(psorrg(ix,iy,1)+tv)
      .                         +0.5*mg(1)*(t2*t2+temp3+temp4)*
      .                          (psor(ix,iy,1)+psorrg(ix,iy,1)+2*tv) )
@@ -4597,8 +4594,8 @@ c to the friction force between neutrals and ions
 
 
 c ... If molecules are present as gas species 2, add ion/atom cooling
-      #..zml ion/molecule elastic collisions have been considered in
-      #engbalg subroutine, so comment the following lines...
+      # ion/molecule elastic collisions have been considered in
+      # engbalg subroutine, so comment the following lines...
 #      if(ishymol == 1) then
 #        do iy = j2, j5
 #          do ix = i2, i5
@@ -4873,7 +4870,7 @@ c******************************************************************
 	       wvh(ix,iy,ifld) = wvh(ix,iy,ifld) -
      .                             sin(thetacc)*cfvcsy(ifld)*cfvisy*
      .                                   visy(ix,iy,ifld)*dupdx*dupdy
-            if (zi(ifld)==0.0 .and. ifld.eq.iigsp) then  #..zml
+            if (zi(ifld)==0.0 .and. ifld.eq.iigsp) then 
               resei(ix,iy) = resei(ix,iy) + cftiexclg*wvh(ix,iy,ifld)*vol(ix,iy)
               reseg(ix,iy,1) = reseg(ix,iy,1) + wvh(ix,iy,ifld)*vol(ix,iy)
             else
@@ -6057,7 +6054,7 @@ c
       Use(MCN_dim)      # ngsp, ...
       Use(MCN_sources)  # cfneut_sng, cfneutdiv_fng, ... mcfngx, mcfngy, ...
       Use(Interp)		# ngs, tgs 
-      Use(Bfield)   # rbfbt  ..zml
+      Use(Bfield)   # rbfbt 
 
 *  -- procedures --
       real ave
@@ -6193,8 +6190,8 @@ c ..Timing; initiate time for y-direction calc
       do 890 iy = j1, j5
          do 889 ix = i4, i8
             ngyface = 0.5*(ng(ix,iy,igsp)+ng(ix,iy+1,igsp))
-	    t0 = max(tg(ix,iy,igsp),tgmin*ev)   #..zml
-	    t1 = max(tg(ix,iy+1,igsp),tgmin*ev) #..zml
+	    t0 = max(tg(ix,iy,igsp),tgmin*ev)
+	    t1 = max(tg(ix,iy+1,igsp),tgmin*ev)
             vtn = sqrt( t0/mg(igsp) )
             vtnp = sqrt( t1/mg(igsp) )
             nu1 = nuix(ix,iy,igsp) + vtn/lgmax(igsp)
@@ -6515,7 +6512,7 @@ c **- loop for uu just as in the previous version - needed for correct Jac?
          do iy = j4, j6
             do ix = i1, i6
                uu(ix,iy,iigsp) = uug(ix,iy,igsp)
-               v2(ix,iy,iigsp) = ( uuxg(ix,iy,igsp)  #..zml make sure no non-orth part in uuxg, double check later
+               v2(ix,iy,iigsp) = ( uuxg(ix,iy,igsp) 
      .                            - up(ix,iy,iigsp)*rrv(ix,iy) )
      .                       /(rbfbt(ix,iy) + rbfbt(ixp1(ix,iy),iy))*2.
             enddo
@@ -7516,7 +7513,7 @@ c  -- This v_grad_Pg term first added by MZhao
       enddo
 
       do igsp = 1, ngsp
-        if(istgon(igsp) == 1) then  #..zml for all igsp species that evoles Tg
+        if(istgon(igsp) == 1) then 
           do iy = j2, j5
             do ix = i2, i5
               ix1 = ixm1(ix,iy)
@@ -7524,7 +7521,7 @@ c  -- This v_grad_Pg term first added by MZhao
               iy1 = max(0,iy-1)
               tv = (pg(ix2,iy,igsp) - pg(ix ,iy,igsp))
               t1 = (pg(ix ,iy,igsp) - pg(ix1,iy,igsp))
-              segc(ix,iy,igsp) = 0.5*cvgpg*(   #..zml should use uuxg since uug has the non-orth part
+              segc(ix,iy,igsp) = 0.5*cvgpg*( 
      ,                 uuxg(ix, iy,igsp)*ave(gx(ix2,iy),gx(ix, iy))*tv +
      .                 uuxg(ix1,iy,igsp)*ave(gx(ix ,iy),gx(ix1,iy))*t1 )*
      .                                                      vol(ix,iy)
@@ -7684,8 +7681,8 @@ c...  already added to uug(ix,iy,igsp)
               ix4 = ixp1(ix,iy1)
               ix5 = ixm1(ix,iy+1)
               ix6 = ixp1(ix,iy+1)
-              t0 = max(tg(ix,iy,igsp),tgmin*ev)   #..zml
-              t1 = max(tg(ix2,iy,igsp),tgmin*ev)  #..zml
+              t0 = max(tg(ix,iy,igsp),tgmin*ev) 
+              t1 = max(tg(ix2,iy,igsp),tgmin*ev)
               vtn = sqrt( t0/mg(igsp) )
               vtnp = sqrt( t1/mg(igsp) )
               nu1 = nuix(ix,iy,igsp) + vtn/lgmax(igsp)
@@ -7750,10 +7747,10 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
             reseg(ix,iy,igsp)= -( fegx(ix,iy,igsp)-fegx(ix1,iy,  igsp)+
      .                            fegy(ix,iy,igsp)-fegy(ix, iy1,igsp) )
      .                                                + segc(ix,iy,igsp)
-            reseg(ix,iy,igsp)= reseg(ix,iy,igsp) + vol(ix,iy)*  #..zml between D+ and igsp
+            reseg(ix,iy,igsp)= reseg(ix,iy,igsp) + vol(ix,iy)* 
      .                      eqpg(ix,iy,igsp)*(ti(ix,iy)-tg(ix,iy,igsp))#+
 #     .                   cftgdiss(igsp)*psorg(ix,iy,igsp)*tg(ix,iy,igsp)
-            if (igsp.eq.1) then  #..zml for D0, we should include D+ and D0 in Ti
+            if (igsp.eq.1) then  #..for D0, we should include D+ and D0 in Ti
               seic(ix,iy) = seic(ix,iy)- vol(ix,iy)*(1.0-cftiexclg)*
      .                                               eqpg(ix,iy,igsp)*
      .                                      (ti(ix,iy)-tg(ix,iy,igsp))
@@ -7768,7 +7765,7 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
               reseg(ix,iy,1) = reseg(ix,iy,1) - cftgeqp*ng(ix,iy,igsp)*
      .                                           ng(ix,iy,1)*kelighg(igsp)*
      .                        (tg(ix,iy,1)-tg(ix,iy,igsp))*vol(ix,iy)
-              if (ishymol.eq.1 .and. igsp.eq.2) then  #..zml D2 dissociation
+              if (ishymol.eq.1 .and. igsp.eq.2) then  #..D2 dissociation
                  reseg(ix,iy,igsp) =
      .                             reseg(ix,iy,igsp)+psorg(ix,iy,igsp)
      .                                               *1.5*tg(ix,iy,igsp)
@@ -7813,7 +7810,7 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
         do ifld = nhsp+1, nisp
           do iy = j2, j5    # iys,iyf limits dont seem to work(?)
             do ix = i2, i5
-              #..zml possible bugs here? resei is replaced with seic
+              #      possible bugs here? resei is replaced with seic
 	      #      since resei is not defined before this subroutine called
 	      #      more needs to be done here.. e.g. for segc
               seic(ix,iy) =seic(ix,iy) -cftiimpg*1.5*ni(ix,iy,ifld)*
@@ -8057,7 +8054,7 @@ ccc            if (isngonxy(ix,iy,1) .eq. 1) nbidot = cngtgx(1)*yldot(idxg(ix,iy
             do 255 ifld = 1, nisp
 	       if (isnionxy(ix,iy,ifld) .eq. 1) then
                   iv = idxn(ix,iy,ifld)
-                  #..zml separate ions and atoms
+                  #.. separate ions and atoms
                   #nbidot = nbidot + yldot(iv)*n0(ifld)
                   if (isupgon(1)==1 .and. zi(ifld)==0) then  #neutral hyd
                     nbgdot = yldot(iv)*n0(ifld)
@@ -8122,7 +8119,7 @@ c ....            Fix limiter case with algebraic eqns, not ODEs
                  iv1 = idxti(ix,iy)
                  if (iseqalg(iv1) == 0) then
                    if(isupgon(1)==1) then
-                     yldot(iv1) = ( yldot(iv1)*nnorm -  #..zml
+                     yldot(iv1) = ( yldot(iv1)*nnorm - 
      .                              yl(iv1)*(nbidot + cftiexclg*nbgdot) ) /
      .                               (nit(ix,iy) + cftiexclg*ni(ix,iy,2) )
                    else
@@ -8132,7 +8129,7 @@ c ....            Fix limiter case with algebraic eqns, not ODEs
                    endif
                  endif
                endif
-               do igsp = 1, ngsp  #..zml
+               do igsp = 1, ngsp 
                  if (igsp == 1 .and. isupgon(1) == 1) then
                    if (istgonxy(ix,iy,igsp) == 1) then
                      iv = idxtg(ix,iy,igsp)
@@ -8225,7 +8222,7 @@ c...  Initialize values and arrays
       enddo
       do igsp = 1, ngsp
         #..zmlpossible bugs?
-        #call s2fill (nx+2, ny+2, 0., volpsor(0:nx+1,0:ny+1,igsp), 1, nx+2) #..zml defined above
+        #call s2fill (nx+2, ny+2, 0., volpsor(0:nx+1,0:ny+1,igsp), 1, nx+2) 
         #call s2fill (nx+2, ny+2, 0., volmsor(0:nx+1,0:ny+1,igsp), 1, nx+2)
 	call s2fill (nx+2, ny+2, 0., volpsorg(0:nx+1,0:ny+1,igsp), 1, nx+2)
         ivolcurgt = ivolcurgt + ivolcurg(igsp)
