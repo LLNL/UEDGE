@@ -51,23 +51,25 @@ c     is given in the variable inelrad (formerly carbavg.dat).
       read(us,inrad)
       close (us)
 c
-      do 102 i = 1,ncaset
+      do i = 1,ncaset
        terad(i)=terad(i)*1.602e-19/ctemp
- 102  continue
+      end do
 c
-      do 103 i = 1,ncasent
-       rntau(i)=rntau(i)*crni*rl/cs
- 103  continue
+      do i = 1,ncasent
+        rntau(i)=rntau(i)*crni*rl/cs
+      end do
 c
 c
-      do 111 i = 1,ncaset
-       do 111 j = 1,ncaseno
-        do 111 k = 1,ncasent
+      do i = 1,ncaset
+       do j = 1,ncaseno
+        do k = 1,ncasent
 c
-        radrate(i,j,k)=radrate(i,j,k)*crni*rl*1.602e-19
+         radrate(i,j,k)=radrate(i,j,k)*crni*rl*1.602e-19
      .                /cs/ctemp/1.5
 c
- 111  continue
+        end do
+       end do
+      end do  
 c
 c----------------------------------------------------------------------c
       elseif (impflag .eq. 2) then
@@ -105,19 +107,21 @@ c
 c
 c   ionization rate
 c
-      do 200 i = 1,ntev
+      do i = 1,ntev
        read(us,1000) tevb(i),(rsi(i,k),k=0,nz-1)
-       do 201 k = 0,nz-1
- 201    rsi(i,k) = rsi(i,k)*crni*rl/cs
- 200  continue
+       do k = 0,nz-1
+        rsi(i,k) = rsi(i,k)*crni*rl/cs
+       end do
+      end do
 c
 c   recombination rate
 c
-      do 210 i = 1,ntev
+      do i = 1,ntev
        read(us,1000) tevb(i),(rre(i,k),k=1,nz)
-       do 211 k = 1,nz
- 211    rre(i,k) = rre(i,k)*crni*rl/cs
- 210  continue
+       do k = 1,nz
+        rre(i,k) = rre(i,k)*crni*rl/cs
+       end do
+      end do
 c
 c   radiative power rate
 c
@@ -132,11 +136,12 @@ c       write(*,*) i,(rpwr(i,k),k=0,nz)
 c
 c   CX recomb. rate
 c
-      do 230 i = 1,ntev
+      do i = 1,ntev
        read(us,1000) tevb(i),(rrcx(i,k),k=1,nz)
-       do 231 k = 1,nz
- 231    rrcx(i,k) = rrcx(i,k)*crni*rl/cs
- 230  continue
+       do k = 1,nz
+        rrcx(i,k) = rrcx(i,k)*crni*rl/cs
+       end do
+      end do
 c
 c ... Scale temperature scale for multi-charge rates to code units.
       do i = 1, ntev

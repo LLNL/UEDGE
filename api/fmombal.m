@@ -402,7 +402,7 @@ c
 	amat(1+j,1+j) = one   	!totmass*anorm * fanorm
 	amat(2+j,2+j) = one	!NOT USED FOR ANYTHING PHYSICAL
 	amat(3+j,3+j) = one	!NOT USED FOR ANYTHING PHYSICAL
-	do 10 misa = 1,miso
+	do misa = 1,miso
 	  nz = natom(misa)
 	  dnur1 = (fanorm*denmass(misa,z1))*nurec(misa,z1)
 c
@@ -424,14 +424,14 @@ c
      >	    rhomass*uresp(mflow,nzsum,misa,iacci)
 	  enddo
           i = KXA*(misa-1)
-	  do 10 m = 1,KXA
+	  do m = 1,KXA
 	    if( (misa.ne.mise) .or. (m.ne.mflow) )then
 	      sbar(m,misa) =
      >	      sdot(nz,zi(misa,1),miso,uresp(m,z1,misa,iforc),KXA)
 	      amat(m+i,1+j) =
      >	      -sdot(nz,zi(misa,1),miso,uresp(m,z1,misa,iacci),KXA)
 	    endif
-	  do 10 mpmisb = 1,KXA*miso
+	  do mpmisb = 1,KXA*miso
 	    do nzb = 1,nz
 	    usum(nzb) = uresp(m,nzb,misa,ilam1)*elab(ilam1,misa,mpmisb)
      >	              + uresp(m,nzb,misa,ilam2)*elab(ilam2,misa,mpmisb)
@@ -450,7 +450,9 @@ c
      >	        + (denmass(misa,nzsum)/totmass)*usum(nzsum)
 	      enddo
 	    endif
- 10	continue
+	end do
+	end do
+	end do
 c
 c	ADD DIAGONAL ELEMENTS
 c
@@ -694,43 +696,45 @@ c*****	Print out average-ion quantities
 	acci = acci0*anorm
 	sumflow = 0.
 	sumaflow= 0.
-	do 55 misa = 1,miso
+	do misa = 1,miso
 	  vtherm=sqrt(2.0*tempa(misa)/amu(misa)/promas)
-	do 55 m = 1,2		!Only look at flow, heat flow
-	if( m.eq.1 )then
-	write(*,500)m,amu(misa),sbar(m,misa),
-     >	1000.*tempa(misa)/xj7kv,vtherm,caplam(m,misa)
-	  write(*,510)
-	  if( misa.ne.1 )
-     >	  write(*,520)0,uneut(misa),den(misa,0),nuion(misa,0)
-	else if(m.eq.2)then
-	  write(*,505)m,amu(misa),sbar(m,misa)
-	  write(*,530)
-	endif
-	nzmax = natom(misa)
-	do 55 nz = 1,nzmax
-	force = fmom(m,nz,misa)
-	friction = zi(misa,nz) * ( ela(m,1,misa)*usol(1,nz,misa)
-     >	+ ela(m,2,misa)*usol(2,nz,misa)
-     >	+ ela(m,3,misa)*usol(3,nz,misa) + caplam(m,misa) )
-	friction = friction - denmass(misa,nz)*usol(m,nz,misa)*
-     >	(nuion(misa,nz) + nurec(misa,nz))*al32(m)
-	if( nz.gt.1 )friction = friction + usol(m,nz-1,misa)
-     >	*denmass(misa,nz-1) * nuion(misa,nz-1) * al32(m)
-	if( nz.lt.nzmax )friction = friction + usol(m,nz+1,misa)
-     >	*denmass(misa,nz+1) * nurec(misa,nz+1) * al32(m)
-	if( m.eq.1 )then
-	  force = force + denmass(misa,nz)*acci
-	  sumflow = sumflow + denmass(misa,nz)*usol(1,nz,misa)
-	  sumaflow= sumaflow+ denmass(misa,nz)*abs(usol(1,nz,misa))
-	  write(*,550)nz,usol(m,nz,misa),force,friction,
-     >	  den(misa,nz),zi(misa,nz),nuion(misa,nz),nurec(misa,nz)
-	else if( m.eq.2 )then
-	  pres = den(misa,nz)*tempa(misa)
-	  write(*,550)nz,-2.5*usol(m,nz,misa)*pres,
-     >	  force,friction,gradp(misa,nz),den(misa,nz)*gradt(misa,nz)
-	endif
- 55	continue
+	  do m = 1,2		!Only look at flow, heat flow
+	    if( m.eq.1 )then
+	      write(*,500)m,amu(misa),sbar(m,misa),
+     >	  1000.*tempa(misa)/xj7kv,vtherm,caplam(m,misa)
+	      write(*,510)
+	      if( misa.ne.1 )
+     >	    write(*,520)0,uneut(misa),den(misa,0),nuion(misa,0)
+	    else if(m.eq.2)then
+	      write(*,505)m,amu(misa),sbar(m,misa)
+	      write(*,530)
+	    endif
+	    nzmax = natom(misa)
+	    do nz = 1,nzmax
+	      force = fmom(m,nz,misa)
+	      friction = zi(misa,nz) * ( ela(m,1,misa)*usol(1,nz,misa)
+     >	  + ela(m,2,misa)*usol(2,nz,misa)
+     >	  + ela(m,3,misa)*usol(3,nz,misa) + caplam(m,misa) )
+	      friction = friction - denmass(misa,nz)*usol(m,nz,misa)*
+     >	  (nuion(misa,nz) + nurec(misa,nz))*al32(m)
+	      if( nz.gt.1 )friction = friction + usol(m,nz-1,misa)
+     >	    *denmass(misa,nz-1) * nuion(misa,nz-1) * al32(m)
+	      if( nz.lt.nzmax )friction = friction + usol(m,nz+1,misa)
+     >	    *denmass(misa,nz+1) * nurec(misa,nz+1) * al32(m)
+	      if( m.eq.1 )then
+	        force = force + denmass(misa,nz)*acci
+	        sumflow = sumflow + denmass(misa,nz)*usol(1,nz,misa)
+	        sumaflow= sumaflow+ denmass(misa,nz)*abs(usol(1,nz,misa))
+	        write(*,550)nz,usol(m,nz,misa),force,friction,
+     >	    den(misa,nz),zi(misa,nz),nuion(misa,nz),nurec(misa,nz)
+	      else if( m.eq.2 )then
+	        pres = den(misa,nz)*tempa(misa)
+	        write(*,550)nz,-2.5*usol(m,nz,misa)*pres,
+     >	    force,friction,gradp(misa,nz),den(misa,nz)*gradt(misa,nz)
+	      endif
+	    end do
+	  end do
+	end do
 	sumaflow = max(sumaflow,totmass*abs(umass))
  500	format(/' UBAR (m=',i1,', mass=',1pe9.2,') = ',1pe10.3,
      >	' (m/sec)  TEMP = ',1pe10.3,' (eV)  VTHERM = ',1pe10.3,
@@ -940,7 +944,7 @@ c*****	nl=(iblock-1)*k+1,  nh=(iblock+1)*k  for iblock=1,...,n-1.
 	    kblock = km1
 	    krow = k
 	  endif
-	  do 90 j=1,kblock
+	  do j=1,kblock
 c*****	Determine element of maximum modulus in next column.
 c*****	Only allow permutations within blocks of k rows.
 	    if( iflag.ne.0 )goto 1010
@@ -992,7 +996,7 @@ c*****	  Subtract pivot row elements (ms) from row (l) elements
 c*****	  Subtract pivot row right side from other right-hand side(s)
 	      if(sca.ne.0.0)call saxpy(nbrt,-sca,b(msb,1),nk,b(ls,1),nk)
 	    enddo
- 90	  continue
+	  end do
 c*****	Move block 2 to 1, block 3 to 2, 0 out block 3 of rows used in
 c*****	this stage that will also be used in next.
 	  if( iblock.ne.n .and. iflag.eq.0 )then
@@ -1013,7 +1017,7 @@ c*****	Singular matrix found.
 	  iflag=1
 	  return
 	endif
-	do 100 lb = 1,nbrt
+	do lb = 1,nbrt
 	  nkb = nrow(nk)/k3 + 1
 	  x(nk,lb)=b(nkb,lb)/a(nrow(nk)+k)
 	  neq=nk-1
@@ -1039,7 +1043,8 @@ c*****	Singular matrix found.
 	    neq=neq-1
 	  enddo
 	  if(neq.gt.0) goto 180
- 100	continue
+ 100   continue
+	end do
 	iflag=0
 	return
 	end
@@ -1111,7 +1116,7 @@ c	SAME (SEE SUBROUTINE ZSOURCE FOR DETAILS)
 c
 	kx3 = 3*KXA
 	kxsq3 = kx3 * KXA
-	do 100 misa = 1,miso
+	do misa = 1,miso
 	nz = natom(misa)
 	nkz = nz * KXA
 	nresp = NBA*nkz		!Number of response array elements per isotope
@@ -1146,11 +1151,11 @@ c ... Initialize amat array.
           amat(i)=zero
         enddo
 
-	do 10 m = 1,KXA
-	do 10 mp= 1,KXA
+	do m = 1,KXA
+	do mp= 1,KXA
 	i1 = mp + kx3*(m-1)
 	i2 = m + nforc
-	do 10 jz= 1,nz
+	do jz= 1,nz
 	index = i1 + (jz-1)*kxsq3	!consecutive block-by-block index
 	is = i2 + (jz-1)*KXA
 c
@@ -1187,7 +1192,9 @@ c
      >	  asource(is) = asource(is) - amat(index)*usave(mp,jp,misa)
 	  endif
 	endif
- 10	continue
+	end do
+	end do
+	end do
 c
 c	SOLVE TRIDIAGONAL SYSTEM WITH NBA RIGHT SIDES STORED IN SOURCE
 c	STORE FOR FAST (INCREMENTAL) RECALCULATION (LDIR = 0,1)
@@ -1222,7 +1229,7 @@ c
 	noff = 1 + nkz*(ntype-1)
 	call scopy(nkz,xsol(noff),1,uresp(1,1,misa,ntype),1)
 	enddo
- 100	continue
+	end do
 	return
 	end
 c---- End of subroutine zrespond ---------------------------------------
@@ -1232,16 +1239,17 @@ c-----------------------------------------------------------------------
 	Use(Reduced_ion_constants)
 	real zi(miso,*), den(miso,0:nz), source(KXA,nz,NBA), fmom(KXA,*)
 	real denmass(miso,0:nz)
-	do 20 jz= 1,nz
-	do 20 m = 1,KXA
-	if( m.eq.1 )then
-	  source(m,jz,ilam1) = one
-	  source(m,jz,iacci) = denmass(misa,jz) * anorm / zi(misa,jz)
-	else if( (m.eq.ilam2) .or. (m.eq.ilam3) )then
-	  source(m,jz,m) = one
-	endif
-	source(m,jz,iforc) = fmom(m,jz)/zi(misa,jz)
- 20	continue
+	do jz= 1,nz
+	  do m = 1,KXA
+	    if( m.eq.1 )then
+	      source(m,jz,ilam1) = one
+	      source(m,jz,iacci) = denmass(misa,jz) * anorm / zi(misa,jz)
+	    else if( (m.eq.ilam2) .or. (m.eq.ilam3) )then
+	      source(m,jz,m) = one
+	    endif
+	    source(m,jz,iforc) = fmom(m,jz)/zi(misa,jz)
+	  end do
+	end do
 	return
 	end
 c---- End of subroutine zsource ----------------------------------------

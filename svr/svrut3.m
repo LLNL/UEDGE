@@ -356,20 +356,24 @@ c ***************************************************
 c
 c   Find the column in A where the main diagonal is stored
 c
-      do 1  k=1,ndiag
- 1    if(idiag(k).eq.0) mdiag=k
+      do k=1,ndiag
+       if(idiag(k).eq.0) mdiag=k
+      end do
 c
       iprcnd=0
       if(iprcnd.eq.1) then
 c
 c   Use the identity matrix as the pre-conditioner
 c
-      do 111 i=1,nn
-      do 111 k=1,ndiag
- 111  am(i,k) = 0.e0
+      do i=1,nn
+       do k=1,ndiag
+        am(i,k) = 0.e0
+       end do
+      end do
 c
-      do 2 i=1,nn
- 2    am(i,mdiag) = 1.e0
+      do i=1,nn
+       am(i,mdiag) = 1.e0
+      end do
 c
       else
 c
@@ -708,8 +712,9 @@ c ***************************************************
 c
 c   Find column in am(i,j) where main diagonal is located
 c
-      do 10 k=1,ndiag
- 10   if(idiag(k).eq.0) mdiag=k
+      do k=1,ndiag
+       if(idiag(k).eq.0) mdiag=k
+      end do
 c
 c   Compute the b' vector which is the solution to L(b')=y
 c

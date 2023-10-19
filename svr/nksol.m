@@ -1412,8 +1412,9 @@ c-----------------------------------------------------------------------
       real v, s, sum
       dimension v(n), s(n)
       sum = 0.0e0
-      do 10 i = 1,n
- 10     sum = sum + (v(i)*s(i))**2
+      do i = 1,n
+        sum = sum + (v(i)*s(i))**2
+      end do
       vnormnk = sqrt(sum)
       return
 c----------------------- end of function vnormnk -------------------------
@@ -1510,8 +1511,9 @@ c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
 c     load x with -f(u).
 c-----------------------------------------------------------------------
-      do 100 i = 1,n
- 100    x(i) = -savf(i)
+      do i = 1,n
+        x(i) = -savf(i)
+      end do
 c-----------------------------------------------------------------------
 c     call solpk to solve j*x = -f using the appropriate krylov
 c     algorithm.
@@ -1616,8 +1618,9 @@ c-----------------------------------------------------------------------
       ib = iv + n*mmax
       ihes = ib + n
       iwk = ihes + mmax*mmax
-      do 110 i = 1,n
- 110    wm(i+ib-1) = x(i)
+      do i = 1,n
+        wm(i+ib-1) = x(i)
+      end do
       call spiom (n, u, savf, wm(ib), su, sf, mmax, kmp, eps,
      *   f, jac, psol, npsl, x, wm(iv), wm(ihes), iwm, miom,
      *   wm(locwmp), iwm(locimp), wm(iwk), ipflg, iflag, rhom)
@@ -1639,8 +1642,9 @@ c-----------------------------------------------------------------------
       ihsv = ihes + mmax*(mmaxp1+1) + 1
       iwk = ihsv + mmax*mmaxp1
       iq = iwk + n
-      do 210 i = 1,n
- 210     wm(i+ib-1) = x(i)
+      do i = 1,n
+         wm(i+ib-1) = x(i)
+      end do
       call spigmr (n, u, savf, wm(ib), su, sf, mmax, mmaxp1, kmp,
      *   eps, f, jac, psol, npsl, x, wm(iv), wm(ihes), wm(iq),
      *   wm(ihsv), mgmr, wm(locwmp), iwm(locimp), wm(iwk), methn,
@@ -1670,8 +1674,9 @@ c-----------------------------------------------------------------------
       ihsv = ihes + mmax*(mmaxp1+1) + 1
       iwk = ihsv + mmax*mmaxp1
       iq = iwk + n
-      do 310 i = 1,n
- 310     wm(i+ib-1) = x(i)
+      do i = 1,n
+         wm(i+ib-1) = x(i)
+      end do
 
 ccc - this is direct solver
       do i=1,n
@@ -1803,16 +1808,18 @@ c
       miom = 0
       npsl = 0
 c zero out the hes array. ----------------------------------------------
-      do 15 j = 1,mmax
-        do 10 i = 1,mmax
- 10       hes(i,j) = 0.0e0
- 15     continue
+      do j = 1,mmax
+        do i = 1,mmax
+          hes(i,j) = 0.0e0
+        end do
+      end do
 c-----------------------------------------------------------------------
 c the initial residual is the vector b.  apply scaling to b, and
 c then normalize as v(*,1).
 c-----------------------------------------------------------------------
-      do 20 i = 1,n
- 20     v(i,1) = b(i)*sf(i)
+      do i = 1,n
+        v(i,1) = b(i)*sf(i)
+      end do
       bnrm = snrm2(n, v, 1)
       tem = 1.0e0/bnrm
       call sscal (n, tem, v(1,1), 1)
@@ -1880,17 +1887,20 @@ c set back to zero.
 c-----------------------------------------------------------------------
  200  continue
       m = miom
-      do 210 k = 1,m
- 210    b(k) = 0.0e0
+      do k = 1,m
+        b(k) = 0.0e0
+      end do
       b(1) = bnrm
       call shesl(hes,mmax,m,ipvt,b)
-      do 220 k = 1,n
- 220    x(k) = 0.0e0
-      do 230 i = 1,m
+      do k = 1,n
+        x(k) = 0.0e0
+      end do
+      do i = 1,m
         call saxpy (n, b(i), v(1,i), 1, x, 1)
- 230    continue
-      do 240 i = 1,n
- 240    x(i) = x(i)/su(i)
+      end do
+      do i = 1,n
+        x(i) = x(i)/su(i)
+      end do
       if (ipflg .eq. 1) then
         ier = 0
         call psol (n, u, savf, su, sf, f, jac, wk, wmp, iwmp, x, ier)
@@ -1978,8 +1988,9 @@ c
 c-----------------------------------------------------------------------
 c mfdif = 1.  call user-supplied routine for computing j*v.
 c-----------------------------------------------------------------------
-      do 110 i = 1,n
- 110    vtem(i) = v(i)/su(i)
+      do i = 1,n
+        vtem(i) = v(i)/su(i)
+      end do
       if (ipflg .eq. 1) then
         ier = 0
         call psol (n, u, savf, su, sf, f, jac, z, wmp, iwmp, vtem, ier)
@@ -1989,9 +2000,9 @@ c-----------------------------------------------------------------------
       call jac (n, u, savf, vtem, z, wmp, iwmp)
       nje = nje + 1
 c ... Add a 1/(pseudo time-step) carried in u(n+2): TDR 8/21/95
-      do 118 i = 1,n
+      do i = 1,n
          z(i) = z(i) + vtem(i)*sf(i)*u(n+2)  # sf in numerator or dem??
- 118  continue
+      end do
 c 3-15-93.  this scaling should already be performed in the jac routine.
 c      do 120 i = 1,n
 c 120    z(i) = z(i)*sf(i)
@@ -2001,24 +2012,28 @@ c mfdif = 2.  internally generated vector j*v.
 c-----------------------------------------------------------------------
  200  continue
 c set vtem = (su-inverse) * v.
-      do 210 i = 1,n
+      do i = 1,n
         vtem(i) = v(i)/su(i)
- 210    continue
+      end do
       if (ipflg .eq. 0) then
 c ipflg = 0.  save u in z and increment u by sigma*vtem.
-          do 215 i = 1,n
- 215        z(i) = u(i)*su(i)
+          do i = 1,n
+            z(i) = u(i)*su(i)
+          end do
           utv = sdot(n, z, 1, v, 1)
           suitv = zero
-          do 220 i = 1,n
- 220        suitv = suitv + abs(v(i))
+          do i = 1,n
+            suitv = suitv + abs(v(i))
+          end do
 c vtv = 1 in this case.
           sigma = sqteta*max(abs(utv),suitv)
           sigma = sign(sigma,utv)
-          do 230 i = 1,n
- 230        z(i) = u(i)
-          do 240 i = 1,n
- 240        u(i) = z(i) + sigma*vtem(i)
+          do i = 1,n
+            z(i) = u(i)
+          end do
+          do i = 1,n
+            u(i) = z(i) + sigma*vtem(i)
+          end do
         else
 c ipflg = 1. apply inverse of right preconditioner
           ier = 0
@@ -2028,18 +2043,21 @@ c ipflg = 1. apply inverse of right preconditioner
           if (ier .ne. 0) return
           vtv = zero
           suitv = zero
-          do 260 i = 1,n
+          do i = 1,n
             tmp = vtem(i)*su(i)
             z(i) = tmp*su(i)
             vtv = vtv + tmp*tmp
- 260        suitv = suitv + abs(tmp)
+            suitv = suitv + abs(tmp)
+          end do
           utv = sdot(n, u, 1, z, 1)
           sigma = sqteta*max(abs(utv),suitv)/vtv
           sigma = sign(sigma,utv)
-          do 270 i = 1,n
- 270        z(i) = u(i)
-          do 280 i = 1,n
- 280        u(i) = z(i) + sigma*vtem(i)
+          do i = 1,n
+            z(i) = u(i)
+          end do
+          do i = 1,n
+            u(i) = z(i) + sigma*vtem(i)
+          end do
         endif
       call f(n, u, ftem)
       nfe = nfe + 1
@@ -2048,15 +2066,16 @@ ccc         u(i) = z(i) - sigma*vtem(i)   # change sign of perturbation
 ccc 281  continue
 ccc      call f(n, u, vtem)		  # here vtem is second ftem
 ccc      nfe = nfe + 1                    # End 2nd order Jac
-      do 290 i = 1,n
- 290    u(i) = z(i)
+      do i = 1,n
+        u(i) = z(i)
+      end do
 c ... u(n+2) contains the 1/(pseudo time-step) nufak: TDR 8/20/95
-      do 300 i = 1,n
- 300    z(i) = (ftem(i) - savf(i))/sigma - vtem(i)*u(n+2)
-ccc 300    z(i) = (ftem(i) - vtem(i))/(2*sigma) - vtem(i)*u(n+2) # 2nd order Jac
-cccc                                       vtem(i)*su(i)*u(n+2)/sf(i)
-      do 310 i = 1,n
- 310    z(i) = z(i)*sf(i)
+      do i = 1,n
+        z(i) = (ftem(i) - savf(i))/sigma - vtem(i)*u(n+2)
+      end do
+      do i = 1,n
+        z(i) = z(i)*sf(i)
+      end do
       return
 c----------------------- end of subroutine atv -------------------------
       end
@@ -2438,18 +2457,19 @@ c
       mgmr = 0
       npsl = 0
 c zero out the hes and hessv arrays ------------------------------------
-      do 15 j = 1,mmax
-        do 10 i = 1,mmaxp1
+      do j = 1,mmax
+        do i = 1,mmaxp1
           hes(i,j) = 0.0e0
           hessv(i,j) = 0.0e0
- 10       continue
- 15     continue
+        end do
+      end do
 c-----------------------------------------------------------------------
 c the initial residual is the vector b.  apply scaling to b, and
 c then normalize as v(*,1).
 c-----------------------------------------------------------------------
-      do 20 i = 1,n
- 20     v(i,1) = b(i)*sf(i)
+      do i = 1,n
+        v(i,1) = b(i)*sf(i)
+      end do
       bnrm = snrm2(n, v, 1)
       tem = 1.0e0/bnrm
       call sscal (n, tem, v(1,1), 1)
@@ -2510,18 +2530,21 @@ c-----------------------------------------------------------------------
  200  continue
       m = mgmr
       mp1 = m + 1
-      do 210 k = 1,mp1
- 210    b(k) = 0.0e0
+      do k = 1,mp1
+        b(k) = 0.0e0
+      end do
       b(1) = bnrm
       call shels(hes,mmaxp1,m,q,b)
       if ((methn .eq. 0) .or. (methn .eq. 2)) then
-        do 220 k = 1,n
- 220      x(k) = 0.0e0
-        do 230 i = 1,m
+        do k = 1,n
+          x(k) = 0.0e0
+        end do
+        do i = 1,m
           call saxpy(n,b(i),v(1,i),1,x,1)
- 230      continue
-        do 240 i = 1,n
- 240      x(i) = x(i)/su(i)
+        end do
+        do i = 1,n
+          x(i) = x(i)/su(i)
+        end do
         if (ipflg .eq. 1) then
           ier = 0
           call psol (n, u, savf, su, sf, f, jac, wk, wmp, iwmp, x, ier)
@@ -2889,8 +2912,9 @@ c-----------------------------------------------------------------------
       do 100 i = 1,m
         call saxpy (n, ynew(i), v(1,i), 1, xnew, 1)
  100    continue
-      do 110 i = 1,n
- 110    xnew(i) = xnew(i)/su(i)
+      do i = 1,n
+        xnew(i) = xnew(i)/su(i)
+      end do
       if (ipflg .ge. 1) then
         ier = 0
         call psol (n, u, savf, su, sf, f, jac, wk, wmp, iwmp, xnew, ier)
@@ -3306,8 +3330,9 @@ c alpha-condition satisfied.  now check for beta-condition.
             f1nprv = f1nrmp
             rl = min(two*rl,rlmax)
             call scopy(n, u, 1, unew, 1)
-            do 140 i = 1,n
- 140          u(i) = unew(i) + rl*p(i)
+            do i = 1,n
+              u(i) = unew(i) + rl*p(i)
+            end do
             call f(n, u, savf)
             nfe = nfe + 1
             call sswap(n, u, 1, unew, 1)
@@ -3335,8 +3360,9 @@ c alpha-condition satisfied.  now check for beta-condition.
             rlincr = rldiff/two
             rl = rllo + rlincr
             call scopy(n, u, 1, unew, 1)
-            do 160 i = 1,n
- 160          u(i) = unew(i) + rl*p(i)
+            do i = 1,n
+              u(i) = unew(i) + rl*p(i)
+            end do
             call f(n, u, savf)
             nfe = nfe + 1
             call sswap(n, u, 1, unew, 1)
@@ -3365,8 +3391,9 @@ c beta condition could not be satisfied.  set unew to last
 c u value that satisfied alpha-condition and continue.
 c increment counter on number of steps beta-condition not satisfied.
               call scopy(n, u, 1, unew, 1)
-              do 170 i = 1,n
- 170            u(i) = unew(i) + rllo*p(i)
+              do i = 1,n
+                u(i) = unew(i) + rllo*p(i)
+              end do
               call f(n, u, savf)
               nfe = nfe + 1
               call sswap(n, u, 1, unew, 1)

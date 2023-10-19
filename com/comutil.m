@@ -1501,12 +1501,13 @@ C
 C        ... GET COEFFICIENTS OF NONZERO BASIS FUNCTIONS IN (3)
 C
          IPOS = IXY - 1
-         DO 50 K=KMIN,KMAX
-            DO 50 J=JMIN,JMAX
+         DO K=KMIN,KMAX
+            DO J=JMIN,JMAX
                IPOS = IPOS + 1
                WORK(IPOS) = B1VAhL(XVAL,IDX,TX,NX,KX,FCN(1,J,K),INX,
      +                            WORK(IW),IERR)
-   50    CONTINUE
+            END DO
+         END DO
          IHAVEX = 1
 C
       ENDIF
@@ -5646,40 +5647,43 @@ C                                             ALG. STEP 5
 C                                             ALG. STEPS 6-7
       IF (JT.LE.IR) GO TO 30
 C                                             ALG. STEPS 8-9
-      DO 10 I=1,MT
+      DO I=1,MT
         IG1=JT+MT-I
         IG2=IR+MT-I
-        DO 10 J=1,NBP1
-        G(IG1,J)=G(IG2,J)
-   10 CONTINUE
+        DO J=1,NBP1
+          G(IG1,J)=G(IG2,J)
+        END DO
+      END DO
 C                                             ALG. STEP 10
       IE=JT-IR
-      DO 20 I=1,IE
+      DO I=1,IE
         IG=IR+I-1
-        DO 20 J=1,NBP1
-        G(IG,J)=ZERO
-   20 CONTINUE
+        DO J=1,NBP1
+          G(IG,J)=ZERO
+        END DO
+      END DO
 C                                             ALG. STEP 11
       IR=JT
 C                                             ALG. STEP 12
    30 MU=MIN(NB-1,IR-IP-1)
       IF (MU.EQ.0) GO TO 60
 C                                             ALG. STEP 13
-      DO 50 L=1,MU
+      DO L=1,MU
 C                                             ALG. STEP 14
         K=MIN(L,JT-IP)
 C                                             ALG. STEP 15
         LP1=L+1
         IG=IP+L
-        DO 40 I=LP1,NB
+        DO I=LP1,NB
           JG=I-K
           G(IG,JG)=G(IG,I)
-   40 CONTINUE
+        END DO
 C                                             ALG. STEP 16
-        DO 50 I=1,K
-        JG=NBP1-I
-        G(IG,JG)=ZERO
-   50 CONTINUE
+        DO I=1,K
+          JG=NBP1-I
+          G(IG,JG)=ZERO
+        END DO
+      END DO
 C                                             ALG. STEP 17
    60 IP=JT
 C                                             ALG. STEPS 18-19
@@ -5908,21 +5912,21 @@ C
       GO TO (10,90,50), MODE
 C                                   ********************* MODE = 1
 C                                   ALG. STEP 26
-   10      DO 20 J=1,N
+   10    DO J=1,N
            X(J)=G(J,NB+1)
-   20 CONTINUE
+         END DO
       RSQ=ZERO
       NP1=N+1
       IRM1=IR-1
       IF (NP1.GT.IRM1) GO TO 40
-           DO 30 J=NP1,IRM1
+         DO J=NP1,IRM1
            RSQ=RSQ+G(J,NB+1)**2
-   30 CONTINUE
+         END DO
       RNORM=SQRT(RSQ)
    40 CONTINUE
 C                                   ********************* MODE = 3
 C                                   ALG. STEP 27
-   50      DO 80 II=1,N
+   50    DO II=1,N
            I=N+1-II
 C                                   ALG. STEP 28
            S=ZERO
@@ -5931,29 +5935,31 @@ C                                   ALG. STEP 29
            IF (I.EQ.N) GO TO 70
 C                                   ALG. STEP 30
            IE=MIN(N+1-I,NB)
-                DO 60 J=2,IE
+              DO J=2,IE
                 JG=J+L
                 IX=I-1+J
                 S=S+G(I,JG)*X(IX)
-   60 CONTINUE
+              END DO
 C                                   ALG. STEP 31
    70      IF (G(I,L+1)) 80,130,80
    80      X(I)=(X(I)-S)/G(I,L+1)
+         END DO
 C                                   ALG. STEP 32
       RETURN
 C                                   ********************* MODE = 2
-   90      DO 120 J=1,N
+   90    DO J=1,N
            S=ZERO
            IF (J.EQ.1) GO TO 110
            I1=MAX(1,J-NB+1)
            I2=J-1
-                DO 100 I=I1,I2
+              DO I=I1,I2
                 L=J-I+1+MAX(0,I-IP)
                 S=S+X(I)*G(I,L)
-  100 CONTINUE
+              END DO
   110      L=MAX(0,J-IP)
            IF (G(J,L+1)) 120,130,120
   120      X(J)=(X(J)-S)/G(J,L+1)
+        END DO
       RETURN
 C
   130 CONTINUE
@@ -6000,20 +6006,23 @@ C***FIRST EXECUTABLE STATEMENT  BSPLVhD
       CALL BSPLVhN(T,K+1-NDERIV,1,X,ILEFT,VNIKX(NDERIV,NDERIV))
       IF (NDERIV .LE. 1)               GO TO 99
       IDERIV = NDERIV
-      DO 15 I=2,NDERIV
+      DO I=2,NDERIV
          IDERVM = IDERIV-1
-         DO 11 J=IDERIV,K
-   11       VNIKX(J-1,IDERVM) = VNIKX(J,IDERIV)
+         DO J=IDERIV,K
+           VNIKX(J-1,IDERVM) = VNIKX(J,IDERIV)
+         END DO
          IDERIV = IDERVM
          CALL BSPLVhN(T,0,2,X,ILEFT,VNIKX(IDERIV,IDERIV))
-   15    CONTINUE
+      END DO 
 C
-      DO 20 I=1,K
-         DO 19 J=1,K
-   19       A(I,J) = 0.
-   20    A(I,I) = 1.
+      DO I=1,K
+         DO J=1,K
+           A(I,J) = 0.
+         END DO
+         A(I,I) = 1.
+      END DO
       KMD = K
-      DO 40 M=2,NDERIV
+      DO M=2,NDERIV
          KMD = KMD-1
          FKMD = KMD
          I = ILEFT
@@ -6023,20 +6032,24 @@ C
             DIFF = T(IPKMD) - T(I)
             IF (JM1 .EQ. 0)            GO TO 26
             IF (DIFF .EQ. 0.)          GO TO 25
-            DO 24 L=1,J
-   24          A(L,J) = (A(L,J) - A(L,J-1))/DIFF*FKMD
+            DO L=1,J
+              A(L,J) = (A(L,J) - A(L,J-1))/DIFF*FKMD
+            END DO
    25       J = JM1
             I = I - 1
                                        GO TO 21
    26    IF (DIFF .EQ. 0.)             GO TO 30
          A(1,1) = A(1,1)/DIFF*FKMD
 C
-   30    DO 40 I=1,K
+   30    DO I=1,K
             V = 0.
             JLOW = MAX(I,M)
-            DO 35 J=JLOW,K
-   35          V = A(I,J)*VNIKX(J,M) + V
-   40       VNIKX(I,M) = V
+            DO J=JLOW,K
+               V = A(I,J)*VNIKX(J,M) + V
+            END DO
+            VNIKX(I,M) = V
+         END DO
+       END DO
    99                                  RETURN
       END
 c-----------------------------------------------------------------------
@@ -6079,11 +6092,12 @@ C
          DELTAM(J) = X - T(IMJP1)
          VMPREV = 0.
          JP1 = J+1
-         DO 26 L=1,J
+         DO L=1,J
             JP1ML = JP1-L
             VM = VNIKX(L)/(DELTAP(L) + DELTAM(JP1ML))
             VNIKX(L) = VM*DELTAP(L) + VMPREV
-   26       VMPREV = VM*DELTAM(JP1ML)
+            VMPREV = VM*DELTAM(JP1ML)
+         END DO
          VNIKX(JP1) = VMPREV
          J = JP1
          IF (J .LT. JHIGH)             GO TO 20
@@ -6150,13 +6164,15 @@ C
       CL=ABS(U(1,LPIVOT))
       IF (MODE.EQ.2) GO TO 60
 C                            ****** CONSTRUCT THE TRANSFORMATION. ******
-          DO 10 J=L1,M
-   10     CL=MAX(ABS(U(1,J)),CL)
+        DO J=L1,M
+          CL=MAX(ABS(U(1,J)),CL)
+        END DO
       IF (CL) 130,130,20
    20 CLINV=ONE/CL
       SM=(U(1,LPIVOT)*CLINV)**2
-          DO 30 J=L1,M
-   30     SM=SM+(U(1,J)*CLINV)**2
+        DO J=L1,M
+          SM=SM+(U(1,J)*CLINV)**2
+        END DO
       CL=CL*SQRT(SM)
       IF (U(1,LPIVOT)) 50,50,40
    40 CL=-CL
@@ -6181,15 +6197,17 @@ C
           I3=I2+INCR
           I4=I3
           SM=C(I2)*up
-              DO 90 I=L1,M
+            DO I=L1,M
               SM=SM+C(I3)*U(1,I)
-   90         I3=I3+ICE
+              I3=I3+ICE
+            END DO
           IF (SM) 100,120,100
   100     SM=SM*B
           C(I2)=C(I2)+SM*up
-              DO 110 I=L1,M
+            DO I=L1,M
               C(I4)=C(I4)+SM*U(1,I)
-  110         I4=I4+ICE
+              I4=I4+ICE
+            END DO
   120     CONTINUE
   130 RETURN
   140 CONTINUE
@@ -6390,27 +6408,28 @@ C
       RETURN
     6 CONTINUE
 C
-          DO 80 J=1,LDIAG
+        DO J=1,LDIAG
           IF (J.EQ.1) GO TO 20
 C
 C     UPDATE SQUARED COLUMN LENGTHS AND FIND LMAX
 C    ..
           LMAX=J
-              DO 10 L=J,N
+            DO L=J,N
               H(L)=H(L)-A(J-1,L)**2
               IF (H(L).GT.H(LMAX)) LMAX=L
-   10         CONTINUE
+            END DO
           IF (FACTOR*H(LMAX) .GT. HMAX*RELEPS) GO TO 50
 C
 C     COMPUTE SQUARED COLUMN LENGTHS AND FIND LMAX
 C    ..
    20     LMAX=J
-              DO 40 L=J,N
+            DO L=J,N
               H(L)=0.
-                  DO 30 I=J,M
-   30             H(L)=H(L)+A(I,L)**2
+                DO I=J,M
+                  H(L)=H(L)+A(I,L)**2
+                END DO
               IF (H(L).GT.H(LMAX)) LMAX=L
-   40         CONTINUE
+            END DO
           HMAX=H(LMAX)
 C    ..
 C     LMAX HAS BEEN DETERMINED
@@ -6420,22 +6439,24 @@ C    ..
    50     CONTINUE
           IP(J)=LMAX
           IF (IP(J).EQ.J) GO TO 70
-              DO 60 I=1,M
+            DO I=1,M
               TMP=A(I,J)
               A(I,J)=A(I,LMAX)
-   60         A(I,LMAX)=TMP
+              A(I,LMAX)=TMP
+            END DO
           H(LMAX)=H(J)
 C
 C     COMPUTE THE J-TH TRANSFORMATION AND APPLY IT TO A AND B.
 C    ..
    70     CALL H12h (1,J,J+1,M,A(1,J),1,H(J),A(1,J+1),1,MDA,N-J)
-   80     CALL H12h (2,J,J+1,M,A(1,J),1,H(J),B,1,MDB,NB)
+          CALL H12h (2,J,J+1,M,A(1,J),1,H(J),B,1,MDB,NB)
+        END DO
 C
 C     DETERMINE THE PSEUDORANK, K, USING THE TOLERANCE, TAU.
 C    ..
-          DO 90 J=1,LDIAG
-          IF (ABS(A(J,J)).LE.TAU) GO TO 100
-   90     CONTINUE
+          DO J=1,LDIAG
+            IF (ABS(A(J,J)).LE.TAU) GO TO 100
+          END DO
       K=LDIAG
       GO TO 110
   100 K=J-1
@@ -6444,58 +6465,67 @@ C
 C     COMPUTE THE NORMS OF THE RESIDUAL VECTORS.
 C
       IF (NB.LE.0) GO TO 140
-          DO 130 JB=1,NB
+        DO JB=1,NB
           TMP=SZERO
           IF (KP1.GT.M) GO TO 130
-              DO 120 I=KP1,M
-  120         TMP=TMP+B(I,JB)**2
+          DO I=KP1,M
+            TMP=TMP+B(I,JB)**2
+          END DO
   130     RNORM(JB)=SQRT(TMP)
+        END DO
   140 CONTINUE
 C                                           SPECIAL FOR PSEUDORANK = 0
       IF (K.GT.0) GO TO 160
       IF (NB.LE.0) GO TO 270
-          DO 150 JB=1,NB
-              DO 150 I=1,N
-  150         B(I,JB)=SZERO
+          DO JB=1,NB
+            DO I=1,N
+              B(I,JB)=SZERO
+            END DO
+          END DO
       GO TO 270
 C
 C     IF THE PSEUDORANK IS LESS THAN N COMPUTE HOUSEHOLDER
 C     DECOMPOSITION OF FIRST K ROWS.
 C    ..
   160 IF (K.EQ.N) GO TO 180
-          DO 170 II=1,K
+        DO II=1,K
           I=KP1-II
-  170     CALL H12h (1,I,KP1,N,A(I,1),MDA,G(I),A,MDA,1,I-1)
+          CALL H12h (1,I,KP1,N,A(I,1),MDA,G(I),A,MDA,1,I-1)
+        END DO
   180 CONTINUE
 C
 C
       IF (NB.LE.0) GO TO 270
-          DO 260 JB=1,NB
+          DO JB=1,NB
 C
 C     SOLVE THE K BY K TRIANGULAR SYSTEM.
 C    ..
-              DO 210 L=1,K
+            DO L=1,K
               SM=DZERO
               I=KP1-L
               IF (I.EQ.K) GO TO 200
               IP1=I+1
-                  DO 190 J=IP1,K
-  190             SM=SM+A(I,J)*DBLE(B(J,JB))
+                DO J=IP1,K
+                  SM=SM+A(I,J)*DBLE(B(J,JB))
+                END DO
   200         SM1=SM
-  210         B(I,JB)=(B(I,JB)-SM1)/A(I,I)
+              B(I,JB)=(B(I,JB)-SM1)/A(I,I)
+            END DO
 C
 C     COMPLETE COMPUTATION OF SOLUTION VECTOR.
 C    ..
           IF (K.EQ.N) GO TO 240
-              DO 220 J=KP1,N
-  220         B(J,JB)=SZERO
-              DO 230 I=1,K
-  230         CALL H12h (2,I,KP1,N,A(I,1),MDA,G(I),B(1,JB),1,MDB,1)
+              DO J=KP1,N
+                B(J,JB)=SZERO
+              END DO
+              DO I=1,K
+                CALL H12h (2,I,KP1,N,A(I,1),MDA,G(I),B(1,JB),1,MDB,1)
+              END DO
 C
 C      RE-ORDER THE SOLUTION VECTOR TO COMPENSATE FOR THE
 C      COLUMN INTERCHANGES.
 C    ..
-  240         DO 250 JJ=1,LDIAG
+  240       DO JJ=1,LDIAG
               J=LDIAG+1-JJ
               IF (IP(J).EQ.J) GO TO 250
               L=IP(J)
@@ -6503,7 +6533,8 @@ C    ..
               B(L,JB)=B(J,JB)
               B(J,JB)=TMP
   250         CONTINUE
-  260     CONTINUE
+            END DO
+      END DO
 C    ..
 C     THE SOLUTION VECTORS, X, ARE NOW
 C     IN THE FIRST  N  ROWS OF THE ARRAY B(,).

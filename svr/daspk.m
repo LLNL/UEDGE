@@ -1734,8 +1734,9 @@ C
       CALL SINVWT(NEQ,RWORK(LWT),IER)
       IF (IER .NE. 0) GO TO 713
       IF (INFO(16) .NE. 0) THEN
-        DO 305 I = 1, NEQ
- 305      RWORK(LVT+I-1) = MAX(IWORK(LID+I-1),0)*RWORK(LWT+I-1)
+        DO I = 1, NEQ
+          RWORK(LVT+I-1) = MAX(IWORK(LID+I-1),0)*RWORK(LWT+I-1)
+        END DO
         ENDIF
 C
 C     Compute unit roundoff and HMIN.
@@ -1857,9 +1858,10 @@ C
       CALL SINVWT(NEQ,RWORK(LWT),IER)
       IF (IER .NE. 0) GO TO 713
       IF (INFO(16) .NE. 0) THEN
-        DO 357 I = 1, NEQ
- 357      RWORK(LVT+I-1) = MAX(IWORK(LID+I-1),0)*RWORK(LWT+I-1)
-        ENDIF
+        DO I = 1, NEQ
+          RWORK(LVT+I-1) = MAX(IWORK(LID+I-1),0)*RWORK(LWT+I-1)
+        END DO
+      ENDIF
 C
 C     Reset the initial stepsize to be used by SDSTP.
 C     Use H0, if this was input.  Otherwise, recompute H0,
@@ -1895,9 +1897,10 @@ C
 C     Load Y and H*YPRIME into PHI(*,1) and PHI(*,2).
 C
       ITEMP = LPHI + NEQ
-      DO 380 I = 1,NEQ
+      DO I = 1,NEQ
          RWORK(LPHI + I - 1) = Y(I)
-380      RWORK(ITEMP + I - 1) = H*YPRIME(I)
+         RWORK(ITEMP + I - 1) = H*YPRIME(I)
+      END DO
 C
       GO TO 500
 C
@@ -2053,8 +2056,9 @@ C
         GO TO 527
         ENDIF
       IF (INFO(16) .NE. 0) THEN
-        DO 515 I = 1, NEQ
- 515      RWORK(LVT+I-1) = MAX(IWORK(LID+I-1),0)*RWORK(LWT+I-1)
+        DO I = 1, NEQ
+          RWORK(LVT+I-1) = MAX(IWORK(LID+I-1),0)*RWORK(LWT+I-1)
+        END DO
         ENDIF
 C
 C     Test for too much accuracy requested.
@@ -2069,9 +2073,10 @@ C
            ATOL(1)=R*ATOL(1)
            IDID=-2
            GO TO 527
-523   DO 524 I=1,NEQ
+523   DO I=1,NEQ
            RTOL(I)=R*RTOL(I)
-524        ATOL(I)=R*ATOL(I)
+           ATOL(I)=R*ATOL(I)
+      END DO
       IDID=-2
       GO TO 527
 525   CONTINUE
@@ -2806,7 +2811,7 @@ C
       TEMP1=H
       GAMMA(1)=0.0E0
       SIGMA(1)=1.0E0
-      DO 210 I=2,KP1
+      DO I=2,KP1
          TEMP2=PSI(I-1)
          PSI(I-1)=TEMP1
          BETA(I)=BETA(I-1)*PSI(I-1)/TEMP2
@@ -2814,7 +2819,7 @@ C
          ALPHA(I)=H/TEMP1
          SIGMA(I)=(I-1)*SIGMA(I-1)*ALPHA(I)
          GAMMA(I)=GAMMA(I-1)+ALPHA(I-1)/H
-210      CONTINUE
+      END DO
       PSI(KP1)=TEMP1
 230   CONTINUE
 C
@@ -2822,10 +2827,10 @@ C     Compute ALPHAS, ALPHA0
 C
       ALPHAS = 0.0E0
       ALPHA0 = 0.0E0
-      DO 240 I = 1,K
+      DO I = 1,K
         ALPHAS = ALPHAS - 1.0E0/I
         ALPHA0 = ALPHA0 - ALPHA(I)
-240     CONTINUE
+      END DO
 C
 C     Compute leading coefficient CJ
 C
@@ -2840,10 +2845,11 @@ C
 C     Change PHI to PHI STAR
 C
       IF(KP1 .LT. NSP1) GO TO 280
-      DO 270 J=NSP1,KP1
-         DO 260 I=1,NEQ
-260         PHI(I,J)=BETA(J)*PHI(I,J)
-270      CONTINUE
+      DO J=NSP1,KP1
+         DO I=1,NEQ
+            PHI(I,J)=BETA(J)*PHI(I,J)
+         END DO
+      END DO
 280   CONTINUE
 C
 C     Update time
@@ -2892,16 +2898,18 @@ C
       EST = ERK
       KNEW=K
       IF(K .EQ. 1)GO TO 430
-      DO 405 I = 1,NEQ
-405     DELTA(I) = PHI(I,KP1) + E(I)
+      DO I = 1,NEQ
+        DELTA(I) = PHI(I,KP1) + E(I)
+      END DO
       ERKM1=SIGMA(K)*SDWNRM(NEQ,DELTA,VT,RPAR,IPAR)
       TERKM1 = K*ERKM1
       IF(K .GT. 2)GO TO 410
       IF(TERKM1 .LE. 0.5*TERK)GO TO 420
       GO TO 430
 410   CONTINUE
-      DO 415 I = 1,NEQ
-415     DELTA(I) = PHI(I,K) + DELTA(I)
+      DO I = 1,NEQ
+        DELTA(I) = PHI(I,K) + DELTA(I)
+      END DO
       ERKM2=SIGMA(K-1)*SDWNRM(NEQ,DELTA,VT,RPAR,IPAR)
       TERKM2 = (K-1)*ERKM2
       IF(MAX(TERKM1,TERKM2).GT.TERK)GO TO 430
@@ -2977,8 +2985,9 @@ C
       IF(KNEW.EQ.KM1)GO TO 540
       IF(K.EQ.IWM(LMXORD)) GO TO 550
       IF(KP1.GE.NS.OR.KDIFF.EQ.1)GO TO 550
-      DO 510 I=1,NEQ
-510      DELTA(I)=E(I)-PHI(I,KP2)
+      DO I=1,NEQ
+         DELTA(I)=E(I)-PHI(I,KP2)
+      END DO
       ERKP1 = (1.0E0/(K+2))*SDWNRM(NEQ,DELTA,VT,RPAR,IPAR)
       TERKP1 = (K+2)*ERKP1
       IF(K.GT.1)GO TO 520
@@ -3027,15 +3036,19 @@ C     Update differences for next step
 C
 575   CONTINUE
       IF(KOLD.EQ.IWM(LMXORD))GO TO 585
-      DO 580 I=1,NEQ
-580      PHI(I,KP2)=E(I)
+      DO I=1,NEQ
+         PHI(I,KP2)=E(I)
+      END DO
 585   CONTINUE
-      DO 590 I=1,NEQ
-590      PHI(I,KP1)=PHI(I,KP1)+E(I)
-      DO 595 J1=2,KP1
+      DO I=1,NEQ
+        PHI(I,KP1)=PHI(I,KP1)+E(I)
+      END DO
+      DO J1=2,KP1
          J=KP1-J1+1
-         DO 595 I=1,NEQ
-595      PHI(I,J)=PHI(I,J)+PHI(I,J+1)
+         DO I=1,NEQ
+           PHI(I,J)=PHI(I,J)+PHI(I,J+1)
+         END DO
+      END DO
       JSTART = 1
       RETURN
 C
@@ -3057,14 +3070,16 @@ C     Restore X,PHI,PSI
 C
       X=XOLD
       IF(KP1.LT.NSP1)GO TO 630
-      DO 620 J=NSP1,KP1
+      DO J=NSP1,KP1
          TEMP1=1.0E0/BETA(J)
-         DO 610 I=1,NEQ
-610         PHI(I,J)=TEMP1*PHI(I,J)
-620      CONTINUE
+         DO I=1,NEQ
+            PHI(I,J)=TEMP1*PHI(I,J)
+         END DO
+      END DO
 630   CONTINUE
-      DO 640 I=2,KP1
-640      PSI(I-1)=PSI(I)-H
+      DO I=2,KP1
+         PSI(I-1)=PSI(I)-H
+      END DO
 C
 C
 C     Test whether failure is due to nonlinear solver
@@ -3155,9 +3170,10 @@ C     If this is the first step, reset PSI(1) and rescale PHI(*,2).
 C
 690   IF (KOLD .EQ. 0) THEN
         PSI(1) = H
-        DO 695 I = 1,NEQ
-695       PHI(I,2) = R*PHI(I,2)
-        ENDIF
+        DO I = 1,NEQ
+          PHI(I,2) = R*PHI(I,2)
+        END DO
+      ENDIF
       GO TO 200
 C
 C------END OF SUBROUTINE SDSTP------------------------------------------
@@ -3435,11 +3451,12 @@ C
       INTEGER I,NEQ,IER
       DIMENSION WT(*)
 C
-      DO 10 I = 1,NEQ
+      DO I = 1,NEQ
         IF (WT(I) .LE. 0.0E0) GO TO 30
- 10     CONTINUE
-      DO 20 I = 1,NEQ
- 20     WT(I) = 1.0E0/WT(I)
+      END DO
+      DO I = 1,NEQ
+        WT(I) = 1.0E0/WT(I)
+      END DO
       IER = 0
       RETURN
 C
@@ -3492,20 +3509,22 @@ C
       DIMENSION PHI(NEQ,*),PSI(*)
       KOLDP1=KOLD+1
       TEMP1=XOUT-X
-      DO 10 I=1,NEQ
+      DO I=1,NEQ
          YOUT(I)=PHI(I,1)
-10       YPOUT(I)=0.0E0
+         YPOUT(I)=0.0E0
+      END DO
       C=1.0E0
       D=0.0E0
       GAMMA=TEMP1/PSI(1)
-      DO 30 J=2,KOLDP1
+      DO J=2,KOLDP1
          D=D*GAMMA+C/PSI(J-1)
          C=C*GAMMA
          GAMMA=(TEMP1+PSI(J-1))/PSI(J)
-         DO 20 I=1,NEQ
+         DO I=1,NEQ
             YOUT(I)=YOUT(I)+C*PHI(I,J)
-20          YPOUT(I)=YPOUT(I)+D*PHI(I,J)
-30       CONTINUE
+            YPOUT(I)=YPOUT(I)+D*PHI(I,J)
+         END DO
+      END DO
       RETURN
 C
 C------END OF SUBROUTINE SDATRP-----------------------------------------
@@ -3538,13 +3557,14 @@ C
       DIMENSION RPAR(*),IPAR(*)
       SDWNRM = 0.0E0
       VMAX = 0.0E0
-      DO 10 I = 1,NEQ
+      DO I = 1,NEQ
         IF(ABS(V(I)*RWT(I)) .GT. VMAX) VMAX = ABS(V(I)*RWT(I))
-10    CONTINUE
+      END DO
       IF(VMAX .LE. 0.0E0) GO TO 30
       SUM = 0.0E0
-      DO 20 I = 1,NEQ
-20      SUM = SUM + ((V(I)*RWT(I))/VMAX)**2
+      DO I = 1,NEQ
+        SUM = SUM + ((V(I)*RWT(I))/VMAX)**2
+      END DO
       SDWNRM = VMAX*SQRT(SUM/NEQ)
 30    CONTINUE
       RETURN
@@ -4002,8 +4022,9 @@ C-----------------------------------------------------------------------
             IVIO = 1
             RATIO1 = TAU/PNRM
             RATIO = RATIO*RATIO1
-            DO 20 I = 1,NEQ
- 20           P(I) = P(I)*RATIO1
+            DO I = 1,NEQ
+              P(I) = P(I)*RATIO1
+            END DO
             PNRM = TAU
             IF (KPRIN .GE. 2) THEN
               MSG = '------ CONSTRAINT VIOL., PNRM = (R1), INDEX = (I1)'
@@ -4327,14 +4348,16 @@ C
 C     Predict the solution and derivative and compute the tolerance
 C     for the Newton iteration.
 C
-      DO 310 I=1,NEQ
+      DO I=1,NEQ
          Y(I)=PHI(I,1)
-310      YPRIME(I)=0.0E0
-      DO 330 J=2,KP1
-         DO 320 I=1,NEQ
+         YPRIME(I)=0.0E0
+      END DO
+      DO J=2,KP1
+         DO I=1,NEQ
             Y(I)=Y(I)+PHI(I,J)
-320         YPRIME(I)=YPRIME(I)+GAMMA(J)*PHI(I,J)
-330   CONTINUE
+            YPRIME(I)=YPRIME(I)+GAMMA(J)*PHI(I,J)
+         END DO
+      END DO
       PNORM = SDWNRM (NEQ,Y,WT,RPAR,IPAR)
       TOLNEW = 100.E0*UROUND*PNORM
 C     
@@ -4383,12 +4406,14 @@ C     perturbation to do it is small enough.  If the change is too
 C     large, then consider the corrector iteration to have failed.
 C
 375   IF(NONNEG .EQ. 0) GO TO 390
-      DO 377 I = 1,NEQ
-377      DELTA(I) = MIN(Y(I),0.0E0)
+      DO I = 1,NEQ
+         DELTA(I) = MIN(Y(I),0.0E0)
+      END DO
       DELNRM = SDWNRM(NEQ,DELTA,WT,RPAR,IPAR)
       IF(DELNRM .GT. EPCON) GO TO 380
-      DO 378 I = 1,NEQ
-378      E(I) = E(I) - DELTA(I)
+      DO I = 1,NEQ
+         E(I) = E(I) - DELTA(I)
+      END DO
       GO TO 390
 C
 C
@@ -4512,8 +4537,9 @@ C
 C     Initialize Newton counter M and accumulation vector E. 
 C
       M = 0
-      DO 100 I=1,NEQ
-100     E(I)=0.0E0
+      DO I=1,NEQ
+        E(I)=0.0E0
+      END DO
 C
 C     Corrector loop.
 C
@@ -4523,8 +4549,9 @@ C
 C     If necessary, multiply residual by convergence factor.
 C
       IF (MULDEL .EQ. 1) THEN
-         DO 320 I = 1,NEQ
-320        DELTA(I) = DELTA(I) * CONFAC
+         DO I = 1,NEQ
+           DELTA(I) = DELTA(I) * CONFAC
+         END DO
         ENDIF
 C
 C     Compute a new iterate (back-substitution).
@@ -4534,10 +4561,11 @@ C
 C
 C     Update Y, E, and YPRIME.
 C
-      DO 340 I=1,NEQ
+      DO I=1,NEQ
          Y(I)=Y(I)-DELTA(I)
          E(I)=E(I)-DELTA(I)
-340      YPRIME(I)=YPRIME(I)-CJ*DELTA(I)
+         YPRIME(I)=YPRIME(I)-CJ*DELTA(I)
+      END DO
 C
 C     Test for convergence of the iteration.
 C
@@ -4670,8 +4698,9 @@ C
 C     Dense user-supplied matrix.
 C
 100   LENPD=IWM(LNPD)
-      DO 110 I=1,LENPD
-110      WM(I)=0.0E0
+      DO I=1,LENPD
+        WM(I)=0.0E0
+      END DO
       CALL JACD(X,Y,YPRIME,WM,CJ,RPAR,IPAR)
       GO TO 230
 C
@@ -4681,7 +4710,7 @@ C
 200   IRES=0
       NROW=0
       SQUR = SQRT(UROUND)
-      DO 210 I=1,NEQ
+      DO I=1,NEQ
          DEL=SQUR*MAX(ABS(Y(I)),ABS(H*YPRIME(I)),
      *     ABS(1.E0/EWT(I)))
          DEL=SIGN(DEL,H*YPRIME(I))
@@ -4694,12 +4723,13 @@ C
          CALL RES(X,Y,YPRIME,CJ,E,IRES,RPAR,IPAR)
          IF (IRES .LT. 0) RETURN
          DELINV=1.0E0/DEL
-         DO 220 L=1,NEQ
-220        WM(NROW+L)=(E(L)-DELTA(L))*DELINV
+         DO L=1,NEQ
+           WM(NROW+L)=(E(L)-DELTA(L))*DELINV
+         END DO
       NROW=NROW+NEQ
       Y(I)=YSAVE
       YPRIME(I)=YPSAVE
-210   CONTINUE
+      END DO
 C
 C
 C     Do dense-matrix LU decomposition on J.
@@ -4716,8 +4746,9 @@ C
 C     Banded user-supplied matrix.
 C
 400   LENPD=IWM(LNPD)
-      DO 410 I=1,LENPD
-410      WM(I)=0.0E0
+      DO I=1,LENPD
+         WM(I)=0.0E0
+      END DO
       CALL JACD(X,Y,YPRIME,WM,CJ,RPAR,IPAR)
       MEBAND=2*IWM(LML)+IWM(LMU)+1
       GO TO 550
@@ -4734,8 +4765,8 @@ C
       IPSAVE=ISAVE+MSAVE
       IRES=0
       SQUR=SQRT(UROUND)
-      DO 540 J=1,MBA
-        DO 510 N=J,NEQ,MBAND
+      DO J=1,MBA
+        DO N=J,NEQ,MBAND
           K= (N-J)/MBAND + 1
           WM(ISAVE+K)=Y(N)
           WM(IPSAVE+K)=YPRIME(N)
@@ -4744,11 +4775,12 @@ C
           DEL=SIGN(DEL,H*YPRIME(N))
           DEL=(Y(N)+DEL)-Y(N)
           Y(N)=Y(N)+DEL
-510       YPRIME(N)=YPRIME(N)+CJ*DEL
+          YPRIME(N)=YPRIME(N)+CJ*DEL
+        END DO
         IWM(LNRE)=IWM(LNRE)+1
         CALL RES(X,Y,YPRIME,CJ,E,IRES,RPAR,IPAR)
         IF (IRES .LT. 0) RETURN
-        DO 530 N=J,NEQ,MBAND
+        DO N=J,NEQ,MBAND
           K= (N-J)/MBAND + 1
           Y(N)=WM(ISAVE+K)
           YPRIME(N)=WM(IPSAVE+K)
@@ -4760,10 +4792,11 @@ C
           I1=MAX(1,(N-IWM(LMU)))
           I2=MIN(NEQ,(N+IWM(LML)))
           II=N*MEB1-IWM(LML)
-          DO 520 I=I1,I2
-520         WM(II+I)=(E(I)-DELTA(I))*DELINV
-530     CONTINUE
-540   CONTINUE
+          DO I=I1,I2
+            WM(II+I)=(E(I)-DELTA(I))*DELINV
+          END DO
+        END DO
+      END DO
 C
 C
 C     Do LU decomposition of banded J.
@@ -5338,8 +5371,9 @@ C-----------------------------------------------------------------------
             IVIO = 1
             RATIO1 = TAU/PNRM
             RATIO = RATIO*RATIO1
-            DO 20 I = 1,NEQ
- 20           P(I) = P(I)*RATIO1
+            DO I = 1,NEQ
+              P(I) = P(I)*RATIO1
+            END DO
             PNRM = TAU
             IF (KPRIN .GE. 2) THEN
               MSG = '------ CONSTRAINT VIOL., PNRM = (R1), INDEX = (I1)'
@@ -5691,14 +5725,16 @@ C
 C     Predict the solution and derivative and compute the tolerance
 C     for the Newton iteration.
 C
-      DO 310 I=1,NEQ
+      DO I=1,NEQ
          Y(I)=PHI(I,1)
-310      YPRIME(I)=0.0E0
-      DO 330 J=2,KP1
-         DO 320 I=1,NEQ
-            Y(I)=Y(I)+PHI(I,J)
-320         YPRIME(I)=YPRIME(I)+GAMMA(J)*PHI(I,J)
-330   CONTINUE
+         YPRIME(I)=0.0E0
+      END DO
+      DO J=2,KP1
+         DO I=1,NEQ
+           Y(I)=Y(I)+PHI(I,J)
+           YPRIME(I)=YPRIME(I)+GAMMA(J)*PHI(I,J)
+         END DO
+      END DO
       EPLIN = EPLI*EPCON
       TOLNEW = EPLIN
 C
@@ -5746,12 +5782,14 @@ C     perturbation to do it is small enough.  If the change is too
 C     large, then consider the corrector iteration to have failed.
 C
       IF(NONNEG .EQ. 0) GO TO 390
-      DO 360 I = 1,NEQ
- 360    DELTA(I) = MIN(Y(I),0.0E0)
+      DO I = 1,NEQ
+        DELTA(I) = MIN(Y(I),0.0E0)
+      END DO
       DELNRM = SDWNRM(NEQ,DELTA,WT,RPAR,IPAR)
       IF(DELNRM .GT. EPCON) GO TO 380
-      DO 370 I = 1,NEQ
- 370    E(I) = E(I) - DELTA(I)
+      DO I = 1,NEQ
+        E(I) = E(I) - DELTA(I)
+      END DO
       GO TO 390
 C
 C
@@ -5885,8 +5923,9 @@ C
 C     Initialize Newton counter M and accumulation vector E.
 C
       M = 0
-      DO 100 I=1,NEQ
-100     E(I) = 0.0E0
+      DO I=1,NEQ
+        E(I) = 0.0E0
+      END DO
 C
 C     Corrector loop.
 C
@@ -5896,14 +5935,16 @@ C
 C     If necessary, multiply residual by convergence factor.
 C
       IF (MULDEL .EQ. 1) THEN
-        DO 320 I = 1,NEQ
-320       DELTA(I) = DELTA(I) * CONFAC
-        ENDIF
+        DO I = 1,NEQ
+          DELTA(I) = DELTA(I) * CONFAC
+        END DO
+      ENDIF
 C
 C     Save residual in SAVR.
 C
-      DO 340 I = 1,NEQ
-340     SAVR(I) = DELTA(I)
+      DO I = 1,NEQ
+        SAVR(I) = DELTA(I)
+      END DO
 C
 C     Compute a new iterate.  Store the correction in DELTA.
 C
@@ -5914,10 +5955,11 @@ C
 C
 C     Update Y, E, and YPRIME.
 C
-      DO 360 I=1,NEQ
+      DO I=1,NEQ
          Y(I) = Y(I) - DELTA(I)
          E(I) = E(I) - DELTA(I)
-360      YPRIME(I) = YPRIME(I) - CJ*DELTA(I)
+         YPRIME(I) = YPRIME(I) - CJ*DELTA(I)
+      END DO
 C
 C     Test for convergence of the iteration.
 C
@@ -6057,8 +6099,9 @@ C-----------------------------------------------------------------------
       LZ = LDL + NEQ
       CALL SSCAL (NEQ, RSQRTN, EWT, 1)
       CALL SCOPY (NEQ, X, 1, WM(LR), 1)
-      DO 110 I = 1,NEQ
- 110     X(I) = 0.E0
+      DO I = 1,NEQ
+         X(I) = 0.E0
+      END DO
 C-----------------------------------------------------------------------
 C Top of loop for the restart algorithm.  Initial pass approximates
 C X and sets up a transformed system to perform subsequent restarts
@@ -6081,8 +6124,9 @@ C-----------------------------------------------------------------------
       NLI = NLI + LGMR
       NPS = NPS + NPSL
       NRE = NRE + NRES
-      DO 120 I = 1,NEQ
- 120     X(I) = X(I) + WM(LZ+I-1) 
+      DO I = 1,NEQ
+         X(I) = X(I) + WM(LZ+I-1) 
+      END DO
       IF ((IFLAG .EQ. 1) .AND. (NRSTS .LT. NRMAX) .AND. (IRES .EQ. 0))
      1   GO TO 115
 C-----------------------------------------------------------------------
@@ -6259,8 +6303,9 @@ C-----------------------------------------------------------------------
 C The initial guess for Z is 0.  The initial residual is therefore
 C the vector R.  Initialize Z to 0.
 C-----------------------------------------------------------------------
-      DO 10 I = 1,NEQ
- 10     Z(I) = 0.0E0
+      DO I = 1,NEQ
+        Z(I) = 0.0E0
+      END DO
 C-----------------------------------------------------------------------
 C Apply inverse of left preconditioner to vector R if NRSTS .EQ. 0.
 C Form V(*,1), the scaled preconditioned right hand side.
@@ -6270,11 +6315,13 @@ C-----------------------------------------------------------------------
      1      R, EPLIN, IER, RPAR, IPAR)
          NPSL = 1
          IF (IER .NE. 0) GO TO 300
-         DO 30 I = 1,NEQ
- 30         V(I,1) = R(I)*WGHT(I)
+         DO I = 1,NEQ
+            V(I,1) = R(I)*WGHT(I)
+         END DO
       ELSE
-         DO 35 I = 1,NEQ
- 35         V(I,1) = R(I)
+         DO I = 1,NEQ
+            V(I,1) = R(I)
+         END DO
       ENDIF
 C-----------------------------------------------------------------------
 C Calculate norm of scaled vector V(*,1) and normalize it
@@ -6291,10 +6338,11 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C Zero out the HES array.
 C-----------------------------------------------------------------------
-      DO 65 J = 1,MAXL
-        DO 60 I = 1,MAXLP1
- 60       HES(I,J) = 0.0E0
- 65     CONTINUE
+      DO J = 1,MAXL
+        DO I = 1,MAXLP1
+          HES(I,J) = 0.0E0
+        END DO
+      END DO
 C-----------------------------------------------------------------------
 C Main loop to compute the vectors V(*,2) to V(*,MAXL).
 C The running product PROD is needed for the convergence test.
@@ -6328,20 +6376,22 @@ C-----------------------------------------------------------------------
         IF ((LL.GT.KMP) .AND. (KMP.LT.MAXL)) THEN
           IF (LL .EQ. KMP+1) THEN
             CALL SCOPY (NEQ, V(1,1), 1, DL, 1)
-            DO 75 I = 1,KMP
+            DO I = 1,KMP
               IP1 = I + 1
               I2 = I*2
               S = Q(I2)
               C = Q(I2-1)
-              DO 70 K = 1,NEQ
- 70             DL(K) = S*DL(K) + C*V(K,IP1)
- 75           CONTINUE
+              DO K = 1,NEQ
+                DL(K) = S*DL(K) + C*V(K,IP1)
+              END DO
+            END DO
             ENDIF
           S = Q(2*LL)
           C = Q(2*LL-1)/SNORMW
           LLP1 = LL + 1
-          DO 80 K = 1,NEQ
- 80         DL(K) = S*DL(K) + C*V(K,LLP1)
+          DO K = 1,NEQ
+            DL(K) = S*DL(K) + C*V(K,LLP1)
+          END DO
           DLNRM = SNRM2 (NEQ, DL, 1)
           RHO = RHO*DLNRM
           ENDIF
@@ -6361,8 +6411,9 @@ C-----------------------------------------------------------------------
       IF (RHO .LT. RNRM) GO TO 150
  120  CONTINUE
       IFLAG = 2
-      DO 130 I = 1,NEQ
- 130     Z(I) = 0.E0
+      DO I = 1,NEQ
+         Z(I) = 0.E0
+      END DO
       RETURN
  150  IFLAG = 1
 C-----------------------------------------------------------------------
@@ -6378,18 +6429,20 @@ C           Calculate DL from the V(I)'s.
 C
             CALL SCOPY (NEQ, V(1,1), 1, DL, 1)
             MAXLM1 = MAXL - 1
-            DO 175 I = 1,MAXLM1
+            DO I = 1,MAXLM1
                IP1 = I + 1
                I2 = I*2
                S = Q(I2)
                C = Q(I2-1)
-               DO 170 K = 1,NEQ
- 170              DL(K) = S*DL(K) + C*V(K,IP1)
- 175        CONTINUE
+               DO K = 1,NEQ
+                  DL(K) = S*DL(K) + C*V(K,IP1)
+               END DO
+            END DO
             S = Q(2*MAXL)
             C = Q(2*MAXL-1)/SNORMW
-            DO 180 K = 1,NEQ
- 180           DL(K) = S*DL(K) + C*V(K,MAXLP1)
+            DO K = 1,NEQ
+               DL(K) = S*DL(K) + C*V(K,MAXLP1)
+            END DO
          ENDIF
 C
 C        Scale DL by RNRM*PROD to obtain the residual RL.
@@ -6405,17 +6458,20 @@ C-----------------------------------------------------------------------
  200  CONTINUE
       LL = LGMR
       LLP1 = LL + 1
-      DO 210 K = 1,LLP1
- 210    R(K) = 0.0E0
+      DO K = 1,LLP1
+        R(K) = 0.0E0
+      END DO
       R(1) = RNRM
       CALL SHELS (HES, MAXLP1, LL, Q, R)
-      DO 220 K = 1,NEQ
- 220    Z(K) = 0.0E0
-      DO 230 I = 1,LL
+      DO K = 1,NEQ
+        Z(K) = 0.0E0
+      END DO
+      DO I = 1,LL
         CALL SAXPY (NEQ, R(I), V(1,I), 1, Z, 1)
- 230    CONTINUE
-      DO 240 I = 1,NEQ
- 240    Z(I) = Z(I)/WGHT(I)
+      END DO
+      DO I = 1,NEQ
+        Z(I) = Z(I)/WGHT(I)
+      END DO
 C Load RHO into RHOK.
       RHOK = RHO
       RETURN
@@ -6525,16 +6581,18 @@ C
 C-----------------------------------------------------------------------
 C Set VTEM = D * V.
 C-----------------------------------------------------------------------
-      DO 10 I = 1,NEQ
- 10     VTEM(I) = V(I)/WGHT(I)
+      DO I = 1,NEQ
+        VTEM(I) = V(I)/WGHT(I)
+      END DO
       IER = 0
 C-----------------------------------------------------------------------
 C Store Y in Z and increment Z by VTEM.
 C Store YPRIME in YPTEM and increment YPTEM by VTEM*CJ.
 C-----------------------------------------------------------------------
-      DO 20 I = 1,NEQ
+      DO I = 1,NEQ
         YPTEM(I) = YPRIME(I) + VTEM(I)*CJ*scaleps
- 20     Z(I) = Y(I) + VTEM(I)*scaleps
+        Z(I) = Y(I) + VTEM(I)*scaleps
+      END DO
 C-----------------------------------------------------------------------
 C Call RES with incremented Y, YPRIME arguments
 C stored in Z, YPTEM.  VTEM is overwritten with new residual.
@@ -6547,8 +6605,9 @@ C-----------------------------------------------------------------------
 C Set Z = (dF/dY) * VBAR using difference quotient.
 C (VBAR is old value of VTEM before calling RES)
 C-----------------------------------------------------------------------
-      DO 70 I = 1,NEQ
- 70     Z(I) = (VTEM(I) - SAVR(I))/scaleps
+      DO I = 1,NEQ
+        Z(I) = (VTEM(I) - SAVR(I))/scaleps
+      END DO
 C-----------------------------------------------------------------------
 C Apply inverse of left preconditioner to Z.
 C-----------------------------------------------------------------------
@@ -6559,8 +6618,9 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C Apply D-inverse to Z and return.
 C-----------------------------------------------------------------------
-      DO 90 I = 1,NEQ
- 90     Z(I) = Z(I)*WGHT(I)
+      DO I = 1,NEQ
+        Z(I) = Z(I)*WGHT(I)
+      END DO
       RETURN
 C
 C------END OF SUBROUTINE SATV-------------------------------------------
