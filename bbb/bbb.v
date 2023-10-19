@@ -1669,6 +1669,8 @@ voljcsor(0:nx+1,0:ny+1) _real [A]      #uniform core-region curr sor. in ix,iy
 volpsorg(0:nx+1,0:ny+1,1:ngsp) _real [1/s]#curr source for gas in cell ix,iy
 pondpot(0:nx+1,0:ny+1)  _real [V] /0./ #elec ponderomotive potential
 psgov_use(0:nx+1,0:ny+1,1:ngsp) _real [1/m**3 s]#user-specified gas source
+pwre_use(0:nx+1,0:ny+1)  _real [W/m^3]  #user-given electron energy source, ###-MVU 18-oct-2023
+pwri_use(0:nx+1,0:ny+1)  _real [W/m^3]  #user-given ion energy source, ###-MVU 18-oct-2023
 jcvsor                  real [A]  /0./ #total core-region current for voljcsor
 ix_sjcsor	        integer   /0/  #if nonzero, beginning ix for voljcsor
 ix_ejcsor	        integer   /0/  #if nonzero, ending ix for voljcsor
