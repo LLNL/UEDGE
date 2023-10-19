@@ -4732,6 +4732,15 @@ c******************************************************************
 
          if (istimingon .eq. 1) call timimpfj (tsimp, xc)
       endif  #loop for isimpon==2
+
+ccc MVU - 18-oct-2023, adding external heating terms
+      do iy=0,ny+1
+         do ix=0,nx+1
+            resee(ix,iy) = resee(ix,iy) + pwre_use(ix,iy)*vol(ix,iy)
+            resei(ix,iy) = resei(ix,iy) + pwri_use(ix,iy)*vol(ix,iy)
+         enddo
+      enddo
+ccc MVU
   
 *  -- joule heating --
 
