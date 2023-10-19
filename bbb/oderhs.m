@@ -8221,9 +8221,6 @@ c...  Initialize values and arrays
         mvolcurt = mvolcurt + mvolcur(ifld)
       enddo
       do igsp = 1, ngsp
-        #..zmlpossible bugs?
-        #call s2fill (nx+2, ny+2, 0., volpsor(0:nx+1,0:ny+1,igsp), 1, nx+2) 
-        #call s2fill (nx+2, ny+2, 0., volmsor(0:nx+1,0:ny+1,igsp), 1, nx+2)
 	call s2fill (nx+2, ny+2, 0., volpsorg(0:nx+1,0:ny+1,igsp), 1, nx+2)
         ivolcurgt = ivolcurgt + ivolcurg(igsp)
         #..zml manufactured solution
