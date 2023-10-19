@@ -51,10 +51,10 @@ nixw     integer
  
 ***** Auxw:
      # some parameters used to transform UEDGE indices to DEGAS indices
-ixpt1b     integer  # ix index of pf cell just below x-point on inboard half
+ixpt1b_wdf integer  # ix index of pf cell just below x-point on inboard half
 ixtop1b    integer  # ix index of cell at top of inboard half mesh
 ixtop2b    integer  # ix index of cell at top of outboard half mesh
-ixpt2b     integer  # ix index of core cell just above x-point on outboard half
+ixpt2b_wdf integer  # ix index of core cell just above x-point on outboard half
 nohzsb     integer  # number of DEGAS horizontal zones
 novzsb     integer  # number of DEGAS vertical zones
 nosegsxzb  integer  # number of DEGAS wall segments
@@ -258,9 +258,9 @@ sndspd  real
      # plasma flow mach number where sound speed = sqrt((te+ti)/mi)
 t0puff(npns)    _real    [eV]	/.025/
      # energy of puffed source of neutrals
-te0     real    [eV]
+te0_wdf real    [eV]
      # electron temperature in the case of a constant plasma
-ti0(npis)       _real    [eV]
+ti0_wdf(npis)       _real    [eV]
      # ion temperature in the case of a constant plasma
 wtmin0  real
      # minimum test flight weight
