@@ -4594,7 +4594,8 @@ c to the friction force between neutrals and ions
 
 
 c ... If molecules are present as gas species 2, add ion/atom cooling
-      # ion/molecule elastic collisions have been considered in
+      # energy transfer between ions and molecueles due to 
+      # ion/molecule elastic collisions have been moved in
       # engbalg subroutine, so comment the following lines...
 #      if(ishymol == 1) then
 #        do iy = j2, j5
