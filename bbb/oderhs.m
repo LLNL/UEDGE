@@ -8231,7 +8231,7 @@ c...  Initialize values and arrays
         ivolcurgt = ivolcurgt + ivolcurg(igsp)
         #..zml manufactured solution
         if (ismanufactured(igsp) .ne. 1)
-     .    call s2fill (nx+2, ny+2, 0., pwrsorg(0,0,igsp), 1, nx+2)
+     .    call s2fill (nx+2, ny+2, 0., pwrsorg(0:nx+1,0:ny+1,igsp), 1, nx+2)
       enddo        
 cccMER NOTE: generalize the following for multiple x-points
 cc Define index ranges for a localized ion-loss sink; crude & temporary
