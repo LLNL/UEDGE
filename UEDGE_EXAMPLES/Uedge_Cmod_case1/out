@@ -1,0 +1,119 @@
+ Reading grid from file:gridue
+ Reading grid from file:gridue
+ Read file "gridue                                                                                                                                                                                                  " with runid:                                                              
+ Reading grid from file:gridue
+ UEDGE $Name: 8.0.4.0$                                                                 
+ Reading grid from file:gridue
+ Read file "gridue                                                                                                                                                                                                  " with runid:                                                              
+  ==Enter jac_calc
+  Updating Jacobian, npe =                      1
+  ==Leave jac_calc
+  @@Time@@    8.0543048381805420     
+  @@Time@@ t_pandf   7.6335105895996094      n_pandf                37240 t_pandf_avg   2.0498148736841057E-004
+  ==Enter nksol
+ iter=    0 fnrm=     0.6331982287958246E-01 nfe=      1
+  ==Enter model
+  ==Enter psetnk
+  ==Enter jac_calc
+  Updating Jacobian, npe =                      2
+  ==Leave jac_calc
+  @@Time@@    7.3522748947143555     
+  @@Time@@ t_pandf   6.9724304676055908      n_pandf                37240 t_pandf_avg   1.8722960439327579E-004
+  ==Enter jac_lu_decomp
+  ==Leave jac_lu_decomp
+  @@Time@@   0.88481593132019043     
+  ==Leave psetnk
+  @@Time@@    8.2934329509735107     
+  ==Enter spigmr
+  ==Leave spigmr matrix size=                18620 m=                   13
+  @@Time@@   0.33492112159729004     
+  @@Time@@ t_atv  0.31914663314819336      n_atv                   13 t_psol  0.16275477409362793      f  0.15488052368164062      t_f_avg   1.1913886437049279E-002
+  ==Leave model
+  @@Time@@    8.6285328865051270     
+ iter=    1 fnrm=     0.2967691821235015E-01 nfe=     15
+  ==Enter model
+  ==Enter spigmr
+  ==Leave spigmr matrix size=                18620 m=                   14
+  @@Time@@   0.37806987762451172     
+  @@Time@@ t_atv  0.36146879196166992      n_atv                   14 t_psol  0.17950797080993652      f  0.18030118942260742      t_f_avg   1.2878656387329102E-002
+  ==Leave model
+  @@Time@@   0.37810397148132324     
+ iter=    2 fnrm=     0.4333590996389431E-02 nfe=     30
+  ==Enter model
+  ==Enter spigmr
+  ==Leave spigmr matrix size=                18620 m=                   21
+  @@Time@@   0.52696299552917480     
+  @@Time@@ t_atv  0.50882148742675781      n_atv                   21 t_psol  0.26040983200073242      f  0.24616360664367676      t_f_avg   1.1722076506841751E-002
+  ==Leave model
+  @@Time@@   0.52699398994445801     
+ iter=    3 fnrm=     0.9121938879354837E-05 nfe=     52
+  ==Enter model
+  ==Enter spigmr
+  ==Leave spigmr matrix size=                18620 m=                   54
+  @@Time@@    1.3210439682006836     
+  @@Time@@ t_atv   1.2662539482116699      n_atv                   54 t_psol  0.64483451843261719      f  0.61542057991027832      t_f_avg   1.1396677405745894E-002
+  ==Leave model
+  @@Time@@    1.3210780620574951     
+ iter=    4 fnrm=     0.8526513048547355E-02 nfe=    107
+  ==Enter model
+  ==Enter spigmr
+  ==Leave spigmr matrix size=                18620 m=                   11
+  @@Time@@   0.27661895751953125     
+  @@Time@@ t_atv  0.26250839233398438      n_atv                   11 t_psol  0.13433408737182617      f  0.12695407867431641      t_f_avg   1.1541279879483309E-002
+  ==Leave model
+  @@Time@@   0.27665281295776367     
+ iter=    5 fnrm=     0.2473700032421366E-04 nfe=    119
+  ==Enter model
+  ==Enter psetnk
+  ==Enter jac_calc
+  Updating Jacobian, npe =                      3
+  ==Leave jac_calc
+  @@Time@@    7.9885909557342529     
+  @@Time@@ t_pandf   7.5830321311950684      n_pandf                37240 t_pandf_avg   2.0362599707827788E-004
+  ==Enter jac_lu_decomp
+  ==Leave jac_lu_decomp
+  @@Time@@   0.93115520477294922     
+  ==Leave psetnk
+  @@Time@@    8.9787850379943848     
+  ==Enter spigmr
+  ==Leave spigmr matrix size=                18620 m=                   51
+
+
+  @@Time@@    1.2690348625183105     
+  @@Time@@ t_atv   1.2236242294311523      n_atv                   51 t_psol  0.62443423271179199      f  0.59315443038940430      t_f_avg   1.1630479027243221E-002
+  ==Leave model
+  @@Time@@    10.247873067855835     
+ iter=    6 fnrm=     0.2731277533931248E-02 nfe=    171
+  ==Enter model
+  ==Enter spigmr
+  ==Leave spigmr matrix size=                18620 m=                   19
+  @@Time@@   0.51103401184082031     
+  @@Time@@ t_atv  0.49219679832458496      n_atv                   19 t_psol  0.25168824195861816      f  0.23818612098693848      t_f_avg   1.2536111630891500E-002
+  ==Leave model
+  @@Time@@   0.51106500625610352     
+ iter=    7 fnrm=     0.3522248030887029E-05 nfe=    191
+  ==Enter model
+  ==Enter spigmr
+  ==Leave spigmr matrix size=                18620 m=                   53
+  @@Time@@    1.3488678932189941     
+  @@Time@@ t_atv   1.2988286018371582      n_atv                   53 t_psol  0.66091585159301758      f  0.63142466545104980      t_f_avg   1.1913672933038676E-002
+  ==Leave model
+  @@Time@@    1.3488979339599609     
+ iter=    8 fnrm=     0.3466802876242526E-04 nfe=    245
+  ==Enter model
+  ==Enter spigmr
+  ==Leave spigmr matrix size=                18620 m=                   25
+  @@Time@@   0.62679600715637207     
+  @@Time@@ t_atv  0.60615801811218262      n_atv                   25 t_psol  0.31114268302917480      f  0.29228448867797852      t_f_avg   1.1691379547119140E-002
+  ==Leave model
+  @@Time@@   0.62682604789733887     
+ iter=    9 fnrm=     0.2225095080247417E-09 nfe=    271
+
+
+ nksol ---  iterm = 1.
+            maxnorm(sf*f(u)) .le. ftol, where maxnorm() is
+            the maximum norm function.  u is probably an
+            approximate root of f.
+  ==Leave nksol
+  @@Time@@    23.984796047210693     
+ Interpolants created; mype =                   -1

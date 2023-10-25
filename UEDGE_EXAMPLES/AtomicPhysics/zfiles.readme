@@ -1,0 +1,73 @@
+
+From post@pppl.gov Fri May  7 09:05:09 1993
+Return-Path: <post@pppl.gov>
+Received: from pppl.gov by velo.llnl.gov (4.1/1.15)
+	id AA04024; Fri, 7 May 93 09:05:06 PDT
+Received: from [192.55.106.96] (lynx.pppl.gov) by pppl.gov (4.1/1.15)
+	id AA08695; Fri, 7 May 93 12:04:02 EDT
+Message-Id: <9305071604.AA08695@pppl.gov>
+Date: Fri, 7 May 1993 12:04:06 -0500
+To: u5076@f.nersc.gov, rayevski@cims.nyu.edu, barry@math.ucla.edu,
+        NOL@inel.gov, day@fusion.ucla.edu, rensink@velo.llnl.gov,
+        maingi@gav.gat.com, Rognlien@wobegon.llnl.gov, mpetravi@pppl.gov,
+        Karney@princeton.edu, vesey@theory.pppl.gov, u654@c.nersc.gov,
+        Dstotler@pppl.gov, SCohen@pppl.gov, cn9gr8av@bootes.unm.edu,
+        u1757@c.nersc.gov, Kukusha@sat.ipp-garching.mpg.de (Andre Kukushkin),
+        dcoster@theory.pppl.gov
+From: post@pppl.gov (Douglass E. Post)
+X-Sender: post@pobox.pppl.gov
+Subject: Atomic physics data via FTP
+Content-Length: 2445
+X-Lines: 49
+Status: RO
+
+Colleagues,
+ I have put atomic data for hydrogen and impurities for divertor modelling
+on my Sun workstation as a series of files:
+        The two hydrogen files are: nwfits and results
+        nwfits is a file of the fits with some notes at the end of the file
+on how to read it. results is a file that contains the data in tables that
+you can easily interpret, but the data has only a few significant figures.
+To avoid confusion, I have given the radiation rate for hydrogen rather
+than the energy loss per ionization. To get the hydrogen radiation loss
+rate in ergs/cm^3/s, you multiply the rate by the electron density and the
+neutral hydrogen density.  The files are small (~ 35 kbytes). The reference
+for the data is:  R. Janev, D. Post, W. Langer, K. Evans, D. Heifetz, and 
+J. Weisheit, J. Nucl. Mat. 121 (1984), 10. That article and the references
+therein will allow you to understand the basis of the data. 
+        The impurity radiation data is the emissivity as a function of
+temperature, neutral fraction, and density times residence time for a
+initially neutral impurity atom. There is one file for each impurity. The
+impurity  files are large ( ~ 1.5 Mbytes) . If you would like them in a
+more abreviated format, let me know and I will try to accomodate you. .The
+references for the data are:  R. Hulse, D. Post, and D. Mikkelsen,  J.
+Phys. B: Atom. Molec. Phys. 13(1980) 3895, R. Hulse, Nucl. Techn./Fus.
+3(1983) 259, and D. Post, R. Jensen, C. Tarter, W. Grasberger, and W.
+Lokke, At. Data and Nuc. Tables, 20(1977),397.
+        We will be updating the files from time to time.
+
+To access the data, you should access a Sun workstation here at pppl using
+anonymous ftp. A sample session (with thanks to Tina Ludescher and Charles
+Karney) follows (use your own username as the password):
+
+$ ftp orion.pppl.gov
+    Name (orion.pppl.gov:smith): anonymous
+    Password:smith
+    ftp> cd pub/atomic
+    ftp> dir
+    total 2
+    drwxr-xr-x  2 404      daemon        512 May  6 21:54 H_data
+    drwxr-xr-x  2 404      daemon        512 May  6 22:04 impurities
+    ftp> cd H_data
+    ftp> dir
+    total 71
+    -rw-r--r--  1 404      daemon      36844 May  6 21:53 nwfits_corrected
+    -rw-r--r--  1 404      daemon      35309 May  6 21:53 results_good
+    ftp> get results_good
+    local: results_good remote: results_good
+    35506 bytes received in 0.85 seconds (41 Kbytes/s)
+    ftp> quit
+
+Send me a note if you have trouble.  Doug
+
+

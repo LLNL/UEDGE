@@ -1,0 +1,95 @@
+WARNING regarding adas rates for lithium:
+22 Feb 2001
+
+In the b2frates_Li.adas96x file, the charge exchange rates for Li come
+from ADPAK, not ADAS.  The c-x data did not exist (07 Jul 2000) when
+Todd Evans created the ADAS adf11-format files for Lithium.  In order
+to convert the ADAS files into b2frates-format files for UEDGE by
+running Dave Coster's B2.5 code, we simply used the ionization data
+file scd96_li.dat as a place-holder for the missing ccd96_li.dat file,
+then edited the resulting b2frates file by replacing the rtlcx values
+with those from the ADPAK rate table file for Lithium.
+
+
+============================================================================
+
+Mime-Version: 1.0
+Date: Wed, 5 Jul 2000 15:55:04 -0700
+To: Marv Rensink <rensink@velo.llnl.gov>
+From: Todd Evans <evans@apollo.gat.com>
+Subject: Re: lithium rate tables
+
+Marv,
+
+Unfortunately, when we constructed these Li data files the fundamental data
+needed to build the adf11 charge-exchange file was not available. One of my
+projects is to do a literature search for the necessary data. Needless to
+say, I haven't made much progress on that yet. If you have any other source
+of data for Li charge-exchange I suggest using that for the time being. I'm
+not sure when I will be able to get back to the ADAS Li work. It's fairly
+low on my priority list at the moment (unless I get pressure from the ALPS
+group I suspect this will not happen until after APS).
+
+Todd
+>
+>Thanks for helping me set up the ADAS data for generating UEDGE rate
+>tables.  I
+>have that working now, so I can reproduce the '89 rate tables that
+>B2-EIRENE is
+>using.  Now I want to do lithium tables using your recent results.  I noticed
+>that you have 4 of the 5 adf11-format data files that we usually need for an
+>impurity, but the charge-exchange file, ccd96_li.dat, is missing.  Is there
+>another version of this file that I should use?
+>
+>Regards,
+>Marv
+>
+>_____________________________________________________________________________
+>
+>Marvin Rensink
+>Lawrence Livermore National Laboratory
+>P.O. Box 808, mail stop L-637
+>Livermore, CA 94551-0808
+>
+>email: rensink1@llnl.gov
+>phone: (925) 422-9822
+>fax:   (925) 424-6401
+>
+>_____________________________________________________________________________
+>
+>> Mime-Version: 1.0
+>> Date: Wed, 8 Dec 1999 12:19:39 -0700
+>> To: Marv Rensink <rensink@velo.llnl.gov>
+>> From: Todd Evans <evans@apollo.gat.com>
+>> Subject: Re: lithium rate tables
+>> Cc: brooks@anl.gov
+>>
+>> Marv,
+>>
+>> I have compared the electron impact ionization rates for LiI -> LiII from
+>> ADPAK with a new set of rates that we recently produced for the ADAS
+>> database. There are significant differences between the two data sets. We
+>> expect the ADAS rates to be much more accurate because ADPAK uses a simple
+>> analytic approximation based an average ion model while the new ADAS rates
+>> were produced using level resolved fundamental data with a Generalized
+>> Collisional Radiative (GCR) model. I worked with the ADAS Group last summer
+>> to produce the Li GCR ionization and recombination data but it has not yet
+>> been officially released for general use. Jeff Brooks is already using some
+>> of the new ADAS GCR Li data we sent him and has found that it does have a
+>> substantial impact on his modeling results. I would recommend that you also
+>> use the new ADAS GCR data.
+>>
+>> If you want to access the ADAS GCR Li data from the ADAS-IDL program on
+>> GA's computers you need to load a set of special adf11 data files when you
+>> run ADAS402 (rather than the central data set). When we setup your ADAS
+>> account we created a directory called /u/rensink/adas. You can copy the
+>> file: /scratch/evans/adas_li_adf11.tar into this area and run ADAS-IDL on
+>> this data. When you untar the adas_li_adf11.tar file it will create an
+>> adf11 directory with the all the Li data you need to plot the ionization
+>> and recombination rate coefficients using ADAS-IDL. ADAS402 can also be
+>> used to create a text file with tabulated data and fitting coefficients for
+>> various charge states and temperature ranges. Let me know if you need help
+>> getting this set up.
+
+
+

@@ -1,0 +1,90 @@
+Frame     1 (test1.bas.001.ncgm)
+ 
+ 
+   plot rsarr(1,) tarr thick=3
+Frame     2 (test1.bas.001.ncgm)
+ 
+ 
+   plot rsarr(1,) tarr thick=3
+   plot rsarr(2,) tarr color=red thick=2
+Frame     3 (test1.bas.001.ncgm)
+ 
+ 
+   plot rsarr(1,) tarr thick=3
+   plot rsarr(2,) tarr color=red thick=2
+   plot rsarr(3,) tarr color=green
+Frame     4 (test1.bas.001.ncgm)
+ 
+ 
+   plot rsarr(1,) tarr thick=3
+Frame     5 (test1.bas.001.ncgm)
+ 
+ 
+   plot rsarr(1,) tarr thick=3
+   plot rsarr(2,) tarr color=red thick=2
+Frame     6 (test1.bas.001.ncgm)
+ 
+ 
+   plot rsarr(1,) tarr thick=3
+   plot rsarr(2,) tarr color=red thick=2
+   plot rsarr(3,) tarr color=green
+Frame     7 (test1.bas.001.ncgm)
+ 
+ 
+   plot rsarr(1,) tarr thick=3
+Frame     8 (test1.bas.001.ncgm)
+ 
+ 
+   plot rsarr(1,) tarr thick=3
+   plot rsarr(2,) tarr color=red thick=2
+Frame     9 (test1.bas.001.ncgm)
+ 
+ 
+   plot rsarr(1,) tarr thick=3
+   plot rsarr(2,) tarr color=red thick=2
+   plot rsarr(3,) tarr color=green
+Frame    10 (test1.bas.001.ncgm)
+ 
+ 
+   plot rsarr(1,) tarr thick=3
+Frame    11 (test1.bas.001.ncgm)
+ 
+ 
+   plot rsarr(1,) tarr thick=3
+   plot rsarr(2,) tarr color=red thick=2
+Frame    12 (test1.bas.001.ncgm)
+ 
+ 
+   plot rsarr(1,) tarr thick=3
+   plot rsarr(2,) tarr color=red thick=2
+   plot rsarr(3,) tarr color=green
+Frame    13 (test1.bas.001.ncgm)
+ 
+ 
+   plot rsarr(1,) tarr thick=3
+Frame    14 (test1.bas.001.ncgm)
+ 
+ 
+   plot rsarr(1,) tarr thick=3
+   plot rsarr(2,) tarr color=red thick=2
+Frame    15 (test1.bas.001.ncgm)
+ 
+ 
+   plot rsarr(1,) tarr thick=3
+   plot rsarr(2,) tarr color=red thick=2
+   plot rsarr(3,) tarr color=green
+Frame    16 (test1.bas.001.ncgm)
+ 
+ 
+   plot rsarr(1,) tarr thick=3
+Frame    17 (test1.bas.001.ncgm)
+ 
+ 
+   plot rsarr(1,) tarr thick=3
+   plot rsarr(2,) tarr color=red thick=2
+Frame    18 (test1.bas.001.ncgm)
+ 
+ 
+   plot rsarr(1,) tarr thick=3
+   plot rsarr(2,) tarr color=red thick=2
+   plot rsarr(3,) tarr color=green

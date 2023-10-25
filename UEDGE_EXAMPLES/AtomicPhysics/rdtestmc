@@ -1,0 +1,40 @@
+# read multiple impurity data files:
+nzdf=3
+mcfilename(1:nzdf)=["He_rates.strahl","Be_rates.strahl","C_rates.strahl"]
+call readmc
+
+# setup to test mcrates :
+integer ntt=100		# number of temperature test values
+double ttmax=100.	# maximum temperature (eV)
+double ttmin=1.		# minimum temperature (eV)
+double tt(0:ntt)=ev*\
+                 exp(log(ttmin)+(log(ttmax)-log(ttmin))*iota(0:ntt)/float(ntt))
+double rion(0:ntt),rrec(0:ntt),rcxr(0:ntt)
+
+# test the data for each impurity:
+
+integer za=0, zamax=2, zn=2
+integer i
+do i=0,ntt
+   call mcrates(tt(i),tt(i),za,zamax,zn,&rion(i),&rrec(i),&rcxr(i))
+enddo
+double rion_He=rion,rrec_He=rrec,rcxr_He=rcxr
+
+integer za=0, zamax=4, zn=4
+integer i
+do i=0,ntt
+   call mcrates(tt(i),tt(i),za,zamax,zn,&rion(i),&rrec(i),&rcxr(i))
+enddo
+double rion_Be=rion,rrec_Be=rrec,rcxr_Be=rcxr
+
+integer za=0, zamax=6, zn=6
+integer i
+do i=0,ntt
+   call mcrates(tt(i),tt(i),za,zamax,zn,&rion(i),&rrec(i),&rcxr(i))
+enddo
+double rion_C=rion,rrec_C=rrec,rcxr_C=rcxr
+
+
+
+
+

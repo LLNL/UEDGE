@@ -1,0 +1,30 @@
+# read a single impurity data file:
+nzdf=1
+mcfilename(1:nzdf)=["Ne_rates.strahl"]
+call readmc
+
+# setup to test mcrates :
+integer ntt=600		# number of temperature test values
+double ttmax=100.	# maximum temperature (eV)
+double ttmin=1.		# minimum temperature (eV)
+double tt(0:ntt)=ev*\
+                 exp(log(ttmin)+(log(ttmax)-log(ttmin))*iota(0:ntt)/float(ntt))
+double rion(0:ntt),rrec(0:ntt),rcxr(0:ntt)
+
+# test the data for each impurity:
+integer i,za,zamax,zn
+
+timer on
+zamax=10; zn=10
+do i=0,ntt
+  do za=0,zamax
+    call mcrates(tt(i),tt(i),za,zamax,zn,&rion(i),&rrec(i),&rcxr(i))
+  enddo
+enddo
+#double rion_Ne=rion,rrec_Ne=rrec,rcxr_Ne=rcxr
+timer off
+
+
+
+
+

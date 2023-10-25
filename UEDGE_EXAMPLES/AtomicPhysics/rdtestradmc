@@ -1,0 +1,32 @@
+# compute atomic rates versus te in low density limit:
+
+integer nz=3	# lithium
+
+real8 tez(0:rtnt)=ev*exp(rtlt)
+
+real8 kionz(0:rtnt,0:nz)=exp(rtlsa(,1,))
+real8 krecz(0:rtnt,0:nz)=exp(rtlra(,1,))
+real8 keelz(0:rtnt,0:nz)=exp(rtlqa(,1,))
+
+real8 kradz(0:rtnt,0:nz)=keelz
+do $z=0,nz-1
+   kradz(,$z)=kradz(,$z)-kionz(,$z)*ebindz($z,znuc)
+enddo
+do $z=1,nz
+   kradz(,$z)=kradz(,$z)+krecz(,$z)*ebindz($z-1,znuc)
+enddo
+
+###plot keelz(,0) tez/ev scale=loglog
+###plot keelz(,0)-kionz(,0)*ebindz(0,nz)
+
+###plot keelz(,1) tez/ev scale=loglog
+###plot keelz(,1)-kionz(,1)*ebindz(1,nz)+krecz(,1)*ebindz(0,nz) tez/ev
+
+###plot keelz(,2) tez/ev scale=loglog
+###plot keelz(,2)-kionz(,2)*ebindz(2,nz)+krecz(,2)*ebindz(1,nz) tez/ev
+
+###plot keelz(,3) tez/ev scale=loglog
+###plot keelz(,3)+krecz(,3)*ebindz(2,nz) tez/ev
+
+
+
