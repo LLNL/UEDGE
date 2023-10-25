@@ -763,8 +763,12 @@ c     nks003 common block.
 c-----------------------------------------------------------------------
       real pthrsh
       common /nks003/ pthrsh, ipcur, nnipset, incpset
+      real,external::tick,tock
+      real t_start_nksol, t_nksol
 c
       save
+      print *, ' ==Enter nksol'
+      t_start_nksol = tick()
       zero=0.
       one=1.0
       two=2.0
@@ -1119,6 +1123,9 @@ c-----------------------------------------------------------------------
       rwork(1) = stepmx
       rwork(2) = fnrm
       rwork(3) = tau
+
+      print *, ' ==Leave nksol'
+      print *, ' @@Time@@ ', tock(t_start_nksol)
       return
 c----------------------- end of subroutine nksol -----------------------
       end
@@ -1478,6 +1485,8 @@ c-----------------------------------------------------------------------
 c     nks001 common block.
 c-----------------------------------------------------------------------
       real eps, sqteta, rhom
+      real,external::tick,tock
+      real t_start_model
       common /nks001/ eps, rhom, sqteta, locwmp, locimp, iersl, kmp,
      *                mmax, methn, methk, ipflg, mfdif, nfe, nje, nni,
      *                nli,  npe, nps, ncfl, nbcf
@@ -1489,6 +1498,9 @@ c-----------------------------------------------------------------------
 c
       save
       data onept5/1.5e0/
+
+      print *, ' ==Enter model'
+      t_start_model = tick()
 c-----------------------------------------------------------------------
 c     call user-supplied routine pset to load preconditioner matrix
 c     data if threshold achieved.  set ipcur=1 if p is re-evaluated.
@@ -1529,6 +1541,8 @@ c iersl=1 on return from solpk means there was a breakdown in the
 c krylov iteration.  set iersl=7 to halt iteration and return.
       if (iersl .eq. 1) iersl = 7
 c
+      print *, ' ==Leave model'
+      print *, ' @@Time@@ ', tock(t_start_model)
       return
 c----------------------- end of subroutine model -----------------------
       end
@@ -1792,7 +1806,7 @@ c
 c note: the x array is used as work space in routines psol and atv.
 c-----------------------------------------------------------------------
       integer i, info, j, k, m, mm1
-      real bnrm, prod, rho, snormw, snrm2, tem
+      real bnrm, prod, rho, snormw, snrm2, tem, tt(2)
 c-----------------------------------------------------------------------
 c     nks002 common block.
 c-----------------------------------------------------------------------
@@ -1831,7 +1845,7 @@ c call routine svrorthog to orthogonalize the new vector vnew = v(*,m+1).
 c call routine shefa to update the factors of hes.
 c-----------------------------------------------------------------------
         call atv (n, u, savf, v(1,m), su, sf, x, f, jac, psol,
-     *            v(1,m+1), wk, wmp, iwmp, ier, npsl)
+     *            v(1,m+1), wk, wmp, iwmp, ier, npsl, tt)
         if (ier .ne. 0) go to 300
         call svrorthog (v(1,m+1),v,hes,n,m,mmax,iomp,snormw)
         call shefa (hes, mmax, m, ipvt, info, m)
@@ -1908,7 +1922,7 @@ c-----------------------------------------------------------------------
 c----------------------- end of subroutine spiom -----------------------
       end
       subroutine atv (n, u, savf, v, su, sf, ftem, f, jac, psol, z,
-     *                vtem, wmp, iwmp, ier, npsl)
+     *                vtem, wmp, iwmp, ier, npsl, tt)
       implicit none
       integer iwmp, ier, npsl, locwmp, locimp, iersl, kmp, mmax
       integer methn, methk, ipflg, mfdif, nfe, nje, nni, nli, npe
@@ -1919,6 +1933,8 @@ c----------------------- end of subroutine spiom -----------------------
       dimension  u(*), savf(n), v(n), su(n), sf(n), ftem(n), vtem(n),
      *           z(n)
       dimension iwmp(*), wmp(*)
+      real tt
+      dimension tt(2)
 c-----------------------------------------------------------------------
 c this routine computes the product
 c
@@ -1971,6 +1987,9 @@ c-----------------------------------------------------------------------
      *                nli,  npe, nps, ncfl, nbcf
 c
       real sigma,tmp,utv,vtv,suitv,sdot,zero
+      real t_start_psol, t_start_f, t_psol, t_f
+      real,external::tick,tock
+
       save
       data zero/0.0e0/
 c
@@ -2022,8 +2041,10 @@ c vtv = 1 in this case.
         else
 c ipflg = 1. apply inverse of right preconditioner
           ier = 0
+          t_start_psol = tick()
           call psol (n, u, savf, su, sf, f, jac, ftem, wmp, iwmp,
      *               vtem, ier)
+          t_psol = tock(t_start_psol)
           npsl = npsl + 1
           if (ier .ne. 0) return
           vtv = zero
@@ -2041,7 +2062,9 @@ c ipflg = 1. apply inverse of right preconditioner
           do 280 i = 1,n
  280        u(i) = z(i) + sigma*vtem(i)
         endif
+      t_start_f = tick()
       call f(n, u, ftem)
+      t_f = tock(t_start_f)
       nfe = nfe + 1
 ccc      do 281 i = 1, n                  # Begin 2nd order Jac
 ccc         u(i) = z(i) - sigma*vtem(i)   # change sign of perturbation
@@ -2057,6 +2080,10 @@ ccc 300    z(i) = (ftem(i) - vtem(i))/(2*sigma) - vtem(i)*u(n+2) # 2nd order Jac
 cccc                                       vtem(i)*su(i)*u(n+2)/sf(i)
       do 310 i = 1,n
  310    z(i) = z(i)*sf(i)
+
+      tt(1) = t_psol
+      tt(2) = t_f
+c      print *, 'tpsol', t_psol, 'tf', t_f
       return
 c----------------------- end of subroutine atv -------------------------
       end
@@ -2427,6 +2454,7 @@ c-----------------------------------------------------------------------
       dimension su(n), sf(n), q(*), b(n)
       dimension savf(n), x(n), u(*), wmp(*), wk(n), iwmp(*)
       real bnrm,eps,prod,rho,snormw,tem
+      real tt(2)
       integer i,iflag,info,igmp,k,mgmr,m
 c-----------------------------------------------------------------------
 c     nks002 common block.
@@ -2434,6 +2462,18 @@ c-----------------------------------------------------------------------
       common /nks002/ iprint, iunit, iermsg
       save
 c
+      integer n_atv
+      real t_start, t_start_atv, t_atv, t_psol, t_f
+      real,external::tick,tock
+
+      t_start = tick()
+      print *, ' ==Enter spigmr'
+
+      n_atv = 0
+      t_atv = 0.0
+      t_psol = 0.0
+      t_f = 0.0
+
       iflag = 0
       mgmr = 0
       npsl = 0
@@ -2467,8 +2507,13 @@ c call routine atv to compute vnew = a*v(m).
 c call routine svrorthog to orthogonalize the new vector vnew = v(*,m+1).
 c call routine sheqr to update the factors of hes.
 c-----------------------------------------------------------------------
+        t_start_atv = tick()
         call atv (n, u, savf, v(1,m), su, sf, x, f, jac, psol,
-     *            v(1,m+1), wk, wmp, iwmp, ier, npsl)
+     *            v(1,m+1), wk, wmp, iwmp, ier, npsl, tt)
+        t_atv = t_atv + tock(t_start_atv)
+        n_atv = n_atv + 1
+        t_psol = t_psol + tt(1)
+        t_f = t_f + tt(2)
         if (ier .ne. 0) go to 300
         call svrorthog (v(1,m+1),v,hes,n,m,mmaxp1,igmp,snormw)
         hes(m+1,m) = snormw
@@ -2529,6 +2574,12 @@ c-----------------------------------------------------------------------
           if (ier .ne. 0) go to 300
           endif
         endif
+
+        print *, ' ==Leave spigmr ', 'matrix size=', n, 'm=', m
+        print *, ' @@Time@@ ', tock(t_start)
+        print *, ' @@Time@@ ', 't_atv', t_atv, 'n_atv', n_atv,
+     .    't_psol', t_psol, 'f', t_f, 't_f_avg', t_f/n_atv
+
       return
 c-----------------------------------------------------------------------
 c this block handles error returns forced by routine psol.
@@ -3875,6 +3926,8 @@ c
       save
       data one/1.0e0/,two/2.0e0/
       data pt99/0.99e0/,beta/0.9e0/
+
+c      print *, '==Enter inexact'
 c
       mxtkn = .false.
       pnrm = vnormnk(n,p,su)
@@ -3923,6 +3976,8 @@ c
       fnrmp = vnormnk(n,savf,sf)
       f1nrmp = fnrmp*fnrmp/two
       if (pnrm .gt. pt99*stepmx) mxtkn = .true.
+
+c      print *, '==Leave inexact'
       return
 c----------------------- end of subroutine inexct ----------------------
       end

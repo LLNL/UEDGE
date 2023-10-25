@@ -8384,6 +8384,12 @@ c ... Output arguments:
       integer ja(nnzmx)   # col indices of nonzero Jacobian elements
       integer ia(neq+1)   # pointers to beginning of each row in jac,ja
 
+      real,external::tick,tock
+      real t_start_jac
+      real t_start_csrcsc, t_start_ivloop, t_ivloop, t_start_pandf
+      real t_pandf
+      integer n_pandf
+
 c ... Common blocks:
       Use(Dim)                     # nx,ny,
                                    # nusp[for fnorm not used here]
@@ -8415,13 +8421,19 @@ c ... Local variables:
       real yold, dyl, jacelem
       real(Size4) sec4, tsjstor, tsimpjf, dtimpjf
 
+      print *, ' ==Enter jac_calc'
+
+      t_start_jac = tick()
+      n_pandf = 0
+      t_pandf = 0.0
+
 ccc      save
 
 c ... Get initial value of system cpu timer.
       if (istimingon .eq. 1) tsjstor = gettime(sec4)
 
 c ... Pause from BASIS if a ctrl_c is typed
-      call ruthere
+c      call ruthere
 
 c ... Count Jacobian evaluations, both for total and for this case
       ijactot = ijactot + 1   #note: ijactot set 0 in exmain if icntnunk=0
@@ -8439,6 +8451,7 @@ c ... Set up diagnostic arrays for debugging
 c############################################
 c ... Begin loop over dependent variables.
 c############################################
+      t_start_ivloop = tick()
       nnz = 1
       do iv = 1, neq
 
@@ -8484,6 +8497,7 @@ cc  This reset of ii1,2 may also cause storage prob.; see just above
             ii2 = min(iv+2*numvar*(nx+3), neq)    # guess to include extrap. bc
          endif
 
+c      print *, 'iv', iv, ':', ii1, ii2
 c ... Initialize all of those right-hand sides to their unperturbed
 c     values.
          do ii = ii1, ii2   # below wk is reset, but only over limited range
@@ -8505,7 +8519,10 @@ c     than that typical size.
          yl(iv) = yold + dyl
 
 c ... Calculate right-hand sides near location of perturbed variable.
+         t_start_pandf = tick()
          call pandf1 (xc, yc, iv, neq, t, yl, wk)
+         t_pandf = t_pandf + tock(t_start_pandf)
+         n_pandf = n_pandf + 1
 
 c ... Calculate possibly nonzero Jacobian elements for this variable,
 c     and store nonzero elements in compressed sparse column format.
@@ -8559,7 +8576,10 @@ cc               if (rdoff.ne.0.e0) jacelem=jacelem*(1.0e0+ranf()*rdoff)
 
 c ... Restore dependent variable yl & assoicated plasma vars near perturbation
          yl(iv) = yold
+         t_start_pandf = tick()
          call pandf1 (xc, yc, iv, neq, t, yl, wk)
+         t_pandf = t_pandf + tock(t_start_pandf)
+         n_pandf = n_pandf + 1
 
 c...  If this is the last variable before jumping to new cell, reset pandf 
 ccc  Call not needed because goto 18 svrpkg=daspk option disabled above
@@ -8570,16 +8590,24 @@ ccc         endif
 c ... End loop over dependent variables and finish Jacobian storage.
 c##############################################################      
       enddo             # end of main iv-loop over yl variables
+      t_ivloop = tock(t_start_ivloop)
 c##############################################################
 
       jcsc(neq+1) = nnz
 
 c ... Convert Jacobian from compressed sparse column to compressed
 c     sparse row format.
+      t_start_csrcsc = tick()
       call csrcsc (neq, 1, 1, rcsc, icsc, jcsc, jac, ja, ia)
+c      print *, ' csrcsc', tock(t_start_csrcsc)
 
 c ... Accumulate cpu time spent here.
       if (istimingon .eq. 1) ttjstor = ttjstor + gettime(sec4) - tsjstor
+      print *, ' ==Leave jac_calc'
+      print *, ' @@Time@@ ', tock(t_start_jac)
+c      print *, ' @@Time@@ ', 'iv-loop', t_ivloop
+      print *, ' @@Time@@ ', 't_pandf', t_pandf,
+     .         'n_pandf', n_pandf, 't_pandf_avg', t_pandf / n_pandf
       return
       end
 c-----------------------------------------------------------------------
@@ -8620,6 +8648,12 @@ c ... Local variables:
       real rcond, dum(1)
       real(Size4) sec4
       real tsmatfac
+
+      real,external::tick,tock
+      real t_start_ilu
+
+      print *, ' ==Enter jac_lu_decomp'
+      t_start_ilu = tick()
 
 c ... Convert compressed sparse row to banded format and use exact
 c     factorization routine sgbco from Linpack/SLATEC.
@@ -8708,6 +8742,9 @@ c ... Finally, calculate approximate LU decomposition.
 
 c ... Accumulate cpu time spent here.
  99   ttmatfac = ttmatfac + (gettime(sec4) - tsmatfac)
+
+      print *, ' ==Leave jac_lu_decomp'
+      print *, ' @@Time@@ ', tock(t_start_ilu)
       return
       end
 c-----------------------------------------------------------------------
@@ -9249,6 +9286,9 @@ c ... Output arguments:
       integer iwp(*)   # array indices for elements of LU
       integer ierr     # error flag (0 means success, else failure)
 
+      real,external::tick,tock
+      real t_start_pset
+
 c ... Common blocks:
       Use(Decomp)         # lbw,ubw
       Use(Jacobian)       # nnzmx,jac,jacj,jaci
@@ -9264,6 +9304,9 @@ c ... Common blocks:
 c ... Local variables:
       real tp
       integer i
+
+      print *, ' ==Enter psetnk'
+      t_start_pset = tick()
 
 c ... Calculate maximum of f0*sf to control yl(neq+2) = nufak
       ydt_max = 1.e-100
@@ -9328,6 +9371,9 @@ c ... Copy LU decomp into common arrays for diagostic
       enddo
 
       ierr = 0
+
+      print *, ' ==Leave psetnk'
+      print *, ' @@Time@@ ', tock(t_start_pset)
       return
       end
 c-----------------------------------------------------------------------
