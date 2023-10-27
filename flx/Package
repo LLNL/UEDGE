@@ -1,9 +1,9 @@
 PKG = flx
 POINTER = cray
 
-VDF = flx_basis.v
+VDF = flx.v
 
-NVDF = ../com/com_basis.v ../bbb/bbb_basis.v
+NVDF = ../com/com.v ../bbb/bbb.v
 
 SM = flxcomp.m flxdriv.m flxread.m flxwrit.m 
 #SM = flxcomp.m flxdriv.m flxread.m flxwrit.m dvshdf5.m

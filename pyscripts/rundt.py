@@ -140,7 +140,7 @@ class UeRun():
         for var in ['ni', 'ng', 'up', 'te', 'ti', 'tg', 'phi', 'dt_tot']:
             self.classvars['slice_{}'.format(var)].append(deepcopy(getattr(bbb, var)))
 
-
+            
     def save_intermediate(self, savename):
         from uedge.hdf5 import hdf5_save
         from os.path import exists
@@ -926,7 +926,6 @@ class UeRun():
                 return True
             return False
                     
-
         def staticiter():
             """ Tries to reduce initial fnrm by iterating at constant var """
             from uedge import bbb
@@ -1163,6 +1162,7 @@ class UeRun():
         # TODO: Resolve how to run continuation solver w/ mmaxu
         # TODO: Add coding for autodetecting when avg nfe approx mmaxu
         #       and upate jacobian then
+
 #        bbb.ismmaxuc = 0
 #        bbb.mmaxu = 70
         if (bbb.iterm == 1) and (bbb.ijactot > 0):

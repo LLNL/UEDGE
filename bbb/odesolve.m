@@ -21,7 +21,6 @@
       Use(Compla)   # ni,up,vy,te,ti,phi,zeff,nil,upl,tel,til,ngl,phil
       Use(Grid)     # ngrid,ig,imeth,ijac,iyld,yldmax
       Use(Stat)
-      Use(Ident_vars) # exmain_evals
       Use(Ynorm)    # suscal,sfscal
       Use(Ident_vars) # exmain_evals
       Use(Oldpla)
