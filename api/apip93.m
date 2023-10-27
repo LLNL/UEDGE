@@ -91,7 +91,7 @@ c----------------------------------------------------------------------c
       subroutine splinem
       implicit none
 Use(P93dat)    # nt,nr,nn
-Use(Imslwrk)   # nxdata,nydata,nzdata
+Use(Imslwrk)   # nxdata_api,nydata_api,nzdata
       external gallot, splinem1
 
 c     Construct 3-dimensional B-spline representation for impurity
@@ -99,12 +99,12 @@ c     emissivity and charge state versus e-temperature, ng/ne and
 c     n*tau (data from POST '93 tables)
 
 c     Allocate arrays for spline fitting --
-      nxdata=nt		# temperature
-      nydata=nr		# density ratio
+      nxdata_api=nt		# temperature
+      nydata_api=nr		# density ratio
       nzdata=nn		# n*tau
-      nwork2 = kyords*kzords + 3*max(kxords,kyords,kzords) + kzords + 2
-      nwork3 = nxdata*nydata*nzdata + 2*max( kxords*(nxdata+1),
-     &           kyords*(nydata+1), kzords*(nzdata+1) )
+      nwork2 = kyords_api*kzords + 3*max(kxords_api,kyords_api,kzords) + kzords + 2
+      nwork3 = nxdata_api*nydata_api*nzdata + 2*max( kxords_api*(nxdata_api+1),
+     &           kyords_api*(nydata_api+1), kzords*(nzdata+1) )
       call gallot("Imslwrk",0)
 
       call splinem1
@@ -117,69 +117,69 @@ c----------------------------------------------------------------------c
       subroutine splinem1
       implicit none
 Use(P93dat)    # tdatm,rdatm,ndatm,emdatm,z1datm,z2datm
-Use(Imslwrk)   # nxdata,nydata,nzdata,xdata,ydata,zdata,fdata,ldf,mdf,
-               # kxords,kyords,kzords,xknots,yknots,zknots,emcoef,
+Use(Imslwrk)   # nxdata_api,nydata_api,nzdata,xdata_api,ydata_api,zdata,fdata_api,ldf_api,mdf,
+               # kxords_api,kyords_api,kzords,xknots_api,yknots_api,zknots,emcoef,
                # z1coef,z2coef
       integer i,j,k
       external B3INT
 
 c     Define data arrays --
-      do i=1,nxdata
-        xdata(i)=log10( tdatm(i,1,1) )
+      do i=1,nxdata_api
+        xdata_api(i)=log10( tdatm(i,1,1) )
       enddo
-      do j=1,nydata
-        ydata(j)=log10( rdatm(1,j,1) )
+      do j=1,nydata_api
+        ydata_api(j)=log10( rdatm(1,j,1) )
       enddo
       do k=1,nzdata
         zdata(k)=log10( ndatm(1,1,k) )
       enddo
 
 c     Define the order of the spline fit
-c      kxords=4		# cubic in x=log10(temperature)
-c      kyords=4		# cubic in y=log10(density ratio)
+c      kxords_api=4		# cubic in x=log10(temperature)
+c      kyords_api=4		# cubic in y=log10(density ratio)
 c      kzords=4		# cubic in z=log10(n*tau)
 
-      ldf=nxdata
-      mdf=nydata
+      ldf_api=nxdata_api
+      mdf=nydata_api
       iflagi = 1	# let B3INT choose knots
 
 c     Compute the coefficients --
 c     first, for emissivity:
-      do i=1,nxdata
-        do j=1,nydata
+      do i=1,nxdata_api
+        do j=1,nydata_api
           do k=1,nzdata
-            fdata(i,j,k)=log10( emdatm(i,j,k) )
-            emcoef(i,j,k)=fdata(i,j,k)
+            fdata_api(i,j,k)=log10( emdatm(i,j,k) )
+            emcoef(i,j,k)=fdata_api(i,j,k)
           enddo
         enddo
       enddo
-      call B3INT (xdata, nxdata, ydata, nydata, zdata, nzdata,
-     &            kxords, kyords, kzords, xknots, yknots, zknots,
-     &            emcoef, ldf, mdf, work3, iflagi)
+      call B3INT (xdata_api, nxdata_api, ydata_api, nydata_api, zdata, nzdata,
+     &            kxords_api, kyords_api, kzords, xknots_api, yknots_api, zknots,
+     &            emcoef, ldf_api, mdf, work3, iflagi)
 c     next, for average Z:
-      do i=1,nxdata
-        do j=1,nydata
+      do i=1,nxdata_api
+        do j=1,nydata_api
           do k=1,nzdata
-            fdata(i,j,k)=z1datm(i,j,k)
-            z1coef(i,j,k)=fdata(i,j,k)
+            fdata_api(i,j,k)=z1datm(i,j,k)
+            z1coef(i,j,k)=fdata_api(i,j,k)
           enddo
         enddo
       enddo
-      call B3INT (xdata, nxdata, ydata, nydata, zdata, nzdata,
-     &            kxords, kyords, kzords, xknots, yknots, zknots,
-     &            z1coef, ldf, mdf, work3, iflagi)
+      call B3INT (xdata_api, nxdata_api, ydata_api, nydata_api, zdata, nzdata,
+     &            kxords_api, kyords_api, kzords, xknots_api, yknots_api, zknots,
+     &            z1coef, ldf_api, mdf, work3, iflagi)
 c     next, for average Z**2:
-      do i=1,nxdata
-        do j=1,nydata
+      do i=1,nxdata_api
+        do j=1,nydata_api
           do k=1,nzdata
-            fdata(i,j,k)=z2datm(i,j,k)
-            z2coef(i,j,k)=fdata(i,j,k)
+            fdata_api(i,j,k)=z2datm(i,j,k)
+            z2coef(i,j,k)=fdata_api(i,j,k)
           enddo
         enddo
       enddo
-      call B3INT (xdata, nxdata, ydata, nydata, zdata, nzdata,
-     &            kxords, kyords, kzords, xknots, yknots, zknots,
-     &            z2coef, ldf, mdf, work3, iflagi)
+      call B3INT (xdata_api, nxdata_api, ydata_api, nydata_api, zdata, nzdata,
+     &            kxords_api, kyords_api, kzords, xknots_api, yknots_api, zknots,
+     &            z2coef, ldf_api, mdf, work3, iflagi)
 
       return
       end
@@ -189,8 +189,8 @@ c-----------------------------------------------------------------------
       real function emissbs (vte,vnr,vnt)
       implicit none
       real vnt,vnr,vte
-Use(Imslwrk)   # nxdata,nydata,nzdata,xdata,ydata,zdata,
-               # kxords,kyords,kzords,xknots,yknots,zknots,emcoef
+Use(Imslwrk)   # nxdata_api,nydata_api,nzdata,xdata_api,ydata_api,zdata,
+               # kxords_api,kyords_api,kzords,xknots_api,yknots_api,zknots,emcoef
 
       integer nxcoef,nycoef,nzcoef
       real vlogw,w,xuse,yuse,zuse
@@ -204,18 +204,18 @@ c     		vte = e-temperature [J]
 c     		vnr = ng/ne density ratio
 c     		vnt = ne*tau [sec/m**3].
 
-      xuse=min(max(xdata(1),log10(vte)),xdata(nxdata))
-      yuse=min(max(ydata(1),log10(vnr)),ydata(nydata))
+      xuse=min(max(xdata_api(1),log10(vte)),xdata_api(nxdata_api))
+      yuse=min(max(ydata_api(1),log10(vnr)),ydata_api(nydata_api))
       zuse=min(max(zdata(1),log10(vnt)),zdata(nzdata))
 
-      nxcoef=nxdata
-      nycoef=nydata
+      nxcoef=nxdata_api
+      nycoef=nydata_api
       nzcoef=nzdata
 
       icont = 0
-      vlogw=B3VAL (xuse, yuse, zuse, 0, 0, 0, xknots, yknots, zknots,
-     &             nxcoef, nycoef, nzcoef, kxords, kyords, kzords, 
-     &             emcoef, ldf, mdf, icont, iworki, work2, iflagi)
+      vlogw=B3VAL (xuse, yuse, zuse, 0, 0, 0, xknots_api, yknots_api, zknots,
+     &             nxcoef, nycoef, nzcoef, kxords_api, kyords_api, kzords, 
+     &             emcoef, ldf_api, mdf, icont, iworki, work2, iflagi)
       w=10**vlogw
       emissbs=w
 
@@ -227,8 +227,8 @@ c----------------------------------------------------------------------c
       real function z1avgbs (vte,vnr,vnt)
       implicit none
       real vnt,vnr,vte
-Use(Imslwrk)   # nxdata,nydata,nzdata,xdata,ydata,zdata,
-               # kxords,kyords,kzords,xknots,yknots,zknots,z1coef
+Use(Imslwrk)   # nxdata_api,nydata_api,nzdata,xdata_api,ydata_api,zdata,
+               # kxords_api,kyords_api,kzords,xknots_api,yknots_api,zknots,z1coef
 
       integer nxcoef,nycoef,nzcoef
       real vz1,xuse,yuse,zuse
@@ -242,18 +242,18 @@ c     		vte = e-temperature [J]
 c     		vnr = ng/ne density ratio
 c     		vnt = ne*tau [sec/m**3].
 
-      xuse=min(max(xdata(1),log10(vte)),xdata(nxdata))
-      yuse=min(max(ydata(1),log10(vnr)),ydata(nydata))
+      xuse=min(max(xdata_api(1),log10(vte)),xdata_api(nxdata_api))
+      yuse=min(max(ydata_api(1),log10(vnr)),ydata_api(nydata_api))
       zuse=min(max(zdata(1),log10(vnt)),zdata(nzdata))
 
-      nxcoef=nxdata
-      nycoef=nydata
+      nxcoef=nxdata_api
+      nycoef=nydata_api
       nzcoef=nzdata
 
       icont = 0
-      vz1=B3VAL (xuse, yuse, zuse, 0, 0, 0, xknots, yknots, zknots,
-     &             nxcoef, nycoef, nzcoef, kxords, kyords, kzords, 
-     &             z1coef, ldf, mdf, icont, iworki, work2, iflagi)
+      vz1=B3VAL (xuse, yuse, zuse, 0, 0, 0, xknots_api, yknots_api, zknots,
+     &             nxcoef, nycoef, nzcoef, kxords_api, kyords_api, kzords, 
+     &             z1coef, ldf_api, mdf, icont, iworki, work2, iflagi)
       z1avgbs=vz1
 
       return
@@ -264,8 +264,8 @@ c-----------------------------------------------------------------------
       real function z2avgbs (vte,vnr,vnt)
       implicit none
       real vnt,vnr,vte
-Use(Imslwrk)   # nxdata,nydata,nzdata,xdata,ydata,zdata,
-               # kxords,kyords,kzords,xknots,yknots,zknots,z2coef
+Use(Imslwrk)   # nxdata_api,nydata_api,nzdata,xdata_api,ydata_api,zdata,
+               # kxords_api,kyords_api,kzords,xknots_api,yknots_api,zknots,z2coef
 
       integer nxcoef,nycoef,nzcoef
       real vz2,xuse,yuse,zuse
@@ -279,18 +279,18 @@ c     		vte = e-temperature [J]
 c     		vnr = ng/ne density ratio
 c     		vnt = ne*tau [sec/m**3].
 
-      xuse=min(max(xdata(1),log10(vte)),xdata(nxdata))
-      yuse=min(max(ydata(1),log10(vnr)),ydata(nydata))
+      xuse=min(max(xdata_api(1),log10(vte)),xdata_api(nxdata_api))
+      yuse=min(max(ydata_api(1),log10(vnr)),ydata_api(nydata_api))
       zuse=min(max(zdata(1),log10(vnt)),zdata(nzdata))
 
-      nxcoef=nxdata
-      nycoef=nydata
+      nxcoef=nxdata_api
+      nycoef=nydata_api
       nzcoef=nzdata
 
       icont = 0
-      vz2=B3VAL (xuse, yuse, zuse, 0, 0, 0, xknots, yknots, zknots,
-     &             nxcoef, nycoef, nzcoef, kxords, kyords, kzords, 
-     &             z2coef, ldf, mdf, icont, iworki, work2, iflagi)
+      vz2=B3VAL (xuse, yuse, zuse, 0, 0, 0, xknots_api, yknots_api, zknots,
+     &             nxcoef, nycoef, nzcoef, kxords_api, kyords_api, kzords, 
+     &             z2coef, ldf_api, mdf, icont, iworki, work2, iflagi)
       z2avgbs=vz2
 
       return

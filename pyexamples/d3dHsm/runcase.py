@@ -9,23 +9,21 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import numpy as np
 import os
+from uedge.uedgeplots import *
+from uedge.rundt import rundt
+
 
 #-import some utilities for using OS
 ###execfile(os.path.join(os.environ['HOME'], 'utils/python/osfun.py'))
 
 
 #-in .bashrc: "export PYLIB=/home/umansky1/PyUEDGE/uedge/pylib"
-execfile(os.environ['PYLIB']+"/plotmesh.py")
-execfile(os.environ['PYLIB']+"/plotcontour.py")
-execfile(os.environ['PYLIB']+"/plotvar.py")
-execfile(os.environ['PYLIB']+"/paws.py")
-execfile(os.environ['PYLIB']+"/osfun.py")
 
 plt.ion()
 
 
 #-read UEDGE settings
-execfile("rd_d3dHsm_in.py")
+from rd_d3dHsm_in import *
 
 
 #-do a quick preliminary run to set all internals
@@ -33,8 +31,8 @@ bbb.restart=0; bbb.ftol=1e10; bbb.dtreal = 1e-6; bbb.exmain()
 
 
 #-show grid
-plotmesh(iso=1)
-wait = raw_input("PAUSING, PRESS ENTER TO CONTINUE...")
+plotmesh()
+wait = input("PAUSING, PRESS ENTER TO CONTINUE...")
 
 
 #-run to steady state
@@ -42,12 +40,13 @@ bbb.restart=1; bbb.ftol=1e-8;
 bbb.isbcwdt=1
 bbb.dtreal = 1e-14; bbb.itermx=30; bbb.exmain()
 bbb.t_stop=1e0
-bbb.rundt()
+print(rundt)
+rundt.rundt()
 bbb.dtreal=1e20; bbb.isbcwdt=0; bbb.exmain()
 
 
 #-show some results
-plotvar(bbb.te/bbb.ev)
+plotmeshval(bbb.te/bbb.ev)
 
 #-export the solution in hdf5 file
 hdf5_save('mycase.h5')
