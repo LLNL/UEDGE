@@ -41,9 +41,9 @@ c     ...Initialize x,ycurveg arrays with data from flx pkg in x,ycurve
 
       call ingrd
       call grdgen
-      write(*,*) '***** Grid generation has been completed'
       call writeue
 
+      write(*,*) '***** Grid generation has been completed'
 
       return
       end

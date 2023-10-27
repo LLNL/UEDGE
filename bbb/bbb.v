@@ -10,6 +10,10 @@ nispmxngspmx = nispmx*ngspmx # tot numb ion*gas species
 nstramx = 10 # maximum number of strata for MC neutrals code
 }
 
+***** Com_Dim_Vars hidden:    
+dim_vars_hidden     integer    # Do not edit this group. It is used to build
+                               # the Basis version of the code. 
+
 ***** Math_problem_size:
 neqmx		integer		# number of math. eqns to be solved/integrated
 numvar		integer		# number of physical variables per cell
@@ -326,6 +330,8 @@ cfvgpgy(1:ngspmx) real /ngspmx*0./ +input # Coefs for v*grad(pg) term (poloidal 
 cfbgt     real      /0./    +input #Coef for the B x Grad(T) terms.
 cfjhf     real      /1./    +input #Coef for convective cur (fqp) heat flow
 jhswitch  integer   /0/     +input #Coef for the Joule-heating terms
+oldseec   integer   /1/     +input #Switch for Joule-heating bugfix
+override  integer   /0/     +input #Switch to manually override checks on old models
 cf2ef     real      /0./    +input #Coef for ExB drift in 2-direction
 cfyef     real      /0./    +input #Coef for ExB drift in y-direction
 cftef     real      /0./    +input #Coef for ExB drift in toroidal direction

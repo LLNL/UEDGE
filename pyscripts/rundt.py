@@ -400,7 +400,6 @@ class UeRun():
         tsnapshot=None, savedir='../solutions', ii2increase=0, savefname=None,
         message=None):
 
-
         ''' Converges the case by increasing dt 
         dtreal : float [1e-9]
             Original time-step size
@@ -711,9 +710,7 @@ class UeRun():
                 if (bbb.iterm == 1):
                     bbb.ftol = max(min(ftol, 0.01*self.fnrm_old),ftol_min)
                     # Take timestep and see if abort requested
-
                     self.message("Inner iteration #{}".format(ii2+1), nseparator=0, 
-
                         separator='')
                     if message is not None:
                         print(message)

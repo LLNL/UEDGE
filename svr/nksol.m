@@ -3679,39 +3679,39 @@ c-----------------------------------------------------------------------
 c
       if (iermsg .gt. 0) return
       if (iterm .eq. 1) then
-        if (iprint .ge. 1) write(iunit,9000)
+        write(iunit,9000)
         return
         endif
       if (iterm .eq. 2) then
-        if (iprint .ge. 1) write(iunit,9010)
+        write(iunit,9010)
         return
         endif
       if (iterm .eq. 3) then
-        if (iprint .ge. 1) write(iunit,9020)
+        write(iunit,9020)
         return
         endif
       if (iterm .eq. 4) then
-        if (iprint .ge. 1) write(iunit,9030) 
+        write(iunit,9030) 
         return
         endif
       if (iterm .eq. 5) then
-        if (iprint .ge. 1) write(iunit,9040) 
+        write(iunit,9040) 
         return
         endif
       if (iterm .eq. 6) then
-        if (iprint .ge. 1) write(iunit,9050) 
+        write(iunit,9050) 
         return
         endif
       if (iterm .eq. 7) then
-        if (iprint .ge. 1) write(iunit,9060) 
+        write(iunit,9060) 
         return
         endif
       if (iterm .eq. 8) then
-        if (iprint .ge. 1) write(iunit,9070) 
+        write(iunit,9070) 
         return
         endif
       if (iterm .eq. 9) then
-        if (iprint .ge. 1) write(iunit,9080) 
+        write(iunit,9080) 
         return
         endif
 c-----------------------------------------------------------------------

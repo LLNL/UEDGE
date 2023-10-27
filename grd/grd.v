@@ -10,6 +10,13 @@ NDAT = 7        # dimensioning parameter for x-mesh data
 NDATP2 = NDAT+2
 }
 
+***** Com_Dim_Vars hidden:    
+dim_vars_hidden     integer    # Do not edit this group. It is used to build
+                               # the Basis version of the code. 
+***** Grd_Dim_Vars hidden:    
+grd_vars_hidden     integer    # Do not edit this group. It is used to build
+                               # the Basis version of the code. 
+
 ***** Dimensions:
 # dimensioning parameters - some from flx package
 idim    integer

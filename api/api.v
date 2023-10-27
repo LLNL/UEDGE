@@ -16,6 +16,10 @@ KMXZ=KXA*MXMINZ
 NBA=5		# used in fmombal
 }
 
+***** Com_Dim_Vars hidden:    
+dim_vars_hidden     integer    # Do not edit this group. It is used to build
+                               # the Basis version of the code. 
+
 ***** Physical_constants2:
 # Add the 2 to distinquish from same constants in package bbb
 ev2	real	/1.6022e-19/   # 1 electron volt in Joules

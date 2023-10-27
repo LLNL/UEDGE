@@ -6492,6 +6492,7 @@ c ---------------------------------------------------------------------c
       Use(Npes_mpi)            # npes,mype,ispmion
       Use(UEint)               # isallloc
       Use(Rccoef)              # isoutwall
+      Use(Coefeq)              # jhswitch, oldseec
 c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
 
       integer ifake  #forces Forthon scripts to put implicit none above here
@@ -6523,6 +6524,38 @@ c_mpi         call MPI_BARRIER(uedgeComm, ierr)
 	   write(*,*) 'UEDGE version ',uedge_ver
            icall = 1
          endif
+
+c   Check model switches for UEDGE updates/bugs
+      if (oldseec .gt. 0) then
+            write(*,*) "        **** WARNING ****"
+            write(*,*) "Using old, deprecated seec model"
+            write(*,*) "Set switch oldseec = 0 to use new model "
+            write(*,*) "The old  model will be removed from"
+            write(*,*) "future versions of UEDGE"
+            write(*,*) "Please set oldseec = 0 "
+            write(*,*) ""
+            if (override .eq. 0) then
+                write(*,*) "To use the deprecated model oldseec = 1, manually"
+                write(*,*) "override the settings by using override=1"
+                call xerrab("Error: oldseec=1 used without override=1")
+            endif
+      endif
+      if (jhswitch .gt. 0) then
+            write(*,*) "           **** WARNING ****"
+            write(*,*) "Switch jhswitch > 0 is deprecated and should not"
+            write(*,*) "be used. The option jhswitch > 0 will be removed" 
+            write(*,*) "from future versions of UEDGE."
+            write(*,*) "Please set jhswitch = 0 "
+            write(*,*) ""
+            if (override .eq. 0) then
+                write(*,*) "To use the deprecated model jhswitch > 0, manually"
+                write(*,*) "override the settings by using override=1"
+                call xerrab("Error: jhswitch>0 used without override=1")
+            endif
+      endif
+
+
+
 
 c_mpi         call MPI_BARRIER(uedgeComm, myfoo)
 

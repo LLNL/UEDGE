@@ -36,6 +36,8 @@ def startup(case,ftol=1.e-9):
     """
     import uedge as ue
     im(case)
+    # Add manual override for using old models
+    ue.bbb.override = 1
     ue.bbb.ftol = ftol
     ue.bbb.exmain()
 

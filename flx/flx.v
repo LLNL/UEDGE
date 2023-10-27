@@ -10,6 +10,13 @@ NPTS = 2000      # maximum number of data points on a contour
 NSEARCH = 4      # maximum number of search regions
 }
 
+***** Com_Dim_Vars hidden:    
+dim_vars_hidden     integer    # Do not edit this group. It is used to build
+                               # the Basis version of the code. 
+***** Grd_Dim_Vars hidden:    
+grd_vars_hidden     integer    # Do not edit this group. It is used to build
+                               # the Basis version of the code. 
+
 ***** Dimflx:
      # dimensioning parameter used in flx package only
 nsearch integer /NSEARCH/
