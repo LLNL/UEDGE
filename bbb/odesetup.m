@@ -6548,6 +6548,11 @@ c   Check model switches for UEDGE updates/bugs
             write(*,*) "future versions of UEDGE"
             write(*,*) "Please set oldseec = 0 "
             write(*,*) ""
+            if (override .eq. 0) then
+                write(*,*) "To use the deprecated model oldseec = 1, manually"
+                write(*,*) "override the settings by using override=1"
+                call xerrab("Error: oldseec=1 used without override=1")
+            endif
       endif
       if (jhswitch .gt. 0) then
             write(*,*) "           **** WARNING ****"
@@ -6556,7 +6561,14 @@ c   Check model switches for UEDGE updates/bugs
             write(*,*) "from future versions of UEDGE."
             write(*,*) "Please set jhswitch = 0 "
             write(*,*) ""
+            if (override .eq. 0) then
+                write(*,*) "To use the deprecated model jhswitch > 0, manually"
+                write(*,*) "override the settings by using override=1"
+                call xerrab("Error: jhswitch>0 used without override=1")
+            endif
       endif
+
+
 
 
 c_mpi         call MPI_BARRIER(uedgeComm, myfoo)
