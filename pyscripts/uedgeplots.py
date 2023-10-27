@@ -44,13 +44,16 @@ def plotmesh(ixmin=None, ixmax=None, iymin=None, iymax=None,
 
        The plot axis limits may be specified with r_rmin,r_max,z_min,z_max.
     """
-    zrefl = com.zm
-    zlim = com.ylim
-    zreflbdry = com.zbdry
-    if str(com.geometry) == str([b'uppersn         ']):
-       zrefl = 2.0 * com.zmid - com.zm
-       zlim = 2.0 * com.zmid - com.ylim
-       zreflbdry = 2.0 * com.zmid - com.zbdry
+    try:
+        zrefl = com.zm
+        zlim = com.ylim
+        zreflbdry = com.zbdry
+        if str(com.geometry) == str([b'uppersn         ']):
+           zrefl = 2.0 * com.zmid - com.zm
+           zlim = 2.0 * com.zmid - com.ylim
+           zreflbdry = 2.0 * com.zmid - com.zbdry
+    except:
+        pass
 
     if ixmin == None:
         ixmin = com.nxomit
@@ -112,13 +115,16 @@ def plotanymesh(verts, r_min=None, r_max=None, z_min=None, z_max=None, title=Non
 
        The plot axis limits may be specified with r_rmin,r_max,z_min,z_max.
     """
-    zrefl = com.zm
-    zlim = com.ylim
-    zreflbdry = com.zbdry
-    if str(com.geometry) == str([b'uppersn         ']):
-       zrefl = 2.0 * com.zmid - com.zm
-       zlim = 2.0 * com.zmid - com.ylim
-       zreflbdry = 2.0 * com.zmid - com.zbdry
+    try:
+        zrefl = com.zm
+        zlim = com.ylim
+        zreflbdry = com.zbdry
+        if str(com.geometry) == str([b'uppersn         ']):
+           zrefl = 2.0 * com.zmid - com.zm
+           zlim = 2.0 * com.zmid - com.ylim
+           zreflbdry = 2.0 * com.zmid - com.zbdry
+    except:
+        pass
 
     if r_min == None:
         r_min = np.min(verts[:,:,:,0])
@@ -181,13 +187,16 @@ def plotmeshval(val, ixmin=None, ixmax=None, iymin=None, iymax=None,
 
        The plot axis limits may be specified with r_rmin,r_max,z_min,z_max.
     """
-    zrefl = com.zm
-    zlim = com.ylim
-    zreflbdry = com.zbdry
-    if str(com.geometry) == str([b'uppersn         ']):
-       zrefl = 2.0 * com.zmid - com.zm
-       zlim = 2.0 * com.zmid - com.ylim
-       zreflbdry = 2.0 * com.zmid - com.zbdry
+    try:
+        zrefl = com.zm
+        zlim = com.ylim
+        zreflbdry = com.zbdry
+        if str(com.geometry) == str([b'uppersn         ']):
+           zrefl = 2.0 * com.zmid - com.zm
+           zlim = 2.0 * com.zmid - com.ylim
+           zreflbdry = 2.0 * com.zmid - com.zbdry
+    except:
+        pass
 
     if ixmin == None:
         ixmin = com.nxomit
@@ -263,13 +272,16 @@ def plotanymeshval(verts,z, r_min=None, r_max=None, z_min=None, z_max=None, titl
 
        The plot axis limits may be specified with r_rmin,r_max,z_min,z_max.
     """
-    zrefl = com.zm
-    zlim = com.ylim
-    zreflbdry = com.zbdry
-    if str(com.geometry) == str([b'uppersn         ']):
-       zrefl = 2.0 * com.zmid - com.zm
-       zlim = 2.0 * com.zmid - com.ylim
-       zreflbdry = 2.0 * com.zmid - com.zbdry
+    try:
+        zrefl = com.zm
+        zlim = com.ylim
+        zreflbdry = com.zbdry
+        if str(com.geometry) == str([b'uppersn         ']):
+           zrefl = 2.0 * com.zmid - com.zm
+           zlim = 2.0 * com.zmid - com.ylim
+           zreflbdry = 2.0 * com.zmid - com.zbdry
+    except:
+        pass
 
     if r_min == None:
         r_min = com.rm.min()
@@ -333,13 +345,16 @@ def mkdensityfile(filename, ival, renmin=None, renmax=None, samples=[500, 500, 5
           about 1cm r resolution and .6cm in z.
 
     """
-    zrefl = com.zm
-    zlim = com.ylim
-    zreflbdry = com.zbdry
-    if str(com.geometry) == str([b'uppersn         ']):
-       zrefl = 2.0 * com.zmid - com.zm
-       zlim = 2.0 * com.zmid - com.ylim
-       zreflbdry = 2.0 * com.zmid - com.zbdry
+    try:
+        zrefl = com.zm
+        zlim = com.ylim
+        zreflbdry = com.zbdry
+        if str(com.geometry) == str([b'uppersn         ']):
+           zrefl = 2.0 * com.zmid - com.zm
+           zlim = 2.0 * com.zmid - com.ylim
+           zreflbdry = 2.0 * com.zmid - com.zbdry
+    except:
+        pass
 
     if renmin == None:
         renmin = np.min(ival)
