@@ -5,5 +5,5 @@
 ProgName = xuedge
 Packages = aph api bbb com flx grd ncl svr wdf .
 #Packages = aph api bbb com flx grd svr wdf .
-Macros = sptodp dimvars
+Macros = sptodp
 RealSize = 8

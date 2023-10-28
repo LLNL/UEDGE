@@ -18,7 +18,6 @@
 import uedge
 from uedge import *
 
-bbb.override=1
 bbb.mhdgeo=-1
 bbb.isnion=1
 bbb.isupon=1

@@ -77,10 +77,9 @@ class uedgeBuild(build):
             raise SystemExit("Python versions < 3 not supported")
         else:
             if petsc == 0:
-                status = call(['make', '-f','Makefile.Forthon'])
+                call(['make', '-f','Makefile.Forthon'])
             else:
-                status = call(['make', '-f', 'Makefile.PETSc'])
-            if status != 0: raise SystemExit("Build failure")
+                call(['make', '-f', 'Makefile.PETSc'])
             build.run(self)
 
 
@@ -90,10 +89,9 @@ class uedgeClean(build):
             raise SystemExit("Python versions < 3 not supported")
         else:
             if petsc == 0:
-                status = call(['make', '-f', 'Makefile.Forthon', 'clean'])
+                call(['make', '-f', 'Makefile.Forthon', 'clean'])
             else:
-                status = call(['make', '-f', 'Makefile.PETSc', 'clean'])
-            if status != 0: raise SystemExit("Clean failure")
+                call(['make', '-f', 'Makefile.PETSc', 'clean'])
 
 uedgepkgs = ['aph', 'api', 'bbb', 'com', 'flx', 'grd', 'svr', 'wdf', 'ncl']
 

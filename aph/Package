@@ -3,6 +3,6 @@ POINTER = cray
 
 VDF = aph.v
 
-NVDF = ../com/com.v
+NVDF = ../com/com_basis.v
 
 SM = aphrates.m aphread.m

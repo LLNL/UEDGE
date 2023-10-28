@@ -10,31 +10,40 @@ NPTS = 2000      # maximum number of data points on a contour
 NSEARCH = 4      # maximum number of search regions
 }
 
+***** Dim_flx hidden:
+%ifelse(Module,flxdata|flxwake,[
+%  Use(Dimflxgrd)
+%],[])
+# Dimension variables for automatically written routines flxdata & flxwake.
+# These variables need never be set, because those routines don't access array
+# elements.
+nym   integer  # total number of cells in y direction
+
 ***** Dimflx:
      # dimensioning parameter used in flx package only
 nsearch integer /NSEARCH/
      # maximum number search regions for contouring package
 
 ***** Flxin:
-istchkon	integer	/0/ +gridgen
+istchkon	integer	/0/
      # switch for imposing limits on the polar angle about (rmagx,zmagx)
      # of (r,z) points on flux contours.
      #	=0 no limits
      #	=1 limits are defined by theta_split, thetax, dtheta_exclude,
      #             dtheta_overlap_sol and dtheta_overlap_pf
-isthmmxn	integer	/1/ +gridgen
+isthmmxn	integer	/1/
      # switch that controls expressions for thetamin and thetamax when
      # istchkon=1 for 'dnbot' configurations:
      # =0     uses same theta_split for in/outboard halves
      # =1     uses pi/twopi in place of theta_split for in/outboard halves
-dtheta_exclude(1:2)	real	[radians]	/2*1.5/ +gridgen
+dtheta_exclude(1:2)	real	[radians]	/2*1.5/
      # angular width of region where SOL flux contours are excluded
      # index 1 refers to inboard flux contours; 2 refers to outboard contours
-dtheta_overlap_sol(1:2)	real	[radians]	/2*0.5/ +gridgen
+dtheta_overlap_sol(1:2)	real	[radians]	/2*0.5/
      # angular width over which SOL flux contours can overlap
      # with flux contours in the adjacent region.
      # index 1 refers to inboard flux contours; 2 refers to outboard contours
-dtheta_overlap_pf(1:2)	real	[radians]	/2*0.25/ +gridgen
+dtheta_overlap_pf(1:2)	real	[radians]	/2*0.25/
      # angular width over which p.f. flux contours can overlap
      # with flux contours in the adjacent region.
 thetax			real	[radians]
@@ -45,13 +54,13 @@ thetamin(1:2)		real	[radians]
 thetamax(1:2)		real	[radians]
      # computed maximum poloidal angle of flux contour data
      # index 1 refers to inboard flux contours; 2 refers to outboard contours
-theta1fac	real	/1.0/ +gridgen
+theta1fac	real	/1.0/
      # multiplicative factor for theta1 boundary of inner-half pf region
-theta2fac	real	/0.0/ +gridgen
+theta2fac	real	/0.0/
      # multiplicative factor for theta2 boundary of outer-half pf region
-ymax1fac        real    /1.0/ +gridgen
+ymax1fac        real    /1.0/
      # multiplies zmagx to set upper bound on search region 1
-ymax2fac        real    /3.0/ +gridgen
+ymax2fac        real    /3.0/
      # multiplies zseps to set upper bound on search region 2
 imagx		integer
      # horizontal (R) index of the refined-EFIT cell containing the magnetic axis
@@ -65,99 +74,99 @@ icutoff1	integer
      # horizontal (R) index of the refined-EFIT cell containing xcutoff1
 jcutoff1	integer
      # vertical (Z) index of the refined-EFIT cell containing ycutoff1
-slpyt		real	/1.0/ +gridgen
+slpyt		real	/1.0/
 # scaling factor for radial mesh near double-null separatrices -
 #    - mesh size is scaled by slpyt near inner separatrix
 #    - mesh size is scaled by 1/slpyt near outer separatrix
-slp2fac		real	/1.0/ +gridgen
+slp2fac		real	/1.0/
 # scale factor for radial mesh in asymmetric double-null configurations
 # (see function rho3dn for details)
 # = 1. for uniform mesh between separatrices
 # < 1. for finer mesh at innermost separatrix
 # > 1. for coarser mesh at innermost separatrix
-slp3fac		real	/1.0/ +gridgen
+slp3fac		real	/1.0/
 # scale factor for radial mesh in asymmetric double-null configurations
 # (see function rho3dn for details)
 # = 1. for uniform mesh between separatrices
 # < 1. for finer mesh at outermost separatrix
 # > 1. for coarser mesh at outermost separatrix
-psifac		real	/1.0005/ +gridgen
+psifac		real	/1.0005/
 # multiplicative factor in normalized separatrix flux
 # to ensure that contour is just outside the x-point.
 psi0sep1	real
 # normalized flux value at lower x-point
 psi0sep2	real
 # normalized flux value at upper x-point
-psi0max_inner		real	/1.07/ +regrid +gridgen
+psi0max_inner		real	/1.07/ +regrid
 # normalized flux value at wall on inboard side of magnetic axis
-psi0max_outer		real	/1.07/ +regrid +gridgen
+psi0max_outer		real	/1.07/ +regrid
 # normalized flux value at wall on outboard side of magnetic axis
-psi0min2_upper		real	/0.98/ +regrid +gridgen
+psi0min2_upper		real	/0.98/ +regrid
 # normalized flux value at private flux boundary near upper x-point
-psi0min2_lower		real	/0.98/ +regrid +gridgen
+psi0min2_lower		real	/0.98/ +regrid
 # normalized flux value at private flux boundary near lower x-point
-psi0min1	real	/0.98/ +regrid +gridgen
+psi0min1	real	/0.98/ +regrid
      # normalized flux value at innermost core flux surface
-psi0min2	real	/0.98/ +regrid +gridgen
+psi0min2	real	/0.98/ +regrid
      # normalized flux value at innermost private flux surface
-psi0sep		real	/1.00001/ +regrid +gridgen
+psi0sep		real	/1.00001/ +regrid
      # normalized flux value at separatrix flux surface (just slightly outside)
-psi0max			real	/1.07/ +regrid +gridgen
+psi0max			real	/1.07/ +regrid
      # normalized flux value at wall on outboard side of magnetic axis
-psi0lim		real +gridgen
+psi0lim		real
      # normalized flux value where core radial mesh can be concentrated
-sfaclim		real	/1.0/ +gridgen
+sfaclim		real	/1.0/
      # multiplicative factor for slope of psi0(iy) distribution at psi0lim
      #	sfaclim = 1	-->	nearly uniform
      #	sfaclim < 1	-->	more concentrated near psi0lim
-alfcy_inner	real	/.0001/ +regrid +gridgen
+alfcy_inner	real	/.0001/ +regrid
      # exponential factor for  distribution of SOL flux contours (inboard)
      #	alfcy << 1	-->	uniform
      #	alfcy >> 1	-->	concentrated near separatrix
-alfcy		real	/.0001/ +regrid +gridgen
+alfcy		real	/.0001/ +regrid
      # exponential factor for  distribution of SOL flux contours (outboard)
      #	alfcy << 1	-->	uniform
      #	alfcy >> 1	-->	concentrated near separatrix
-xoverlap(2)	real	/5.0,4.0/ +gridgen +gridgen
+xoverlap(2)	real	/5.0,4.0/
      # overlap parameters for inboard and outboard flux contours
      # (in units of dxefit)
 rho(0:nym)	_real
      # temporary array for normalized flux values on B2/UEDGE flux surfaces
 tflx(0:nym)	_real
      # temporary array for indicies of B2/UEDGE flux surfaces
-psitop(1:jdim)	_real +gridgen
+psitop(1:jdim)	_real
      # array of un-normalized pol. mag. flux values across the midplane 
-psibot(1:jdim)	_real +gridgen
+psibot(1:jdim)	_real
      # array of un-normalized pol. mag. flux values across both divertor plates
-iseqdskr	integer	/0/ +gridgen
+iseqdskr	integer	/0/
      # switch (=1) for reflecting eqdsk data about the midplane;
      # used with geometry='uppersn' and for upper half-mesh of geometry='dnull'
-kymesh		integer	/1/ +gridgen
+kymesh		integer	/1/
      # option flag for setting flux contour values that define radial mesh
      # =0 user sets arrays psitop (midplane) and psibot (div plates)
      # =1 psitop and psibot are analytic forms (see rho1); adjust via alfcy
      # =2 psitop and psibot are analytic forms (see rho5); uniform core
-xcutoff1	real	/0./	[m] +gridgen
+xcutoff1	real	/0./	[m]
      # inboard cutoff radius for flux contours
-ycutoff1	real	/0./	[m] +gridgen
+ycutoff1	real	/0./	[m]
      # lower vertical cutoff for flux contours
-mdsefit		integer	/0/ +gridgen
+mdsefit		integer	/0/
      # Set this flag to 1 if the data is read in from Mdsplus
      # Prevents inflx from calling readefit.
 
 ***** Workdn:
      # some working arrays for full double-null configurations
-psi0_mp_inner(0:nym)	_real +gridgen
+psi0_mp_inner(0:nym)	_real
 # normalized flux values at radial mesh points of inner midplane
-psi0_mp_outer(0:nym)	_real +gridgen
+psi0_mp_outer(0:nym)	_real
 # normalized flux values at radial mesh points of outer midplane
-psi0_dp_lower_inner(0:nym)	_real +gridgen
+psi0_dp_lower_inner(0:nym)	_real
 # normalized flux values at radial mesh points of lower inner divertor plate
-psi0_dp_lower_outer(0:nym)	_real +gridgen
+psi0_dp_lower_outer(0:nym)	_real
 # normalized flux values at radial mesh points of lower outer divertor plate
-psi0_dp_upper_inner(0:nym)	_real +gridgen
+psi0_dp_upper_inner(0:nym)	_real
 # normalized flux values at radial mesh points of upper inner divertor plate
-psi0_dp_upper_outer(0:nym)	_real +gridgen
+psi0_dp_upper_outer(0:nym)	_real
 # normalized flux values at radial mesh points of upper outer divertor plate
 
 ***** Inpf0:
@@ -186,14 +195,14 @@ yminf0(nsearch)      _real   [m]
      # vertical cutoff for contours at upper edge of efit domain
 ymaxf0(nsearch)      _real   [m]
      # vertical cutoff for contours at lower edge of efit domain
-istcvon		integer	/0/ +gridgen
+istcvon		integer	/0/
      # obsolete option istcvon=1; use altsearch=2 instead.
-altsearch	integer /0/ +gridgen
+altsearch	integer /0/
      # flag to change search path for private flux surfaces
      # altsearch=0	--> search vertically up toward x-point
      # altsearch=1	--> search vertically down from x-point
      # altsearch=2	--> search diagonally down and in from x-point
-isetpath     integer /0/ +gridgen
+isetpath     integer /0/
      # set path for finding flux surfaces in midplane
      # isetpath=0    --> search radially outward from left boundary
      # isetpath=1    --> search radially inward from magnetic axis
@@ -231,7 +240,7 @@ ncmax1  integer
      # flux contouring variables on the refined grid
 plflux(jdim)     _real
      # temporary array of poloidal flux values in a search region
-mrfac	integer	/4/ +gridgen
+mrfac	integer	/4/
      # mesh refinement factor relative to EFIT
 nx4     integer
      # number of grid surfaces in x-direction on refined grid
@@ -246,7 +255,7 @@ f(nx4,ny4)      _real
 ijumpf(jdim)	_integer
      # core/p.f. discontinuity on flux contour j occurs between
      # data points ijumpf(j) and ijumpf(j)+1
-dsjumpf		real	/0.1/	[m] +gridgen
+dsjumpf		real	/0.1/	[m]
      # criterion for "jump" discontinuity in core/p.f. contours
 ilast(jdim)     _integer
      # comment needed

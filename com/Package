@@ -2,10 +2,10 @@ LANGUAGE = C
 PKG = com
 POINTER = cray
 
-VDF = com.v
+VDF = com_basis.v
 
-NVDF = ../aph/aph.v ../api/api.v ../bbb/bbb.v ../grd/grd.v\
-       ../flx/flx.v  ../wdf/wdf.v
+NVDF = ../aph/aph.v ../api/api_basis.v ../bbb/bbb_basis.v ../grd/grd_basis.v\
+       ../flx/flx_basis.v  ../wdf/wdf.v
 
 SM = comutil.m 
 

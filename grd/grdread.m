@@ -153,6 +153,9 @@ Use(Xpoint_indices)   # ixlb,ixpt1,ixmdp,ixpt2,ixrb,iysptrx1,iysptrx2
       real simagxs_tmp, sibdrys_tmp
       external freeus,remark,xerrab,gallot,rdgrid
 
+      if (isgriduehdf5 .eq. 1) then
+        call parsestr('import uedge.gridue as gue;gue.read_gridpars()')
+      else
 c     Read mesh parameters from a UEDGE code grid data file
       simagxs_tmp=0
       sibdrys_tmp=0
@@ -185,6 +188,7 @@ c     Read mesh parameters from a UEDGE code grid data file
       close (nuno)
 
  1999 format(5i4)
+      endif
 
       return
       end
@@ -193,13 +197,17 @@ c     ------------------------------------------------------------------
 
       subroutine readgrid(fname, runid)
       implicit none
-Use(Share)            # geometry
+Use(Share)            # geometry, isgriduehdf5
 Use(Dim)              # nxm,nym
 Use(Xpoint_indices)   # ixlb,ixpt1,ixmdp,ixpt2,ixrb,iysptrx1,iysptrx2
       character*(*) fname, runid
       integer nuno,ios
       real simagxs_tmp, sibdrys_tmp
       external freeus,remark,xerrab,gallot,rdgrid
+
+      if (isgriduehdf5 .eq. 1) then
+        call parsestr('import uedge.gridue as gue;gue.read_gridue()')
+      else
 
 c     Read a UEDGE code grid data file
       simagxs_tmp=0
@@ -234,6 +242,7 @@ c     Read a UEDGE code grid data file
       call rdgrid(nuno, runid)
 
       close (nuno)
+      endif # end isgriduehdf5 check
 
       return
       end

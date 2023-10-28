@@ -1,5 +1,5 @@
 SYSTEM SUN4 HP700 SOL SGI RS6000 AXP CS2 IRIX64 LINUX
-Macros = ../../sptodp ../../dimvars
+Macros = ../../sptodp
 
 SYSTEM J90
 FORT         = f90

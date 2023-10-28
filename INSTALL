@@ -1,50 +1,44 @@
 
-Uedge was originally developed to run in the Basis environment developed 
-at LLNL. It has since been ported to run as a Python module. The Python
-module Uedge has been built on several Linux distributions and MacOSX versions.
+UEDGE is in a transitional phase from running in the BASIS environment, 
+developed at LLNL, to Python. This version, tagged $Name:  $, can 
+run in both environments. If you have interest in the Basis version of 
+UEDGE contact Bill Meyer (meyer8@llnl.gov). New installations of the 
+Basis version are discouraged as there is no longer any official support 
+for the Basis software. Unless you know otherwise, assume this checkout 
+is intended for building the Python UEDGE module. The remainder of these 
+installation instructions apply only to the Python version of UEDGE. The 
+Python version of UEDGE has been build on several Linux distributions and 
+on MacOSX High Sierra and Mojave. 
 
-The Basis version of Uedge is deprecated. If you have interest in 
-the Basis version of Uedge contact Bill Meyer (meyer8@llnl.gov).  There 
-is no longer any official support for the Basis software. The capability
-to build the Basis version is maintained for legacy installations and
-may be removed from the repository at any time.
 
-
-Building Python Uedge (pyUedge).
+Building Python UEDGE (pyUedge).
 
     Prerequisites:
-        - Python 3.x
-              Should work with all Python 3 versions.
-              
-              Anaconda3 is a useful Python distribution but puts constraints
-              on the compiler version that may be used to build pyUedge. The 
-              compiler must be compatible with the libraries that come included
-              with Anaconda. Anaconda will report the gcc version that was used
-              to build the included libraries. The compiler used must at least 
-              use the same C runtime library version.
+        - Python 2.7
+              We recommend the Anaconda (2) Python data science distribution. 
+              This includes many useful packages. Besides the base Python 
+              packages pyUedge includes Python scripts that utilize the 
+              matplotlib and hdf5 packages. Numpy is a required package to 
+              build pyUedge.
 
         - Fortran/C compilers
-              Only gfortran and gcc have been tested and supported. 
-
-        - Forthon 
-           Generates link between Uedge Fortran and Python.
-           "pip install forthon"
+              Only gfortran and gcc have been tested. 
 
     Requisites:
-        - matplotlib
-           pyUedge includes Python scripts that import maplotlib
-        - h5py
-           pyUedge includes Python scripts for saving/restoring results
-           in hdf5 files.
+        - Forthon 
+           Generates link between UEDGE Fortran and Python.
+           pip install forthon
+        - MPPL (More Productive Programming Language)
+           MPPL is a Fortran preprocessor
+           pip install mppl
            
 
      Install with pip:
         pip install uedge
         
-        If pyUedge reports that an update is available then a 
-        "pip install uedge --upgrade" can be executed. If that results in
-        multiple versions a "pip uninstall uedge" and 
-        "pip install --no-cache-dir uedge" will be nesseccary.
+        ****Note that there was a version numbering change. If a 
+        "pip show uedge" reports version 7.6 then a "pip uninstall uedge" 
+        and "pip install --no-cache-dir uedge" will be nesseccary.
 
      Install from git clone:
        python setup.py build

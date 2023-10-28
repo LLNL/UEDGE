@@ -16,6 +16,14 @@ KMXZ=KXA*MXMINZ
 NBA=5		# used in fmombal
 }
 
+***** Dim_vars hidden:
+# Dimension variables for automatically written routines apidata & apiwake.
+# These variables need never be set, because those routines don't access array
+# elements.
+nx	integer		# number of cells in x (poloidal) direc.
+ny	integer		# number of cells in y (radial) direction
+nzspt	integer		# total number of impurity species
+
 ***** Physical_constants2:
 # Add the 2 to distinquish from same constants in package bbb
 ev2	real	/1.6022e-19/   # 1 electron volt in Joules
@@ -32,15 +40,42 @@ ctemp	real	# multiplicative constant to convert temperatures to MKS
 getatau(nx,ny,uu,gx,ixpt1,ixpt2,iysptrx,atau,tau1,tau2)	subroutine
   	    # computes ion/impurity lifetime for pol. flow along flux surfaces,
 	    # evaluates arrays atau, tau1, and tau2
+	    # in  nx              poloidal dimension of mesh 
+            #			  (excluding boundaries)
+	    # in  ny              radial dimension of mesh
+	    #                     (excluding boundaries)
+	    # in  uu(0:nx+1,0:ny+1) poloidal ion velocity
+	    # in  gx(0:nx+1,0:ny+1) 1/(x-width) of primary mesh cells
+	    # in  ixpt1           ix of last private-flux cell before cut on 
+            #                     left
+            # in  ixpt2           ix of last core-plasma cell before cut on
+            #                     right
+            # in  iysptrx         iy of cell just below the separatrix
+            # inout atau(0:nx+1,0:ny+1)  lifetime of impurity
+            # inout tau1(0:nx+1,0:ny+1)  time to escape to inboard div. plate
+            # inout tau2(0:nx+1,0:ny+1)  time to escape to outboard div. plate
 getprad(nx,ny,ngsp,te,ne:real,ng:real,afrac,atau,
         prad,na:real,ntau:real,nratio:real)	subroutine
 	    # computes the impurity radiation loss for electrons,
  	    # evaluates arrays prad, na, ntau, and nratio
+            # in nx     poloidal dimension of mesh (excluding boundaries)
+            # in ny     radial   dimension of mesh (excluding boundaries)
+            # in ngsp   number of gas species
+            # in te(0:nx+1,0:ny+1)    electron temperature
+            # in ne(0:nx+1,0:ny+1)    electron density
+     	    # in ng(0:nx+1,0:ny+1,1:ngsp) gas density
+            # in afrac(0:nx+1,0:ny+1) atomic concentration of impurity
+            # in atau(0:nx+1,0:ny+1)  lifetime of impurity
+            # inout prad(0:nx+1,0:ny+1)    electron energy loss due to
+            #                              impurity radiation
+            # inout na(0:nx+1,0:ny+1)      atomic density of impurity
+            # inout ntau(0:nx+1,0:ny+1)    confinement parameter for impurity
+            # inout nratio(0:nx+1,0:ny+1)  (neutral density) / (electron dens)
 
 ***** Impurity_transport:
 # variable specifying radial transport rate of impurities
 dnimp		real	/1./	[m**2/s]
-methimp         integer /33/   +input # specifies interp. for finite diff. for (y,x)
+methimp         integer /33/   # specifies interp. for finite diff. for (y,x)
                                # 66 is log interp., 77 inverse interp.,
                                # otherwise linear interp.
 csexpn		real    /0./   # exponent for reducing impurity || vel from
@@ -138,14 +173,14 @@ z2datm(nt,nr,nn)	_real			# average Z**2
 
 ***** Imslwrk:
 # working arrays for 3-d spline interpolation
-nxdata_api	integer
-nydata_api	integer
+nxdata	integer
+nydata	integer
 nzdata	integer
-xdata_api(1:nxdata_api)	_real
-ydata_api(1:nydata_api)	_real
+xdata(1:nxdata)	_real
+ydata(1:nydata)	_real
 zdata(1:nzdata)	_real
-fdata_api(1:nxdata_api,1:nydata_api,1:nzdata)	_real
-ldf_api	integer			# first dimension of 3-d data array
+fdata(1:nxdata,1:nydata,1:nzdata)	_real
+ldf	integer			# first dimension of 3-d data array
 mdf	integer			# second dimension of 3-d data array
 iflagi	integer			# input/output flag for 3-d spline routines
 nwork2	integer			# size of array work2
@@ -154,18 +189,18 @@ nwork3	integer			# size of array work3
 work3(nwork3)	_real		# work array for B3INT
 iworki(10)	integer		# work array for B3VAL
 icont		integer	/0/	# input flag for B3VAL
-kxords_api	integer	/4/	# order of spline fit versus x
-#	kxords_api=4 (default) is cubic interpolation
-kyords_api	integer	/4/	# order of spline fit versus y
-#	kyords_api=4 (default) is cubic interpolation
+kxords	integer	/4/	# order of spline fit versus x
+#	kxords=4 (default) is cubic interpolation
+kyords	integer	/4/	# order of spline fit versus y
+#	kyords=4 (default) is cubic interpolation
 kzords	integer	/4/	# order of spline fit versus z
 #	kzords=4 (default) is cubic interpolation
-xknots_api(1:nxdata_api+kxords_api)	_real
-yknots_api(1:nydata_api+kyords_api)	_real
+xknots(1:nxdata+kxords)	_real
+yknots(1:nydata+kyords)	_real
 zknots(1:nzdata+kzords)	_real
-emcoef(1:nxdata_api,1:nydata_api,1:nzdata)	_real	# spline coeff's for emissivity 
-z1coef(1:nxdata_api,1:nydata_api,1:nzdata)	_real	# spline coeff's for average-Z
-z2coef(1:nxdata_api,1:nydata_api,1:nzdata)	_real	# spline coeff's for average-Z**2
+emcoef(1:nxdata,1:nydata,1:nzdata)	_real	# spline coeff's for emissivity 
+z1coef(1:nxdata,1:nydata,1:nzdata)	_real	# spline coeff's for average-Z
+z2coef(1:nxdata,1:nydata,1:nzdata)	_real	# spline coeff's for average-Z**2
 
 ***** P93fcn:
 # setup and evaluation routines for spline representation of data on impurity
@@ -228,7 +263,7 @@ z2avgbs(te:real,nratio:real,ntau:real)	real function
  mntau(MXMISO*MXMISO)		real	# 
  usol(KXA*MXNZCH*MXMISO)	real	# 
  sbar(KXA*MXMISO1)		real	# 
- zi_api(MXMISO*MXNZCH)		real	# 
+ zi(MXMISO*MXNZCH)		real	# 
 
 ***** Cyield:
 # Variables used for DIVIMP physical sputtering models
