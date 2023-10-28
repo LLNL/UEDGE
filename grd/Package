@@ -3,6 +3,6 @@ POINTER = cray
 
 VDF = grd.v
 
-NVDF = ../com/com_basis.v
+NVDF = ../com/com.v
 
 SM = grdcomp.m grddriv.m grdinit.m grdread.m grdwrit.m

@@ -2,7 +2,7 @@ LANGUAGE = C
 PKG = com
 POINTER = cray
 
-VDF = com_basis.v
+VDF = com.v
 
 NVDF = ../aph/aph.v ../api/api.v ../bbb/bbb.v ../grd/grd.v\
        ../flx/flx.v  ../wdf/wdf.v
