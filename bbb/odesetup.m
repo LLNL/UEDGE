@@ -6492,6 +6492,7 @@ c ---------------------------------------------------------------------c
       Use(Npes_mpi)            # npes,mype,ispmion
       Use(UEint)               # isallloc
       Use(Rccoef)              # isoutwall
+      Use(Coefeq)              # oldseec, override
 c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
 
       integer ifake  #forces Forthon scripts to put implicit none above here
