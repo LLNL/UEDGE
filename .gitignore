@@ -9,10 +9,9 @@ build/
 a.out
 PyUEDGE_tutorial/*
 *.swo
-*.egg
 pyscripts/__src__.py
-uedge.egg-info/
 dist/uedge-8.0.0-py3.7-macosx-10.9-x86_64.egg
 uedge.egg-info
+*.egg
 *.c
 *.f
