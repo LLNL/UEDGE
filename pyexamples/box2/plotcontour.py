@@ -1,12 +1,10 @@
 import matplotlib
-import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-from uedge import bbb, com
 gs=gridspec.GridSpec(2, 2)
 
 plt.figure(10)
 plt.subplot(gs[0,0])
-CS = plt.contour(com.zm[:,:,0], com.rm[:,:,0], bbb.te/bbb.ev)
+CS = plt.contour(com.zm[:,:,0], com.rm[:,:,0], bbb.te/ev)
 plt.clabel(CS, inline=1, fontsize=10)
 params = {'mathtext.default': 'regular' }          
 plt.rcParams.update(params)
@@ -16,7 +14,7 @@ plt.grid(True)
 
 
 plt.subplot(gs[0,1])
-CS = plt.contour(com.zm[:,:,0], com.rm[:,:,0], bbb.ti/bbb.ev)
+CS = plt.contour(com.zm[:,:,0], com.rm[:,:,0], bbb.ti/ev)
 plt.clabel(CS, inline=1, fontsize=10)
 plt.title('T$\mathregular{_i}$ [ev]')
 plt.grid(True)

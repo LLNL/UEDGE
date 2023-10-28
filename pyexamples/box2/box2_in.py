@@ -4,8 +4,6 @@
 # This is a Python version of the box case from Andreas Holm
 ###########################################################################
 
-from uedge import bbb, com, grd
-
 
 #-Geometry
 bbb.mhdgeo=-1 #-set cartesian geometry
@@ -98,7 +96,7 @@ bbb.rlx=0.9
 
 
 #-Neutral gas propeties
-#bbb.tfcx=5.;bbb.tfcy=5.         #Franck-Condon temperatures
+bbb.tfcx=5.;bbb.tfcy=5.         #Franck-Condon temperatures
 bbb.cngfx=1.;bbb.cngfy=1.       #turn-on grad(T_g) flux if =1
 bbb.cngflox=1.;bbb.cngfloy=0.   #turn-on drift with ions if =1
 bbb.cngmom = 1.             #ion-gas momentum transfer
