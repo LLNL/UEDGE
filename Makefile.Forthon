@@ -1,5 +1,5 @@
 DEBUG = -v --fargs "-Ofast -DFORTHON -cpp" # -g #--fargs "-C=array" #--fargs "-CB -traceback"
-
+FCOMP = -fopenmp
 SO = so
 PUBLICHOME = 
 BUILDDIR = build

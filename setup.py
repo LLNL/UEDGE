@@ -10,6 +10,7 @@ import site
 from Forthon.compilers import FCompiler
 import getopt
 import logging
+import sysconfig
 
 version='8.0.4.1'
 
@@ -161,6 +162,10 @@ if rln == 0:
    libraries = ['readline'] + libraries
 
 
+os.environ["CC"] = "gcc-13"
+print(sysconfig.get_config_var("CC"))
+
+
 setup(name="uedge",
       version=version,
       author='Tom Rognlien',
@@ -176,17 +181,16 @@ setup(name="uedge",
       ext_modules=[Extension('uedge.uedgeC',
                              ['uedgeC_Forthon.c',
                               os.path.join(builddir, 'Forthon.c'),
-                              'com/handlers.c', 'com/vector.c','bbb/exmain.c'],
+                              'com/handlers.c', 'com/vector.c','bbb/exmain.c', 'bbb/rl.c'],
                              include_dirs=[builddir, numpy.get_include()],
                              library_dirs=library_dirs,
                              libraries=libraries,
                              define_macros=define_macros,
                              extra_objects=uedgeobjects,
-                             extra_link_args=['-g','-DFORTHON'] +
+                             extra_link_args=['-g','-DFORTHON', '-fopenmp'] +
                              fcompiler.extra_link_args,
-                             extra_compile_args=fcompiler.extra_compile_args
+                             extra_compile_args=fcompiler.extra_compile_args + ['-fopenmp']
                              )],
-
       cmdclass={'build': uedgeBuild, 'clean': uedgeClean},
       test_suite="pytests",
       install_requires=['forthon'],

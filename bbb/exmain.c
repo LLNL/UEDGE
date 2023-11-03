@@ -35,7 +35,7 @@ void int_handler() {
    sigset_t block_mask;
    printf("\nType \"cont\" to continue exmain(), \"abort\" (not compatible with openmp) or \"stop\" (with openmp) to return to Python prompt \n");
    printf("or a single line to be evaluated by Python.\n");
-#pragma omp master
+//#pragma omp master
     {
 int condition;
 condition=1;
@@ -99,7 +99,7 @@ void exmain_() {
 #ifdef FORTHON
    sigset_t block_mask;
    int ival;
-#pragma omp master
+//#pragma omp master
 {
    ival = sigsetjmp(ev,1);
    if(ival != 0){

@@ -1,1 +1,1 @@
-__src__ = '/home/meyer8/UEDGE'
+__src__ = '/Users/li50/workspace/UEDGE'
