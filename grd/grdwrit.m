@@ -464,7 +464,6 @@ Use(Share)        # nxxpt, isgriduehdf5
       call gallot("RZ_grid_info",0)
 
       call wrsndata (fname, runidarg)
-      
 
       return
       end

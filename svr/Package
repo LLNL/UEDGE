@@ -3,7 +3,7 @@ POINTER = cray
 
 VDF = svr.v
 
-NVDF = ../bbb/bbb_basis.v
+NVDF = ../bbb/bbb.v
 
 SU = daspk.m nksol.m svrut1.m svrut2.m svrut3.m svrut4.m vodpk.m
 SM = uoa.m
