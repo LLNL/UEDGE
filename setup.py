@@ -162,7 +162,7 @@ if rln == 0:
    libraries = ['readline'] + libraries
 
 
-os.environ["CC"] = "gcc-13"
+os.environ["CC"] = "gcc"
 print(sysconfig.get_config_var("CC"))
 
 
