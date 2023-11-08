@@ -6,7 +6,7 @@
 
 #define uedge_min(a,b)  (((a)<(b)) ? (a) : (b))
 
-//#define SEQ_CHECK
+#define SEQ_CHECK
 
 typedef long Int;
 typedef double real;
@@ -29,7 +29,7 @@ int jac_calc_c_(Int *neq, real *t, real *yl, real *yldot00, Int *ml, Int *mu,
 {
    Int i;
 
-   omp_set_num_threads(3);
+   omp_set_num_threads(4);
    Int nt = omp_get_max_threads();
 
    real **jac_thread = (real **) calloc(nt, sizeof(real *));
@@ -92,15 +92,17 @@ int jac_calc_c_(Int *neq, real *t, real *yl, real *yldot00, Int *ml, Int *mu,
 
       n_thread[thread_id] = iv_end - iv_start;
 
-      //#pragma omp critical
       {
          for (iv = iv_start + 1; iv <= iv_end; iv++)
          {
-            jac_calc_iv_(&iv, neq, &t_thread[thread_id], yl_thread[thread_id], yldot00_thread[thread_id],
-                         ml, mu, wk_thread[thread_id],
-                         nnzmx,
-                         jac_thread[thread_id], ja_thread[thread_id], ia_thread[thread_id],
-                         yldot_pert, &nnz_thread[thread_id]);
+            #pragma omp critical
+            {
+               jac_calc_iv_(&iv, neq, &t_thread[thread_id], yl_thread[thread_id], yldot00_thread[thread_id],
+                            ml, mu, wk_thread[thread_id],
+                            nnzmx,
+                            jac_thread[thread_id], ja_thread[thread_id], ia_thread[thread_id],
+                            yldot_pert, &nnz_thread[thread_id]);
+            }
          }
          //printf("thread %ld: [%ld, %ld], nnz %ld\n", thread_id, iv_start+1, iv_end, nnz_thread[thread_id]);
       }
@@ -138,12 +140,12 @@ int jac_calc_c_(Int *neq, real *t, real *yl, real *yldot00, Int *ml, Int *mu,
 
    if (k != nnz_tot)
    {
-      printf("nnz error\n");
+      printf("k != nnz error\n");
       exit(0);
    }
 
 #ifdef SEQ_CHECK
-   if (nnz0 != *nnz) { printf("nnz error\n"); exit(0); }
+   if (nnz0 != *nnz) { printf("nnz error %ld %ld\n", nnz0, *nnz); exit(0); }
 
    for (i = 0; i <= *neq; i++)
    {
@@ -185,7 +187,7 @@ int jac_calc_c_(Int *neq, real *t, real *yl, real *yldot00, Int *ml, Int *mu,
 
 void pandf1_c_(Int *xc, Int *yc, Int *iv, Int *neq, real *t, real *yl, real *wk)
 {
-#pragma omp critical
+//#pragma omp critical
    {
       pandf1_(xc, yc, iv, neq, t, yl, wk);
    }

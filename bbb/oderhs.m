@@ -8483,12 +8483,6 @@ c         call rltest1(xc, yc, iv, neq, t, yl, wk)
 c ... Calculate possibly nonzero Jacobian elements for this variable,
 c     and store nonzero elements in compressed sparse column format.
 
-c        print *, 'iv', iv, 'nnz', nnz, 'nnzmx', nnzmx
-        if (nnz .ge. nnzmx) then
-           print *, 'nnz error'
-           call exit
-        endif
-
          csc_ia(iv) = nnz      # sets index for first Jac. elem. of var. iv
          do ii = ii1, ii2
             jacelem = (wk(ii) - yldot00(ii)) / dyl
