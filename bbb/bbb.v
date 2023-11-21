@@ -193,6 +193,7 @@ isplflxl  integer /0/  +input #=0, flalfe,i not active at ix=0 & nx;=1 active al
 isplflxlv integer /0/  +input #=0, flalfv not active at ix=0 & nx;=1 active all ix
 isplflxlgx integer /0/ +input #=0, flalfgx not active at ix=0 & nx;=1 active all ix
 isplflxlgxy integer /0/ +input #=0, flalfgxy not active at ix=0 & nx;=1 active all ix
+islimflxlgx integer /0/ +input #=0, flalfgx,xy not active at ix=ix_lim
 iswflxlgy   integer /0/ +input #=0, flalfgy not active at iy=0 & ny;=1 active all iy
 isplflxlvgx integer /0/ +input #=0, flalfvgx not active at ix=0 & nx;=1 active all ix
 isplflxlvgxy integer /0/ +input #=0, flalfvgxy not active at ix=0 & nx;=1 active all ix
@@ -734,6 +735,11 @@ isi_sputpf(ngspmx) integer /ngspmx*0/ +input
                 #flag for priv flux ion-based sputter;
 				#=0, no ion sputtering
 				#=1 adds phys ion sputt; =2 adds chem ion sputt
+islim_sput(ngspmx) integer /ngspmx*0/ +input
+                #flag for limiter flux ion-based sputter;
+				#=0, no ion sputtering
+				#=1 adds phys ion sputt; =2 adds chem ion sputt
+
 matt	  integer               #output flag from syld96 for sputt. target mat.
 matp	  integer               #output flag from syld96 for sputt. plasma
 cion      integer     /6/       +input #input to syld96; atom num. of sputt. target
@@ -765,6 +771,10 @@ fchemylb(ngspmx,nxptmx) _real /1./ +input #fac*inner plt gas chem yield; isch_sp
 fchemyrb(ngspmx,nxptmx) _real /1./ +input #fac*outer plt gas chem yield; isch_sput>0
 fphysylb(ngspmx,nxptmx) _real /1./ +input #fac*inner plt ion phys sp yield;isch_sput>0
 fphysyrb(ngspmx,nxptmx) _real /1./ +input #fac*outer plt ion phys sp yield;isch_sput>0
+fchemyllim(ngspmx)      _real /1./ +input #fac*left-limiter gas chem yield; isch_sput>0
+fchemyrlim(ngspmx)      _real /1./ +input #fac*right-limiter gas chem yield; isch_sput>0
+fphysyllim(ngspmx)      _real /1./ +input #fac*left limiter ion phys sp yield;isch_sput>0
+fphysyrlim(ngspmx)      _real /1./ +input #fac*right limiter plt ion phys sp yield;isch_sput>0
 isexunif  integer      /0/      +maybeinput #=1 forces ex ~ uniform at div. plates
 xcnearlb  logical    /FALSE/    #=TRUE if Jac'n "box" overlaps a left boundary
 xcnearrb  logical    /FALSE/    #=TRUE if Jac'n "box" overlaps a right boundary
@@ -860,6 +870,8 @@ recyrb(0:ny+1,ngspmx,nxptmx) _real     +input
 recylb_use(0:ny+1,ngspmx,nxptmx) _real +input #inner plate recycling coeff. user input
 recyrb_use(0:ny+1,ngspmx,nxptmx) _real +input #outer plate recycling coeff. user input
 recycp(ngspmx)   real       /.9,5*0./  +input #recycling coef at plates if ndatlb,rb=0
+recyllim(0:ny+1,ngspmx) _real /1./     +input #recyling coeff on left-side of limiter
+recyrlim(0:ny+1,ngspmx) _real /1./     +input #recyling coeff on right-side of limiter		 
 recycflb(ngspmx,nxptmx) _real /1./     +maybeinput #extra factor for recycling at ix=0
 recycfrb(ngspmx,nxptmx) _real /1./     +maybeinput #extra factor for recycling at ix=nx+1
 recycm           real       /-0.9/     +input #mom recycling inertial gas; at plates
@@ -871,7 +883,6 @@ recycmrb_use(0:ny+1,ngspmx,nxptmx) _real +maybeinput #outer plt mom-recycl coeff
 recycmlb(0:ny+1,ngspmx,nxptmx) _real   +maybeinput #total inner plt mom recycling coeff
 recycmrb(0:ny+1,ngspmx,nxptmx) _real   +maybeinput #total outer plt mom recycling coeff
 recyce           real       /0./       +input #energy recycling/Rp for inertial gas
-recycl           real       /1./       +input #recycling coef. at a limiter (ix_lim)
 recycml          real       /0.1/      +input #momentum recycling/Rp for gas at limtr
 recycc(ngspmx)   real       /6*1./     +input #core recycling coeff. if isnicore=3
 albedoc(ngspmx)  real       /6*1./     +input #core neut albedo for isngcore=0
@@ -888,8 +899,12 @@ albrb(0:ny+1,ngspmx,nxptmx) _real        +input #outer plate albedo; used if <1 
 albedo_by_user   integer            /0/  +input #if=1, user fills albedoo,i & albdlb,rb
 fngxslb(0:ny+1,ngspmx,nxptmx) _real [1/s]+input #inner plt liq vapor gas sour. if sputtlb>0
 fngxsrb(0:ny+1,ngspmx,nxptmx) _real [1/s]+input #outer plt liq vapor gas sour. if sputtlb>0
+fngxsllim(0:ny+1,ngspmx) _real [1/s]     +input #left limiter liq vapor gas sour. if sputtlb>0
+fngxsrlim(0:ny+1,ngspmx) _real [1/s]     +input #right limiter liq vapor gas sour. if sputtlb>0
 fngxlb_use(0:ny+1,ngspmx,nxptmx) _real [1/s] +input #user external left plate source
 fngxrb_use(0:ny+1,ngspmx,nxptmx) _real [1/s] +input #user external left plate source
+fngxllim_use(0:ny+1,ngspmx)     _real [1/s] +input #user external left limiter source
+fngxrlim_use(0:ny+1,ngspmx)     _real [1/s] +input #user external right limiter source
 adatlb(ngspmx,50,nxptmx) _real    /1./   +maybeinput #inner albdedo data for each ydati
 adatrb(ngspmx,50,nxptmx) _real    /1./   +maybeinput #outer albdedo data for each ydati
 recycw(ngspmx)   real     /ngspmx*1e-10/ +input #recycling coef. at side walls
@@ -902,12 +917,22 @@ gamsec           real       /0./         +input #secondary elec emiss coeff on p
 sputtr           real       /0./         +input #sputtering coef. at plates
 sputtlb(0:ny+1,ngspmx,nxptmx)    _real   +input #set sputt coef. inner plate (iy,igsp)
 sputtrb(0:ny+1,ngspmx,nxptmx)    _real   +input #set sputt coef. outer plate (iy,igsp)
+sputllim_use(0:ny+1,ngspmx)      _real   +input #user-set sputt coef. left 
+					        #limiter if>1; albedo if <0, >-1;
+                                                #ng=ngllim on limiter if < -1 
+sputrlim_use(0:ny+1,ngspmx)      _real   +input #user-set sputt coef. right 
+					        #limiter if>1; albedo if <0, >-1;
+                                                #ng=ngrlim on limiter if < -1		       	  
 sputflxlb(0:ny+1,ngspmx,nxptmx)  _real   +maybeinput #calc sput flux inner plate (iy,igsp)
 sputflxrb(0:ny+1,ngspmx,nxptmx)  _real   +maybeinput #calc sput flux outer plate (iy,igsp)
+sputflxllim(0:ny+1,ngspmx)       _real   #calc sput flux inner plate (iy,igsp)
+sputflxrlim(0:ny+1,ngspmx)       _real   #calc sput flux outer plate (iy,igsp)
 sputflxw(0:nx+1,ngspmx)          _real   +maybeinput #calc sput flux outer wall (ix,igsp)
 sputflxpf(0:nx+1,ngspmx)         _real   +maybeinput #calc sput flux PF wall (ix,igsp)
-ngplatlb(ngspmx,nxptmx)          _real   +input #ng on inner plate if sputti < -9.9
-ngplatrb(ngspmx,nxptmx)          _real   +input #ng on outer plate if sputto < -9.9
+ngplatlb(ngspmx,nxptmx)          _real   +input #ng on inner plate if sputti < -1
+ngplatrb(ngspmx,nxptmx)          _real   +input #ng on outer plate if sputto < -1
+ngllim(ngspmx)                   _real   +input #ng on left limiter if sputllim_use < -1
+ngrlim(ngspmx)                   _real   +input #ng on right limiter if sputrlim_use < -1
 ipsputt_s		integer /1/      +input #start dens-index phys sputt species
 ipsputt_e		integer /1/      +input #end dens-index of phys sputt species
 npltsor     integer    /1/               +input #number sources on plates; must be <= 10
@@ -927,6 +952,8 @@ avaprb(ngspmx,nxptmx) _real [k**.5/(m**2s)] /1./ +input #lin coeff right-plate e
 bvaprb(ngspmx,nxptmx) _real [K] /1./  +input #expon coeff. right-plate evap vapor source
 tvaplb(0:ny+1,nxptmx)   _real [K]     +input #left-plate temp for evap; input after alloc
 tvaprb(0:ny+1,nxptmx)   _real [K]     +input #right-plate temp for evap; input after alloc
+tvliml(0:ny+1)          _real /300./ [K] +input #user left limiter face temp
+tvlimr(0:ny+1)          _real /300./ [K] +input #user right limiter face temp
 isextpltmod            integer  /0/   +input #=1 use ext gas plate fluxes fngxextlb,rb
                                       # and feixextlb,rb
 isextwallmod           integer  /0/   +input #=1 use ext gas wall fluxes fngyexti,o
@@ -1925,6 +1952,8 @@ bcir(0:ny+1,nxpt)      _real  [ ]   +maybeinput #ion sheath energy transmission 
                                     #on the right boundary
 kappal(0:ny+1,nxpt)  _real  [ ]	+maybeinput #sheath pot'l drop on left  boundary, phi/Te
 kappar(0:ny+1,nxpt)  _real  [ ]	+maybeinput #sheath pot'l drop on right boundary, phi/Te
+kappallim(0:ny+1)    _real  [ ]	#sheath pot'l drop on left-side limiter, phi/Te
+kapparlim(0:ny+1)    _real  [ ]	#sheath pot'l drop on right-side limiter, phi/Te
 bctype(0:ny+1)    _integer #/0,ny*0,0/+maybeinput 
 phi0r(0:ny+1,nxpt)	_real [V] /0./ +maybeinput #plate pot'l at right poloidal boundary
 phi0l(0:ny+1,nxpt)	_real [V] /0./ +maybeinput #plate pot'l at left  poloidal boundary

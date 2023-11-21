@@ -48,7 +48,7 @@ c-----------------------------------------------------------------------
       Use(Poten)    # newbcl,newbcr,bcee,bcei,rsigpl,bcel,bcer,bcil,bcir,
                     # kappal,kappar,bctype,phi0l,phi0r,isfdiax
       Use(Rccoef)   # recylb,recyrb,alblb,albrb,recycw,sputtr,
-                    # recycm,recyce,recycmlb,recycmrb
+                    # recycm,recyce,recycmlb,recycmrb,recyllim,recyrlim
       Use(Bfield)   # rbfbt,btot
       Use(Imprad)   # isimpon
       Use(Impurity_source_flux)   # fnzysi,fnzyso
@@ -78,6 +78,7 @@ c...  local scalars
       real dif_imp_flux, fng_alb, fngyw, nharmave
       real upbdry, upbdry1, upbdry2, uugoal, fniy_recy, lengg, xtotc
       integer ixt, ixt1, ixt2, ixt3, jx, ixc, ierr
+      integer ixtl, ixtl1, ixtr,ixtr1
       #Former Aux module variables
       integer ix,iy,igsp,iv,iv1,iv2,iv3,iv4,ix1,ix2,ix3,ix4
       real t0,t1
@@ -2047,9 +2048,11 @@ c       sputtered impurities plus recycled impurities from all charge states.
                      eng_sput = ( 0.5*mi(ifld)*up(ixt,iy,ifld)**2 + 
      .                            ti(ixt,iy) +  zi(ifld)*
      .                            kappal(iy,jx)*te(ixt,iy) )/ev
-                     if(zi(ifld)>0.) sputflxlb(iy,igsp,jx) = sputflxlb(iy,igsp,jx) +
-     .                                              fnix(ixt,iy,ifld)*
-     .                            fphysylb(igsp,jx)*yld96(matp,matt,eng_sput)
+                     if(zi(ifld)>0.) sputflxlb(iy,igsp,jx) = 
+     .                                          sputflxlb(iy,igsp,jx) +
+     .                                           fnix(ixt,iy,ifld)*
+     .                                           fphysylb(igsp,jx)*
+     .                                        yld96(matp,matt,eng_sput)
                    enddo
                    if (isph_sput(igsp) .ge. 2) then  # add chem sput from ions
                      do ifld = 1,1  #(ipsputt_s, ipsputt_e) place holder for imp/imp sputt
@@ -2699,7 +2702,7 @@ c       sputtered impurities plus recycled impurities from all charge states.
                         sputflxrb(iy,igsp,jx) = sputflxrb(iy,igsp,jx) + 
      .                      fchemyrb(igsp,jx)*fnix(ixt1,iy,ifld)*yld_chm
                       enddo
-                   endif
+                   endif   #test on isph_sput >=2
                    if (isph_sput(igsp) .eq. 3) then # add chem sput from h. neut
                      do igsp2 = 1, 1+ishymol
                        t0p = max(tg(ixt1,iy,igsp2),temin*ev)
@@ -2710,8 +2713,8 @@ c       sputtered impurities plus recycled impurities from all charge states.
                        zflux_chm = zflux_chm + flx_incid*
      .                             fchemyrb(igsp,jx)*yld_chm*sx(ixt1,iy)
                      enddo
-                   endif
-                 endif               
+                   endif    #test on isph_sput = 3
+                 endif   #test on isph_sput > 1              
                  if (sputtrb(iy,igsp,jx) .ge. 0. .or.
      .                              abs(sputflxrb(iy,igsp,jx)).gt.0.) then
                     t0 = max(cdifg(igsp)*tg(ixt1,iy,igsp), temin*ev)
@@ -2955,367 +2958,532 @@ c...  Do boundary condition for impurities along ix=nxc
          endif
       endif                  # end of ix = nxc b.c. for double null
 
-      if( islimon .ne. 0) then
-c************************************************************************
-c...  do ix = ix_lim and ix_lim+1 for the limiter position
-c************************************************************************
-         if (i2.le.ix_lim+1 .and. i5.ge.ix_lim-1) then
-c...  this "if" test assumes both xlinc and xrinc are at least 1
+cc    if (islimon .ne. 0) call subroutine limterbc  #to-be-done subroutine
+cc                                                  #to replace next
+c...############## Include bdry cond for limiter if present ##########
+c...##################################################################
+      if( islimon .ne. 0) then  #if-test 8888
+        if (i2.le.ix_lim+1 .and. i5.ge.ix_lim-1) then #if-test 8889
+c...     last "if" test assumes both xlinc and xrinc are at least 1
 
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c...  For flux tubes that do not intersect the limiter:
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-            do 198 iy = j2, min(j5,iy_lims-1)
+          do 198 iy = j2, min(j5,iy_lims-1)
 c...  First do the ion density
-               do ifld = 1, nisp
-                  if(isnionxy(ix_lim,iy,ifld)*
-     .                         isnionxy(ix_lim+1,iy,ifld) .eq. 1) then
-                     iv = idxn(ix_lim,iy,ifld)
-                     iv2 = idxn(ix_lim+1,iy,ifld)
-                     if (islbcn .eq. 0) then
+            do ifld = 1, nisp
+              if(isnionxy(ix_lim,iy,ifld)*
+     .                     isnionxy(ix_lim+1,iy,ifld) .eq. 1) then
+                iv = idxn(ix_lim,iy,ifld)
+                iv2 = idxn(ix_lim+1,iy,ifld)
+                if (islbcn .eq. 0) then
 ccc islbcn=0:
-                     yldot(iv) = nurlxn * (-ni(ix_lim,iy,ifld)
-     .               +0.5*(ni(ix_lim-1,iy,ifld)+ni(ix_lim+2,iy,ifld)))/
-     .                                                        n0(ifld)
-                     yldot(iv2) = nurlxn * (-ni(ix_lim+1,iy,ifld)
-     .               +0.5*(ni(ix_lim-1,iy,ifld)+ni(ix_lim+2,iy,ifld)))/
-     .                                                        n0(ifld)
-                     elseif (islbcn .eq. 1) then
+                  yldot(iv) = nurlxn * (-ni(ix_lim,iy,ifld)
+     .              +0.5*(ni(ix_lim-1,iy,ifld)+ni(ix_lim+2,iy,ifld)))/
+     .                                                      n0(ifld)
+                  yldot(iv2) = nurlxn * (-ni(ix_lim+1,iy,ifld)
+     .              +0.5*(ni(ix_lim-1,iy,ifld)+ni(ix_lim+2,iy,ifld)))/
+     .                                                      n0(ifld)
+                elseif (islbcn .eq. 1) then
 ccc islbcn=1:
-                     yldot(iv) = nurlxn * (-ni(ix_lim,iy,ifld)
-     .               +0.5*(ni(ix_lim-1,iy,ifld)+ni(ix_lim+2,iy,ifld)))/
-     .                                                        n0(ifld)
-                     yldot(iv2) = nurlxn * (-ni(ix_lim+1,iy,ifld)
-     .                                      +ni(ix_lim,iy,ifld))/
-     .                                                        n0(ifld)
-                     elseif (islbcn .eq. 2) then
+                  yldot(iv) = nurlxn * (-ni(ix_lim,iy,ifld)
+     .              +0.5*(ni(ix_lim-1,iy,ifld)+ni(ix_lim+2,iy,ifld)))/
+     .                                                      n0(ifld)
+                   yldot(iv2) = nurlxn * (-ni(ix_lim+1,iy,ifld)
+     .                                    +ni(ix_lim,iy,ifld))/
+     .                                                      n0(ifld)
+                elseif (islbcn .eq. 2) then
 ccc islbcn=2:
-                     yldot(iv) = nurlxn * (-fnix(ix_lim-1,iy,ifld)
-     .                                     +fnix(ix_lim+1,iy,ifld))/
-     .                               (sx(ix_lim-1,iy)*n0(ifld)*vpnorm)
-                     yldot(iv2) = nurlxn * (-ni(ix_lim+1,iy,ifld)
-     .                                      +ni(ix_lim,iy,ifld))/
-     .                                                        n0(ifld)
-                     endif
-                  endif
-               enddo
-c...  Now do the parallel velocity
-               do ifld = 1, nusp
-                  if(isuponxy(ix_lim-1,iy,ifld)*isuponxy(ix_lim,iy,ifld)*
-     .               isuponxy(ix_lim+1,iy,ifld) .eq. 1) then
-                     iv1 = idxu(ix_lim-1,iy,ifld)
-                     iv2 = idxu(ix_lim  ,iy,ifld)
-                     iv3 = idxu(ix_lim+1,iy,ifld)
-                     if (islbcu .eq. 0) then
+                  yldot(iv) = nurlxn * (-fnix(ix_lim-1,iy,ifld)
+     .                                   +fnix(ix_lim+1,iy,ifld))/
+     .                             (sx(ix_lim-1,iy)*n0(ifld)*vpnorm)
+                  yldot(iv2) = nurlxn * (-ni(ix_lim+1,iy,ifld)
+     .                                    +ni(ix_lim,iy,ifld))/
+     .                                                      n0(ifld)
+                endif
+              endif
+            enddo
+c...........................
+c...  Now do the parallel velocity for iy beyond limiter
+            do ifld = 1, nusp
+              if(isuponxy(ix_lim-1,iy,ifld)*isuponxy(ix_lim,iy,ifld)*
+     .           isuponxy(ix_lim+1,iy,ifld) .eq. 1) then
+                   iv1 = idxu(ix_lim-1,iy,ifld)
+                   iv2 = idxu(ix_lim  ,iy,ifld)
+                   iv3 = idxu(ix_lim+1,iy,ifld)
+                if (islbcu .eq. 0) then
 ccc islbcu=0:
-                     yldot(iv1) = nurlxu * (-up(ix_lim-1,iy,ifld)
+                   yldot(iv1) = nurlxu * (-up(ix_lim-1,iy,ifld)
      .               +0.5*(up(ix_lim-2,iy,ifld)+up(ix_lim+2,iy,ifld)))/
      .                                                         vpnorm
-                     yldot(iv2) = nurlxu * (-up(ix_lim,iy,ifld)
+                   yldot(iv2) = nurlxu * (-up(ix_lim,iy,ifld)
      .               +0.5*(up(ix_lim-2,iy,ifld)+up(ix_lim+2,iy,ifld)))/
      .                                                         vpnorm
-                     yldot(iv3) = nurlxu * (-up(ix_lim+1,iy,ifld)
+                   yldot(iv3) = nurlxu * (-up(ix_lim+1,iy,ifld)
      .               +0.5*(up(ix_lim-2,iy,ifld)+up(ix_lim+2,iy,ifld)))/
      .                                                         vpnorm
-                     elseif (islbcu .eq. 1) then
+                elseif (islbcu .eq. 1) then
 ccc islbcu=1:
-                     yldot(iv1) = nurlxu * (-up(ix_lim-1,iy,ifld)
+                   yldot(iv1) = nurlxu * (-up(ix_lim-1,iy,ifld)
      .               +0.5*(up(ix_lim-2,iy,ifld)+up(ix_lim+2,iy,ifld)))/
      .                                                         vpnorm
-                     yldot(iv2) = nurlxu * (-up(ix_lim,iy,ifld)
+                   yldot(iv2) = nurlxu * (-up(ix_lim,iy,ifld)
      .                               +up(ix_lim-1,iy,ifld))/vpnorm
-                     yldot(iv3) = nurlxu * (-up(ix_lim+1,iy,ifld)
+                   yldot(iv3) = nurlxu * (-up(ix_lim+1,iy,ifld)
      .                               +up(ix_lim,iy,ifld))/vpnorm
-                     elseif (islbcu .eq. 2) then
+                elseif (islbcu .eq. 2) then
 ccc islbcu=2:
-                     yldot(iv1) = nurlxu * (-fmix(ix_lim-1,iy,ifld)
+                   yldot(iv1) = nurlxu * (-fmix(ix_lim-1,iy,ifld)
      .                                      +fmix(ix_lim,iy,ifld))/
      .                                    (sx(ix_lim-1,iy)*fnorm(ifld))
-                     yldot(iv2) = nurlxu * (-up(ix_lim,iy,ifld)
+                   yldot(iv2) = nurlxu * (-up(ix_lim,iy,ifld)
      .                               +up(ix_lim-1,iy,ifld))/vpnorm
-                     yldot(iv3) = nurlxu * (-up(ix_lim+1,iy,ifld)
+                   yldot(iv3) = nurlxu * (-up(ix_lim+1,iy,ifld)
      .                               +up(ix_lim,iy,ifld))/vpnorm
-                     elseif (islbcu.eq. 3) then
+                elseif (islbcu.eq. 3) then
 ccc islbcu=3:
-                     yldot(iv2) = nurlxu * (-fmix(ix_lim,iy,ifld)
+                   yldot(iv2) = nurlxu * (-fmix(ix_lim,iy,ifld)
      .                                      +fmix(ix_lim-1,iy,ifld))/
      .                                    (sx(ix_lim,iy)*fnorm(ifld))
-                     elseif (islbcu.eq. 4) then
+                elseif (islbcu.eq. 4) then
 ccc islbcu=4:
-                     yldot(iv2) = nurlxu * ( fmix(ix_lim,iy,ifld)
+                   yldot(iv2) = nurlxu * ( fmix(ix_lim,iy,ifld)
      .                                      -fmix(ix_lim-1,iy,ifld))/
      .                                    (sx(ix_lim,iy)*fnorm(ifld))
-                     elseif (islbcu.eq. 5) then
+                elseif (islbcu.eq. 5) then
 ccc islbcu=5:
-                     yldot(iv2) = nurlxu * (-fmix(ix_lim,iy,ifld)
-     .             +fmixy(ix_lim,iy,ifld)-fmixy(ix_lim+1,iy,ifld)
+                   yldot(iv2) = nurlxu * (-fmix(ix_lim,iy,ifld)
+     .                +fmixy(ix_lim,iy,ifld)-fmixy(ix_lim+1,iy,ifld)
      .                                      +fmix(ix_lim+1,iy,ifld))/
      .                                    (sx(ix_lim,iy)*fnorm(ifld))
-                     elseif (islbcu.eq. 6) then
+                elseif (islbcu.eq. 6) then
 ccc islbcu=6:
-                     yldot(iv2) = nurlxu * ( fmix(ix_lim,iy,ifld)
+                   yldot(iv2) = nurlxu * ( fmix(ix_lim,iy,ifld)
      .                                      -fmix(ix_lim+1,iy,ifld))/
      .                                    (sx(ix_lim,iy)*fnorm(ifld))
-                     endif
-                  endif
-               enddo
-c...  Now do electron temperature
-               if(isteonxy(ix_lim,iy)*isteonxy(ix_lim+1,iy)==1) then
-                  iv = idxte(ix_lim,iy)
-                  iv2 = idxte(ix_lim+1,iy)
-                  if (islbce .eq. 0) then
+                endif
+              endif
+            enddo
+c................................
+c...  Now do electron temperature for iy beyond limiter
+            if(isteonxy(ix_lim,iy)*isteonxy(ix_lim+1,iy)==1) then
+                iv = idxte(ix_lim,iy)
+                iv2 = idxte(ix_lim+1,iy)
+              if (islbce .eq. 0) then
 ccc islbce=0:
-                  yldot(iv) = nurlxe * (-te(ix_lim,iy)
+                yldot(iv) = nurlxe * (-te(ix_lim,iy)
      .                     +0.5*(te(ix_lim-1,iy)+te(ix_lim+2,iy)))
      .                                   *1.5*ne(ix_lim,iy)/ennorm
-                  yldot(iv2) = nurlxe * (-te(ix_lim+1,iy)
+                yldot(iv2) = nurlxe * (-te(ix_lim+1,iy)
      .                     +0.5*(te(ix_lim-1,iy)+te(ix_lim+2,iy)))
      .                                 *1.5*ne(ix_lim+1,iy)/ennorm
-                  elseif (islbce .eq. 1) then
+              elseif (islbce .eq. 1) then
 ccc islbce=1:
-                  yldot(iv) = nurlxe * (-te(ix_lim,iy)
+                yldot(iv) = nurlxe * (-te(ix_lim,iy)
      .                     +0.5*(te(ix_lim-1,iy)+te(ix_lim+2,iy)))
      .                                   *1.5*ne(ix_lim,iy)/ennorm
-                  yldot(iv2) = nurlxe * (-te(ix_lim+1,iy)
+                yldot(iv2) = nurlxe * (-te(ix_lim+1,iy)
      .                                   +te(ix_lim,iy))
      .                                 *1.5*ne(ix_lim+1,iy)/ennorm
-                  elseif (islbce .eq. 2) then
+              elseif (islbce .eq. 2) then
 ccc islbce=2:
-                  yldot(iv) = nurlxe * (-feex(ix_lim-1,iy)
+                yldot(iv) = nurlxe * (-feex(ix_lim-1,iy)
      .                                  +feex(ix_lim+1,iy))/
      .                              (sx(ix_lim-1,iy)*vpnorm*ennorm)
-                  yldot(iv2) = nurlxe * (-te(ix_lim+1,iy)
+                yldot(iv2) = nurlxe * (-te(ix_lim+1,iy)
      .                                   +te(ix_lim,iy))
      .                                 *1.5*ne(ix_lim+1,iy)/ennorm
-                  endif
-               endif
-c...  Now do ion temperature
-               if(istionxy(ix_lim,iy)*istionxy(ix_lim+1,iy)==1) then
-                  iv = idxti(ix_lim,iy)
-                  iv2 = idxti(ix_lim+1,iy)
-                  if (islbci .eq. 0) then
+              endif
+            endif
+c...............................
+c...  Now do ion temperature for iy beyond limiter
+            if(istionxy(ix_lim,iy)*istionxy(ix_lim+1,iy)==1) then
+              iv = idxti(ix_lim,iy)
+              iv2 = idxti(ix_lim+1,iy)
+              if (islbci .eq. 0) then
 ccc islbci=0:
-                  yldot(iv) = nurlxi * (-ti(ix_lim,iy)
+                yldot(iv) = nurlxi * (-ti(ix_lim,iy)
      .                     +0.5*(ti(ix_lim-1,iy)+ti(ix_lim+2,iy)))
      .                                   *1.5*ne(ix_lim,iy)/ennorm
-                  yldot(iv2) = nurlxi * (-ti(ix_lim+1,iy)
+                yldot(iv2) = nurlxi * (-ti(ix_lim+1,iy)
      .                     +0.5*(ti(ix_lim-1,iy)+ti(ix_lim+2,iy)))
      .                                 *1.5*ne(ix_lim+1,iy)/ennorm
-                  elseif (islbci .eq. 1) then
+              elseif (islbci .eq. 1) then
 ccc islbci=1:
-                  yldot(iv) = nurlxi * (-ti(ix_lim,iy)
+                yldot(iv) = nurlxi * (-ti(ix_lim,iy)
      .                     +0.5*(ti(ix_lim-1,iy)+ti(ix_lim+2,iy)))
      .                                   *1.5*ne(ix_lim,iy)/ennorm
-                  yldot(iv2) = nurlxi * (-ti(ix_lim+1,iy)
+                yldot(iv2) = nurlxi * (-ti(ix_lim+1,iy)
      .                                   +ti(ix_lim,iy))
      .                                 *1.5*ne(ix_lim+1,iy)/ennorm
-                  elseif (islbci .eq. 2) then
+              elseif (islbci .eq. 2) then
 ccc islbci=2:
-                  yldot(iv) = nurlxi * (-feix(ix_lim-1,iy)
+                yldot(iv) = nurlxi * (-feix(ix_lim-1,iy)
      .                                  +feix(ix_lim+1,iy))/
      .                              (sx(ix_lim-1,iy)*vpnorm*ennorm)
-                  yldot(iv2) = nurlxi * (-ti(ix_lim+1,iy)
+                yldot(iv2) = nurlxi * (-ti(ix_lim+1,iy)
      .                                   +ti(ix_lim,iy))
      .                                 *1.5*ne(ix_lim+1,iy)/ennorm
-                  endif
-               endif
-c...  Now do neutral gas
-               do igsp = 1, ngsp
-                  if(isngonxy(ix_lim,iy,igsp)*
-     .               isngonxy(ix_lim+1,iy,igsp) .eq. 1) then
-                     iv =  idxg(ix_lim  ,iy,igsp)
-                     iv2 = idxg(ix_lim+1,iy,igsp)
-                     if (islbcg .eq. 0) then
+              endif
+              endif
+              
+c.....................................
+c...  Do neutral gas for iy beyond limiter: => continuity conds.
+            do igsp = 1, ngsp
+              if(isngonxy(ix_lim,iy,igsp)*
+     .                 isngonxy(ix_lim+1,iy,igsp) .eq. 1) then
+                iv =  idxg(ix_lim  ,iy,igsp)
+                iv2 = idxg(ix_lim+1,iy,igsp)
+                if (islbcg .eq. 0) then
 ccc islbcg=0:
-                     yldot(iv) = nurlxg * (-ng(ix_lim,iy,igsp)
+                   yldot(iv) = nurlxg * (-ng(ix_lim,iy,igsp)
      .               +0.5*(ng(ix_lim-1,iy,igsp)+ng(ix_lim+2,iy,igsp)))/
      .                                                        n0g(igsp)
-                     yldot(iv2) = nurlxg * (-ng(ix_lim+1,iy,igsp)
+                   yldot(iv2) = nurlxg * (-ng(ix_lim+1,iy,igsp)
      .               +0.5*(ng(ix_lim-1,iy,igsp)+ng(ix_lim+2,iy,igsp)))/
      .                                                        n0g(igsp)
-                     elseif (islbcg .eq. 1) then
+                elseif (islbcg .eq. 1) then
 ccc islbcg=1:
-                     yldot(iv) = nurlxg * (-ng(ix_lim,iy,igsp)
+                  yldot(iv) = nurlxg * (-ng(ix_lim,iy,igsp)
      .               +0.5*(ng(ix_lim-1,iy,igsp)+ng(ix_lim+2,iy,igsp)))/
      .                                                        n0g(igsp)
-                     yldot(iv2) = nurlxg * (-ng(ix_lim+1,iy,igsp)
+                  yldot(iv2) = nurlxg * (-ng(ix_lim+1,iy,igsp)
      .                                      +ng(ix_lim,iy,igsp))/
      .                                                        n0g(igsp)
-                     elseif (islbcg .eq. 2) then
+                elseif (islbcg .eq. 2) then
 ccc islbcg=2:
-                     yldot(iv) = nurlxg * (-fngx(ix_lim-1,iy,igsp)
+                  yldot(iv) = nurlxg * (-fngx(ix_lim-1,iy,igsp)
      .                                     +fngx(ix_lim+1,iy,igsp))/
      .                               (sx(ix_lim-1,iy)*n0g(igsp)*vpnorm)
-                     yldot(iv2) = nurlxg * (-ng(ix_lim+1,iy,igsp)
+                  yldot(iv2) = nurlxg * (-ng(ix_lim+1,iy,igsp)
      .                                      +ng(ix_lim,iy,igsp))/
      .                                                        n0g(igsp)
-                     endif
-                  endif
-               enddo
- 198        continue   # end of loop over iy
+                endif
+              endif
+            enddo
+ 198      continue   # end of loop over iy
 
-
+c..............................................
 c...  Now do potential; start at iy=2 since 0,1 already set as core BCs
-      do iy = max(j2p,2), min(j5p,iy_lims-1)
-         if(isphionxy(ix_lim,iy)*isphionxy(ix_lim+1,iy)==1) then
-            iv = idxphi(ix_lim,iy)
-            iv2 = idxphi(ix_lim+1,iy)
-            if (islbcp .eq. 0) then
-               yldot(iv) = nurlxp * (-phi(ix_lim,iy)
+          do iy = max(j2p,2), min(j5p,iy_lims-1)
+            if(isphionxy(ix_lim,iy)*isphionxy(ix_lim+1,iy)==1) then
+              iv = idxphi(ix_lim,iy)
+              iv2 = idxphi(ix_lim+1,iy)
+              if (islbcp .eq. 0) then
+                yldot(iv) = nurlxp * (-phi(ix_lim,iy)
      .                  +0.5*(phi(ix_lim-1,iy)+phi(ix_lim+2,iy)))
      .                                                   /temp0
-               yldot(iv2) = nurlxp * (-phi(ix_lim+1,iy)
+                yldot(iv2) = nurlxp * (-phi(ix_lim+1,iy)
      .                  +0.5*(phi(ix_lim-1,iy)+phi(ix_lim+2,iy)))
      .                                                   /temp0
-            elseif (islbcp .eq. 1) then
-               yldot(iv) = nurlxp * (-phi(ix_lim,iy)
+              elseif (islbcp .eq. 1) then
+                yldot(iv) = nurlxp * (-phi(ix_lim,iy)
      .                  +0.5*(phi(ix_lim-1,iy)+phi(ix_lim+2,iy)))
      .                                                   /temp0
-               yldot(iv2) = nurlxp * (-phi(ix_lim+1,iy)
+                yldot(iv2) = nurlxp * (-phi(ix_lim+1,iy)
      .                                +phi(ix_lim,iy)) / temp0
-            elseif (islbcp .eq. 2) then
-               yldot(iv) = nurlxp * (-fqx(ix_lim-1,iy)
+              elseif (islbcp .eq. 2) then
+                yldot(iv) = nurlxp * (-fqx(ix_lim-1,iy)
      .                               +fqx(ix_lim+1,iy))/
      .                              (sx(ix_lim-1,iy)*0.1*vpnorm)
-               yldot(iv2) = nurlxp * (-phi(ix_lim+1,iy)
+                yldot(iv2) = nurlxp * (-phi(ix_lim+1,iy)
      .                                +phi(ix_lim,iy)) / temp0
+              endif
             endif
-         endif
-      enddo
+          enddo
 
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c...  For flux tubes that do intersect the limiter; iy>1 required
+c...  For flux tubes that do intersect physical limiter; iy>1 required
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-            do 197 iy = max(j2,iy_lims), j5
-c...  First do the ion density
-               do ifld = 1, nisp
-                  if(isnionxy(ix_lim,iy,ifld)*
-     .               isnionxy(ix_lim+1,iy,ifld) .eq. 1) then
-                     iv = idxn(ix_lim,iy,ifld)
-                     iv2 = idxn(ix_lim+1,iy,ifld)
-                     if (isupgon(1).eq.1 .and. zi(ifld).eq.0.) then
-                        yldot(iv) = nurlxg* (fnix(ix_lim-1,iy,ifld) +
-     .                     recycl*fnix(ix_lim-1,iy,1))/
+          do 197 iy = max(j2,iy_lims), j5  #iy loop around limiter
+c...  Do the ion density on limiter
+            do ifld = 1, nisp
+              if(isnionxy(ix_lim,iy,ifld)*
+     .                isnionxy(ix_lim+1,iy,ifld) .eq. 1) then
+                iv = idxn(ix_lim,iy,ifld)
+                iv2 = idxn(ix_lim+1,iy,ifld)
+                if (isupgon(1).eq.1 .and. zi(ifld).eq.0.) then
+                  yldot(iv) = nurlxg* (fnix(ix_lim-1,iy,ifld) +
+     .                     recyllim(iy,1)*fnix(ix_lim-1,iy,1))/
      .                     (vpnorm*n0(ifld)*sx(ix_lim-1,iy))
-                        yldot(iv2) =-nurlxg* (fnix(ix_lim+1,iy,ifld) +
-     .                     recycl*fnix(ix_lim+1,iy,1))/
+                  yldot(iv2) =-nurlxg* (fnix(ix_lim+1,iy,ifld) +
+     .                     recyrlim(iy,1)*fnix(ix_lim+1,iy,1))/
      .                     (vpnorm*n0(ifld)*sx(ix_lim+1,iy))
-                     else
-                        yldot(iv) = nurlxn *
+                else
+                  yldot(iv) = nurlxn *
      .                     (ni(ix_lim-1,iy,ifld)-ni(ix_lim,iy,ifld))/
      .                                                        n0(ifld)
-                        yldot(iv2) = nurlxn *
+                  yldot(iv2) = nurlxn *
      .                     (ni(ix_lim+2,iy,ifld)-ni(ix_lim+1,iy,ifld))/
      .                                                        n0(ifld)
-                     endif
-                  endif
-               enddo
-c...  Now do the parallel velocity
-               do ifld = 1, nusp
-                  if(isuponxy(ix_lim,iy,ifld)*isuponxy(ix_lim-1,iy,ifld)*
-     .                            isuponxy(ix_lim+1,iy,ifld) .eq. 1) then 
-                     iv3 = idxu(ix_lim,iy,ifld)
-                     yldot(iv3) = nurlxu*(0.-up(ix_lim,iy,ifld))/vpnorm
-                     iv3 = idxu(ix_lim-1,iy,ifld)
+                endif
+              endif
+            enddo
+              
+c...  Do the parallel velocity on limiter
+            do ifld = 1, nusp
+              if(isuponxy(ix_lim,iy,ifld)*isuponxy(ix_lim-1,iy,ifld)*
+     .                          isuponxy(ix_lim+1,iy,ifld) .eq. 1) then 
+                iv3 = idxu(ix_lim,iy,ifld)
+                yldot(iv3) = nurlxu*(0.-up(ix_lim,iy,ifld))/vpnorm
+                iv3 = idxu(ix_lim-1,iy,ifld)
 ccc   Apply sonic flow condition in "smooth" manner (MER 08 Apr 2002)
-                     csfac = cslim*(1.-exp(-(iy-iy_lims+1)/(cutlo+dcslim)))
-                     cs = csfac*sqrt( (te(ix_lim-1,iy)+
-     .                                csfacti*ti(ix_lim-1,iy))/ mi(ifld) )
-                     if (isupgon(1).eq.1 .and. zi(ifld).eq.0) then
-                        if (recycml.gt.-9.9) then
-                           yldot(iv3) = nurlxu*(-recycml*cs-
-     .                                     up(ix_lim-1,iy,ifld))/vpnorm
-                        else
-                           yldot(iv3) = nurlxu*(up(ix_lim-2,iy,ifld) -
+                csfac = cslim*(1.-exp(-(iy-iy_lims+1)/(cutlo+dcslim)))
+                cs = csfac*sqrt( (te(ix_lim-1,iy)+
+     .                            csfacti*ti(ix_lim-1,iy))/ mi(ifld) )
+                if (isupgon(1).eq.1 .and. zi(ifld).eq.0) then
+                  if (recycml.gt.-9.9) then
+                    yldot(iv3) = nurlxu*(-recycml*cs-
+     .                                   up(ix_lim-1,iy,ifld))/vpnorm
+                  else
+                    yldot(iv3) = nurlxu*(up(ix_lim-2,iy,ifld) -
      .                                    up(ix_lim-1,iy,ifld))/vpnorm
-                        endif
-                     else
-                        yldot(iv3) = nurlxu*(cs-up(ix_lim-1,iy,ifld))/
-     .                                                         vpnorm
-                     endif
-                     iv3 = idxu(ix_lim+1,iy,ifld)
-                     cs = csfac*sqrt( (te(ix_lim+1,iy)+
-     .                                csfacti*ti(ix_lim+1,iy))/ mi(ifld) )
-                     if (isupgon(1).eq.1 .and. zi(ifld).eq.0) then
-                        if (recycml.gt.-9.9) then
-                           yldot(iv3) = nurlxu*(recycml*cs-
-     .                                    up(ix_lim+1,iy,ifld))/vpnorm
-                        else
-                           yldot(iv3) = nurlxu*(up(ix_lim+2,iy,ifld)-
-     .                                    up(ix_lim+1,iy,ifld))/vpnorm
-                        endif
-                     else
-                        yldot(iv3) = nurlxu*(-cs-up(ix_lim+1,iy,ifld))/
-     .                                                          vpnorm
-                     endif
                   endif
-               enddo
-
-               if(isteonxy(ix_lim,iy)*isteonxy(ix_lim+1,iy) .eq. 1) then
-                  iv = idxte(ix_lim,iy)
-                  iv2 = idxte(ix_lim+1,iy)
-                  totfeex = feex(ix_lim-1,iy)
-                  yldot(iv) = nurlxe*(totfeex/sx(ix_lim-1,iy) -bcee*
+                else
+                  yldot(iv3) = nurlxu*(cs-up(ix_lim-1,iy,ifld))/
+     .                                                         vpnorm
+                endif
+                iv3 = idxu(ix_lim+1,iy,ifld)
+                cs = csfac*sqrt( (te(ix_lim+1,iy)+
+     .                            csfacti*ti(ix_lim+1,iy))/ mi(ifld) )
+                if (isupgon(1).eq.1 .and. zi(ifld).eq.0) then
+                  if (recycml.gt.-9.9) then
+                    yldot(iv3) = nurlxu*(recycml*cs-
+     .                                  up(ix_lim+1,iy,ifld))/vpnorm
+                  else
+                    yldot(iv3) = nurlxu*(up(ix_lim+2,iy,ifld)-
+     .                                  up(ix_lim+1,iy,ifld))/vpnorm
+                  endif
+                else
+                  yldot(iv3) = nurlxu*(-cs-up(ix_lim+1,iy,ifld))/
+     .                                                        vpnorm
+                endif
+              endif
+            enddo   #loop over ifld for up
+ 
+c...  Do Te on physical limter
+            if(isteonxy(ix_lim,iy)*isteonxy(ix_lim+1,iy) .eq. 1) then
+              iv = idxte(ix_lim,iy)
+              iv2 = idxte(ix_lim+1,iy)
+              totfeex = feex(ix_lim-1,iy)
+              yldot(iv) = nurlxe*(totfeex/sx(ix_lim-1,iy) -bcee*
      .                           ne(ix_lim,iy)*vex(ix_lim-1,iy)*
      .                           te(ix_lim,iy))/(vpnorm*ennorm)
-                  totfeex = feex(ix_lim+1,iy)
-                  yldot(iv2) =-nurlxe*(totfeex/sx(ix_lim+1,iy) -bcee*
+              totfeex = feex(ix_lim+1,iy)
+              yldot(iv2) =-nurlxe*(totfeex/sx(ix_lim+1,iy) -bcee*
      .                         ne(ix_lim+1,iy)*vex(ix_lim+1,iy)*
      .                           te(ix_lim+1,iy))/(vpnorm*ennorm)
-               endif
-               if(istionxy(ix_lim,iy)*istionxy(ix_lim+1,iy) .eq. 1) then
-                  iv = idxti(ix_lim,iy)
-                  iv2 = idxti(ix_lim+1,iy)
-                  totfeix = feix(ix_lim-1,iy)  # reduced model/no neutrals
-                  yldot(iv) = nurlxi*(totfeix -bcei*
-     .                           fnix(ix_lim-1,iy,1)*ti(ix_lim,iy))/
-     .                           (vpnorm*ennorm*sx(ix_lim-1,iy))
-                  totfeix = feix(ix_lim+1,iy)  # reduced model/no neutrals
-                  yldot(iv2) = -nurlxi*(totfeix -bcei*
-     .                           fnix(ix_lim+1,iy,1)*ti(ix_lim+1,iy))/
-     .                           (vpnorm*ennorm*sx(ix_lim+1,iy))
-               endif
+            endif
+     
+c... Do Ti on physical limiter
+            if(istionxy(ix_lim,iy)*istionxy(ix_lim+1,iy) .eq. 1) then
+              iv = idxti(ix_lim,iy)
+              iv2 = idxti(ix_lim+1,iy)
+              totfeix = feix(ix_lim-1,iy)  # reduced model/no neutrals
+              yldot(iv) = nurlxi*(totfeix -bcei*
+     .                         fnix(ix_lim-1,iy,1)*ti(ix_lim,iy))/
+     .                         (vpnorm*ennorm*sx(ix_lim-1,iy))
+              totfeix = feix(ix_lim+1,iy)  # reduced model/no neutrals
+              yldot(iv2) = -nurlxi*(totfeix -bcei*
+     .                         fnix(ix_lim+1,iy,1)*ti(ix_lim+1,iy))/
+     .                         (vpnorm*ennorm*sx(ix_lim+1,iy))
+            endif
    
-               do 196 igsp = 1, ngsp  # no impurities yet
-                  if(isngonxy(ix_lim,iy,igsp)*isngonxy(ix_lim+1,iy,igsp)
-     .                                                       .eq. 1) then
-                     iv =  idxg(ix_lim  ,iy,igsp)
-                     iv2 = idxg(ix_lim+1,iy,igsp)
-                     yldot(iv)  =  nurlxg*(fngx(ix_lim-1,iy,igsp) +
-     .                                  recycl*fnix(ix_lim-1,iy,1) ) /
-     .                               (vpnorm*n0g(igsp)*sx(ix_lim-1,iy))
-                     yldot(iv2) = -nurlxg*( fngx(ix_lim+1,iy,igsp) +
-     .                                  recycl*fnix(ix_lim+1,iy,1) ) /
+c... Do hydrogenic ng gas on physical limiter
+            do igsp = 1, nhgsp  # impurities done next
+              if(isngonxy(ix_lim,iy,igsp)*isngonxy(ix_lim+1,iy,igsp)
+     .                                                     .eq. 1) then
+                iv =  idxg(ix_lim  ,iy,igsp)
+                iv2 = idxg(ix_lim+1,iy,igsp)
+                yldot(iv)  =  nurlxg*(fngx(ix_lim-1,iy,igsp) +
+     .                         recyllim(iy,igsp)*fnix(ix_lim-1,iy,1) ) /
+     .                              (vpnorm*n0g(igsp)*sx(ix_lim-1,iy))
+                yldot(iv2) = -nurlxg*( fngx(ix_lim+1,iy,igsp) +
+     .                         recyrlim(iy,igsp)*fnix(ix_lim+1,iy,1) ) /
      .                               (vpnorm*n0g(igsp)*sx(ix_lim+1,iy))
-                  endif
- 196           continue
+              endif
+            enddo
 
-c...  Do boundary condition for impurities along ix=ix_lim
-               do ifld = 1, nzspt
-                  if (isimpon .ge. 3 .and. isimpon .le. 7 .and.
-     .                isnionxy(ix_lim,iy,nhsp+ifld)*
-     .                isnionxy(ix_lim+1,iy,nhsp+ifld) .eq. 1 ) then
-                     iv  = idxn(ix_lim  ,iy,nhsp+ifld)
-                     iv2 = idxn(ix_lim+1,iy,nhsp+ifld)
-                     yldot(iv ) = nurlxn*( ni(ix_lim-1,iy,nhsp+ifld) -
-     .                                     ni(ix_lim  ,iy,nhsp+ifld) )
-     .                                                 /n0(nhsp+ifld)
-                     yldot(iv2) = nurlxn*( ni(ix_lim+2,iy,nhsp+ifld) -
-     .                                     ni(ix_lim+1,iy,nhsp+ifld) )
-     .                                                 /n0(nhsp+ifld)
-                  endif
-               enddo
+c...############################################################            
+c...  Do impurity ng gas BC touching physical limiter with sputtering
+c...  First do left limiter surface at ix=ixlim, similar to right plate
+c...  with positive uu into the divertor surface
+         ixtl = ix_lim     #analog of ixrb+1 for right divertor plate
+         ixtl1 = ix_lim-1  #analog of ixrb for right divertor plate            
+         if (isimpon .ge. 4 .and. isimpon .le. 7 .and. nzspt.ge.1) then
+            nzsp_rt = nhsp
+            do igsp = nhgsp+1, ngsp
+              jz = max(igsp - nhgsp, 1)   # identify impurity index
+	      if (jz > 1) nzsp_rt = nzsp_rt + nzsp(jz-1) #prev index for fnix
+              if (isngonxy(ixtl,iy,igsp) .eq. 1) then
+                 iv = idxg(ixtl,iy,igsp)
+                 hflux = 0.
+                 do ihyd = 1, nhsp
+                    if (zi(ihyd).gt.0.) hflux=hflux+fnix(ixtl1,iy,ihyd)
+                 enddo
+                 zflux = 0.
+                 do iimp = 1, nzsp(jz) # loop limited by numb. species
+                    zflux = zflux + fnix(ixtl1,iy,nzsp_rt+iimp)
+                 enddo
+                 sputflxllim(iy,igsp) = 0.
+                 zflux_chm = 0.
+                 if (islim_sput(igsp) .ge. 1) then  # use fits for phys sput
+                   do ifld = ipsputt_s, ipsputt_e 
+                     eng_sput = ( 0.5*mi(ifld)*up(ixtl1,iy,ifld)**2 + 
+     .                            ti(ixtl,iy) +  zi(ifld)*
+     .                            kappallim(iy)*te(ixtl,iy) )/ev
+                     if(zi(ifld)>0.) sputflxllim(iy,igsp) =
+     .                                sputflxllim(iy,igsp) +
+     .                                             fnix(ixtl1,iy,ifld)*
+     .                      fphysyllim(igsp)*yld96(matp,matt,eng_sput)
+                   enddo
+                   if (islim_sput(igsp) .ge. 2) then  # add chem sput from ions
+                     do ifld = 1,1  #(ipsputt_s, ipsputt_e) place holder for imp/imp sputt
+                       eng_sput = ( 0.5*mi(ifld)*up(ixtl1,iy,ifld)**2 + 
+     .                            ti(ixtl,iy) +  zi(ifld)*
+     .                            kappallim(iy)*te(ixtl,iy) )/ev
+                       flx_incid = abs(fnix(ixtl1,iy,ifld))/sx(ixtl1,iy)
+                       call sputchem (isch_sput(igsp),eng_sput,
+     .                                tvliml(iy),flx_incid, yld_chm)
+                       sputflxllim(iy,igsp) = sputflxllim(iy,igsp) +
+     .                     fchemyllim(igsp)*fnix(ixtl1,iy,ifld)*yld_chm
+                     enddo
+                   endif  #test on islim_sput >= 2
+c... Add chem sputtering from neutral H                     
+                   if (islim_sput(igsp) .eq. 3) then #add chem sput from h neuts
+                     do igsp2 = 1, 1+ishymol  #hydrogen neut fluxes only
+                       t0p = max(tg(ixtl1,iy,igsp2),temin*ev)
+                       flx_incid = ng(ixtl,iy,igsp2)*.25*
+     .                                        sqrt(8*t0p/(pi*mg(igsp2)))
+                       call sputchem (isch_sput(igsp),t0p/ev,tvliml(iy),
+     .                                               flx_incid, yld_chm)
+                       zflux_chm = zflux_chm - flx_incid*
+     .                             fchemyllim(igsp)*yld_chm*sx(ixtl1,iy)
+                     enddo
+                   endif  #test on islim_sput = 3
+                 endif   #test on islim_sput > 1
+                 if (sputllim_use(iy,igsp) .ge. 0. .or. 
+     .                           abs(sputflxllim(iy,igsp)).gt. 0.) then
+                    t0 = max(cdifg(igsp)*tg(ixtl1,iy,igsp), temin*ev)
+                    vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
+                    zflux = - sputllim_use(iy,igsp) * hflux - 
+     .                        sputflxllim(iy,igsp) -
+     .                   recyllim(iy,igsp) * zflux -
+     .                   zflux_chm + fngxsllim(iy,igsp) +
+     .                                       fngxllim_use(iy,igsp)
+                    yldot(iv) = -nurlxg*(fngx(ixtl1,iy,igsp) - zflux) /
+     .                         (n0(igsp) * vpnorm * sx(ixtl1,iy))
+                 elseif (sputllim_use(iy,igsp).lt.0. .and.
+     .                   sputllim_use(iy,igsp).ge.-1.) then # sputllim_use; ==> -albedo
+                    t0 = max(cdifg(igsp)*tg(ixtl1,iy,igsp), temin*ev)
+                    vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
+                    yldot(iv) = -nurlxg*( fngx(ixtl1,iy,igsp) -
+     .                                   (1+sputllim_use(iy,igsp))*
+     .                              ng(ixtl,iy,igsp)*vxn*sx(ixtl1,iy) )
+     .                                   / (vxn*sx(ixtl1,iy)*n0g(igsp))
+                 else                                # sputllim_use < -1 ==> fix dens
+                    yldot(iv) = -nurlxg*(ng(ixtl,iy,igsp)-ngllim(igsp))/
+     .                                                        n0g(igsp)
+                 endif  # end if-test on sputllim_use
+              endif    # if-test on isngon = 1
+            enddo  #loop over igsp
+         endif  #test on isimpon and nzspt
+c...##################################################################
+c...  Now do sputter to impurity gas on right side of limiter surface
+c...  where -uu gives flow onto the limiter as for the left-side plate
 
- 197        continue
+         ixtr = ix_lim+1   #anolog of ixlb for left divertor plate
+         ixtr1 = ix_lim+2  #anolog of ixlb+1 for left divertor plate
+         if (isimpon .ge. 4 .and. isimpon .le. 7 .and. nzspt.ge.1) then
+           nzsp_rt = nhsp
+            do igsp = nhgsp+1, ngsp
+              jz = max(igsp - nhgsp, 1)   # identify impurity index
+	      if (jz > 1) nzsp_rt = nzsp_rt + nzsp(jz-1) #prev index for fnix
+              if (isngonxy(ixtr,iy,igsp) .eq. 1) then
+                 iv = idxg(ixtr,iy,igsp)
+                 hflux = 0.
+                 do ihyd = 1, nhsp
+                    if (zi(ihyd).gt.0.) hflux = hflux+fnix(ixtr,iy,ihyd)
+                 enddo
+                 zflux = 0.
+                 do iimp = 1, nzsp(jz) # loop limited by numb. species
+                    zflux = zflux + fnix(ixtr,iy,nzsp_rt+iimp)
+                 enddo
+                 sputflxrlim(iy,igsp) = 0.
+                 zflux_chm = 0.
+                 if (islim_sput(igsp) .ge. 1) then  # use phys sput fits
+                   do ifld = ipsputt_s, ipsputt_e 
+                     eng_sput = ( 0.5*mi(ifld)*up(ixtr,iy,ifld)**2 + 
+     .                            ti(ixtr1,iy) +  zi(ifld)*
+     .                            kapparlim(iy)*te(ixtr1,iy) )/ev
+                     if(zi(ifld)>0.) sputflxrlim(iy,igsp) = 
+     .                                sputflxrlim(iy,igsp) +
+     .                                              fnix(ixtr,iy,ifld)*
+     .                      fphysyrlim(igsp)*yld96(matp,matt,eng_sput)
+                   enddo
+                   if (islim_sput(igsp) .ge. 2) then  # add chem sput from ions
+                     do ifld = 1,1  #(ipsputt_s, ipsputt_e) place holder for imp/imp sputt
+                       eng_sput = ( 0.5*mi(ifld)*up(ixtr,iy,ifld)**2 + 
+     .                            ti(ixtr1,iy) +  zi(ifld)*
+     .                            kapparlim(iy)*te(ixtr1,iy) )/ev
+                       flx_incid = abs(fnix(ixtr,iy,ifld))/sx(ixtr,iy)
+                       call sputchem (isch_sput(igsp),eng_sput,
+     .                                tvliml(iy),flx_incid, yld_chm)
+                       sputflxrlim(iy,igsp) = sputflxrlim(iy,igsp) +
+     .                       fchemyrlim(igsp)*fnix(ixtr,iy,ifld)*yld_chm
+                     enddo
+                   endif   #test on islim_sput >=2
+                   if (islim_sput(igsp) .eq. 3) then #add chem sput from h neuts
+                     do igsp2 = 1, 1+ishymol  #hydrogen neut fluxes only
+                       t0p = max(tg(ixtr1,iy,igsp2),temin*ev)
+                       flx_incid = ng(ixtr,iy,igsp2)*.25*
+     .                                        sqrt(8*t0p/(pi*mg(igsp2)))
+                       call sputchem (isch_sput(igsp),t0p/ev,tvlimr(iy),
+     .                                               flx_incid, yld_chm)
+                       zflux_chm = zflux_chm - flx_incid*
+     .                              fchemyrlim(igsp)*yld_chm*sx(ixtr,iy)
+                     enddo
+                   endif   #test on islim_sput = 3
+                 endif    #test on islim_sput >= 1
+                 if (sputrlim_use(iy,igsp) .ge. 0. .or. 
+     .                           abs(sputflxrlim(iy,igsp)).gt. 0.) then
+                    t0 = max(cdifg(igsp)*tg(ixtr1,iy,igsp), temin*ev)
+                    vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
+                    zflux = - sputrlim_use(iy,igsp) * hflux - 
+     .                        sputflxrlim(iy,igsp) -
+     .                   recyrlim(iy,igsp) * zflux -
+     .                   zflux_chm + fngxsrlim(iy,igsp) +
+     .                                       fngxrlim_use(iy,igsp)
+                    yldot(iv) = nurlxg * (fngx(ixtr,iy,igsp) - zflux) /
+     .                         (n0(igsp) * vpnorm * sx(ixtr,iy))
+                 elseif (sputrlim_use(iy,igsp).lt.0. .and. 
+     .                   sputrlim_use(iy,igsp).ge.-1) then # sputrlim_use; ==> -albedo
+                    t0 = max(cdifg(igsp)*tg(ixtr1,iy,igsp), temin*ev)
+                    vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
+                    yldot(iv) = nurlxg*( fngx(ixtr,iy,igsp) -
+     .                                   (1+sputrlim_use(iy,igsp))*
+     .                               ng(ixtr1,iy,igsp)*vxn*sx(ixtr,iy) )
+     .                                     / (vxn*sx(ixtr,iy)*n0g(igsp))
+                 else                                # sputrlim_use < -1 ==> fix dens
+                    yldot(iv) = nurlxg*(ng(ixtr,iy,igsp)-ngrlim(igsp))/
+     .                                                        n0g(igsp)
+                 endif  # end if-test on sputrlim_use
+           
+             endif  # end if-test on isngon
+           enddo  # end do-loop in igsp
+         endif  # if-test on isimpon and nzspt for impurity gas
+cc ##########end of most limiter BC on right-side of limiter ###
 
-        # initial simple BC 
+ 197        continue  #large loop for all iy on physical limiter
+     
+c ... Do potential BC for the limiter surfaces
             do iy = max(j2p,iy_lims), j5p
 	       if(isphionxy(ix_lim,iy)*isphionxy(ix_lim+1,iy)==1) then  
                   iv = idxphi(ix_lim,iy)
                   iv2 = idxphi(ix_lim+1,iy)
-                  yldot(iv) = -nurlxp*( phi(ix_lim,iy) - kappa0*
+                  yldot(iv) = -nurlxp*( phi(ix_lim,iy) - kappallim(iy)*
      .                                   te(ix_lim,iy)/ev ) / temp0  
-                  yldot(iv2) =-nurlxp*( phi(ix_lim+1,iy) - kappa0*
+                  yldot(iv2) =-nurlxp*(phi(ix_lim+1,iy) - kapparlim(iy)*
      .                                   te(ix_lim+1,iy)/ev ) / temp0  
                endif
             enddo 
@@ -3332,9 +3500,11 @@ c ... Set the corner gas density cells at iy=ny+1 to avoid probs
      .                               ng(ix_lim+1,ny  ,igsp))/n0g(igsp)
               endif
             enddo
-         endif
-      endif                  # end of limiter case
-
+              
+        endif         #test on ix2 & i5 near limiter; if-loop 8889
+      endif           # end of limiter case; if-loop 8888
+cc ####################################################################
+cc ######################### End of limiter BCs #######################
 
       ncrhs = ncrhs + 1
 
@@ -4070,6 +4240,10 @@ c...  sources
         enddo
       enddo
 
+c...  For now (092723), set vapor source arrays on limiters to zero
+      fngxsllim = 0.
+      fngxsrlim = 0.
+      
 c...  Allow for 10 separate sources each on the inner and outer plates
 c...  If npltsor > 10, arrays must be enlarged
       if(npltsor .gt. 10) then
