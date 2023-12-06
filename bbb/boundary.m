@@ -210,7 +210,7 @@ c
                   elseif (isnicore(ifld) .eq. 0) then # set flux to curcore
                      yldot(iv1) = - nurlxn* ( qe*
      .                       (fniy(ix,0,ifld)-fniycbo(ix,ifld))/sy(ix,0)
-     .                            - 2*curcore(ifld)*gyf(ix,0)/sygytotc ) /
+     .                            - curcore(ifld)*gyf(ix,0)/sygytotc ) /
      .                                              (qe*vpnorm*n0(ifld))
                   elseif (isnicore(ifld) .eq. 2) then # set flux & ni over range
                      yldot(iv1) = - nurlxn* ( qe*
