@@ -61,7 +61,10 @@ class TestClass:
             from uedge import bbb
             recoverstate(save, refs)
             fnrm = bbb.get_fnrm(bbb.dtreal)
-            return isclose(bbb.get_fnrm(bbb.dtreal), refs['fnrm'], atol=0.0, rtol=epsilon)
+            print('TEST RESULTS')
+            print('    REFERENCE', refs['fnrm'])
+            print('    RESULT', fnrm)
+            return isclose(fnrm, refs['fnrm'], atol=0.0, rtol=epsilon)
 
 
         def print_itroub(refs):
