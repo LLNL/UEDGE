@@ -58,8 +58,6 @@ cc      Use(Rccoef)
 * --  local variables
       integer lda, lenk, ngspon, nispon, nuspon, ntgspon, ifld, isor, id
       character*60 runid
-      integer iprt_tfcx_warn
-      data iprt_tfcx_warn/1/
       #Former Aux module variables
       integer igsp
 
@@ -204,13 +202,6 @@ c ... Check that a gas source and albedo is not assigned to nonexistent gas sp
          endif
       enddo
 
-c ... Check attempt to use deprecated variables fchemywi and fchemywo 
-      if (fchemywi .ne. 1. .or. fchemywo .ne. 1.) then
-	call remark('**Input error: change fchemywi --> fchemygwi(igsp)
-     .               and fchemywo --> fchemygwo(igsp)')
-        call xerrab("")
-      endif
-
 c ... Check consistency of cngmom; should be zero if inertial neutrals
       if (isupgon(1).eq. 1 .and. cngmom(1).ne.0) then
          call remark('*** WARNING, likely Error: cngmom=1, isupgon=1')
@@ -264,11 +255,6 @@ c ... Check if yinc=2 for isphion=1
 	 call remark('*** Warning: yinc=2 recommended when isphion=1')
       endif
 
-c ... Check if tfcx or tfcy set in input file
-      if ((tfcx>1.e-10 .or. tfcy>1.e-10) .and. iprt_tfcx_warn==1) then
-        call remark('*** WARNING: tfcx,y not active; see tgas instead')
-        iprt_tfcx_warn = 0
-        endif
 c ... Check if isnfmiy=1 when geometry is snowflake > SF15
       if (geometry=="snowflake45" .or. geometry=="snowflake75" .or.
      .    geometry=="snowflake105" .or. geometry=="snowflake135" .or.
@@ -6506,6 +6492,7 @@ c ---------------------------------------------------------------------c
       Use(Npes_mpi)            # npes,mype,ispmion
       Use(UEint)               # isallloc
       Use(Rccoef)              # isoutwall
+      Use(Coefeq)              # oldseec, override
 c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
 
       integer ifake  #forces Forthon scripts to put implicit none above here
@@ -6537,6 +6524,38 @@ c_mpi         call MPI_BARRIER(uedgeComm, ierr)
 	   write(*,*) 'UEDGE version ',uedge_ver
            icall = 1
          endif
+
+c   Check model switches for UEDGE updates/bugs
+      if (oldseec .gt. 0) then
+            write(*,*) "        **** WARNING ****"
+            write(*,*) "Using old, deprecated seec model"
+            write(*,*) "Set switch oldseec = 0 to use new model "
+            write(*,*) "The old  model will be removed from"
+            write(*,*) "future versions of UEDGE"
+            write(*,*) "Please set oldseec = 0 "
+            write(*,*) ""
+            if (override .eq. 0) then
+                write(*,*) "To use the deprecated model oldseec = 1, manually"
+                write(*,*) "override the settings by using override=1"
+                call xerrab("Error: oldseec=1 used without override=1")
+            endif
+      endif
+      if (jhswitch .gt. 0) then
+            write(*,*) "           **** WARNING ****"
+            write(*,*) "Switch jhswitch > 0 is deprecated and should not"
+            write(*,*) "be used. The option jhswitch > 0 will be removed" 
+            write(*,*) "from future versions of UEDGE."
+            write(*,*) "Please set jhswitch = 0 "
+            write(*,*) ""
+            if (override .eq. 0) then
+                write(*,*) "To use the deprecated model jhswitch > 0, manually"
+                write(*,*) "override the settings by using override=1"
+                call xerrab("Error: jhswitch>0 used without override=1")
+            endif
+      endif
+
+
+
 
 c_mpi         call MPI_BARRIER(uedgeComm, myfoo)
 
@@ -7392,7 +7411,7 @@ c... ** End of subroutine uedge_reset -------------------- c
       delt = courant*min(delx/vrzmax, 0.5*delx**2/drzmax)
       write(*,*) 'delt = ',delt
       dtdx = delt/delx
-      delto = tend/float(ntim)
+      delto = tendoned/float(ntim)
       ito = 1
       timo(1) = 0.
 
@@ -7428,7 +7447,7 @@ cc          dens(1) = (4.*dens(2) - dens(3))/3.     # Update boundary vals
             gampzt(ix,ito) = gampz(ix)
           enddo
         endif
-        if (tim > tend) exit
+        if (tim > tendoned) exit
       enddo
       return
       end

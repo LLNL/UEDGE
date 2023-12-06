@@ -5,7 +5,7 @@ Use(Dim)                # nx,ny from com package
 Use(Xpoint_indices)     # ixpt1,ixpt2 from com package
 Use(Share)              # geometry from com package
 Use(Dimwdf)             # nptsvb,nptshb,nptskb,nptsw,npsegxz
-Use(Auxw)               # ixpt1b,ixpt2b,ixtop1b,ixtop2b,
+Use(Auxw)               # ixpt1b_wdf,ixpt2b_wdf,ixtop1b,ixtop2b,
                         # nohzsb,novzsb,nosegsxzb
 Use(Options)            # iswdfon
 
@@ -21,10 +21,10 @@ c     main driver routine for wdf package
 
 c     allocate arrays for DEGAS
 
-      ixpt1b  = ixpt1(1)
-      ixtop1b = ixpt1b  + (ixpt2(1)-ixpt1(1))/2
+      ixpt1b_wdf  = ixpt1(1)
+      ixtop1b = ixpt1b_wdf  + (ixpt2(1)-ixpt1(1))/2
       ixtop2b = ixtop1b + 1
-      ixpt2b  = ixpt2(1)
+      ixpt2b_wdf  = ixpt2(1)
       if (geometry .eq. "dnbot") then
 	 ixtop1b=ixtop1b-1	# we omit guard cells at the midplane
 	 ixtop2b=ixtop2b+1	# of up/down symmetric double nulls
@@ -151,7 +151,7 @@ Use(Dim)           # nxm,nym from com package
 Use(RZ_grid_info)  # rm,zm from com package
 Use(Linkbbb)       # nxbbb,nybbb from com package
 Use(Dimwdf)
-Use(Auxw)          # ixpt1b,ixpt2b,ixtop1b,ixtop2b
+Use(Auxw)          # ixpt1b_wdf,ixpt2b_wdf,ixtop1b,ixtop2b
 Use(Linkgrd)
 Use(Degas1)
 Use(Degas2)
@@ -167,7 +167,7 @@ c First, the inboard half of the mesh:
          i = 1
          gridx(j,i,1) = rm(ixtop1b,iy,4) - rgrid1w
          gridz(j,i,1) = zm(ixtop1b,iy,4)
-         do ix = ixtop1b, ixpt1b+1, -1
+         do ix = ixtop1b, ixpt1b_wdf+1, -1
             i = i + 1
             gridx(j,i,1) = rm(ix,iy,3) - rgrid1w
             gridz(j,i,1) = zm(ix,iy,3)
@@ -176,9 +176,9 @@ c First, the inboard half of the mesh:
          gridx(j,i,1) = gridx(j,i-1,1)
          gridz(j,i,1) = gridz(j,i-1,1)
          i = i + 1
-         gridx(j,i,1) = rm(ixpt1b,iy,4) - rgrid1w
-         gridz(j,i,1) = zm(ixpt1b,iy,4)
-         do ix = ixpt1b, 1, -1
+         gridx(j,i,1) = rm(ixpt1b_wdf,iy,4) - rgrid1w
+         gridz(j,i,1) = zm(ixpt1b_wdf,iy,4)
+         do ix = ixpt1b_wdf, 1, -1
             i = i + 1
             gridx(j,i,1) = rm(ix,iy,3) - rgrid1w
             gridz(j,i,1) = zm(ix,iy,3)
@@ -198,7 +198,7 @@ c Next, the outboard half of the mesh:
          i = 1
          gridx(j,i,1) = rm(ixtop2b,iy,3) - rgrid1w
          gridz(j,i,1) = zm(ixtop2b,iy,3)
-         do ix = ixtop2b, ixpt2b
+         do ix = ixtop2b, ixpt2b_wdf
             i = i + 1
             gridx(j,i,1) = rm(ix,iy,4) - rgrid1w
             gridz(j,i,1) = zm(ix,iy,4)
@@ -207,9 +207,9 @@ c Next, the outboard half of the mesh:
          gridx(j,i,1) = gridx(j,i-1,1)
          gridz(j,i,1) = gridz(j,i-1,1)
          i = i + 1
-         gridx(j,i,1) = rm(ixpt2b+1,iy,3) - rgrid1w
-         gridz(j,i,1) = zm(ixpt2b+1,iy,3)
-         do ix = ixpt2b+1, nxbbb
+         gridx(j,i,1) = rm(ixpt2b_wdf+1,iy,3) - rgrid1w
+         gridz(j,i,1) = zm(ixpt2b_wdf+1,iy,3)
+         do ix = ixpt2b_wdf+1, nxbbb
             i = i + 1
             gridx(j,i,1) = rm(ix,iy,4) - rgrid1w
             gridz(j,i,1) = zm(ix,iy,4)
@@ -225,11 +225,11 @@ c fill out the arrays by duplicating plate data
       endwhile
 c Finally, the "magnetic axis" for core and private flux regions
       j = nybbb + 2
-      do i = 1, ixtop1b-ixpt1b+2
+      do i = 1, ixtop1b-ixpt1b_wdf+2
          gridx(j,i,1) = rmagxw - rgrid1w
          gridz(j,i,1) = zmagxw
       enddo
-      do i = ixtop1b-ixpt1b+3, nptshb
+      do i = ixtop1b-ixpt1b_wdf+3, nptshb
          gridx(j,i,1) = 0.5*(gridx(j-1,nptshb,1)+gridx(j+1,nptshb,1))
          gridz(j,i,1) = 0.5*(gridz(j-1,nptshb,1)+gridz(j+1,nptshb,1))
       enddo
@@ -277,13 +277,13 @@ c Second, clockwise around the private flux
       xwall(itot,2)=gridx(j,i,1)
       zwall(itot,2)=gridz(j,i,1)
       j=j-1                             # jump to inboard half of p.f.
-      do i=ixtop1b+3,ixtop1b-ixpt1b+3,-1
+      do i=ixtop1b+3,ixtop1b-ixpt1b_wdf+3,-1
          itot=itot+1
          xwall(itot,2)=gridx(j,i,1)
          zwall(itot,2)=gridz(j,i,1)
       enddo
       j=j+2                             # jump to outboard half of p.f.
-      do i=ixpt2b-ixtop2b+4,nxbbb-ixtop2b+4
+      do i=ixpt2b_wdf-ixtop2b+4,nxbbb-ixtop2b+4
          itot=itot+1
          xwall(itot,2)=gridx(j,i,1)
          zwall(itot,2)=gridz(j,i,1)
@@ -302,13 +302,13 @@ c set default values for kwmat and twall -
 c Third, clockwise around the core
       itot=0
       j=nybbb+1
-      do i=ixtop1b-ixpt1b+2,1,-1
+      do i=ixtop1b-ixpt1b_wdf+2,1,-1
          itot=itot+1
          xwall(itot,3)=gridx(j,i,1)
          zwall(itot,3)=gridz(j,i,1)
       enddo
       j=j+2
-      do i=1,ixtop1b-ixpt1b+2
+      do i=1,ixtop1b-ixpt1b_wdf+2
          itot=itot+1
          xwall(itot,3)=gridx(j,i,1)
          zwall(itot,3)=gridz(j,i,1)
@@ -365,7 +365,7 @@ Use(Dim)                # from com package
 Use(Xpoint_indices)     # from com package
 Use(Linkbbb)
 Use(Dimwdf)
-Use(Auxw)               # ixpt1b,ixpt2b,ixtop1b,ixtop2b,nosegsxzb,novzsb
+Use(Auxw)               # ixpt1b_wdf,ixpt2b_wdf,ixtop1b,ixtop2b,nosegsxzb,novzsb
 Use(Linkgrd)
 Use(Degas1)
 Use(Degas2)
@@ -376,16 +376,16 @@ c     Convert UEDGE plasma information to DEGAS namelist arrays
       do ix=1,nxbbb
 	 do iy=1,nybbb
 c translate UEDGE cell index (ix,iy) to DEGAS cell index (iv,jh)
-	    if ((1 .le. ix) .and. (ix .le. ixpt1b)) then
+	    if ((1 .le. ix) .and. (ix .le. ixpt1b_wdf)) then
 	       jh = nybbb + 1 - iy
 	       iv = ixtop1b + 3 - ix
-	    elseif ((ixpt1b+1 .le. ix) .and. (ix .le. ixtop1b)) then
+	    elseif ((ixpt1b_wdf+1 .le. ix) .and. (ix .le. ixtop1b)) then
 	       jh = nybbb + 1 - iy
 	       iv = ixtop1b + 1 - ix
-	    elseif ((ixtop2b .le. ix) .and. (ix .le. ixpt2b)) then
+	    elseif ((ixtop2b .le. ix) .and. (ix .le. ixpt2b_wdf)) then
 	       jh = nybbb + 2 + iy
 	       iv = ix - ixtop2b + 1
-	    elseif ((ixpt2b+1 .le. ix) .and. (ix .le. nxbbb)) then
+	    elseif ((ixpt2b_wdf+1 .le. ix) .and. (ix .le. nxbbb)) then
 	       jh = nybbb + 2 + iy
 	       iv = ix - ixtop2b + 3
 	    endif
@@ -410,12 +410,12 @@ c translate UEDGE plate index (nxm,iy) to DEGAS wall segment index (iseg)
 
 c translate UEDGE private flux wall index (ix) to DEGAS private region
 c wall segment index (iseg) on wall number 2
-      do ix=1,ixpt1b
+      do ix=1,ixpt1b_wdf
 	 iseg = 1 + ix
 	 currxzt(iseg,1,2,1) = - abs(fngysibbb(ix))# NOTE negative for puffing
       enddo
-      do ix=ixpt2b+1,nxbbb
-	 iseg = 1 + ixpt1b + 1 + (ix-ixpt2b)
+      do ix=ixpt2b_wdf+1,nxbbb
+	 iseg = 1 + ixpt1b_wdf + 1 + (ix-ixpt2b_wdf)
 	 currxzt(iseg,1,2,1) = - abs(fngysibbb(ix))
       enddo
 
@@ -438,7 +438,7 @@ c----------------------------------------------------------------------c
       subroutine defaultz
       integer jb,jj,ib,ii
 Use(Dimwdf)
-Use(Auxw)               # ixpt1b
+Use(Auxw)               # ixpt1b_wdf
 Use(Degas1)
 Use(Degas2)
 Use(Eqdsk)
@@ -468,7 +468,7 @@ c.....along vertical direction
       novbs = ib
       novzs = novbs - 1
 
-      ivnull = ixtop1b - ixpt1b + 2     # vertical index of non-physical zone
+      ivnull = ixtop1b - ixpt1b_wdf + 2     # vertical index of non-physical zone
                                         # between core and private flux
 
 c.....set kzone arrays

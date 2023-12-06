@@ -150,7 +150,11 @@ c        Then, map data into full-space arrays, assuming symmetry:
          call add_guardc_tp
          call magnetics(0,nxm+1,1,nym)
          call symmetrize_magnetics
-         call writednf (fname, runidarg)
+         if (isgriduehdf5 .eq. 1) then
+            call parsestr('import uedge.gridue as gue;gue.write_gridue()')
+         else
+            call writednf (fname, runidarg)
+         endif
       else
 c        write the outboard half of the full double null geometry,
 c        excluding the PLANET guard cells near the x-points.
@@ -426,7 +430,11 @@ Use(Refinex)        # isrefxptn
       call magnetics(1,nxm,1,nym)
 
 #     Finally, write out the data --
-      call writedata (fname, runidarg)
+      if (isgriduehdf5 .eq. 1) then
+        call parsestr('import uedge.gridue as gue;gue.write_gridue()')
+      else
+        call writedata (fname, runidarg)
+      endif
 
       return
       end
@@ -441,7 +449,7 @@ Use(Comflxgrd)
 Use(Dimensions)
 Use(Inmesh)
 Use(Linkco)
-Use(Share)        # nxxpt
+Use(Share)        # nxxpt, isgriduehdf5
       character*(*) fname, runidarg
       external gallot, wrsndata
 
@@ -579,7 +587,12 @@ Use(Refinex)        # isrefxptn
       call magnetics(ixmin,nxm,1,nym)
 
 #     Finally, write out the data --
-      call writedata (fname, runidarg)
+
+      if (isgriduehdf5 .eq. 1) then
+        call parsestr('import uedge.gridue as gue;gue.write_gridue()')
+      else
+        call writedata (fname, runidarg)
+      endif
 
       return
       end
@@ -2019,7 +2032,7 @@ c     Straight line between iy-1 and iy+1 points on angle-like surface
 
 c     Intersection of straight line with x,ycurveg is (xcu,ycu):
          call intersect2(rupstream,zupstream,1,nupstream,
-     &                   xcrv,ycrv,i1crv,i2crv,
+     &                   xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                   xcu,ycu,kcu,icu,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,886) j,iy
@@ -2040,7 +2053,7 @@ c     Segmented line through iy-1, iy and iy+1 points on angle-like surface
 
 c     Intersection of segmented line with x,ycurveg is (xcp,ycp):
          call intersect2(rdnstream,zdnstream,1,ndnstream,
-     &                   xcrv,ycrv,i1crv,i2crv,
+     &                   xcrv(i1crv:i2crv),ycrv(i1crv:i2crv),i1crv,i2crv,
      &                   xcp,ycp,kcp,icp,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,887) j,iy

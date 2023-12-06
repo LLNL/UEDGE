@@ -16,6 +16,10 @@ KMXZ=KXA*MXMINZ
 NBA=5		# used in fmombal
 }
 
+***** Com_Dim_Vars hidden:    
+dim_vars_hidden     integer    # Do not edit this group. It is used to build
+                               # the Basis version of the code. 
+
 ***** Physical_constants2:
 # Add the 2 to distinquish from same constants in package bbb
 ev2	real	/1.6022e-19/   # 1 electron volt in Joules
@@ -40,7 +44,7 @@ getprad(nx,ny,ngsp,te,ne:real,ng:real,afrac,atau,
 ***** Impurity_transport:
 # variable specifying radial transport rate of impurities
 dnimp		real	/1./	[m**2/s]
-methimp         integer /33/   # specifies interp. for finite diff. for (y,x)
+methimp         integer /33/   +input # specifies interp. for finite diff. for (y,x)
                                # 66 is log interp., 77 inverse interp.,
                                # otherwise linear interp.
 csexpn		real    /0./   # exponent for reducing impurity || vel from
@@ -138,14 +142,14 @@ z2datm(nt,nr,nn)	_real			# average Z**2
 
 ***** Imslwrk:
 # working arrays for 3-d spline interpolation
-nxdata	integer
-nydata	integer
+nxdata_api	integer
+nydata_api	integer
 nzdata	integer
-xdata(1:nxdata)	_real
-ydata(1:nydata)	_real
+xdata_api(1:nxdata_api)	_real
+ydata_api(1:nydata_api)	_real
 zdata(1:nzdata)	_real
-fdata(1:nxdata,1:nydata,1:nzdata)	_real
-ldf	integer			# first dimension of 3-d data array
+fdata_api(1:nxdata_api,1:nydata_api,1:nzdata)	_real
+ldf_api	integer			# first dimension of 3-d data array
 mdf	integer			# second dimension of 3-d data array
 iflagi	integer			# input/output flag for 3-d spline routines
 nwork2	integer			# size of array work2
@@ -154,18 +158,18 @@ nwork3	integer			# size of array work3
 work3(nwork3)	_real		# work array for B3INT
 iworki(10)	integer		# work array for B3VAL
 icont		integer	/0/	# input flag for B3VAL
-kxords	integer	/4/	# order of spline fit versus x
-#	kxords=4 (default) is cubic interpolation
-kyords	integer	/4/	# order of spline fit versus y
-#	kyords=4 (default) is cubic interpolation
+kxords_api	integer	/4/	# order of spline fit versus x
+#	kxords_api=4 (default) is cubic interpolation
+kyords_api	integer	/4/	# order of spline fit versus y
+#	kyords_api=4 (default) is cubic interpolation
 kzords	integer	/4/	# order of spline fit versus z
 #	kzords=4 (default) is cubic interpolation
-xknots(1:nxdata+kxords)	_real
-yknots(1:nydata+kyords)	_real
+xknots_api(1:nxdata_api+kxords_api)	_real
+yknots_api(1:nydata_api+kyords_api)	_real
 zknots(1:nzdata+kzords)	_real
-emcoef(1:nxdata,1:nydata,1:nzdata)	_real	# spline coeff's for emissivity 
-z1coef(1:nxdata,1:nydata,1:nzdata)	_real	# spline coeff's for average-Z
-z2coef(1:nxdata,1:nydata,1:nzdata)	_real	# spline coeff's for average-Z**2
+emcoef(1:nxdata_api,1:nydata_api,1:nzdata)	_real	# spline coeff's for emissivity 
+z1coef(1:nxdata_api,1:nydata_api,1:nzdata)	_real	# spline coeff's for average-Z
+z2coef(1:nxdata_api,1:nydata_api,1:nzdata)	_real	# spline coeff's for average-Z**2
 
 ***** P93fcn:
 # setup and evaluation routines for spline representation of data on impurity
@@ -228,7 +232,7 @@ z2avgbs(te:real,nratio:real,ntau:real)	real function
  mntau(MXMISO*MXMISO)		real	# 
  usol(KXA*MXNZCH*MXMISO)	real	# 
  sbar(KXA*MXMISO1)		real	# 
- zi(MXMISO*MXNZCH)		real	# 
+ zi_api(MXMISO*MXNZCH)		real	# 
 
 ***** Cyield:
 # Variables used for DIVIMP physical sputtering models

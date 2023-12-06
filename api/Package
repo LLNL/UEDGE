@@ -1,7 +1,7 @@
 PKG = api
 POINTER = cray
 
-VDF = api_basis.v
+VDF = api.v
 
 NVDF = ../com/com.v
 
