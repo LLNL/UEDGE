@@ -27,7 +27,7 @@ class MakeTests():
         # Set up the UEDGE case
         inputspec = importlib.util.spec_from_file_location("input", "input.py")
         inputspec.loader.exec_module(importlib.util.module_from_spec(inputspec))
-        bbb.issfon = 0
+        bbb.issfon = 1
         bbb.ftol = 1e20
         # For some reason fnrm still changes after 1 exmain, but not after 2
         # Thus, assert a first exmain here
