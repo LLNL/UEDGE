@@ -9,7 +9,7 @@ class TestClass:
         from numpy.random import uniform
         bbb = file['bbb']
         for var in ['nis', 'ups', 'tes', 'tis', 'ngs', 'tgs', 'phis']:
-            bbb[var][...] *= uniform(low=perturbation, high=perturbation, size = bbb[var].shape)
+            bbb[var][...] *= uniform(low=1-perturbation, high=1+perturbation, size = bbb[var].shape)
 
     def test_reference(self, epsilon=1e-8):
         from h5py import File
