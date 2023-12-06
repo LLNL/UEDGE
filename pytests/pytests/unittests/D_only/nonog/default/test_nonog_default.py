@@ -62,9 +62,9 @@ class TestClass:
             recoverstate(save, refs)
             fnrm = bbb.get_fnrm(bbb.dtreal)
             print('TEST RESULTS')
-            print('    REFERENCE', refs['fnrm'])
+            print('    REFERENCE', refs['fnrm'][()])
             print('    RESULT', fnrm)
-            return isclose(fnrm, refs['fnrm'], atol=0.0, rtol=epsilon)
+            return isclose(fnrm, refs['fnrm'][()], atol=0.0, rtol=epsilon)
 
 
         def print_itroub(refs):
