@@ -4,6 +4,13 @@
 
 class TestClass:
     
+    def perturb_solution(self, file, perturbation=1e-2):
+        from h5py import File
+        from numpy.random import uniform
+        bbb = file['bbb']
+        for var in ['nis', 'ups', 'tes', 'tis', 'ngs', 'tgs', 'phis']:
+            bbb[var][...] *= uniform(low=perturbation, high=perturbation, size = bbb[var].shape)
+
     def test_reference(self, epsilon=1e-8):
         from h5py import File
         from uedge import bbb, com
@@ -177,6 +184,7 @@ class TestClass:
         # Write data used to construct tests to save
         casesetup = {}
         with File('solution.h5', 'a') as f:
+            self.perturb_solution(f)
             try:
                 group = f.create_group('pytests')
             except:
