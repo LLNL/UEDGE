@@ -184,7 +184,7 @@ class TestClass:
         # Write data used to construct tests to save
         casesetup = {}
         with File('solution.h5', 'a') as f:
-            self.perturb_solution(f)
+#            self.perturb_solution(f)
             try:
                 group = f.create_group('pytests')
             except:
