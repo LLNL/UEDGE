@@ -68,9 +68,6 @@ class TestClass:
             from uedge import bbb
             recoverstate(save, refs)
             fnrm = bbb.get_fnrm(bbb.dtreal)
-            print('TEST RESULTS')
-            print('    REFERENCE', refs['fnrm'][()])
-            print('    RESULT', fnrm)
             return isclose(fnrm, refs['fnrm'][()], atol=0.0, rtol=epsilon)
 
 
@@ -104,7 +101,6 @@ class TestClass:
             refs = f['pytests']
             defref = refs['default']
             if matches(f, defref, epsilon):
-                print('TEST SUCCEEDED')
                 # Turn output back on
                 try:
                     com.iprint = 1
@@ -184,7 +180,7 @@ class TestClass:
         # Write data used to construct tests to save
         casesetup = {}
         with File('solution.h5', 'a') as f:
-#            self.perturb_solution(f)
+            self.perturb_solution(f)
             try:
                 group = f.create_group('pytests')
             except:
