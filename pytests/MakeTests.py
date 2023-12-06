@@ -16,7 +16,11 @@ class MakeTests():
         from numpy import ndarray
         import importlib.util
         # Supress output
-        com.iprint = 0
+        # TODO: settle for one option
+        try:
+            com.iprint = 0
+        except:
+            bbb.iprint = 0
         # Switch to test dir to access all files (e.g. grid, mist.dat)
         chdir(testpath)
         # Import based on path in Process - complicated but necessary
@@ -34,7 +38,10 @@ class MakeTests():
         testmodule = importlib.util.module_from_spec(testspec)
         testspec.loader.exec_module(testmodule)
         testmodule.TestClass().write_data()
-        com.iprint = 1
+        try:
+            com.iprint = 1
+        except:
+            bbb.iprint = 1
 
     def make_all_tests(self):
         self.make_nonog()

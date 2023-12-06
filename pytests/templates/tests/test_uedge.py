@@ -8,7 +8,10 @@ class TestClass:
         from h5py import File
         from uedge import bbb, com
         # Supress output
-        com.iprint = 0
+        try:
+            com.iprint = 0
+        except:
+            bbb.iprint = 0
         from os import chdir, getcwd
         from os.path import exists
         from sys import path
@@ -93,7 +96,10 @@ class TestClass:
             if matches(f, defref, epsilon):
                 print('TEST SUCCEEDED')
                 # Turn output back on
-                com.iprint = 1
+                try:
+                    com.iprint = 1
+                except:
+                    bbb.iprint = 1
                 assert True
             else:
                 print_itroub(refs)
@@ -136,7 +142,10 @@ class TestClass:
                             print(f'   - {setupkey}')
                         print('      - Failed variables: {}'.format(str(failed)[1:-1].replace("'",'')))
                 # Turn output back on
-                com.iprint = 1
+                try:
+                    com.iprint = 1
+                except:
+                    bbb.iprint = 1
                 assert False                    
 
 
