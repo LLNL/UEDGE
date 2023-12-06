@@ -65,7 +65,7 @@ class MakeTests():
         )
 
     def make_unittests(self, outdir, commondir, griddir, inputdir, testfile):
-        from os import getcwd, chdir, walk
+        from os import getcwd, chdir, walk, listdir
         from os.path import abspath, join, exists
         from pathlib import Path
         from shutil import copy, copytree, rmtree
@@ -116,8 +116,10 @@ class MakeTests():
         concat_files(join(default, 'input.py'), join(commondir, inputdir, 'header/default.py'))
         # Add grid data to file, same for all files in inputdir
         concat_files(join(default, 'input.py'), join(datapath, 'default.py'))
-        copy(join(datapath, "gridue"), default)
-        copy(join(datapath, "solution.h5"), default)
+        for file in listdir(datapath):
+            # Files to omit
+            if file not in ['default.py']:
+                copy(join(datapath, file), default)
         confpath = join(commondir, 'tests', 'conftest.py')
         copy(confpath, default)
         # Loop through all folders containing snippets
