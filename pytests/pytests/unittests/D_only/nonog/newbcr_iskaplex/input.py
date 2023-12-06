@@ -41,6 +41,11 @@ bbb.iflcore = 0		#flag=0, fixed Te,i;=1, fixed power on core
 bbb.tcoree = 100.	#core Te 
 bbb.tcorei = 100.	#core Ti
 
+# templates/D_only/inputs/boundary/plates/energy/newbcr_iskaplex.py
+bbb.newbcr = 1
+bbb.iskaplex = 1
+bbb.kappar = 10
+
 # templates/D_only/inputs/boundary/plates/particle/default.py
 bbb.recycp[0] = 0.9		#hydrogen recycling grd.coeff at plates
 

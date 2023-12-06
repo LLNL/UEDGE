@@ -16,21 +16,22 @@ except:
 bbb.mhdgeo = 1 		#use MHD equilibrium
 bbb.gengrid=0		#read mesh from gridue file
 com.geometry = "snull"
-com.isnonog = 1		#nonorthogal differencing used
 
 bbb.methn = 33		#ion continuty eqn
 bbb.methu = 33		#ion parallel momentum eqn
 bbb.methe = 33		#electron energy eqn
 bbb.methi = 33		#ion energy eqn
-bbb.methg = 66		#neutral gas continuity eqn
+bbb.methg = 33		#neutral gas continuity eqn
 
-# templates/D_only/inputs/atoms/default.py
+# templates/D_only/inputs/atoms/fixedngcore.py
 bbb.isupwo[1] = 0
 bbb.ineudif = 2
 com.ngsp=1
 com.nhsp=2
 bbb.ziin[1]=0
 bbb.travis[1] = 0.	#shouldn't be used for neutrals - but to be sure
+bbb.isngon[0] = 1 # Albedo-like pumping at core
+bbb.ngcore[0] = 3.e17
 
 # templates/D_only/inputs/boundary/core/density/default.py
 bbb.isnicore[0] = 1 	#use fixed-density BC on core

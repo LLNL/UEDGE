@@ -1,0 +1,1 @@
+bbb.iflcore = -1		#flag=0, fixed Te,i;=1, fixed power on core

@@ -24,13 +24,15 @@ bbb.methe = 33		#electron energy eqn
 bbb.methi = 33		#ion energy eqn
 bbb.methg = 66		#neutral gas continuity eqn
 
-# templates/D_only/inputs/atoms/default.py
+# templates/D_only/inputs/atoms/0p5albedoc.py
 bbb.isupwo[1] = 0
 bbb.ineudif = 2
 com.ngsp=1
 com.nhsp=2
 bbb.ziin[1]=0
 bbb.travis[1] = 0.	#shouldn't be used for neutrals - but to be sure
+bbb.isngon[0] = 0 # Albedo-like pumping at core
+bbb.albedoc[0] = 0.5
 
 # templates/D_only/inputs/boundary/core/density/default.py
 bbb.isnicore[0] = 1 	#use fixed-density BC on core

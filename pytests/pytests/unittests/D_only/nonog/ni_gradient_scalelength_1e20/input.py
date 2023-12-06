@@ -32,9 +32,9 @@ com.nhsp=2
 bbb.ziin[1]=0
 bbb.travis[1] = 0.	#shouldn't be used for neutrals - but to be sure
 
-# templates/D_only/inputs/boundary/core/density/default.py
-bbb.isnicore[0] = 1 	#use fixed-density BC on core
-bbb.ncore[0] = 2.e19	#hydrogen ion density on core
+# templates/D_only/inputs/boundary/core/density/ni_gradient_scalelength_1e20.py
+bbb.isnicore[0] = 5 	#use fixed-current BC on core w/ gas pumping
+bbb.lynicore[0] = 1e20 	# Zero-gradient
 
 # templates/D_only/inputs/boundary/core/energy/default.py
 bbb.iflcore = 0		#flag=0, fixed Te,i;=1, fixed power on core

@@ -1,0 +1,1 @@
+bbb.isupcore = 1

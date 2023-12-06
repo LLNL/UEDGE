@@ -36,10 +36,10 @@ bbb.travis[1] = 0.	#shouldn't be used for neutrals - but to be sure
 bbb.isnicore[0] = 1 	#use fixed-density BC on core
 bbb.ncore[0] = 2.e19	#hydrogen ion density on core
 
-# templates/D_only/inputs/boundary/core/energy/default.py
-bbb.iflcore = 0		#flag=0, fixed Te,i;=1, fixed power on core
-bbb.tcoree = 100.	#core Te 
-bbb.tcorei = 100.	#core Ti
+# templates/D_only/inputs/boundary/core/energy/corepower.py
+bbb.iflcore = 1		#flag=0, fixed Te,i;=1, fixed power on core
+bbb.pcoree = 1.e6	#core power, e
+bbb.pcorei = 1.e6	#core power, i
 
 # templates/D_only/inputs/boundary/plates/particle/default.py
 bbb.recycp[0] = 0.9		#hydrogen recycling grd.coeff at plates
