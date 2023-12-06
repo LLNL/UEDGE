@@ -32,4 +32,4 @@ jobs:
     - name: Test with pytest
       run: |
         # Create a clean UEDGE instance for every test
-        pytest --forked --tb=native pytests
+        pytest --forked --tb=native pytests/pytests
