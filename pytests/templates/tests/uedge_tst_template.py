@@ -68,9 +68,6 @@ class TestClass:
             from uedge import bbb
             recoverstate(save, refs)
             fnrm = bbb.get_fnrm(bbb.dtreal)
-            print('TEST RESULTS')
-            print('    REFERENCE', refs['fnrm'][()])
-            print('    RESULT', fnrm)
             return isclose(fnrm, refs['fnrm'][()], atol=0.0, rtol=epsilon)
 
 
@@ -104,7 +101,6 @@ class TestClass:
             refs = f['pytests']
             defref = refs['default']
             if matches(f, defref, epsilon):
-                print('TEST SUCCEEDED')
                 # Turn output back on
                 try:
                     com.iprint = 1
