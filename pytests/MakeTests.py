@@ -51,17 +51,17 @@ class MakeTests():
             
     def make_nonog(self):
         self.make_unittests('pytests/unittests', 'templates', 'nonog', 
-            'D_only', 'test_uedge.py'
+            'D_only', 'uedge_tst_template.py'
         )
 
     def make_ortho(self):
         self.make_unittests('pytests/unittests', 'templates', 'ortho', 
-            'D_only', 'test_uedge.py'
+            'D_only', 'uedge_tst_template.py'
         )
 
     def make_slab(self):
         self.make_unittests('pytests/unittests', 'templates', 'slab', 
-            'slab_D_only', 'test_uedge.py'
+            'slab_D_only', 'uedge_tst_template.py'
         )
 
     def make_unittests(self, outdir, commondir, griddir, inputdir, testfile):
@@ -179,7 +179,7 @@ class MakeTests():
             case.join()
 
     def make_fulltests(self):
-        self.make_fulltest('pytests/fulltests', 'templates', 'test_uedge.py')
+        self.make_fulltest('pytests/fulltests', 'templates', 'uedge_tst_template.py')
 
     def make_fulltest(self, outdir, commondir, testfile):
         from os import getcwd, chdir, walk
