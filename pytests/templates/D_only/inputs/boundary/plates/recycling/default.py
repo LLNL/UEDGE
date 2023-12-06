@@ -1,0 +1,1 @@
+bbb.recycp[0] = 0.9		#hydrogen recycling grd.coeff at plates

@@ -6,19 +6,27 @@ need to load this into your Anaconda Python environment with:
 
 Then to run all the tests type:
 
-    pytest --forked
+    pytest --forked --tb=native
 
-To run just the fast tests to:
+To run the test in a specific folder:
 
-    pytest --forked fast_tests
+    pytest --forked --tb=native <path to folder of tests>
 
 To run just a specific test you can either do this while in this directory:
 
-    pytest --forked fast_tests/Slab_geometry
+    pytest --forked --tb=native <path to test folder>
 
 or
 
-    cd fast_tests/Slab_geometry
-    pytest --forked
+    cd <path to test folder>
+    pytest --forked --tb=native
 
 Repeat for any desired test.
+
+
+To make directory of tests based on an updated uedge version,
+execute
+    
+    python MakeTests.py
+
+<MORE DOCUMENTATION TO FOLLOW>

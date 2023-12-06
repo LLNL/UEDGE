@@ -1,0 +1,1 @@
+bbb.recycw[0] = 0.9		#wall recycling if bbb.matwso,i=1

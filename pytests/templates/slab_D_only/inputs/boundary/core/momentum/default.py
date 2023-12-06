@@ -1,0 +1,1 @@
+bbb.isupcore = 0		#parallel vel has bbb.up=0 on core bdry
