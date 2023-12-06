@@ -1,0 +1,4 @@
+#! /bin/bash
+
+pytest --forked --tb=native pytests
+
