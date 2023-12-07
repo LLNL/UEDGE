@@ -68,6 +68,9 @@ class TestClass:
             from uedge import bbb
             recoverstate(save, refs)
             fnrm = bbb.get_fnrm(bbb.dtreal)
+            print('COMPARING VALUES')
+            print('REFERENCE:'.ljust(20), refs['fnrm'][()])
+            print('CURRENT:'.ljust(20), fnrm)
             return isclose(fnrm, refs['fnrm'][()], atol=0.0, rtol=epsilon)
 
 
