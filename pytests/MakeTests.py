@@ -45,10 +45,16 @@ class MakeTests():
 
     def make_all_tests(self):
         self.make_nonog()
+        self.make_carbo()
         self.make_ortho()
         self.make_slab()
         self.make_fulltests()
             
+    def make_carbon(self):
+        self.make_unittests('pytests/unittests', 'templates', 'nonog_carbon', 
+            'D+C', 'uedge_tst_template.py'
+        )
+
     def make_nonog(self):
         self.make_unittests('pytests/unittests', 'templates', 'nonog', 
             'D_only', 'uedge_tst_template.py'
