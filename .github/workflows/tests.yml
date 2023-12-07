@@ -31,8 +31,8 @@ jobs:
         python setup.py install
     - name: Test with pytest from dedicated branch
       uses: actions/checkout@v4
-        with:
-          ref: pytests
+      with:
+        ref: pytests
       run: |
         # Create a clean UEDGE instance for every test
         pytest --forked
