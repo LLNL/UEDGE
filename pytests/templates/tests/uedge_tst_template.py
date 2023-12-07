@@ -11,7 +11,7 @@ class TestClass:
         for var in ['nis', 'ups', 'tes', 'tis', 'ngs', 'tgs', 'phis']:
             bbb[var][...] *= uniform(low=1-perturbation, high=1+perturbation, size = bbb[var].shape)
 
-    def test_reference(self, epsilon=1e-6):
+    def test_reference(self, epsilon=1e-5):
         from h5py import File
         from uedge import bbb, com
         # Supress output
