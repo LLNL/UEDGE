@@ -68,7 +68,8 @@ class TestClass:
             from uedge import bbb
             recoverstate(save, refs)
             fnrm = bbb.get_fnrm(bbb.dtreal)
-            return isclose(fnrm, refs['fnrm'][()], atol=0.0, rtol=epsilon)
+            reffnrm = refs['fnrm'][()]
+            return isclose(fnrm, reffnrm, atol=0.0, rtol=epsilon), fnrm, reffnrm
 
 
         def print_itroub(refs):
@@ -100,7 +101,8 @@ class TestClass:
         with File('solution.h5', 'r') as f:
             refs = f['pytests']
             defref = refs['default']
-            if matches(f, defref, epsilon):
+            match, fnrm, reffnrm = matches(f, defref, epsilon)
+            if match:
                 # Turn output back on
                 try:
                     com.iprint = 1
@@ -108,11 +110,14 @@ class TestClass:
                     bbb.iprint = 1
                 assert True
             else:
+                print('Returned fnrm:'.ljust(30), fnrm)
+                print('Reference fnrm:'.ljust(30), reffnrm)
                 print_itroub(refs)
                 print('Failed equation(s):')
                 for setupkey in ['ni', 'up', 'te', 'ti', 'ng', 'tg', 'phi']:
                     if setupkey in refs:
-                        if matches(f, refs[setupkey], epsilon):
+                        match, fnrm, reffnrm = matches(f, refs[setupkey], epsilon)
+                        if match:
                             continue
                         elif isinstance(refs[setupkey][f'is{setupkey}on'][()], ndarray):
                             species =   refs['casesetup/nisp'][()]*(setupkey == 'ni') +\
@@ -141,7 +146,8 @@ class TestClass:
                                         failed.append(var)
                             failindex = []
                             for s in range(species):
-                                if not matches(f, refs[f'{setupkey}-{s}'], epsilon):
+                                match, fnrm, reffnrm = matches(f, refs[f'{setupkey}-{s}'], epsilon)
+                                if not match:
                                     failindex.append(s)
                             print('   - {} for indices: {}'.format(setupkey, str(failindex)[1:-1]))
                         else:
