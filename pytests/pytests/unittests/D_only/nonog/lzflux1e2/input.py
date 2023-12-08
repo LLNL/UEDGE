@@ -54,6 +54,7 @@ bbb.tedge = 2.		#fixed wall,pf Te,i if istewcon=1, etc
 bbb.istepfc = 3		#=3 sets scale length bbb.lyte
 bbb.lyte = 0.03		#radial scale-length for Te on PF boundary
 
+
 # templates/D_only/inputs/boundary/walls/particle/default.py
 bbb.matwso[0] = 1		#recycle on main-chamber wall
 bbb.isnwcono = 1		#if=1, set bbb.ni[,,com.ny+1]=bbb.nwallo

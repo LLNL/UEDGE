@@ -45,8 +45,9 @@ class MakeTests():
 
     def make_all_tests(self):
         self.make_nonog()
-        self.make_carbo()
-        self.make_ortho()
+        self.make_carbon()
+        # Include orthogonal test as a fulltest to save time
+#        self.make_ortho()
         self.make_slab()
         self.make_fulltests()
             
