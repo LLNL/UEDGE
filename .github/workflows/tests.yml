@@ -32,7 +32,8 @@ jobs:
     - name: Checkout pytest branch
       uses: actions/checkout@v4
       with:
-        ref: origin/pytests
+        ref: pytests
+        repository: LLNL/UEDGE
     - name: Test with pytest from dedicated branch
       run: |
         # Create a clean UEDGE instance for every test
