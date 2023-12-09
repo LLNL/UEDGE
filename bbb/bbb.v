@@ -228,8 +228,6 @@ istiinclg_test integer  /0/          # not often used. for one to turn on Tg
 				     #       turn this switch back to =0.
 isngon(ngspmx) integer  /6*1/        +input #user:turns on (=1) neutral eqn.; index igsp
 istgon(ngspmx) integer  /6*0/        +input #user:turns on (=1) gas enegy eqn.
-ismanufactured(ngspmx) integer  /6*0/        # =0, pwrsorg = 0.0
-                                     #       =1, turns on manufactured source pwrsorg for varification of gas enegy eqn.
 isphion     integer  /0/             +input #user:turns on (=1) potential eqn.
 isphiofft integer  /0/ +input #user:=1 leaves old cur. on & ex=-d(phis)/dx; must be used
                        #with isphion=0

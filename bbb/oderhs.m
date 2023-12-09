@@ -8196,13 +8196,11 @@ c   -------------------------------------------------------------------------
                     # z0ni,r0ni,zwni,rwni,voljcsor,jcvsor,
                     # ix_sjcsor, ix_ejcsor, iy_sjcsor, iy_ejcsor,
                     # thetarot,rcutmin,zcutmin,effvng,
-		    # pwrsorg  #.. manufactured solution
       Use(Phyvar)   # ev
       Use(Bcond)    # islimsor,rlimiter
       Use(Parallv)  # nxg,nyg
       Use(Xpoint_indices)  # ixpt1,ixpt2,iysptrx
       Use(Share)    # nxomit
-      Use(UEpar)    # ismanufactured  #..zml manufactured solution
 
 *  -- local scalars --
       real effvni, effvup, effvpe, effvpi, effvjel, zc, rc, ivolcurt,
@@ -8239,9 +8237,6 @@ c...  Initialize values and arrays
       do igsp = 1, ngsp
 	call s2fill (nx+2, ny+2, 0., volpsorg(0:nx+1,0:ny+1,igsp), 1, nx+2)
         ivolcurgt = ivolcurgt + ivolcurg(igsp)
-        #..zml manufactured solution
-        if (ismanufactured(igsp) .ne. 1)
-     .    call s2fill (nx+2, ny+2, 0., pwrsorg(0:nx+1,0:ny+1,igsp), 1, nx+2)
       enddo        
 cccMER NOTE: generalize the following for multiple x-points
 cc Define index ranges for a localized ion-loss sink; crude & temporary
