@@ -276,7 +276,7 @@ zxpt2msh        real /0.01/ [m] # spacing iy=1 1D vertices reset above ixpt2
 rxpt2msh        real /0.0/  [m] # spacing iy=1 1D vertices reset above ixpt2
 zxpt2psh        real /0.01/ [m] # spacing iy=1 1D vertices reset below ixpt2
 rxpt2psh        real /0.0/  [m] # spacing iy=1 1D vertices reset below ixpt2
-ismpsym         integer /0/     +girdgen # =1 re-constructs "guard" cells at midplane
+ismpsym         integer /0/     +gridgen # =1 re-constructs "guard" cells at midplane
                                 # of "dnbot" via up/down symmetry
 isudsym         integer /0/     +input #=1 up-down symmetric setup (only down part is modeled)
 islimon		integer	/0/ +input
