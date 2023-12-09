@@ -4583,7 +4583,7 @@ c to the friction force between neutrals and ions
      .                       ( -mi(1)*t1*t2*(psor(ix,iy,1)+tv)
      .                         +0.5*mi(1)*t1*t1*
      .                          (psor(ix,iy,1)+psorrg(ix,iy,1)+2*tv) )
-               reseg(ix,iy,1) = reseg(ix,iy,1) + pwrsorg(ix,iy,1)
+               reseg(ix,iy,1) = reseg(ix,iy,1)
      .                            - t0+0.5*mg(1) * ( (t1-t2)*(t1-t2)
      .                                              +temp3+temp4 )
      .                            * (psorrg(ix,iy,1)+tv)
