@@ -32,7 +32,7 @@ jobs:
     - name: Checkout pytest branch
       uses: actions/checkout@v4
       with:
-        ref: pytests
+        ref: origin/pytests
     - name: Test with pytest from dedicated branch
       run: |
         # Create a clean UEDGE instance for every test
