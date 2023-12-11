@@ -1,4 +1,0 @@
-python -i runcase.py
-
-Or, in Python do:
-exec(open("runcase.py").read())
