@@ -110,64 +110,64 @@ class TestClass:
                 except:
                     bbb.iprint = 1
                 assert True
+            elif matches(f, defref, epsilon=1e2*epsilon)[0]:
+                warn(UserWarning("Fnrms outside of tolerances, but similar: {:.5e} vs {:.5e}".format(fnrm, reffnrm)))
+
             else:
                 print('Returned fnrm:'.ljust(30), fnrm)
                 print('Reference fnrm:'.ljust(30), reffnrm)
                 print_itroub(refs)
                 # See if fnrm is a warning or fail
-                if matches(f, defref, epsilon=1e2*epsilon)[0]:
-                    warn(UserWarning("Fnrms outside of tolerances, but similar"))
-                else:
-                    print('Failed equation(s):')
-                    for setupkey in ['ni', 'up', 'te', 'ti', 'ng', 'tg', 'phi']:
-                        if setupkey in refs:
-                            match, fnrm, reffnrm = matches(f, refs[setupkey], epsilon)
-                            if match:
-                                continue
-                            elif isinstance(refs[setupkey][f'is{setupkey}on'][()], ndarray):
-                                species =   refs['casesetup/nisp'][()]*(setupkey == 'ni') +\
-                                            refs['casesetup/nusp'][()]*(setupkey == 'up') +\
-                                            refs['casesetup/ngsp'][()]*(setupkey in ['ng', 'tg'])
-                                # Loop through all variables requested
-                                passed, failed = [], []
-                                for var in self.variables():
-                                    if isinstance(getdata(var), ndarray):
-                                        close = (not False in isclose(getdata(var), refs[f'{setupkey}'][var][()], atol=0.0, rtol=epsilon))
-                                        if close:
-                                            passed.append(var)
-                                        else:
-                                            if len(getdata(var).shape) != 3:
-                                                failed.append(var)
-                                            else:
-                                                for i in range(getdata(var).shape[-1]):
-                                                    if not False in isclose(getdata(var)[:,:,i], refs[f'{setupkey}'][var][:,:,i], atol=0.0, rtol=epsilon):
-                                                        passed.append(f'{var}[{i}]')
-                                                    else:
-                                                        failed.append(f'{var}[{i}]')
+                print('Failed equation(s):')
+                for setupkey in ['ni', 'up', 'te', 'ti', 'ng', 'tg', 'phi']:
+                    if setupkey in refs:
+                        match, fnrm, reffnrm = matches(f, refs[setupkey], epsilon)
+                        if match:
+                            continue
+                        elif isinstance(refs[setupkey][f'is{setupkey}on'][()], ndarray):
+                            species =   refs['casesetup/nisp'][()]*(setupkey == 'ni') +\
+                                        refs['casesetup/nusp'][()]*(setupkey == 'up') +\
+                                        refs['casesetup/ngsp'][()]*(setupkey in ['ng', 'tg'])
+                            # Loop through all variables requested
+                            passed, failed = [], []
+                            for var in self.variables():
+                                if isinstance(getdata(var), ndarray):
+                                    close = (not False in isclose(getdata(var), refs[f'{setupkey}'][var][()], atol=0.0, rtol=epsilon))
+                                    if close:
+                                        passed.append(var)
                                     else:
-                                        if isclose(getdata(var), refs[f'{setupkey}'][var][()], atol=0.0, rtol=epsilon):
-                                            passed.append(var)
-                                        else:
+                                        if len(getdata(var).shape) != 3:
                                             failed.append(var)
-                                failindex = []
-                                for s in range(species):
-                                    match, fnrm, reffnrm = matches(f, refs[f'{setupkey}-{s}'], epsilon)
-                                    if not match:
-                                        failindex.append(s)
-                                print('   - {} for indices: {}'.format(setupkey, str(failindex)[1:-1]))
-                                print('      - Failed variables: {}'.format(str(failed)[1:-1].replace("'",'')))
-                            else:
-                                print(f'   - {setupkey}')
-                                print('      - Failed variables: {}'.format(str(failed)[1:-1].replace("'",'')))
-                    # Turn output back on
-                    try:
-                        com.iprint = 1
-                    except:
-                        bbb.iprint = 1
-                    # TODO: Raise warning only if match within 1e-2/1e-3, fail if 
-                    # outside 1e-5? Then, tests will pass with warnings if there
-                    # are discrepancies that can be attributed to numerical errors.
-                    assert False                    
+                                        else:
+                                            for i in range(getdata(var).shape[-1]):
+                                                if not False in isclose(getdata(var)[:,:,i], refs[f'{setupkey}'][var][:,:,i], atol=0.0, rtol=epsilon):
+                                                    passed.append(f'{var}[{i}]')
+                                                else:
+                                                    failed.append(f'{var}[{i}]')
+                                else:
+                                    if isclose(getdata(var), refs[f'{setupkey}'][var][()], atol=0.0, rtol=epsilon):
+                                        passed.append(var)
+                                    else:
+                                        failed.append(var)
+                            failindex = []
+                            for s in range(species):
+                                match, fnrm, reffnrm = matches(f, refs[f'{setupkey}-{s}'], epsilon)
+                                if not match:
+                                    failindex.append(s)
+                            print('   - {} for indices: {}'.format(setupkey, str(failindex)[1:-1]))
+                            print('      - Failed variables: {}'.format(str(failed)[1:-1].replace("'",'')))
+                        else:
+                            print(f'   - {setupkey}')
+                            print('      - Failed variables: {}'.format(str(failed)[1:-1].replace("'",'')))
+                # Turn output back on
+                try:
+                    com.iprint = 1
+                except:
+                    bbb.iprint = 1
+                # TODO: Raise warning only if match within 1e-2/1e-3, fail if 
+                # outside 1e-5? Then, tests will pass with warnings if there
+                # are discrepancies that can be attributed to numerical errors.
+                assert False                    
 
 
 
