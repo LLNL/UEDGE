@@ -24,7 +24,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install forthon mppl numpy h5py
         python -m pip install flake8
-        python -m pip install pytest-forked pytest-xdist
+        python -m pip install pytest-isolate pytest-xdist
     - name: Build UEDGE
       run: |
         python setup.py build
@@ -37,4 +37,4 @@ jobs:
     - name: Test with pytest from dedicated branch
       run: |
         # Create a clean UEDGE instance for every test
-        pytest --forked --tb=native pytests/pytests
+        pytest --isolate --tb=native pytests
