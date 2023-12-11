@@ -1,4 +1,4 @@
 #! /bin/bash
 
-pytest --forked --tb=native pytests
+pytest --isolate --tb=native pytests
 
