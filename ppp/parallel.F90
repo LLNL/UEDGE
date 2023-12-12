@@ -188,7 +188,7 @@ end subroutine jac_calc_parallel
     use Timing,only:istimingon,ttjstor,ttotjf,ttimpjf
     use Math_problem_size,only:neqmx,numvar
     use Indexes,only:igyl,iseqalg,idxphi
-    use Variable_perturbation,only:delperturb,dylconst,isjacreset
+    use Variable_perturbation,only:del,dylconst,isjacreset
     use Jacobian_clipping,only:jaccliplim,istopjac,irstop,icstop
     use Ynorm,only:suscal,sfscal
     use UEpar,only:isphion,isnewpot,svrpkg,isbcwdt
@@ -268,7 +268,7 @@ end subroutine jac_calc_parallel
         !     than that typical size.
 
         yold = yl(iv)
-        dyl = delperturb * (abs(yold) + dylconst / suscal(iv))
+        dyl = del * (abs(yold) + dylconst / suscal(iv))
         yl(iv) = yold + dyl
 
         !Calculate right-hand sides near location of perturbed variable.

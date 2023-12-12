@@ -11,7 +11,7 @@ from Forthon.compilers import FCompiler
 import getopt
 import logging
 
-version='8.0.5.0'
+version='8.0.5.0omp'
 
 try:
     os.environ['PATH'] += os.pathsep + site.USER_BASE + '/bin'
@@ -33,6 +33,7 @@ debug = 0
 fcomp = None
 parallel = 0
 petsc = 0
+OMP = False
 
 for o in optlist:
     if o[0] == '-g':
@@ -47,6 +48,9 @@ for o in optlist:
         petsc = 1
     elif o[0] == '--omp':
         os.putenv("OMP","1")
+        OMP = True
+os.putenv("OMP","1")
+OMP = True
         
 
 
@@ -95,7 +99,7 @@ class uedgeClean(build):
                 status = call(['make', '-f', 'Makefile.PETSc', 'clean'])
             if status != 0: raise SystemExit("Clean failure")
 
-uedgepkgs = ['aph', 'api', 'bbb', 'com', 'flx', 'grd', 'svr', 'wdf', 'ncl']
+uedgepkgs = ['aph', 'api', 'bbb', 'com', 'flx', 'grd', 'svr', 'wdf', 'ncl', 'ppp']
 
 
 def makeobjects(pkg):
