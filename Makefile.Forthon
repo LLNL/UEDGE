@@ -3,7 +3,6 @@ DEBUG = -v --fargs "-Ofast -DFORTHON -cpp" # -g #--fargs "-C=array" #--fargs "-C
 SO = so
 PUBLICHOME = 
 BUILDDIR = build
-DIRLIST = com aph api bbb flx grd svr wdf ncl ppp
 MYPYTHON = python3
 FORTHON = Forthon3
 BUILDBASE = -v --build-base $(BUILDDIR)
@@ -15,7 +14,12 @@ INSTALLARGS = --pkgbase uedge $(BUILDBASE)
 # PETSC-UEDGE =
 # PETSC-COM =
 
-all: mppl2f90 $(BUILDDIR)/compydep $(BUILDDIR)/grdpydep $(BUILDDIR)/flxpydep $(BUILDDIR)/bbbpydep $(BUILDDIR)/svrpydep $(BUILDDIR)/wdfpydep $(BUILDDIR)/aphpydep $(BUILDDIR)/apipydep $(BUILDDIR)/nclpydep $(BUILDDIR)/ppppydep
+all: serial
+
+serial: mppl2f90 $(BUILDDIR)/compydep $(BUILDDIR)/grdpydep $(BUILDDIR)/flxpydep $(BUILDDIR)/bbbpydep $(BUILDDIR)/svrpydep $(BUILDDIR)/wdfpydep $(BUILDDIR)/aphpydep $(BUILDDIR)/apipydep $(BUILDDIR)/nclpydep 
+	rm -f uedgeC.so
+
+omp: mppl2f90 $(BUILDDIR)/compydep $(BUILDDIR)/grdpydep $(BUILDDIR)/flxpydep $(BUILDDIR)/bbbpydep $(BUILDDIR)/svrpydep $(BUILDDIR)/wdfpydep $(BUILDDIR)/aphpydep $(BUILDDIR)/apipydep $(BUILDDIR)/nclpydep $(BUILDDIR)/ppppydep
 	rm -f uedgeC.so
 
 mppl2f90:
