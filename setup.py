@@ -33,7 +33,7 @@ debug = 0
 fcomp = None
 parallel = 0
 petsc = 0
-OMP = False
+omp = False
 
 for o in optlist:
     if o[0] == '-g':
@@ -48,10 +48,13 @@ for o in optlist:
         petsc = 1
     elif o[0] == '--omp':
         os.putenv("OMP","1")
-        OMP = True
-os.putenv("OMP","1")
-OMP = True
+        omp = True
         
+# This makes the --omp always on.
+# Remove, or comment out, the next two lines to make 
+# the --omp switch active.
+os.putenv("OMP","1")
+omp = True
 
 
 if petsc == 1 and os.getenv('PETSC_DIR') == None:
@@ -80,10 +83,12 @@ class uedgeBuild(build):
         if sys.hexversion < 0x03000000:
             raise SystemExit("Python versions < 3 not supported")
         else:
-            if petsc == 0:
-                status = call(['make', '-f','Makefile.Forthon'])
-            else:
+            if omp:
+                status = call(['make', '-f','Makefile.Forthon','omp'])
+            elif petsc == 1:
                 status = call(['make', '-f', 'Makefile.PETSc'])
+            else:
+                status = call(['make', '-f','Makefile.Forthon','serial'])
             if status != 0: raise SystemExit("Build failure")
             build.run(self)
 
@@ -98,8 +103,6 @@ class uedgeClean(build):
             else:
                 status = call(['make', '-f', 'Makefile.PETSc', 'clean'])
             if status != 0: raise SystemExit("Clean failure")
-
-uedgepkgs = ['aph', 'api', 'bbb', 'com', 'flx', 'grd', 'svr', 'wdf', 'ncl', 'ppp']
 
 
 def makeobjects(pkg):
