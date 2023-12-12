@@ -41,7 +41,7 @@ cdtr      include    'cyield'
 
       Use(Cyield)   # ceth,cetf,cq,ntars,cidata
       Use(Math_problem_size) # neqmx
-      Use(Lsode)    # iprint
+      Use(Flags)    # iprint
 
       real ETH(7,12), ETF(7,12), Q(7,12), EBD(12)
       LOGICAL IDATA(7,12)

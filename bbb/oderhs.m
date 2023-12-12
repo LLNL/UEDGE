@@ -8419,6 +8419,7 @@ c ... Common blocks:
       Use(Time_dep_nwt)            # nufak,dtreal,ylodt,dtuse
       Use(Selec)                   # yinc
       Use(Jacaux)                  # ExtendedJacPhi
+      Use(Flags)                  # ExtendedJacPhi
 
 c ... Functions:
       logical tstguardc
@@ -8440,7 +8441,7 @@ c ... Pause from BASIS if a ctrl_c is typed
 
       ijac(ig) = ijac(ig) + 1
 
-      if (svrpkg.eq.'nksol') write(*,*) ' Updating Jacobian, npe =  ', 
+      if ((svrpkg.eq.'nksol') .and. (iprint .ne. 0)) write(*,*) ' Updating Jacobian, npe =  ', 
      .                                                          ijac(ig)
 
 c ... Set up diagnostic arrays for debugging

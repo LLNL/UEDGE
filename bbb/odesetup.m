@@ -6493,6 +6493,7 @@ c ---------------------------------------------------------------------c
       Use(UEint)               # isallloc
       Use(Rccoef)              # isoutwall
       Use(Coefeq)              # oldseec, override
+      Use(Flags)               # iprint
 c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
 
       integer ifake  #forces Forthon scripts to put implicit none above here
@@ -6517,7 +6518,7 @@ c_mpi         call MPI_BARRIER(uedgeComm, ierr)
            ifexmain = 1
            call allocate
            ifexmain = 0
-	   if (icall == 0) write(*,*) 'UEDGE ',uedge_ver
+	   if ((icall == 0) .and. (iprint .ne. 0)) write(*,*) 'UEDGE ',uedge_ver
            icall = 1
          elseif (ismpion.eq.1 .and. icall==0) then
            call init_pll
@@ -6526,32 +6527,34 @@ c_mpi         call MPI_BARRIER(uedgeComm, ierr)
          endif
 
 c   Check model switches for UEDGE updates/bugs
-      if (oldseec .gt. 0) then
-            write(*,*) "        **** WARNING ****"
-            write(*,*) "Using old, deprecated seec model"
-            write(*,*) "Set switch oldseec = 0 to use new model "
-            write(*,*) "The old  model will be removed from"
-            write(*,*) "future versions of UEDGE"
-            write(*,*) "Please set oldseec = 0 "
-            write(*,*) ""
-            if (override .eq. 0) then
-                write(*,*) "To use the deprecated model oldseec = 1, manually"
-                write(*,*) "override the settings by using override=1"
-                call xerrab("Error: oldseec=1 used without override=1")
-            endif
-      endif
-      if (jhswitch .gt. 0) then
-            write(*,*) "           **** WARNING ****"
-            write(*,*) "Switch jhswitch > 0 is deprecated and should not"
-            write(*,*) "be used. The option jhswitch > 0 will be removed" 
-            write(*,*) "from future versions of UEDGE."
-            write(*,*) "Please set jhswitch = 0 "
-            write(*,*) ""
-            if (override .eq. 0) then
-                write(*,*) "To use the deprecated model jhswitch > 0, manually"
-                write(*,*) "override the settings by using override=1"
-                call xerrab("Error: jhswitch>0 used without override=1")
-            endif
+      if (iprint .ne. 0) then
+          if (oldseec .gt. 0) then
+                write(*,*) "        **** WARNING ****"
+                write(*,*) "Using old, deprecated seec model"
+                write(*,*) "Set switch oldseec = 0 to use new model "
+                write(*,*) "The old  model will be removed from"
+                write(*,*) "future versions of UEDGE"
+                write(*,*) "Please set oldseec = 0 "
+                write(*,*) ""
+                if (override .eq. 0) then
+                    write(*,*) "To use the deprecated model oldseec = 1, manually"
+                    write(*,*) "override the settings by using override=1"
+                    call xerrab("Error: oldseec=1 used without override=1")
+                endif
+          endif
+          if (jhswitch .gt. 0) then
+                write(*,*) "           **** WARNING ****"
+                write(*,*) "Switch jhswitch > 0 is deprecated and should not"
+                write(*,*) "be used. The option jhswitch > 0 will be removed" 
+                write(*,*) "from future versions of UEDGE."
+                write(*,*) "Please set jhswitch = 0 "
+                write(*,*) ""
+                if (override .eq. 0) then
+                    write(*,*) "To use the deprecated model jhswitch > 0, manually"
+                    write(*,*) "override the settings by using override=1"
+                    call xerrab("Error: jhswitch>0 used without override=1")
+                endif
+          endif
       endif
 
 
@@ -6615,7 +6618,7 @@ c ...    If a parallel run, send and gather data to PE0 first
                   call comp_vertex_vals  # gen plasma/neut values at rm,zm(,,4)
                endif
             endif
-         write(6,*) "Interpolants created; mype =", mype
+        if (iprint .ne. 0) write(6,*) "Interpolants created; mype =", mype
          endif
 
   100 continue

@@ -696,3 +696,7 @@ tanh_multi(i:integer,a:real,j:integer,b:real,fname:string,d:real) subroutine
         # in b       psi values at eval pts
         # in fname   the filename
         # out d      values of fit
+
+***** Flags:
+# Common flags used by UEDGE
+iprint  integer     /1/     # Flag controlling whether to be verbose or not
