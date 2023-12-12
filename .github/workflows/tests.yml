@@ -25,21 +25,15 @@ jobs:
         python -m pip install forthon mppl numpy h5py
         python -m pip install flake8
         python -m pip install pytest-isolate pytest-xdist
-        python -m pip install uedge
-#    - name: Checkout develop branch
-#      uses: actions/checkout@v4
-#      with:
-#        ref: develop
-#        repository: LLNL/UEDGE 
-#    - name: Build UEDGE
-#      run: |
-#        python setup.py build
-#        python setup.py install
-#    - name: Return to pytests branch
-#      uses: actions/checkout@v4
-#      with:
-#        ref: pytests
-#        repository: LLNL/UEDGE 
+    - name: Build UEDGE
+      run: |
+        python setup.py build
+        python setup.py install
+    - name: Return to pytests branch
+      uses: actions/checkout@v4
+      with:
+        ref: pytests
+        repository: LLNL/UEDGE 
     - name: Test with pytest
       run: |
         # Create a clean UEDGE instance for every test
