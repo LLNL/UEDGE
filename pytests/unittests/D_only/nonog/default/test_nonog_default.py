@@ -111,7 +111,7 @@ class TestClass:
                     bbb.iprint = 1
                 assert True
             elif matches(f, defref, epsilon=1e2*epsilon)[0]:
-                warn(UserWarning("Fnrms outside of tolerances, but similar: {:.5e} vs {:.5e}".format(fnrm, reffnrm)))
+                warn(UserWarning("Fnrms outside of tolerances, but similar:\n  Reference:   {:.8e}\n  Returned:    {:.8e}".format(fnrm, reffnrm)))
 
             else:
                 print('Returned fnrm:'.ljust(30), fnrm)
