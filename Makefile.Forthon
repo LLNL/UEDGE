@@ -3,7 +3,7 @@ DEBUG = -v --fargs "-Ofast -DFORTHON -cpp" # -g #--fargs "-C=array" #--fargs "-C
 SO = so
 PUBLICHOME = 
 BUILDDIR = build
-DIRLIST = com aph api bbb flx grd svr wdf ncl
+DIRLIST = com aph api bbb flx grd svr wdf ncl ppp
 MYPYTHON = python3
 FORTHON = Forthon3
 BUILDBASE = -v --build-base $(BUILDDIR)
@@ -15,7 +15,7 @@ INSTALLARGS = --pkgbase uedge $(BUILDBASE)
 # PETSC-UEDGE =
 # PETSC-COM =
 
-all: mppl2f90 $(BUILDDIR)/compydep $(BUILDDIR)/grdpydep $(BUILDDIR)/flxpydep $(BUILDDIR)/bbbpydep $(BUILDDIR)/svrpydep $(BUILDDIR)/wdfpydep $(BUILDDIR)/aphpydep $(BUILDDIR)/apipydep $(BUILDDIR)/nclpydep
+all: mppl2f90 $(BUILDDIR)/compydep $(BUILDDIR)/grdpydep $(BUILDDIR)/flxpydep $(BUILDDIR)/bbbpydep $(BUILDDIR)/svrpydep $(BUILDDIR)/wdfpydep $(BUILDDIR)/aphpydep $(BUILDDIR)/apipydep $(BUILDDIR)/nclpydep $(BUILDDIR)/ppppydep
 	rm -f uedgeC.so
 
 mppl2f90:
@@ -55,6 +55,10 @@ $(BUILDDIR)/wdfpydep: wdf/wdf.F wdf/wdf.v
 
 $(BUILDDIR)/nclpydep: ncl/ncl_driver.m ncl/ncl.v ncl/nclass_mod.f ncl/rarray_copy.f ncl/rarray_sum.f ncl/rarray_zero.f  ncl/u_erf.f ncl/u_lu_backsub.f ncl/u_lu_decomp.f ncl/write_mod.f
 	$(FORTHON) -a $(INSTALLARGS)  -a $(FCOMP) $(DEBUG) --interfacefile ncl/ncl.v -f ncl/ncl_driver.F ncl ncl/nclass_mod.f ncl/rarray_copy.f ncl/rarray_sum.f ncl/rarray_zero.f  ncl/u_erf.f ncl/u_lu_backsub.f ncl/u_lu_decomp.f ncl/write_mod.f
+
+$(BUILDDIR)/ppppydep: $(BUILDDIR)/compydep $(BUILDDIR)/bbbpydep ppp/parallel.F90 ppp/omp_parallel.F90 ppp/mpi_parallel.F90 ppp/debug_parallel.F90 ppp/hybrid_parallel.F90 ppp/ppp.v com/com.v bbb/bbb.v
+	$(FORTHON) -a $(INSTALLARGS)  -a $(FCOMP) $(DEBUG) --interfacefile ppp/ppp.v --macros com/com.v --macros bbb/bbb.v -d com -d bbb -f ppp/parallel.F90 ppp ppp/omp_parallel.F90 ppp/mpi_parallel.F90 ppp/debug_parallel.F90 ppp/hybrid_parallel.F90
+	touch $@
 
 
 public: all

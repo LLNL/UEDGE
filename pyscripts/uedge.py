@@ -38,6 +38,7 @@ if sys.hexversion >= 0x03000000:
     from .apipy import api
     from .aphpy import aph
     from .nclpy import ncl
+    from .ppppy import ppp
 else:
     from wdfpy import wdf
     from grdpy import grd
@@ -48,6 +49,7 @@ else:
     from aphpy import aph
     from compy import com
     from nclpy import ncl
+    from ppppy import ppp
 
 import time
 import os.path

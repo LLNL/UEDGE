@@ -353,6 +353,11 @@ c     if necessary.
       else
         nnzmx = lenpfac*neq
       endif
+
+c...  Init OMP/MPI/Hybrid variables after assignment of nnzmx,
+c...   which is used in InitOMP/InitMPI/InitHybrid (added by  J.Guterl)
+c!omp   call InitParallel
+
       if (premeth .eq. 'ilut') then
          lwp = nnzmx + lenplufac*neq   # extra space for fill in
          lenplumx = lwp
