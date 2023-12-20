@@ -9,13 +9,28 @@ import string
 import site
 from Forthon.compilers import FCompiler
 import getopt
-import logging
 
-version='8.0.5.0omp'
+version='8.0.5.0'
+
+GitHash=''
+GitRepo=''
+GitBranch=''
+GitTag=''
+UEDGEfolder=os.getcwd()
+try:
+    import git #gitpython
+    Repo=git.Repo()
+    GitHash=Repo.head.object.hexsha
+    GitBranch=Repo.active_branch.name
+    GitRepo=Repo.remotes.origin.url
+    GitTag = next((tag for tag in repo.tags if tag.commit == repo.head.commit), None)
+
+except: 
+    pass
+
 
 try:
     os.environ['PATH'] += os.pathsep + site.USER_BASE + '/bin'
-    import setuptools
     import distutils
     from distutils.core import setup
     from distutils.core import Extension
@@ -33,7 +48,15 @@ debug = 0
 fcomp = None
 parallel = 0
 petsc = 0
-omp = False
+omp=False
+try:
+    if GitBranch == 'omp': omp=True
+except:
+    pass
+#
+# while working on this let's force the omp flag
+#
+omp=True
 
 for o in optlist:
     if o[0] == '-g':
@@ -47,14 +70,33 @@ for o in optlist:
     elif o[0] == '--petsc':
         petsc = 1
     elif o[0] == '--omp':
-        os.putenv("OMP","1")
         omp = True
-        
-# This makes the --omp always on.
-# Remove, or comment out, the next two lines to make 
-# the --omp switch active.
-os.putenv("OMP","1")
-omp = True
+
+if omp: os.putenv("OMP","1")
+
+CARGS=[]
+FARGS=['-g -fmax-errors=15', '-DFORTHON','-cpp','-Wconversion','-fimplicit-none']
+if omp:
+    FARGS=FARGS+['-fopenmp']
+    CARGS=CARGS+['-fopenmp']
+    OMPargs=['--omp']
+else:
+    OMPargs=[]
+OMPFLAGS='OMPFLAGS = {}'.format(' '.join(OMPargs))
+
+# Flags for makefile. Flags are easier to handle from setup.py and it prevents dealing with the makefile.)
+
+FARGSDEBUG=['-fbacktrace','-ffree-line-length-0', '-fcheck=all','-ffpe-trap=invalid,overflow,underflow -finit-real=snan','-Og']
+FARGSOPT=['-Ofast']
+
+if debug==1:
+    FARGS=FARGS+FARGSDEBUG
+else:
+    FARGS=FARGS+FARGSOPT
+    
+FLAGS ='DEBUG = -v --fargs "{}"'.format(' '.join(FARGS))
+if CARGS!=[]:
+    FLAGS =FLAGS+' --cargs="{}"'.format(' '.join(CARGS))
 
 
 if petsc == 1 and os.getenv('PETSC_DIR') == None:
@@ -74,9 +116,6 @@ fcompiler = FCompiler(machine=machine,
 class uedgeInstall(build):
     def run(self):
        install.run(self)
-       logging.basicConfig(stream=sys.stderr,level=logging.INFO)
-       log = logging.getLogger()
-       log.info("test")
 class uedgeBuild(build):
     def run(self):
         # with python2 everything is put into a single uedgeC.so file
@@ -84,11 +123,11 @@ class uedgeBuild(build):
             raise SystemExit("Python versions < 3 not supported")
         else:
             if omp:
-                status = call(['make', '-f','Makefile.Forthon','omp'])
+                status = call(['make',FLAGS,OMPFLAGS, '-f','Makefile.Forthon','omp'])
             elif petsc == 1:
                 status = call(['make', '-f', 'Makefile.PETSc'])
             else:
-                status = call(['make', '-f','Makefile.Forthon','serial'])
+                status = call(['make',FLAGS, '-f','Makefile.Forthon'])
             if status != 0: raise SystemExit("Build failure")
             build.run(self)
 
@@ -103,6 +142,8 @@ class uedgeClean(build):
             else:
                 status = call(['make', '-f', 'Makefile.PETSc', 'clean'])
             if status != 0: raise SystemExit("Clean failure")
+
+uedgepkgs = ['aph', 'api', 'bbb', 'com', 'flx', 'grd', 'svr', 'wdf', 'ncl']
 
 
 def makeobjects(pkg):
@@ -152,6 +193,12 @@ if parallel:
 
 with open('pyscripts/__version__.py','w') as ff:
     ff.write("__version__ = '%s'\n"%version)
+    ff.write("GitTag='{}'\n".format(GitTag))
+    ff.write("GitRepo='{}'\n".format(GitRepo))
+    ff.write("GitBranch='{}'\n".format(GitBranch))
+    ff.write("GitHash='{}'\n".format(GitHash))
+    ff.write("uname_version='{}'\n".format(os.uname().version))
+
 with open('pyscripts/__src__.py','w') as ff:
     ff.write("__src__ = '%s'\n"%os.getcwd())
 
@@ -189,7 +236,7 @@ setup(name="uedge",
                              libraries=libraries,
                              define_macros=define_macros,
                              extra_objects=uedgeobjects,
-                             extra_link_args=['-g','-DFORTHON'] +
+                             extra_link_args=CARGS+['-g','-DFORTHON'] +
                              fcompiler.extra_link_args,
                              extra_compile_args=fcompiler.extra_compile_args
                              )],

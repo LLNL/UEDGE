@@ -316,7 +316,7 @@ subroutine OMPJacBuilder(neq, t, yl,yldot00, ml,mu,wk,iJacCol,rJacElem,iJacRow,n
     DOUBLE PRECISION :: TimeThread
 
     if (OMPJacDebug.gt.0)write(*,*) OMPJacStamp,' Copying data....'
-    call pandf1 (-1, -1, 0, neq, 0, yl, ylcopy)
+    call pandf1 (-1, -1, 0, neq, 0.0, yl, ylcopy)
     if (OMPCopyArray.gt.0) then
         if (OMPJacDebug.gt.0)write(*,*) OMPJacStamp,' Copying array....'
         call OmpCopyPointerbbb

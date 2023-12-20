@@ -1,1 +1,6 @@
 __version__ = '8.0.5.0'
+GitTag=''
+GitRepo='https://github.com/LLNL/UEDGE'
+GitBranch='omp'
+GitHash='744d8b25ee7e7c3c676d5014f23d0779c749d128'
+uname_version='Darwin Kernel Version 22.6.0: Tue Nov  7 21:42:27 PST 2023; root:xnu-8796.141.3.702.9~2/RELEASE_ARM64_T8103'

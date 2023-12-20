@@ -2,12 +2,12 @@ from .uedge import *
 from os import path
 from pathlib import Path
 try:
-    from uedge.__version__ import __version__
+    from uedge.__version__ import __version__,GitTag, GitRepo, GitBranch, GitHash,uname_version
     from uedge.__src__ import __src__
     import uedge.checkver
 except:
     try:
-        from __version__ import __version__
+        from __version__ import __version__,GitTag, GitRepo, GitBranch, GitHash,uname_version
         from __src__ import __src__
         import checkver
     except:
