@@ -937,7 +937,7 @@ ccc	 ymaxf0(ns)=zseps*1.1
          xminf0(ns) = max( xlbnd, rseps-xoverlap(2)*dxefit )
          xmaxf0(ns) = xubnd
 	 yminf0(ns) = ylbnd
-	 ymaxf0(ns) = zseps
+	 ymaxf0(ns) = ymax4fac*zseps #-MVU 19-dec-2023, adding ymax4fac	/1.0/
 # Set initial search position and direction:
          if (istcvon==1) then
             write(*,*) "**WARNING: istcvon=1 OBSOLETE; setting altsearch=2"
