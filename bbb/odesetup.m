@@ -6555,6 +6555,13 @@ c   Check model switches for UEDGE updates/bugs
                     call xerrab("Error: jhswitch>0 used without override=1")
                 endif
           endif
+          if (isoldalbarea .ne. 0) then
+                write(*,*) "           **** WARNING ****"
+                write(*,*) "Switch isoldalbarea > 0 is deprecated and should not"
+                write(*,*) "be used. The option isoldalbarea > 0 will be removed" 
+                write(*,*) "from future versions of UEDGE."
+                write(*,*) "Please set isoldalbarea = 0 "
+          endif
       endif
 
 

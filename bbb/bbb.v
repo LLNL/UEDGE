@@ -885,6 +885,12 @@ rdatlb(ngspmx,50,nxptmx) _real      /0./ +maybeinput #inner recycp data for each
 rdatrb(ngspmx,50,nxptmx) _real      /0./ +maybeinput #outer recycp data for each ydatrb
 alblb(0:ny+1,ngspmx,nxptmx) _real        +input #inner plate albedo; used if <1 (calc)
 albrb(0:ny+1,ngspmx,nxptmx) _real        +input #outer plate albedo; used if <1 (calc)
+areapl          real   /0./ +work   # Work variable for plate projection area for 
+                                    # albedo-like recycling
+isoldalbarea    real   /1./ +input # Switch whether to use old (wrong) albedo
+                                    # area which is perpendicular-to-poloidal flux
+                                    # tube area (=1) or the correct area projected
+                                    # onto the target plate (=0)
 albedo_by_user   integer            /0/  +input #if=1, user fills albedoo,i & albdlb,rb
 fngxslb(0:ny+1,ngspmx,nxptmx) _real [1/s]+input #inner plt liq vapor gas sour. if sputtlb>0
 fngxsrb(0:ny+1,ngspmx,nxptmx) _real [1/s]+input #outer plt liq vapor gas sour. if sputtlb>0
