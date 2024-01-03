@@ -89,7 +89,7 @@ plugins:
 
 include: ['_pages', '_posts']
 
-paginate: 6
+paginate: 10
 paginate_path: /_posts/page:num
 
 # Exclude these files from your production _site
