@@ -1,7 +1,7 @@
 ---
 layout: page
-title: About
-permalink: /about/
+title: Placeholder
+permalink: /placeholder1/
 ---
 
 # Title
