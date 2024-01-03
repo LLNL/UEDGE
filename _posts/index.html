@@ -7,17 +7,11 @@ title: Changelog
   {% for post in paginator.posts %}
     <article class="post">
       <a href="{{ site.baseurl }}{{ post.url }}">
-        <h1>{{ post.title }}</h1>
-
-        <div>
-          <p class="post_date">{{ post.date | date: "%B %e, %Y" }}</p>
-        </div>
+        <h1>{{ post.title }}</h1><p class="post_date">{{ post.date | date: "%B %e, %Y" }}</p>
       </a>
       <div class="entry">
-        {{ post.excerpt }}
+        {{ post.excerpt }} - <a href="{{ site.baseurl }}{{ post.url }}">Read More</a>
       </div>
-
-      <a href="{{ site.baseurl }}{{ post.url }}" class="read-more">Read More</a>
     </article>
   {% endfor %}
 
