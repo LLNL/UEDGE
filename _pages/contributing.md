@@ -3,13 +3,16 @@ layout: page
 title: Contributing
 permalink: /contributing/
 ---
+* TOC
+{:toc}
 
-## Best practices
 
-### Develop on public forks
+# Best practices
 
-### Supply working examples
+## Develop on public forks
 
-### Allow maintainers to edit PRs
+## Supply working examples
 
-## Testing 
+## Allow maintainers to edit PRs
+
+# Testing 

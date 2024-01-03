@@ -4,16 +4,25 @@ title: Getting started with UEDGE
 permalink: /getting-started/
 ---
 
-## Installation
+* <h6>TOC</h6>
+{:toc}
 
-### Pip install
+# Branches and versions
 
-### Building UEDGE
+## Master branch
 
-## Quickstart Guide
+## Develop branch
 
-## Instructions
+# Installation
 
-## UEDGE Manual
+## Pip install
+
+## Building UEDGE
+
+# Quickstart Guide
+
+# Instructions
+
+# UEDGE Manual
 
 
