@@ -1655,7 +1655,7 @@ c...  now do the gas and temperatures
                   yldot(iv) = -nurlxg * ( fngx(0,iy,igsp) -
      .                                           fngxlb_use(iy,igsp,1) +
      .                 fngxslb(iy,igsp,1) + recylb(iy,igsp,1)*flux_inc +
-     .                  (1-alblb(iy,igsp,1))*ng(1,iy,igsp)*vxn*sx(0,iy) ) 
+     .               (1-alblb(iy,igsp,1))*ng(1,iy,igsp)*vxn*sxnp(0,iy) ) 
      .                                     / (vpnorm*n0g(igsp)*sx(0,iy))
                endif
                if (is1D_gbx.eq.1) yldot(iv) = nurlxg*(ng(1,iy,igsp) -
@@ -1728,7 +1728,7 @@ c     First, the density equations --
                   yldot(iv1) = -nurlxg *
      .             (fnix(ixt,iy,ifld) + recylb(iy,1,jx)*fnix(ixt,iy,1) -
      .                                               fngxlb_use(iy,1,jx) +
-     .              (1-alblb(iy,1,jx))*ni(ixt1,iy,ifld)*vxn*sx(ixt,iy) -
+     .              (1-alblb(iy,1,jx))*ni(ixt1,iy,ifld)*vxn*sxnp(ixt,iy) -
      .                 fngxslb(iy,1,jx) ) / (vpnorm*n0(ifld)*sx(ixt,iy))
                 elseif (recylb(iy,1,jx) <=  0. .and. 
      .                  recylb(iy,1,jx) >= -1.) then  # recylb is albedo
@@ -1999,7 +1999,7 @@ c       Do hydrogenic gas equations --
                yldot(iv) = -nurlxg * ( fngx(ixt,iy,igsp) - 
      .                                           fngxlb_use(iy,igsp,jx) -
      .               fngxslb(iy,igsp,jx) + recylb(iy,igsp,jx)*flux_inc +
-     .           (1-alblb(iy,igsp,jx))*ng(ixt1,iy,igsp)*vxn*sx(ixt,iy) )
+     .           (1-alblb(iy,igsp,jx))*ng(ixt1,iy,igsp)*vxn*sxnp(ixt,iy) )
      .                                   / (vpnorm*n0g(igsp)*sx(ixt,iy))
              elseif (recylb(iy,igsp,jx) <=  0. .and.
      .               recylb(iy,igsp,jx) >= -1.) then # recylb is albedo
@@ -2085,7 +2085,7 @@ c       sputtered impurities plus recycled impurities from all charge states.
                     zflux = - sputtlb(iy,igsp,jx) * hflux - 
      .                        sputflxlb(iy,igsp,jx) -
      .                   recylb(iy,igsp,jx) * zflux -
-     .                (1-alblb(iy,igsp,jx))*ng(ixt1,iy,igsp)*vxn*sx(ixt1,iy)-
+     .                (1-alblb(iy,igsp,jx))*ng(ixt1,iy,igsp)*vxn*sxnp(ixt1,iy)-
      .                   zflux_chm + fngxslb(iy,igsp,jx)+fngxlb_use(iy,igsp,jx)
                     yldot(iv) = -nurlxg * (fngx(ixt,iy,igsp) - zflux) /
      .                         (n0(igsp) * vpnorm * sx(ixt,iy))
@@ -2274,7 +2274,7 @@ c...  now do the gas and temperatures
                   yldot(iv) = -nurlxg * ( fngx(nx,iy,igsp) +
      .                                            fngxrb_use(iy,igsp,1) -
      .                      fngxsrb(iy,igsp,1) + recyrb(iy,igsp,1)*flux_inc -
-     .                  (1-albrb(iy,igsp,nxpt))*ng(nx,iy,igsp)*vxn*sx(nx,iy) ) 
+     .               (1-albrb(iy,igsp,nxpt))*ng(nx,iy,igsp)*vxn*sxnp(nx,iy) ) 
      .                                     / (vpnorm*n0g(igsp)*sx(nx,iy))
                endif
             endif
@@ -2347,7 +2347,7 @@ c     First, the density equations --
                   yldot(iv1) = nurlxg *
      .               (fnix(ixt1,iy,ifld) + recyrb(iy,1,jx)*fnix(ixt1,iy,1) +
      .                                            fngxrb_use(iy,1,jx) -
-     .                (1-albrb(iy,1,jx))*ni(ixt1,iy,ifld)*vxn*sx(ixt1,iy)
+     .               (1-albrb(iy,1,jx))*ni(ixt1,iy,ifld)*vxn*sxnp(ixt1,iy)
      .                - fngxsrb(iy,1,jx) ) / (vpnorm*n0(ifld)*sx(ixt1,iy))
                 elseif (recyrb(iy,1,jx) <=  0. .and. 
      .                  recyrb(iy,1,jx) >= -1.) then   # recyrb is albedo
@@ -2636,9 +2636,9 @@ c       Next, the hydrogenic gas equations --
                t0 = max(tg(ixt1,iy,igsp), temin*ev)
                vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
                yldot(iv) = nurlxg *  ( fngx(ixt1,iy,igsp) +
-     .                                             fngxrb_use(iy,igsp,jx) -
+     .                                          fngxrb_use(iy,igsp,jx) -
      .               fngxsrb(iy,igsp,jx) + recyrb(iy,igsp,jx)*flux_inc -
-     .          (1-albrb(iy,igsp,jx))*ng(ixt1,iy,igsp)*vxn*sx(ixt1,iy) )
+     .          (1-albrb(iy,igsp,jx))*ng(ixt1,iy,igsp)*vxn*sxnp(ixt1,iy) )
      .                                  / (vpnorm*n0g(igsp)*sx(ixt1,iy))
              elseif (recyrb(iy,igsp,jx) <=  0. .and.
      .               recyrb(iy,igsp,jx) >= -1.) then  # recyrb is albedo
@@ -2722,7 +2722,7 @@ c       sputtered impurities plus recycled impurities from all charge states.
                     zflux = - sputtrb(iy,igsp,jx) * hflux - 
      .                        sputflxrb(iy,igsp,jx) -
      .                   recyrb(iy,igsp,jx) * zflux +
-     .                (1-albrb(iy,igsp,jx))*ng(ixt1,iy,igsp)*vxn*sx(ixt1,iy)-
+     .                (1-albrb(iy,igsp,jx))*ng(ixt1,iy,igsp)*vxn*sxnp(ixt1,iy)-
      .                   zflux_chm + fngxsrb(iy,igsp,jx)-fngxrb_use(iy,igsp,jx)
                     yldot(iv) = nurlxg * (fngx(ixt1,iy,igsp) - zflux) /
      .                         (n0(igsp) * vpnorm * sx(ixt1,iy))
@@ -3850,7 +3850,7 @@ c-----------------------------------------------------------------------
 *  -- local arrays --
       real sycosi(10), sycoso(10)
 
-c     Calculate distances along left and right boundaries --
+c     Calculate distances along left and right poloidal boundaries --
       do jx = 1, nxpt
          yylb(iysptrx1(jx),jx) = - 0.5/
      .        ( gy(ixlb(jx),iysptrx1(jx)) * cos(vtag(ixlb(jx),iysptrx1(jx))) )
@@ -3918,7 +3918,7 @@ c...  sources and albedos; presently, only fgnysi,o(,1) is non-zero (F-C)
             fwsoro(ix,isor) = 0.
  286     continue
  29   continue
-
+       
 c...  We allow for 10 separate sources each on the inner and outer wall
 c...  If nwsor > 10, arrays must be enlarged
       if(nwsor .gt. 10) then
@@ -4174,7 +4174,7 @@ c-----------------------------------------------------------------------
       implicit none
 
       Use(Dim)                 # nx,ny,ngsp,nxpt
-##      Use(Share)               # nyomitmx
+      Use(Share)               # nyomitmx,ix_lim,iy_lims
       Use(Xpoint_indices)      # ixlb,ixrb
 ##      Use(Math_problem_size)   # neqmx(for arrays not used here) 
 ##      Use(Selec)    # ixp1
@@ -4240,14 +4240,10 @@ c...  sources
         enddo
       enddo
 
-c...  For now (092723), set vapor source arrays on limiters to zero
-      fngxsllim = 0.
-      fngxsrlim = 0.
-      
 c...  Allow for 10 separate sources each on the inner and outer plates
 c...  If npltsor > 10, arrays must be enlarged
       if(npltsor .gt. 10) then
-         call xerrab ('npltsor > 10, must increase wall source arrays')
+         call xerrab ('npltsor > 10, increase max wall source arrays')
       endif
 
       do jx = 1, nxpt
@@ -4298,14 +4294,41 @@ c ... Compute and add evaporative gas flux from liquid plates
                call remark('**ERR: tvaplb  or tvaprb = 0; must set positive')
              endif
              fngxslb(iy,igsp,jx) =  fngxslb(iy,igsp,jx) + fvaplb(igsp,jx)*
-     .               sx(ixlb(jx),iy)*avaplb(igsp,jx)*exp(-bvaplb(igsp,jx)/
+     .             sxnp(ixlb(jx),iy)*avaplb(igsp,jx)*exp(-bvaplb(igsp,jx)/
      .                                 tvaplb(iy,jx))/sqrt(tvaplb(iy,jx))
              fngxsrb(iy,igsp,jx) = fngxsrb(iy,igsp,jx) - fvaprb(igsp,jx)*
-     .               sx(ixrb(jx),iy)*avaprb(igsp,jx)*exp(-bvaprb(igsp,jx)/
+     .             sxnp(ixrb(jx),iy)*avaprb(igsp,jx)*exp(-bvaprb(igsp,jx)/
      .                                 tvaprb(iy,jx))/sqrt(tvaprb(iy,jx))
            enddo
          endif
         enddo
+        enddo
+        
+c...  Initial limiter evaporation temp & flux arrays; single-limiter only
+      do iy = 0, ny+1
+        if(tvaprlim(iy) == 0) tvaprlim(iy)=1.  #prevent rate eval outside range
+        if(tvapllim(iy) == 0) tvapllim(iy)=1.
+        do igsp = 1, ngsp
+          fngxsllim(iy,igsp) = 0.
+          fngxsrlim(iy,igsp) = 0.
+        enddo
+      enddo      
+        
+c ... Compute and add evaporative gas flux from liquid-wall limiter
+c ... Note below fvprlim,llim is not added recursively as no limiter
+c ... gas sources unlike fngxslb,rb.
+
+      do igsp = 1, ngsp
+       if (fvapllim(igsp) + fvaprlim(igsp) > 1.e-20) then
+         do iy = iy_lims, ny
+           fngxsllim(iy,igsp) =  -fvapllim(igsp)*
+     .           sxnp(ix_lim-1,iy)*avapllim(igsp)*exp(-bvapllim(igsp)/
+     .                             tvapllim(iy))/sqrt(tvapllim(iy))
+           fngxsrlim(iy,igsp) = fvaprlim(igsp)*
+     .           sxnp(ix_lim+1,iy)*avaprlim(igsp)*exp(-bvaprlim(igsp)/
+     .                             tvaprlim(iy))/sqrt(tvaprlim(iy))
+         enddo
+       endif
       enddo
 
       return

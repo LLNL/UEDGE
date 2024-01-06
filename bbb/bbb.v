@@ -331,8 +331,8 @@ cfvgpgy(1:ngspmx) real /ngspmx*0./ +input # Coefs for v*grad(pg) term (poloidal 
 cfbgt     real      /0./    +input #Coef for the B x Grad(T) terms.
 cfjhf     real      /1./    +input #Coef for convective cur (fqp) heat flow
 jhswitch  integer   /0/     +input #Coef for the Joule-heating terms
-oldseec   integer   /1/     +input #Switch for Joule-heating bugfix
-override  integer   /0/     +input #Switch to manually override checks on old models
+oldseec   integer   /0/     +input #Switch for Joule-heating bugfix
+override  integer   /1/     +input #Switch to manually override checks on old models
 cf2ef     real      /0./    +input #Coef for ExB drift in 2-direction
 cfyef     real      /0./    +input #Coef for ExB drift in y-direction
 cftef     real      /0./    +input #Coef for ExB drift in toroidal direction
@@ -899,12 +899,12 @@ albrb(0:ny+1,ngspmx,nxptmx) _real        +input #outer plate albedo; used if <1 
 albedo_by_user   integer            /0/  +input #if=1, user fills albedoo,i & albdlb,rb
 fngxslb(0:ny+1,ngspmx,nxptmx) _real [1/s]+input #inner plt liq vapor gas sour. if sputtlb>0
 fngxsrb(0:ny+1,ngspmx,nxptmx) _real [1/s]+input #outer plt liq vapor gas sour. if sputtlb>0
-fngxsllim(0:ny+1,ngspmx) _real [1/s]     +input #left limiter liq vapor gas sour. if sputtlb>0
-fngxsrlim(0:ny+1,ngspmx) _real [1/s]     +input #right limiter liq vapor gas sour. if sputtlb>0
+fngxsllim(0:ny+1,ngspmx)      _real [1/s]+input #left limiter liq vapor gas sour. if sputtlb>0
+fngxsrlim(0:ny+1,ngspmx)      _real [1/s]+input #right limiter liq vapor gas sour. if sputtlb>0
 fngxlb_use(0:ny+1,ngspmx,nxptmx) _real [1/s] +input #user external left plate source
 fngxrb_use(0:ny+1,ngspmx,nxptmx) _real [1/s] +input #user external left plate source
-fngxllim_use(0:ny+1,ngspmx)     _real [1/s] +input #user external left limiter source
-fngxrlim_use(0:ny+1,ngspmx)     _real [1/s] +input #user external right limiter source
+fngxllim_use(0:ny+1,ngspmx)      _real [1/s] +input #user external left limiter source
+fngxrlim_use(0:ny+1,ngspmx)      _real [1/s] +input #user external right limiter source
 adatlb(ngspmx,50,nxptmx) _real    /1./   +maybeinput #inner albdedo data for each ydati
 adatrb(ngspmx,50,nxptmx) _real    /1./   +maybeinput #outer albdedo data for each ydati
 recycw(ngspmx)   real     /ngspmx*1e-10/ +input #recycling coef. at side walls
@@ -944,16 +944,24 @@ ygaslb(10,nxptmx)  _real [m]  /0./     +input #loc of left-plate sources wrt str
 ygasrb(10,nxptmx)  _real [m]  /0./     +input #loc of right-plate sources wrt strike pt
 wgaslb(10,nxptmx)  _real [m] /100./    +input #total cos width of left-plate gas sources
 wgasrb(10,nxptmx)  _real [m] /100./    +input #total cos  width of right-plate gas sources
-fvaplb(ngspmx,nxptmx) _real     /0./  +input #scale factor left-plate evap vapor source
+fvaplb(ngspmx,nxptmx) _real     /0./   +input #scale factor left-plate evap vapor source
 avaplb(ngspmx,nxptmx) _real [k**.5/(m**2s)] /1./ +input #lin coeff left-plate evapor sor
-bvaplb(ngspmx,nxptmx) _real [K] /1./  +input #expon. coeff. left-plate evap vapor source
-fvaprb(ngspmx,nxptmx) _real     /0./  +input #scale factor right-plate evap vapor source
+bvaplb(ngspmx,nxptmx) _real [K] /1./   +input #expon. coeff. left-plate evap vapor source
+fvaprb(ngspmx,nxptmx) _real     /0./   +input #scale factor right-plate evap vapor source
 avaprb(ngspmx,nxptmx) _real [k**.5/(m**2s)] /1./ +input #lin coeff right-plate evapor sor
-bvaprb(ngspmx,nxptmx) _real [K] /1./  +input #expon coeff. right-plate evap vapor source
-tvaplb(0:ny+1,nxptmx)   _real [K]     +input #left-plate temp for evap; input after alloc
-tvaprb(0:ny+1,nxptmx)   _real [K]     +input #right-plate temp for evap; input after alloc
-tvliml(0:ny+1)          _real /300./ [K] +input #user left limiter face temp
-tvlimr(0:ny+1)          _real /300./ [K] +input #user right limiter face temp
+bvaprb(ngspmx,nxptmx) _real [K] /1./   +input #expon coeff. right-plate evap vapor source
+tvaplb(0:ny+1,nxptmx)   _real [K]      +input #left-plate temp for evap; input after alloc
+tvaprb(0:ny+1,nxptmx)   _real [K]      +input #right-plate temp for evap; input after alloc
+fvapllim(ngspmx)        _real     /0./ +input #scale factor left-plate evap vapor source
+avapllim(ngspmx) _real [k**.5/(m**2s)] /1./ +input #lin coeff left-plate evapor sor
+bvapllim(ngspmx) _real [K] /1./        +input #expon. coeff. left-plate evap vapor source
+fvaprlim(ngspmx) _real     /0./        +input #scale factor right-plate evap vapor source
+avaprlim(ngspmx) _real [k**.5/(m**2s)] /1./ +input #lin coeff right-plate evapor sor
+bvaprlim(ngspmx) _real [K] /1./        +input #expon coeff. right-plate evap vapor source
+tvapllim(0:ny+1) _real [K]             +input #left-lim-face temp for evap; input after alloc
+tvaprlim(0:ny+1) _real [K]             +input #right-lim-fac temp for evap; input after alloc
+tvliml(0:ny+1)   _real /300./ [K]      +input #user left limiter face temp
+tvlimr(0:ny+1)   _real /300./ [K]     +input #user right limiter face temp
 isextpltmod            integer  /0/   +input #=1 use ext gas plate fluxes fngxextlb,rb
                                       # and feixextlb,rb
 isextwallmod           integer  /0/   +input #=1 use ext gas wall fluxes fngyexti,o
