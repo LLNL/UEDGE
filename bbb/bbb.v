@@ -509,8 +509,6 @@ tepltl    real [eV]  /2./    +input #left plate Te B.C. if ibctepl=0
 tipltl    real [eV]  /2./    +input #left plate Ti B.C. if ibctipl=0
 tepltr    real [eV]  /2./    +input #right plate Te B.C. if ibcteplr=0
 tipltr    real [eV]  /2./    +input #right plate Ti B.C. if ibctiplr=0
-cftgtipltl(ngspmx)  real   /ngspmx*1./    +input #left plate Tg B.C. if ibctgpl=?
-cftgtipltr(ngspmx)  real   /ngspmx*1./    +input #right plate Tg B.C. if ibctgpr=?
 tbmin     real [eV] /.1/     +input #min. wall & pf temp for extrap. b.c.(isextrt..)
 nbmin     real [m**-3] /1.e17/ +input #min. wall & pf den for extrap. b.c.(isextrn..)
 ngbmin    real [m**-3] /1.e10/ +input #min. core gas den for extrap. b.c.(isextrngc)
@@ -526,7 +524,9 @@ istgwc(ngspmx) integer/ngspmx*0/    +input #switch for outer-wall BC on Tg(,0,ig
 			     # =1, use extrapolation BC
 			     # =2, set Tg scale length to lytg(2,
 			     # =3, eng flux = 2Tg*Maxw-flux
-                             # >3, report error in input
+			     # =4, eng flux = sum of all parts e.g. recycled,spttered,pumped, assuming a half-Maxw for each
+			     # =5, tg = ti*cftgtiwc
+                             # >5, report error in input
 istepfc   integer    /0/    +input  # switch for priv.-flux BC on Te
 			     # =0, set zero energy flux
 	 		     # =1, set fixed temp to tedge or tewalli
@@ -539,9 +539,11 @@ istgpfc(ngspmx) integer/ngspmx*0/   +input #switch for PF BC on Tg(,0,igsp)
 			     # =1, use extrapolation BC
 			     # =2, set Tg scale length to lytg(1,
 			     # =3, eng flux = 2Tg*Maxw-flux
-                             # >2, report error in input
-cftgtiwc(ngspmx)   real   /ngspmx*1./    +input #wall Tg B.C. if istgwc=?
-cftgtipfc(ngspmx)  real   /ngspmx*1./    +input #pfc Tg B.C. if istgpfc=?
+			     # =4, eng flux = sum of all parts e.g. recycled,spttered,pumped, assuming a half-Maxw for each
+                             # =5, tg = ti*cftgtipfc
+                             # >5, report error in input
+cftgtiwc(ngspmx)   real   /ngspmx*1./    +input #wall Tg B.C.: tg = ti*cftgtiwc if istgwc=5
+cftgtipfc(ngspmx)  real   /ngspmx*1./    +input #pfc Tg B.C.: tg = ti*cftgtipfc if istgpfc=5
 tewalli(0:nx+1) _real [eV] +input #/(nx+2)*0./
                              #inner wall Te for istepfc=1.; = tedge if not set
 tiwalli(0:nx+1) _real [eV] +input #/(nx+2)*0./
@@ -811,8 +813,18 @@ cgengpl   real		 /0./       +input #new scale fac atom eng plate loss; old cgpl
 cgengw    real           /0./   +input #new scale fac atom eng wall loss
 cgmompl   real           /1./   +input #scale fac atom par mom plate loss
 vgmomp    real     [m/s] /2.e3/ +input #vel used in exp factor of atom mom loss
-istglb(ngspmx) _integer  /0/    +input #=0 for tg=tgwall; =1 for extrap;=3, Maxw flux
-istgrb(ngspmx) _integer  /0/    +input #=0 for tg=tgwall; =1 for extrap;=3, Maxw flux
+istglb(ngspmx) _integer  /0/    +input #=0 for tg=tgwall; 
+                                       #=1 for extrap;
+			               #=3, Maxw flux;
+			               #=4 for assuming half-Maxwellian for all kinds of neutral sources e.g. recycled, sputtered, pumped etc.;
+				       #=5 for tg = ti*cftgtipltl.
+istgrb(ngspmx) _integer  /0/    +input #=0 for tg=tgwall;
+                                       #=1 for extrap;
+			               #=3, Maxw flux;
+			               #=4 for assuming half-Maxwellian for all kinds of neutral sources e.g. recycled, sputtered, pumped etc.;
+				       #=5 for tg = ti*cftgtipltr.
+cftgtipltl(ngspmx)  real   /ngspmx*1./    +input #left plate Tg B.C.: tg = cftgtipltl*ti if istglb=5
+cftgtipltr(ngspmx)  real   /ngspmx*1./    +input #right plate Tg B.C.: tg = cftgtipltr*ti if istgrb=5
 cgengmpl  real		 /1./   +input #scale fac mol plate eng loss for Maxw
 cgengmw  real		 /1./   +input #scale fac mol wall eng loss for Maxw
 

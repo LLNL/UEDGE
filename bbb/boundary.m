@@ -837,7 +837,11 @@ c... BC for neutral gas temperature/energy at iy=0
      .                                     /(vpnorm*ennorm*sy(ix,0))
                   endif
                 endif
-              elseif (istgpfc(igsp) > 4)
+              elseif (istgpfc(igsp) == 5) then   # tg=ti*cftgtipfc
+                yldot(iv) = nurlxg*(ti(ix,0)*cftgtipfc(igsp)
+     .                                        -tg(ix,0,igsp))/
+     .                                                      (temp0*ev)
+              elseif (istgpfc(igsp) > 5)
                  call xerrab("***Input error: invalid istgpfc ***")
               endif
 
@@ -1500,7 +1504,10 @@ c... BC for neutral gas temperature/energy at iy=ny+1
      .                                     /(vpnorm*ennorm*sy(ix,ny))
                 endif
               endif
-            elseif (istgwc(igsp) > 4)
+	    elseif (istgwc(igsp) == 5) then    # set tg=ti*cftgtiwc
+              yldot(iv) = nurlxg*(ti(ix,ny+1)*cftgtiwc(igsp) -
+     .                                   tg(ix,ny+1,igsp))/(temp0*ev)
+            elseif (istgwc(igsp) > 5)
                call xerrab("***Input error: invalid istgwc ***")
             endif
           endif
@@ -2232,6 +2239,9 @@ c ... Neutral temperature - test if tg eqn is on, then set BC
      .                                 (vpnorm*ennorm*sx(ixt,iy))
                 endif
               endif
+            elseif (istglb(igsp) == 5) then  #set tg=ti*cftgtipltl
+              yldot(iv) = nurlxg*(ti(ixt,iy)*cftgtipltl(igsp) -
+     .                                    tg(ixt,iy,igsp))/(temp0*ev)
             else
               call xerrab("**INPUT ERROR: istglb set to unknown option")
             endif
@@ -2907,6 +2917,9 @@ c ... Neutral temperature - test if tg eqn is on, then set BC
      .                                   (vpnorm*ennorm*sx(ixt1,iy))
                 endif
               endif
+            elseif (istgrb(igsp) == 5) then  #set tg=ti*cftgtipltr
+              yldot(iv) = nurlxg*(ti(ixt,iy)*cftgtipltr(igsp) -
+     .                                 tg(ixt,iy,igsp))/(temp0*ev)
             else
               call xerrab("**INPUT ERROR: istgrb set to unknown option")
             endif
