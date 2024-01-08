@@ -478,10 +478,10 @@ isngcore(ngspmx) integer /ngspmx*0/ +input #switch for neutral-density core B.C.
 				    #prev default inert hy
 				    # anything else same as =0
 istgcore(ngspmx) integer /ngspmx*1/ +input #switch for neutral-density core B.C.
-                                    #=0, set tg(ixcore,0,igsp)=ti(ixcore,0)
+                                    #=0, set tg(ixcore,0,igsp)=ti(ixcore,0)*cftgticore
 				    #=1, set fixed temp tgcore(igsp)
 				    #if > 1, set zero grad; tg(,0,)=tg(,1,)
-cftgticore(ngspmx) real /ngspmx*1./ +input #..
+cftgticore(ngspmx) real /ngspmx*1./ +input #set tg(ixcore,0,igsp)=ti(ixcore,0)*cftgticore(igsp) when istgcore(igsp) = 0.
 curcore(1:nispmx) real [A] /0.,30*0./ +input #value of current from core if isnicore=0
 lzcore(1:nispmx)  real [kg/ms] /nispmx*0./ +input #tor. ang. mom dens core bdry; phi eqn
 lzflux(1:nispmx)  real [kg/s**2]/nispmx*0./ +input #tor. ang. mom dens flux core bdry; up eqn
