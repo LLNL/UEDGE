@@ -740,9 +740,6 @@ c     Set ix index for outer midplane turbulence
          ixmp2 = ixpt1(1) + nxomit + 3*(ixpt2(1)-ixpt1(1))/4
       endif
 
-c     set switches for adding Tg from a default Ti case
-      if ((istiexclg .eq. 1) .and. (istiinclg_test.ne.1)) cftiexclg = 0.0
-
 c     Set switches for neutrals-related source terms in plasma equations
 c     (MER 1996/10/28)
 c     (IJ  2015/04/06) add ismcnon>=3 for external call to run_neutrals 

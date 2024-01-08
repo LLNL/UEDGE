@@ -220,12 +220,6 @@ rup21          real      /1./        +input #rup21=up2/up1 if isup1up2
 isupgon(ngspmx) integer /ngspmx*0/   +input #user:=1 for par neutral vel. eqn.; index igsp
 isteon      integer  /1/             +input #user:turns on (=1) electron energy eqn.
 istion      integer  /1/             +input #user:turns on (=1) ion enegy eqn.
-istiexclg   integer  /0/             # Ti is only solved for ions (=1, cftiexclg=0.0).
-istiinclg_test integer  /0/          # not often used. for one to turn on Tg
-                                     #       from a converged case without Tg turned on.
-			             #       One can start using =1 while cftiexclg=1,
-				     #       then slowly reducing cftiexclg to 0 and
-				     #       turn this switch back to =0.
 isngon(ngspmx) integer  /6*1/        +input #user:turns on (=1) neutral eqn.; index igsp
 istgon(ngspmx) integer  /6*0/        +input #user:turns on (=1) gas enegy eqn.
 isphion     integer  /0/             +input #user:turns on (=1) potential eqn.
