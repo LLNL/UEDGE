@@ -11,7 +11,7 @@ from Forthon.compilers import FCompiler
 import getopt
 import logging
 
-version='8.0.5-beta.3'
+version='8.0.6-beta.0'
 
 try:
     os.environ['PATH'] += os.pathsep + site.USER_BASE + '/bin'
