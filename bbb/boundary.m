@@ -1731,10 +1731,11 @@ c...  now do the gas and temperatures
                       flux_inc = 0.5*( fnix(0,iy,1) + fngx(0,iy,1) ) 
                     endif
                   endif
+                  areapl = isoldalbarea*sx(0,iy) + (1-isoldalbarea)*sxnp(0,iy)
                   yldot(iv) = -nurlxg * ( fngx(0,iy,igsp) -
      .                                           fngxlb_use(iy,igsp,1) +
      .                 fngxslb(iy,igsp,1) + recylb(iy,igsp,1)*flux_inc +
-     .                  (1-alblb(iy,igsp,1))*ng(1,iy,igsp)*vxn*sx(0,iy) ) 
+     .                  (1-alblb(iy,igsp,1))*ng(1,iy,igsp)*vxn*areapl )
      .                                     / (vpnorm*n0g(igsp)*sx(0,iy))
                endif
                if (is1D_gbx.eq.1) yldot(iv) = nurlxg*(ng(1,iy,igsp) -
@@ -1804,10 +1805,11 @@ c     First, the density equations --
                 if (recylb(iy,1,jx) .gt. 0.) then           # recycling
                   t0 = max(tg(ixt1,iy,1),tgmin*ev) 
                   vxn = 0.25 * sqrt( 8*t0/(pi*mi(ifld)) )
+                  areapl = isoldalbarea*sx(ixt,iy) + (1-isoldalbarea)*sxnp(ixt,iy)
                   yldot(iv1) = -nurlxg *
      .             (fnix(ixt,iy,ifld) + recylb(iy,1,jx)*fnix(ixt,iy,1) -
      .                                               fngxlb_use(iy,1,jx) +
-     .              (1-alblb(iy,1,jx))*ni(ixt1,iy,ifld)*vxn*sx(ixt,iy) -
+     .              (1-alblb(iy,1,jx))*ni(ixt1,iy,ifld)*vxn*areapl -
      .                 fngxslb(iy,1,jx) ) / (vpnorm*n0(ifld)*sx(ixt,iy))
                 elseif (recylb(iy,1,jx) <=  0. .and. 
      .                  recylb(iy,1,jx) >= -1.) then  # recylb is albedo
@@ -2082,10 +2084,11 @@ c       Do hydrogenic gas equations --
                endif
                t0 = max(tg(ixt1,iy,igsp), tgmin*ev)
                vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
+               areapl = isoldalbarea*sx(ixt,iy) + (1-isoldalbarea)*sxnp(ixt,iy)
                yldot(iv) = -nurlxg * ( fngx(ixt,iy,igsp) - 
      .                                           fngxlb_use(iy,igsp,jx) -
      .               fngxslb(iy,igsp,jx) + recylb(iy,igsp,jx)*flux_inc +
-     .           (1-alblb(iy,igsp,jx))*ng(ixt1,iy,igsp)*vxn*sx(ixt,iy) )
+     .           (1-alblb(iy,igsp,jx))*ng(ixt1,iy,igsp)*vxn*areapl )
      .                                   / (vpnorm*n0g(igsp)*sx(ixt,iy))
              elseif (recylb(iy,igsp,jx) <=  0. .and.
      .               recylb(iy,igsp,jx) >= -1.) then # recylb is albedo
@@ -2166,10 +2169,11 @@ c       sputtered impurities plus recycled impurities from all charge states.
      .                              abs(sputflxlb(iy,igsp,jx)).gt. 0.) then
                     t0 = max(cdifg(igsp)*tg(ixt1,iy,igsp), tgmin*ev)
                     vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
+                    areapl = isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy)
                     zflux = - sputtlb(iy,igsp,jx) * hflux - 
      .                        sputflxlb(iy,igsp,jx) -
      .                   recylb(iy,igsp,jx) * zflux -
-     .                (1-alblb(iy,igsp,jx))*ng(ixt1,iy,igsp)*vxn*sx(ixt1,iy)-
+     .                (1-alblb(iy,igsp,jx))*ng(ixt1,iy,igsp)*vxn*areapl-
      .                   zflux_chm + fngxslb(iy,igsp,jx)+fngxlb_use(iy,igsp,jx)
                     yldot(iv) = -nurlxg * (fngx(ixt,iy,igsp) - zflux) /
      .                         (n0(igsp) * vpnorm * sx(ixt,iy))
@@ -2382,6 +2386,7 @@ c...  now do the gas and temperatures
                if(isfixrb(1).eq.2 .and. yyrb(iy,1).gt.rlimiter) then
                   t1 = engbsr * max(tg(nx,iy,1),tgmin*ev)
                   vxn = 0.25 * sqrt( 8*t1/(pi*mg(igsp)) )
+                  areapl = isoldalbarea*sx(nx,iy) + (1-isoldalbarea)*sxnp(nx,iy)
                   flux_inc = fac2sp*fnix(nx,iy,1)
                   if (ishymol.eq.1 .and. igsp.eq.2) then
                     if (isupgon(1) .eq. 1) then  # two atoms for one molecule
@@ -2393,7 +2398,7 @@ c...  now do the gas and temperatures
                   yldot(iv) = -nurlxg * ( fngx(nx,iy,igsp) +
      .                                            fngxrb_use(iy,igsp,1) -
      .                      fngxsrb(iy,igsp,1) + recyrb(iy,igsp,1)*flux_inc -
-     .                  (1-albrb(iy,igsp,nxpt))*ng(nx,iy,igsp)*vxn*sx(nx,iy) ) 
+     .                  (1-albrb(iy,igsp,nxpt))*ng(nx,iy,igsp)*vxn*areapl ) 
      .                                     / (vpnorm*n0g(igsp)*sx(nx,iy))
                endif
             endif
@@ -2463,10 +2468,11 @@ c     First, the density equations --
                 if (recyrb(iy,1,jx) .gt. 0.) then           # recycling
                   t0 = max(tg(ixt1,iy,1),tgmin*ev) 
                   vxn = 0.25 * sqrt( 8*t0/(pi*mi(ifld)) )
+                  areapl = isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy)
                   yldot(iv1) = nurlxg *
      .               (fnix(ixt1,iy,ifld) + recyrb(iy,1,jx)*fnix(ixt1,iy,1) +
      .                                            fngxrb_use(iy,1,jx) -
-     .                (1-albrb(iy,1,jx))*ni(ixt1,iy,ifld)*vxn*sx(ixt1,iy)
+     .                (1-albrb(iy,1,jx))*ni(ixt1,iy,ifld)*vxn*areapl
      .                - fngxsrb(iy,1,jx) ) / (vpnorm*n0(ifld)*sx(ixt1,iy))
                 elseif (recyrb(iy,1,jx) <=  0. .and. 
      .                  recyrb(iy,1,jx) >= -1.) then   # recyrb is albedo
@@ -2760,10 +2766,11 @@ c       Next, the hydrogenic gas equations --
                endif
                t0 = max(tg(ixt1,iy,igsp), tgmin*ev)
                vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
+               areapl = isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy) 
                yldot(iv) = nurlxg *  ( fngx(ixt1,iy,igsp) +
      .                                             fngxrb_use(iy,igsp,jx) -
      .               fngxsrb(iy,igsp,jx) + recyrb(iy,igsp,jx)*flux_inc -
-     .          (1-albrb(iy,igsp,jx))*ng(ixt1,iy,igsp)*vxn*sx(ixt1,iy) )
+     .          (1-albrb(iy,igsp,jx))*ng(ixt1,iy,igsp)*vxn*areapl )
      .                                  / (vpnorm*n0g(igsp)*sx(ixt1,iy))
              elseif (recyrb(iy,igsp,jx) <=  0. .and.
      .               recyrb(iy,igsp,jx) >= -1.) then  # recyrb is albedo
@@ -2844,10 +2851,11 @@ c       sputtered impurities plus recycled impurities from all charge states.
      .                              abs(sputflxrb(iy,igsp,jx)).gt.0.) then
                     t0 = max(cdifg(igsp)*tg(ixt1,iy,igsp), tgmin*ev)
                     vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
+                    areapl = isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy)
                     zflux = - sputtrb(iy,igsp,jx) * hflux - 
      .                        sputflxrb(iy,igsp,jx) -
      .                   recyrb(iy,igsp,jx) * zflux +
-     .                (1-albrb(iy,igsp,jx))*ng(ixt1,iy,igsp)*vxn*sx(ixt1,iy)-
+     .                (1-albrb(iy,igsp,jx))*ng(ixt1,iy,igsp)*vxn*areapl-
      .                   zflux_chm + fngxsrb(iy,igsp,jx)-fngxrb_use(iy,igsp,jx)
                     yldot(iv) = nurlxg * (fngx(ixt1,iy,igsp) - zflux) /
      .                         (n0(igsp) * vpnorm * sx(ixt1,iy))

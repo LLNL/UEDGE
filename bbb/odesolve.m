@@ -23,7 +23,6 @@
       Use(Stat)
       Use(Ident_vars) # exmain_evals
       Use(Ynorm)    # suscal,sfscal
-      Use(Ident_vars) # exmain_evals
       Use(Oldpla)
       Use(Decomp)   # ubw,lbw
       Use(Jacaux)   # yldot1,yldot0,issfon

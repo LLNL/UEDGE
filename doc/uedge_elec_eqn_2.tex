@@ -1,0 +1,150 @@
+\documentclass [11pt]{article}
+\usepackage {nf,eqalign}
+\usepackage{graphicx}
+\pagestyle{myheadings}
+\topmargin -0.50truein
+\oddsidemargin 0.truein
+\textheight 9.00truein
+\textwidth 6.5truein
+\renewcommand{\baselinestretch}{1.5}
+\parskip 0.10in
+
+\def\u{{\bf u}}
+\def\B{{\bf B}}
+\def\E{{\bf E}}
+\def\J{{\bf J}}
+\def\v{{\bf v}}
+\def\F{{\bf F}}
+\def\R{{\bf R}}
+\def\bx{B_x}
+\def\curl{\nabla \times}
+\def\div{\nabla \cdot}
+\def\grad{\nabla}
+\def\lap{\nabla^2}
+\def\pt{\partial_t}
+\def\pr{\partial_r}
+\def\pz{\partial_z}
+\def\bl{\item{$\bullet$}}
+\def\sp{\item{-}}
+\def\dz{{d \over dz}}
+\def\rp{R^\prime}
+\def\fc{{\cal F}}
+\def\rc{{\cal R}}
+\def\dec{\Delta {\cal E}}
+\def\pd{\partial}
+\def\deriv#1#2{{d#1\over d#2}}
+\def\pderiv#1#2{{\partial#1\over \partial#2}}
+\def\parder#1#2{{\partial#1\over\partial#2}}
+\def\pardersq#1#2{{\partial^2#1\over\partial#2^2}}
+\def\av#1{\left\langle#1\right\rangle}
+\def\cosa{\cos \alpha}
+\def\sina{\sin \alpha}
+\def\epei{\epsilon_{e,i}}
+\def\epnuie{\epsilon_{\nu i, \nu e}}
+\def\vp{v_\perp}
+\def\vh{\hat v}
+\def\vhp{{\hat v}_\perp}
+\def\epr{\epsilon_{\rho}}
+\def\epd{\epsilon_{\Delta}}
+\def\epl{\epsilon_{\lambda}}
+\def\epnu{\epsilon_{\nu}}
+\def\exb{{\bf E \! \times \! B}}
+\def\iv{{\bf \hat i}}
+\def\hsa{\hskip.4truein}
+\def\hsp6{\hskip.6truein}
+\def\hsm{\hskip.2truein}
+\def\tild{$\sim$}
+\def\la{$\langle$}
+\def\ra{$\rangle$}
+\def\bB{{\bf B}}
+\def\bV{{\bf V}}
+\def\bE{{\bf E}}
+\def\bR{{\bf R}}
+\def\bJ{{\bf J}}
+
+\begin{document}
+\section {Electron Energy Equation for UEDGE} 
+
+The dynamical fluid equations for particle continuity, parallel (to the B-field)
+ion velocity, and separate ion and electron temperatures are given below.   
+The perpendicular ion velocities come from both algebraic equations involving
+other variables (classical drifts) and diffusion/convection coefficients 
+that are user-specified
+to mimic anomalous (turbulence-driven) ion/electron fluxes ({\it i.e.}, the turbulence
+fluxes are assumed ambipolar, {\it i.e.}, giving equal ion and electron fluxes). The velocity ${\bf u}$ is the portion of the total velocity, ${\bf V}$, that yields a nonzero divergence when multiplied by the species density, $n$.  
+
+For the poloidal ion velocity the various components are
+\begin{equation}
+\label{uex_eq}
+  u_{ex} = {B_x \over B} v_{i\|} + v_{x,E} + v_{ex,\nabla B},
+\end{equation}
+where the second term is the ${\bf E} \times {\bf B} / B^2$ drift and third term is
+the sum of the curvature and $\nabla B$ drifts  scaling in tokamaks
+as $-eT_e/RB$; here $e$ is the electron charge, and $R$ is the major radius of the
+tokamak.  Note that we only include those drift terms giving a finite divergence
+of plasma fluxes since they will appear inside divergence terms in the transport
+equations.
+
+For the radial ion velocity
+\begin{equation}
+\label{uey_eq}
+  u_{ey}= - {D_a\over n_i} {\partial n_i \over \partial y} + V_a
+           + v_{y,E} + v_{ey,\nabla B} ,
+\end{equation} 
+where $D_a$ and $V_a$ are the anomalous transport coefficients
+characterizing turbulence-driven transport (assumed ambipolar).  
+The third and fourth terms in Eq.~\ref {uey_eq} are the
+radial components of the cross-field drifts.  A more detailed
+discussion of the cross-field drifts terms used is given in Rognlien {\it et al.},
+Phys. Plasmas {\bf 6} (1999) 1851 and references therein.
+
+The electron energy equation from Braginskii is
+\begin{equation}
+  \label{a_eengeq}
+  \eqalign{
+{\partial \over \partial t}\left( {3 \over 2} n_e T_e \right) 
+&+ {\partial \over \partial x} \biggl[ \frac{5}{2} n_e u_{ex} T_e 
++ q_{ex} \biggr] 
+ + {\partial \over \partial y}\left( \frac{5}{2} n_e u_{ey} T_e 
+ + q_{ey}  \right) \cr
+&= {\bf V_e} \cdot \nabla P_e + Q_e + S_{Ee} \cr
+&= {\bf V_e} \cdot \nabla P_e + {\bf J} \cdot {\bf R_e}/(en_e) - Q_\Delta + S_{Ee} . \cr
+}
+\end{equation}
+where the Braginskii $Q_e = {\bf J} \cdot {\bf R_e}/(en_e) - Q_\Delta$ has been used. The collisional
+energy exchange with ions is given by $Q_\Delta = n_e \nu_{eqp}(T_e - T_i)$.  The $S_{Ee}$ term represents atomic physics losses from neutral
+and ion ionization, excitation, and recombination of neutral hydrogen gas and impurities.  Equation~\ref{a_eengeq} is the form of the electron energy equation used presently in UEDGE.
+
+The explicit form of $R_e$  is given by Braginskii as
+\begin{equation}
+    {\bf R_e} = en_e({\bf J}_{\parallel}/\sigma_{\parallel} + {\bf J}_\perp/\sigma_\perp) - 
+    0.71 n_e \nabla_\parallel T_e \approx en_e{\bf J}_{\parallel}/\sigma_{\parallel} -0.71 n_e \nabla_\parallel T_e
+\end{equation}
+The $\sigma$ are conductivities with the parallel one being about twice that of conductivity.  Because
+we assume $J_\parallel \gg J_\perp$, only the parallel component of ${\bf R}_e$ is retained in UEDGE.
+In more detail for UEDGE, both terms in $V_e \cdot \nabla P_e + J_\parallel R_{e\parallel}$ are included
+in the array seec(ix,iy), computed in subroutine pandf.  The force term $R_e$ in UEDGE is call frice(ix,iy).
+Note that the Joule heating between electrons and ions is included in the ${\bf J} \cdot {\bf R}_e$ so separate term is not needed for this physical process.
+
+\noindent {\bf Separate details for UEDGE coding in file bbb/oderhs.m of UEDGE-V8041:}
+%
+First, note that using a finite-volume method in UEDGE, we first integrate the electron energy equation (Eq. \ref{a_eengeq} ) over the volume of the computational cells in order to convert the divergence terms on the LHS into fluxes evaluated at the boundaries of the cell.  The terms on the RHS of Eq. \ref{a_eengeq} then are volume-intergrated values, i.e., the RHS becomes:
+%
+\begin{equation}
+    RHS = ({\bf V_e} \cdot \nabla P_e + {\bf J} \cdot {\bf R_e}/(en_e) - Q_\Delta + S_{Ee})*vol 
+\end{equation}
+where $vol$ is the UEDGE volume element of a computational cell.  These contributions are contained in UEDGE as follows:
+
+\begin{itemize}
+\item The (${\bf V}_e \cdot \nabla P_e) vol$ is present in the bbb.seec array as shown in line 2485 (should add $v_{ey} \nabla_y P_e$ as well as $v_{ex} \nabla_x P_e$).
+
+\item The ($J_\parallel R_{e\parallel}/en_e) vol$ contribution to bbb.seec is present as shown in line 2527-8.
+
+\item The $- Q_\Delta vol$ term is given by bbb.w0 in line 4529 and the $S_{Ee} vol$ term is bbb.seec in line 4530.
+
+\item Finally, the section computing a separate Joule heating term wjdotr beginning on line 4743 should be removed  as it duplicates a portion of the RHS already included in bbb.seec (it was also missing the volume element mentioned above). Also, the related switch bbb.jhswitch should be removed.
+\end{itemize}
+
+\underline{Tom Rognlien, \today}
+
+\end{document}
