@@ -335,7 +335,7 @@ vboost    real      /1./    +input #previously scaled eqp; no longer in use
 cvgp      real      /1./    +input #Coef for v.Grad(p) ion/elec eng. terms
 cvgpg     real      /1./    +input #Coef for v.Grad(pg) gas eng. terms
 cfvgpx(1:nispmx) real /nispmx*1./ +input #Coefs for x components of v.grad(p) in ti-eq
-cftiexclg real      /1./    +input #Coef for including atom gas in Ti eq.
+cftiexclg real      /1./    +input #Coef =1.0 for including atom gas contrib. in Ti eq. Make it 0.0 when turn on atom temperature.
 cfvgpy(1:nispmx) real /nispmx*1./ +input #Coefs for y components of v.grad(p) in ti-eq
 cfbgt     real      /0./    +input #Coef for the B x Grad(T) terms.
 cfjhf     real      /1./    +input #Coef for convective cur (fqp) heat flow
@@ -478,7 +478,8 @@ isngcore(ngspmx) integer /ngspmx*0/ +input #switch for neutral-density core B.C.
 istgcore(ngspmx) integer /ngspmx*1/ +input #switch for neutral-density core B.C.
                                     #=0, set tg(ixcore,0,igsp)=ti(ixcore,0)*cftgticore
 				    #=1, set fixed temp tgcore(igsp)
-				    #if > 1, set zero grad; tg(,0,)=tg(,1,)
+				    #=2, set energy flux = cfalbedo(=2.0)*fng_alb*tg
+				    #if > 2, set zero grad; tg(,0,)=tg(,1,)
 cftgticore(ngspmx) real /ngspmx*1./ +input #set tg(ixcore,0,igsp)=ti(ixcore,0)*cftgticore(igsp) when istgcore(igsp) = 0.
 curcore(1:nispmx) real [A] /0.,30*0./ +input #value of current from core if isnicore=0
 lzcore(1:nispmx)  real [kg/ms] /nispmx*0./ +input #tor. ang. mom dens core bdry; phi eqn
