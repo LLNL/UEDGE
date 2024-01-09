@@ -337,8 +337,6 @@ cvgpg     real      /1./    +input #Coef for v.Grad(pg) gas eng. terms
 cfvgpx(1:nispmx) real /nispmx*1./ +input #Coefs for x components of v.grad(p) in ti-eq
 cftiexclg real      /1./    +input #Coef for including atom gas in Ti eq.
 cfvgpy(1:nispmx) real /nispmx*1./ +input #Coefs for y components of v.grad(p) in ti-eq
-cfvgpgx(1:ngspmx) real /ngspmx*0./ +input # Coefs for v*grad(pg) term (poloidal component) for Tg if isupgon=0.
-cfvgpgy(1:ngspmx) real /ngspmx*0./ +input # Coefs for v*grad(pg) term (poloidal component) for Tg if isupgon=0.
 cfbgt     real      /0./    +input #Coef for the B x Grad(T) terms.
 cfjhf     real      /1./    +input #Coef for convective cur (fqp) heat flow
 jhswitch  integer   /0/     +input #Coef for the Joule-heating terms
