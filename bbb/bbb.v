@@ -91,6 +91,7 @@ tibg      real [eV]    /1.e-20/   +input #backgrd ion eng sor to limit te~tebg
 iteb      integer         /2/     +input #exponent of (tebg*ev/te)**iteb for bkg sor
 temin     real [eV]      /0.03/   +input #min value of te allow; if less, reset to
 temin2    real [eV]      /0.03/   +input #soft floor with te=sqrt[te**2+(temin2*ev)**2]
+tgmin     real [eV]      /0.03/   # min value of tg allowed
 pwrbkg_c  real [W/m**3]  /1.e3/   +input #const background factor in pwrebkg express
 pwribkg_c real [W/m**3]  /1.e3/   +input #const background factor in pwribkg express
 cfwjdotelim real         /1./     +input #factor scaling reduction of wjdote if te<tebg
@@ -106,7 +107,8 @@ pcolwid   real [m]        /0./    +input #width of plasma column for 1-D gas-box
 eion      real [eV]       /5./    +input #energy that ionized ion is born with
 ediss     real [eV]       /10./   +input
                                   #elec eng lost by mol. dissoc; should = 2*eion
-ebind     real [eV]     /13.6/    +input 
+cfdiss    real            /1./    # fraction of neutrals that are from dissociations.
+ebind     real [eV]     /13.6/    +input
                                   #binding energy carried by hydrogen ion
 afix      real [e]        /50./   +input #Te,i for fixed cond.(concap), visc.(convis)
 coef      real            /0.96/  +input #factor for ion viscosity: was 1.92 ???
@@ -268,6 +270,11 @@ cnfy      real      /1./    +input #Y-flux coef for conv. in n-eq.
 cnsor     real      /1./    +input #Coef for particle src. in n-eq.
 cfneut    real      /1./    +input #Coef for fluid neutrals contrib's to resid's
 cfnidh    real      /1./    +input #Coef for neutral-ion drift heating
+cfnidh2   real      /0./    +input #the above coef (cfnidh=1.0) is not exactly the real coef for neutral-ion drift heating term. That's why we introduce cfnidh2 but only for testing. Default =0.0: nothing; =1.0 (only for testing), remove the drift heating term.
+cfnidhgy  real      /0./    +input # =1, consider vgy(,,1)**2 for n-i drift heating, assuming vy(,,0) negligible
+cfnidhg2  real      /0./    +input # =1, consider vg2(,,1)**2 for n-i drift heating, assuming v2(,,0) negligible
+cfnidhdis real      /0./    +input # =1, consider drift heating term (vg(,,1)-vg(,,2))^2 for molecular dissociation.
+cfnidhmol real      /0./    +input # =1, consider vg2(,,2)**2 for n-i drift heating, e.g. H2,D2 dissociation.
 cfupcx    real      /1./    +input #Coef for nucx*(up_ion - up_gas) momentum coupling
 cfticx    real      /1./    +input #Coef for nucx*(up_ion-up_gas)**2 heating in Ti Eq
 cfupimpg  real      /0./    +input #Coef for impur up Cx/elast drag on up=0 imp gas
@@ -277,6 +284,10 @@ cnflux(ngspmx) real /ngspmx*1./ +input #coef for particle flux in n-eq. (resco)
 chradi    real      /1./    +input #Coef for hyd. ioniz. rad. loss in elec. eng. eq.
 chradr    real      /1./    +input #Coef for hyd. recomb. rad. loss in elec. eng. eq.
 chioniz   real      /1./    +input #Coef for hydrogen ionization in elec. eng. eq.
+cfizmol   real      /0./    #..Tom: Coef adding hyd ioniz rate to molec dissociation
+                            #       rate to mimic ioniz of mols not in svdiss.
+		            #       Tom added it for me, however surprised it is not
+			    #       present in V8.0.0
 ifxnsgi   integer   /0/	    +input #=1 sets ne for <sig*v>_i to cne_sgvi
 cne_sgvi  real [1/m**3] /1.e18/ +input #ne for <sig*v>_i if ifxnsgi=1
 ctsor     real      /1./    +input #Coef for eng. src. in Ti eq. 0.5*mi*up**2*psor
@@ -324,9 +335,8 @@ vboost    real      /1./    +input #previously scaled eqp; no longer in use
 cvgp      real      /1./    +input #Coef for v.Grad(p) ion/elec eng. terms
 cvgpg     real      /1./    +input #Coef for v.Grad(pg) gas eng. terms
 cfvgpx(1:nispmx) real /nispmx*1./ +input #Coefs for x components of v.grad(p) in ti-eq
+cftiexclg real      /1./    +input #Coef =1.0 for including atom gas contrib. in Ti eq. Make it 0.0 when turn on atom temperature.
 cfvgpy(1:nispmx) real /nispmx*1./ +input #Coefs for y components of v.grad(p) in ti-eq
-cfvgpgx(1:ngspmx) real /ngspmx*0./ +input # Coefs for v*grad(pg) term (poloidal component) for Tg if isupgon=0.
-cfvgpgy(1:ngspmx) real /ngspmx*0./ +input # Coefs for v*grad(pg) term (poloidal component) for Tg if isupgon=0.
 cfbgt     real      /0./    +input #Coef for the B x Grad(T) terms.
 cfjhf     real      /1./    +input #Coef for convective cur (fqp) heat flow
 jhswitch  integer   /0/     +input #Coef for the Joule-heating terms
@@ -466,9 +476,11 @@ isngcore(ngspmx) integer /ngspmx*0/ +input #switch for neutral-density core B.C.
 				    #prev default inert hy
 				    # anything else same as =0
 istgcore(ngspmx) integer /ngspmx*1/ +input #switch for neutral-density core B.C.
-                                    #=0, set tg(ixcore,0,igsp)=ti(ixcore,0)
+                                    #=0, set tg(ixcore,0,igsp)=ti(ixcore,0)*cftgticore
 				    #=1, set fixed temp tgcore(igsp)
-				    #if > 1, set zero grad; tg(,0,)=tg(,1,)
+				    #=2, set energy flux = cfalbedo(=2.0)*fng_alb*tg
+				    #if > 2, set zero grad; tg(,0,)=tg(,1,)
+cftgticore(ngspmx) real /ngspmx*1./ +input #set tg(ixcore,0,igsp)=ti(ixcore,0)*cftgticore(igsp) when istgcore(igsp) = 0.
 curcore(1:nispmx) real [A] /0.,30*0./ +input #value of current from core if isnicore=0
 lzcore(1:nispmx)  real [kg/ms] /nispmx*0./ +input #tor. ang. mom dens core bdry; phi eqn
 lzflux(1:nispmx)  real [kg/s**2]/nispmx*0./ +input #tor. ang. mom dens flux core bdry; up eqn
@@ -511,7 +523,9 @@ istgwc(ngspmx) integer/ngspmx*0/    +input #switch for outer-wall BC on Tg(,0,ig
 			     # =1, use extrapolation BC
 			     # =2, set Tg scale length to lytg(2,
 			     # =3, eng flux = 2Tg*Maxw-flux
-                             # >3, report error in input
+			     # =4, eng flux = sum of all parts e.g. recycled,spttered,pumped, assuming a half-Maxw for each
+			     # =5, tg = ti*cftgtiwc
+                             # >5, report error in input
 istepfc   integer    /0/    +input  # switch for priv.-flux BC on Te
 			     # =0, set zero energy flux
 	 		     # =1, set fixed temp to tedge or tewalli
@@ -524,7 +538,11 @@ istgpfc(ngspmx) integer/ngspmx*0/   +input #switch for PF BC on Tg(,0,igsp)
 			     # =1, use extrapolation BC
 			     # =2, set Tg scale length to lytg(1,
 			     # =3, eng flux = 2Tg*Maxw-flux
-                             # >2, report error in input
+			     # =4, eng flux = sum of all parts e.g. recycled,spttered,pumped, assuming a half-Maxw for each
+                             # =5, tg = ti*cftgtipfc
+                             # >5, report error in input
+cftgtiwc(ngspmx)   real   /ngspmx*1./    +input #wall Tg B.C.: tg = ti*cftgtiwc if istgwc=5
+cftgtipfc(ngspmx)  real   /ngspmx*1./    +input #pfc Tg B.C.: tg = ti*cftgtipfc if istgpfc=5
 tewalli(0:nx+1) _real [eV] +input #/(nx+2)*0./
                              #inner wall Te for istepfc=1.; = tedge if not set
 tiwalli(0:nx+1) _real [eV] +input #/(nx+2)*0./
@@ -794,8 +812,18 @@ cgengpl   real		 /0./       +input #new scale fac atom eng plate loss; old cgpl
 cgengw    real           /0./   +input #new scale fac atom eng wall loss
 cgmompl   real           /1./   +input #scale fac atom par mom plate loss
 vgmomp    real     [m/s] /2.e3/ +input #vel used in exp factor of atom mom loss
-istglb(ngspmx) _integer  /0/    +input #=0 for tg=tgwall; =1 for extrap;=3, Maxw flux
-istgrb(ngspmx) _integer  /0/    +input #=0 for tg=tgwall; =1 for extrap;=3, Maxw flux
+istglb(ngspmx) _integer  /0/    +input #=0 for tg=tgwall; 
+                                       #=1 for extrap;
+			               #=3, Maxw flux;
+			               #=4 for assuming half-Maxwellian for all kinds of neutral sources e.g. recycled, sputtered, pumped etc.;
+				       #=5 for tg = ti*cftgtipltl.
+istgrb(ngspmx) _integer  /0/    +input #=0 for tg=tgwall;
+                                       #=1 for extrap;
+			               #=3, Maxw flux;
+			               #=4 for assuming half-Maxwellian for all kinds of neutral sources e.g. recycled, sputtered, pumped etc.;
+				       #=5 for tg = ti*cftgtipltr.
+cftgtipltl(ngspmx)  real   /ngspmx*1./    +input #left plate Tg B.C.: tg = cftgtipltl*ti if istglb=5
+cftgtipltr(ngspmx)  real   /ngspmx*1./    +input #right plate Tg B.C.: tg = cftgtipltr*ti if istgrb=5
 cgengmpl  real		 /1./   +input #scale fac mol plate eng loss for Maxw
 cgengmw  real		 /1./   +input #scale fac mol wall eng loss for Maxw
 
@@ -871,12 +899,14 @@ recycmrb_use(0:ny+1,ngspmx,nxptmx) _real +maybeinput #outer plt mom-recycl coeff
 recycmlb(0:ny+1,ngspmx,nxptmx) _real   +maybeinput #total inner plt mom recycling coeff
 recycmrb(0:ny+1,ngspmx,nxptmx) _real   +maybeinput #total outer plt mom recycling coeff
 recyce           real       /0./       +input #energy recycling/Rp for inertial gas
+recycwe          real       /0./       +input #energy recycling/Rp for inertial gas on walls and prfs
 recycl           real       /1./       +input #recycling coef. at a limiter (ix_lim)
 recycml          real       /0.1/      +input #momentum recycling/Rp for gas at limtr
 recycc(ngspmx)   real       /6*1./     +input #core recycling coeff. if isnicore=3
 albedoc(ngspmx)  real       /6*1./     +input #core neut albedo for isngcore=0
 albedolb(ngspmx,nxptmx) _real /1./       +input #albedo at inner plate if ndatlb=0
 albedorb(ngspmx,nxptmx) _real /1./       +input #albedo at outer plate if ndatrb=0
+cfalbedo         real       /2./       +input #coef. for Tg Eq. due to albedo
 ndatlb(ngspmx,nxptmx)    _integer   /0/  +maybeinput #number of recycp data pts on inner plt
 ndatrb(ngspmx,nxptmx)    _integer   /0/  +maybeinput #number of recycp data pts on outer plt
 ydatlb(ngspmx,50,nxptmx) _real [m]  /0./ +maybeinput #inner data pt location from sep.
@@ -2076,6 +2106,7 @@ cfvli(nisp)		    _real #/nisp*0./+input #scal fac for individ ion rate nuvl
 l_parloss		     real [m] /1.e20/ +input #parall length for nuvl loss rate
 eqp(0:nx+1,0:ny+1)          _real [1/m**3]#Te,i equipart. fact; needs *(Te-Ti)*vol
 eqpg(0:nx+1,0:ny+1,ngsp)    _real [1/m**3]#Tg,i equipart. fact; needs *(Tg-Ti)*vol
+                                          #..: modified to incorporate the separation of Tg and Ti.
 engcoolm(0:nx+1,0:ny+1)     _real [J/s]   #cool rate ion/atoms by mols if ishymol=1
 eeli(0:nx+1,0:ny+1)         _real  [J]    #electron energy loss per ionization
 pradhyd(0:nx+1,0:ny+1)      _real [W/m**3] /0./#power radiated by hydrogen
