@@ -6479,7 +6479,7 @@ c ---------------------------------------------------------------------c
       Use(Math_problem_size)   # neqmx(for arrays not used here)
       Use(UEpar)    # cnurn,cnuru,cnure,cnuri,cnurg,cnurp,
                     # nurlxn,nurlxu,nurlxe,nurlxi,nurlxg,nurlxp,
-                    # label,svrpkg
+                    # label,svrpkg, istgon
       Use(Ident_vars)          # uedge_ver
       Use(Lsode)    # iterm,icntnunk
       Use(Grid)     # ngrid,inewton,imeth,nurlx,ijac,ijactot
@@ -6492,7 +6492,7 @@ c ---------------------------------------------------------------------c
       Use(Npes_mpi)            # npes,mype,ispmion
       Use(UEint)               # isallloc
       Use(Rccoef)              # isoutwall
-      Use(Coefeq)              # oldseec
+      Use(Coefeq)              # oldseec, override, cftiexclg
       Use(Flags)               # iprint
 c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
 
@@ -6527,25 +6527,62 @@ c_mpi         call MPI_BARRIER(uedgeComm, ierr)
          endif
 
 c   Check model switches for UEDGE updates/bugs
-      if (iprint .ne. 0) then
-          if (oldseec .gt. 0) then
-                write(*,*) "        **** WARNING ****"
-                write(*,*) "Using old, deprecated seec model"
-                write(*,*) "Set switch oldseec = 0 to use new model "
-                write(*,*) "The old  model will be removed from"
-                write(*,*) "future versions of UEDGE"
-                write(*,*) "Please set oldseec = 0 "
-                write(*,*) ""
-          endif
-          if (jhswitch .gt. 0) then
-                write(*,*) "           **** WARNING ****"
-                write(*,*) "Switch jhswitch > 0 is deprecated and should not"
-                write(*,*) "be used. The option jhswitch > 0 will be removed" 
-                write(*,*) "from future versions of UEDGE."
-                write(*,*) "Please set jhswitch = 0 "
-                write(*,*) ""
-          endif
+      if (isoldalbarea .ne. 0) then
+            write(*,*) "           **** WARNING ****"
+            write(*,*) "Switch isoldalbarea > 0 is deprecated and should not"
+            write(*,*) "be used. The option isoldalbarea > 0 will be removed" 
+            write(*,*) "from future versions of UEDGE."
+            write(*,*) "Please set isoldalbarea = 0 "
       endif
+      if (oldseec .gt. 0) then
+            write(*,*) ""
+            write(*,*) ""
+            write(*,*) "        **** WARNING ****"
+            write(*,*) "Using old, deprecated seec model"
+            write(*,*) "Set switch oldseec = 0 to use new model "
+            write(*,*) "The old  model will be removed from"
+            write(*,*) "future versions of UEDGE"
+            write(*,*) "Please set oldseec = 0 "
+            write(*,*) ""
+      endif
+      if (jhswitch .gt. 0) then
+            write(*,*) ""
+            write(*,*) ""
+            write(*,*) "           **** WARNING ****"
+            write(*,*) "Switch jhswitch > 0 is deprecated and should not"
+            write(*,*) "be used. The option jhswitch > 0 will be removed" 
+            write(*,*) "from future versions of UEDGE."
+            write(*,*) "Please set jhswitch = 0 "
+            write(*,*) ""
+      endif
+      if ((cftiexclg .gt. 1e-10) .and. (istgon(1) .eq. 1)) then
+            write(*,*) ""
+            write(*,*) ""
+            write(*,*) "           **** WARNING ****"
+            write(*,*) "The gas equation (istgon) for atoms is turned on"
+            write(*,*) "while the switch cftiexclg>0, which accounts for"
+            write(*,*) "the atomic energy in the ion energy equation, "
+            write(*,*) "resulting in double-accounting for the atomic"
+            write(*,*) "energy. "
+            write(*,*) ""
+            write(*,*) "Please change cftiexclg=0 when using istgon for"
+            write(*,*) "atoms. (The scale factor can be changed gradually)."
+            write(*,*) ""
+      else if ((cftiexclg .ne. 1.0) .and. (istgon(1) .eq. 0)) then
+            write(*,*) ""
+            write(*,*) ""
+            write(*,*) "           **** WARNING ****"
+            write(*,*) "The gas equation (istgon) for atoms is turned off"
+            write(*,*) "while the switch cftiexclg!=0, which accounts for"
+            write(*,*) "the atomic energy in the ion energy equation, "
+            write(*,*) "resulting in a discrepancy for the atomic"
+            write(*,*) "energy. "
+            write(*,*) ""
+            write(*,*) "Please change cftiexclg=1 when not using a separate"
+            write(*,*) "atom energy equation. "
+            write(*,*) ""
+      endif
+
 
 
 
