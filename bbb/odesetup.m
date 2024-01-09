@@ -6493,6 +6493,7 @@ c ---------------------------------------------------------------------c
       Use(UEint)               # isallloc
       Use(Rccoef)              # isoutwall
       Use(Coefeq)              # oldseec, override, cftiexclg
+      Use(Flags)               # iprint
 c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
 
       integer ifake  #forces Forthon scripts to put implicit none above here
@@ -6517,7 +6518,7 @@ c_mpi         call MPI_BARRIER(uedgeComm, ierr)
            ifexmain = 1
            call allocate
            ifexmain = 0
-	   if (icall == 0) write(*,*) 'UEDGE ',uedge_ver
+	   if ((icall == 0) .and. (iprint .ne. 0)) write(*,*) 'UEDGE ',uedge_ver
            icall = 1
          elseif (ismpion.eq.1 .and. icall==0) then
            call init_pll
@@ -6647,7 +6648,7 @@ c ...    If a parallel run, send and gather data to PE0 first
                   call comp_vertex_vals  # gen plasma/neut values at rm,zm(,,4)
                endif
             endif
-         write(6,*) "Interpolants created; mype =", mype
+        if (iprint .ne. 0) write(6,*) "Interpolants created; mype =", mype
          endif
 
   100 continue

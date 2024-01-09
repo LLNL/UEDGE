@@ -1125,7 +1125,7 @@ mfnksol      integer /-3/#nksol method flag; =1 means dogleg strategy,
                          #=3 means linesearch with GMRES method.
 			 #=4 full direct solve by RSmirnov;set premeth=banded
                          #negative mfnksol ignores global constaints
-iprint       integer /1/ #nksol optional statistics flag.
+xiprint       integer /1/ #nksol optional statistics flag.
                          #=0 means no optional statistics are printed.
                          #=1 means iteration count, norm of F(u) and
                          #   no. of F evaluations are printed.
@@ -3889,7 +3889,7 @@ yielh(imx+1)	       _real
 yielz(imx+1,lnst+1)    _real
 
 ***** Ident_vars:
-uedge_ver  character*80 /'$Name: 8.0.4.0$'/
+uedge_ver  character*80 /'$Name: 8.0.5-beta.3$'/
 uedge_date character*80 /'Version date in README_Uedge_vers in dir uedge'/
 session_id  integer /0/ # Identifier for use with uetools
 max_session_id  integer /0/ # Identifier for max allocated runs, use with uetools

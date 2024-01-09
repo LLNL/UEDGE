@@ -1,5 +1,6 @@
 *.pyc
 *.F
+a.out
 */build/
 build/
 .idea/
@@ -16,3 +17,4 @@ uedge.egg-info
 *.egg
 *.c
 *.f
+pyscripts/__version__.py
