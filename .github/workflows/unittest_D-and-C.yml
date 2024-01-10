@@ -42,4 +42,4 @@ jobs:
     - name: Test with pytest
       run: |
         # Create a clean UEDGE instance for every test
-        pytest --isolate --tb=native pytests
+        pytest --isolate --tb=native pytests/unittests/D+C
