@@ -5,7 +5,6 @@
 class TestClass:
     
     def perturb_solution(self, file, perturbation=1e-2):
-        from h5py import File
         from numpy.random import uniform
         if 'restore' in list(file.keys()):
             bbb = file['restore/bbb']

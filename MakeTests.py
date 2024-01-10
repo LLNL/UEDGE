@@ -6,7 +6,6 @@
 class MakeTests():
 
     def execute_case(self, testpath, testname):
-        from h5py import File
         from uedge import bbb, com
         from uedge.hdf5 import hdf5_restore
         from os import chdir, getcwd, listdir
