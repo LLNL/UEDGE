@@ -1,0 +1,9 @@
+bbb.flalfe = 0.21	#electron parallel thermal conduct. grd.coeff
+bbb.flalfi = 0.21	#ion parallel thermal conduct. grd.coeff
+bbb.flalfv = 1.		#ion parallel viscosity grd.coeff
+bbb.flalfgx = 1.	#neut. density poloidal diffusion
+bbb.flalfgy = 1.	#neut. density radial diffusion
+bbb.flalfvgx = 1.	#neut. momentum poloidal viscosity
+bbb.flalfvgy = 1.	#neut. momentum radial viscosity
+bbb.flalftgx = 1.	#neut. particle poloidal heat diffusion 
+bbb.flalftgy = 1.	#neut. particle radial heat diffusion

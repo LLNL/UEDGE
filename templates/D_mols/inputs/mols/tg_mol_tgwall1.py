@@ -1,0 +1,11 @@
+bbb.ishymol = 1
+com.ngsp = 2
+com.nhgsp = 2
+bbb.isngon[1] = 1
+bbb.istgcon[1] = -1
+bbb.istgcore[1] = 2
+bbb.istgpfc[1] = 0
+bbb.istgwc[1] = 0
+bbb.istglb[1] = 0
+bbb.istgrb[1] = 0
+bbb.tgwall[1] = 1
