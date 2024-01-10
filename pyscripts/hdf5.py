@@ -1,4 +1,3 @@
-import numpy as np
 import h5py
 import uedge
 try:
@@ -19,81 +18,60 @@ def hdf5_restore(file):
         and will attempt to restore all datasets. This will restore a file saved by either
         hdf5_save or hdf5_dump.
     """
-    try:
-        hf = h5py.File(file, 'r')
-    except:
-        print("Couldn't open hdf5 file ", file)
-        raise
+    from os.path import exists
+    from numpy import array
+    from h5py import File 
 
-    try:
-        dummy = hf['bbb']   # force an exception if the group not there
-        hfb = hf.get('bbb')
-        try:           
-            for var in ['tes', 'tis', 'ups', 'nis', 'phis', 'ngs', 'tgs']:
-                packageobject('bbb').__setattr__(var, hf['bbb'][var][()]) 
-        except:
-            raise
+    # Check that the requested file exists
+    if not exists(file):
+        raise Exception("{} not found: Aborting!".format(file))
 
-    except:
-        print("Old style hdf5 file")
-        try:
-            bbb.ngs[...] = np.array(hf.get('ngs@bbb'))
-        except ValueError as error:
-            print("Couldn't read ngs from  ", file)
-            print(error)
-        except:
-            print("Couldn't read ngs from  ", file)
-        try:
-            bbb.nis[...] = np.array(hf.get('nis@bbb'))
-        except ValueError as error:
-            print("Couldn't read nis from  ", file)
-            print(error)
-        except:
-            print("Couldn't read nis from  ", file)
-        try:
-            bbb.phis[...] = np.array(hf.get('phis@bbb'))
-        except ValueError as error:
-            print("Couldn't read phis from  ", file)
-            print(error)
-        except:
-            print("Couldn't read phis from  ", file)
-        try:
-            bbb.tes[...] = np.array(hf.get('tes@bbb'))
-        except ValueError as error:
-            print("Couldn't read tes from  ", file)
-            print(error)
-        except:
-            print("Couldn't read tes from  ", file)
-        try:
-            bbb.tis[...] = np.array(hf.get('tis@bbb'))
-        except ValueError as error:
-            print("Couldn't read tis from  ", file)
-            print(error)
-        except:
-            print("Couldn't read tis from  ", file)
-        try:
-            bbb.ups[...] = np.array(hf.get('ups@bbb'))
-        except ValueError as error:
-            print("Couldn't read ups from  ", file)
-            print(error)
-        except:
-            print("Couldn't read ups from  ", file)
-        try:
-            bbb.tgs[...] = np.array(hf.get('tgs@bbb'))
-        except ValueError as error:
-            print("Couldn't read tgs from  ", file)
-            print(error)
-        except:
-            print("Couldn't read tgs from  ", file)
-        try:
-            bbb.tipers[...] = np.array(hf.get('tipers@bbb'))
-        except ValueError as error:
-            print("Couldn't read tipers from  ", file)
-            print(error)
-        except:
-            print("Couldn't read tipers from  ", file)
+    # The standard restore variables
+    varlist = ['tes', 'tis', 'ups', 'nis', 'phis', 'ngs']
+    # Newer versions of UEDGE introduce additional, newer variables,
+    # which are to be restored if available:
+    # - tgs: gaseous temperture for solving gaseous energy eqs
+    # - tipers: perpendicular ion temperature
+    for newvar in ['tgs', 'tipers']:
+        # Ensure any available new variables also are restored
+        if newvar in packageobject("bbb").varlist():
+            varlist.append(newvar)
 
-    hf.close()
+    with File(file, "r") as hf:
+        # Check whether an (very) old version of the save file is used
+        if "nis@bbb" in list(hf.keys()):
+            print("\nReading old style, flat-structured, save-file '{}'.".format(file))
+            for var in varlist:
+                # Restore variable if available from save
+                try:
+                    packageobject('bbb').__setattr__(
+                        var, 
+                        array(hf.get('{}@bbb'.format(var)))
+                    )
+                except ValueError as error:
+                    print("Couldn't read {} from {}".format(var, file))
+                    print(error)
+                except:
+                    print("Couldn't read {} from {}".format(var, file))
+            return True
+        # Check whether file is UETOOLS-style file
+        if "restore" in list(hf.keys()):
+            print("\nReading UETOOLS style save-file '{}'.".format(file))
+            restoregroup = hf['restore/bbb']
+        # Check whether file is uedge.hdf5-style file
+        elif "bbb" in list(hf.keys()):
+            print("\nReading uedge.hdf5-style save-file '{}'.".format(file))
+            restoregroup = hf['bbb']
+        # Unknown file structure, abort
+        else:
+            raise Exception("\nUnable to read data from {}".file(file))
+        # Read all the required restore variables
+        for var in varlist:
+            try:           
+                packageobject('bbb').__setattr__(var, restoregroup[var][()]) 
+            except:
+                raise
+    print(">>> Save read successfully")
     return True
 
 
@@ -279,6 +257,7 @@ def hdf5_restore_dump(file, scope=None, hdffile=None,quiet=False):
        This is called by hdf5_restore and the recommended way
        to restore.
     """
+    from numpy import char, array
     if hdffile == None:
         try:
             hf = h5py.File(file, 'r')
@@ -295,9 +274,9 @@ def hdf5_restore_dump(file, scope=None, hdffile=None,quiet=False):
                 print('File attributes:')
                 print('     written on: ', g.attrs['ctime'])
                 print('        by code: ', g.attrs['code'])
-                print('       version: ', np.char.strip(g.attrs['ver']))
-                print('    physics tag: ', np.char.strip(g.attrs['ver']))
-                print(' python version: ', np.char.strip(g.attrs['pyver']))
+                print('       version: ', char.strip(g.attrs['ver']))
+                print('    physics tag: ', char.strip(g.attrs['ver']))
+                print(' python version: ', char.strip(g.attrs['pyver']))
         except:
             if not quiet:
                 print('No file attributes, trying to restore')
@@ -307,7 +286,7 @@ def hdf5_restore_dump(file, scope=None, hdffile=None,quiet=False):
             if vt[1] == 'globals':
                 if scope != None:
                     if dset.size > 1:
-                        scope[vt[2]] = np.array(dset[()])
+                        scope[vt[2]] = array(dset[()])
                     else:
                         scope[vt[2]] = dset[()]
 
@@ -316,7 +295,7 @@ def hdf5_restore_dump(file, scope=None, hdffile=None,quiet=False):
                     pck = packagename2object(vt[1])
                     po = pck.getpyobject(vt[2])
                     if dset.size > 1:
-                        po[...] = np.array(dset[()])
+                        po[...] = array(dset[()])
                     else:
                         setattr(pck, vt[2], dset[()])
                 except ValueError as error:
