@@ -7,7 +7,12 @@ class TestClass:
     def perturb_solution(self, file, perturbation=1e-2):
         from h5py import File
         from numpy.random import uniform
-        bbb = file['bbb']
+        if 'restore' in list(file.keys()):
+            bbb = file['restore/bbb']
+        elif 'bbb' in list(file.keys()):
+            bbb = file['bbb']
+        else:
+            raise Exception("Save file not compatible with test structure! Aborting...")
         for var in ['nis', 'ups', 'tes', 'tis', 'ngs', 'tgs', 'phis']:
             bbb[var][...] *= uniform(low=1-perturbation, high=1+perturbation, size = bbb[var].shape)
 
