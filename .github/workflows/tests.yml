@@ -32,7 +32,7 @@ jobs:
     - name: Checkout pytest branch
       uses: actions/checkout@v4
       with:
-        ref: pytests
+        ref: pytests-develop
         repository: LLNL/UEDGE
     - name: Test with pytest from dedicated branch
       run: |
