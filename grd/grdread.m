@@ -148,16 +148,20 @@ c     ------------------------------------------------------------------
 Use(Share)            # geometry
 Use(Dim)              # nxm,nym
 Use(Xpoint_indices)   # ixlb,ixpt1,ixmdp,ixpt2,ixrb,iysptrx1,iysptrx2
+Use(Flags)            # iprint
       character*(*) fname, runid
       integer nuno,ios
       real simagxs_tmp, sibdrys_tmp
       external freeus,remark,xerrab,gallot,rdgrid
 
+      if (isgriduehdf5 .eq. 1) then
+        call parsestr('import uedge.gridue as gue;gue.read_gridpars()')
+      else
 c     Read mesh parameters from a UEDGE code grid data file
       simagxs_tmp=0
       sibdrys_tmp=0
       call freeus (nuno)
-      write(*,*) 'Reading grid from file:',trim(fname)
+      if (iprint .ne. 0) write(*,*) 'Reading grid from file:',trim(fname)
       open (nuno, file=trim(fname), form='formatted', iostat=ios,
      &      status='old')
       if (ios .ne. 0) then
@@ -185,6 +189,7 @@ c     Read mesh parameters from a UEDGE code grid data file
       close (nuno)
 
  1999 format(5i4)
+      endif
 
       return
       end
@@ -193,19 +198,24 @@ c     ------------------------------------------------------------------
 
       subroutine readgrid(fname, runid)
       implicit none
-Use(Share)            # geometry
+Use(Share)            # geometry, isgriduehdf5
 Use(Dim)              # nxm,nym
 Use(Xpoint_indices)   # ixlb,ixpt1,ixmdp,ixpt2,ixrb,iysptrx1,iysptrx2
+Use(Flags)            # iprint
       character*(*) fname, runid
       integer nuno,ios
       real simagxs_tmp, sibdrys_tmp
       external freeus,remark,xerrab,gallot,rdgrid
 
+      if (isgriduehdf5 .eq. 1) then
+        call parsestr('import uedge.gridue as gue;gue.read_gridue()')
+      else
+
 c     Read a UEDGE code grid data file
       simagxs_tmp=0
       sibdrys_tmp=0
       call freeus (nuno)
-      write(*,*) 'Reading grid from file:',trim(fname)
+      if (iprint .ne. 0) write(*,*) 'Reading grid from file:',trim(fname)
       open (nuno, file=trim(fname), form='formatted', iostat=ios,
      &      status='old')
       if (ios .ne. 0) then
@@ -234,6 +244,7 @@ c     Read a UEDGE code grid data file
       call rdgrid(nuno, runid)
 
       close (nuno)
+      endif # end isgriduehdf5 check
 
       return
       end

@@ -2,14 +2,14 @@ c!include "../mppl.h"
 c!include "../sptodp.h"
 c!include "api.h"
 !	SEE FMOMBAL SUBROUTINE FOR INPUT PARAMETER SPECIFICATIONS
-	subroutine coulfric(amu,denz2,dloglam,mntau,zi,capm,capn,
+	subroutine coulfric(amu,denz2,dloglam,mntau,zi_api,capm,capn,
      >	ela,elab,tempa)
   	implicit real (a-h,o-z), integer (i-n)
 	Use(Reduced_ion_constants)
 	real capm(KXA,miso,KXA,miso),denz2(miso),
      >		 capn(KXA,KXA,miso,miso),mntau(miso,miso),
      >		amu(miso),tempa(miso),
-     >		ela(*),elab(*),zi(miso,nzch)
+     >		ela(*),elab(*),zi_api(miso,nzch)
 c
 c	COMPUTES COULOMB COLLISION FRICTION TERMS
 c	ELA AND ELAB, WHERE THE FRICTION FORCE IS
@@ -206,24 +206,24 @@ c ... Initialize amat array.
           amat(i)=zero
         enddo
 
-c****	Setup zi, mass-density, Z*e*density arrays
-	call setden(amu,den,denmass,denz,denz2,zi)
+c****	Setup zi_api, mass-density, Z*e*density arrays
+	call setden(amu,den,denmass,denz,denz2,zi_api)
 
 c****	Setup force arrays (gradp, gradt stuff)
 	call setforce(den,denz,denmass,epar,gradp,gradt,
      >	tempa,uneut,qneut,umass,fmomenta,nuion)
 
 c*****	Compute Coulomb friction coefficients la, lab
-	call coulfric(amu,denz2,dloglam,mntau,zi,capm,capn,
+	call coulfric(amu,denz2,dloglam,mntau,zi_api,capm,capn,
      >	ela,elab,tempa)
 
 c*****	Compute response matrices for inversion of momentum equations
 c*****	in charge-state space
-	call zrespond(den,denmass,zi,ela,nuion,nurec,uresp,
+	call zrespond(den,denmass,zi_api,ela,nuion,nurec,uresp,
      >	usave,caplams,fmomenta,ldir)
 
 c*****	Solve average-ion equations in mass-isotope space
-	call mrespond(elab,zi,den,denmass,uresp,sbar,
+	call mrespond(elab,zi_api,den,denmass,uresp,sbar,
      >	KXA*(miso+1),amat,nurec,umass,ldir)
 
 c*****	Compute individual ion flows (for all charge states)
@@ -240,7 +240,7 @@ c
 c	COMPUTE FRICTION FORCES
 c	
 	call getfrict(friction,fricc,caplam,denmass,ela,nuion,
-     .  nurec,usol,zi)
+     .  nurec,usol,zi_api)
 
 c ... End timing impurity calculations.
         if (istimingon .eq. 1 .and. misotope .gt. 1)
@@ -251,26 +251,26 @@ c ... End timing impurity calculations.
 c---- End of subroutine fmombal ----------------------------------------
 c-----------------------------------------------------------------------
 	subroutine getfrict(friction,fricc,caplam,denmass,ela,
-     >	nuion,nurec,usol,zi)
+     >	nuion,nurec,usol,zi_api)
   	implicit real (a-h,o-z), integer (i-n)
 	Use(Reduced_ion_constants)
 	real friction(miso,nzch), usol(KXA,nzch,miso), 
      .       fricc(miso,nzch,5)
 	real nuion(miso,0:nzch), nurec(miso,nzch)
 	real denmass(miso,0:nzch), caplam(KXA,miso),
-     >	ela(3,3,miso), zi(miso,nzch)
+     >	ela(3,3,miso), zi_api(miso,nzch)
 	m = 1		!ONLY FRICTION FORCE
 	do misa = 1,miso
 	nzmax = natom(misa)
 	  do nz = 1,nzmax
 	  friction(misa,nz) =
-     >	  zi(misa,nz) * ( ela(m,1,misa)*usol(1,nz,misa)
+     >	  zi_api(misa,nz) * ( ela(m,1,misa)*usol(1,nz,misa)
      >	  + ela(m,2,misa)*usol(2,nz,misa)
      >	  + ela(m,3,misa)*usol(3,nz,misa) + caplam(m,misa) )
-            fricc(misa,nz,1) = zi(misa,nz)*ela(m,1,misa)*usol(1,nz,misa)
-            fricc(misa,nz,2) = zi(misa,nz)*ela(m,2,misa)*usol(2,nz,misa)
-            fricc(misa,nz,3) = zi(misa,nz)*ela(m,3,misa)*usol(3,nz,misa)
-            fricc(misa,nz,4) = zi(misa,nz)*caplam(m,misa)
+            fricc(misa,nz,1) = zi_api(misa,nz)*ela(m,1,misa)*usol(1,nz,misa)
+            fricc(misa,nz,2) = zi_api(misa,nz)*ela(m,2,misa)*usol(2,nz,misa)
+            fricc(misa,nz,3) = zi_api(misa,nz)*ela(m,3,misa)*usol(3,nz,misa)
+            fricc(misa,nz,4) = zi_api(misa,nz)*caplam(m,misa)
 	  friction(misa,nz) = friction(misa,nz)
      >	  - denmass(misa,nz)*usol(m,nz,misa)*
      >	  (nuion(misa,nz) + nurec(misa,nz))*al32(m)
@@ -316,7 +316,7 @@ c****	Constants
 	one = 1.0e0
 c*****	Calculate pi0 for greatest accuracy.
 	pi0=acos(-one)
-c*****	Set zero for initializing arrays.
+c*****	Set zero for initializi_aping arrays.
 	zero=0.e0
 c*****	Integer constants
 	ilam1 = 1
@@ -352,14 +352,14 @@ c****	Load common block elements
 	end
 c---- End of subroutine initmombal -------------------------------------
 c-----------------------------------------------------------------------
-	subroutine mrespond(elab,zi,den,denmass,uresp,sbar,
+	subroutine mrespond(elab,zi_api,den,denmass,uresp,sbar,
      >	nmat,amat,nurec,umass,ldir)
   	implicit real (a-h,o-z), integer (i-n)
 	Use(Reduced_ion_constants)
         integer nmat
 	real elab(KXA,miso,KXA*miso),uresp(KXA,nzch,miso,NBA),
      >	sbar(KXA,miso+1), sbar0(KXA*(MXMISO1)), ubar0(KXA*(MXMISO1)),
-     >	zi(miso,*),amat(nmat,nmat),denmass(miso,0:nzch)
+     >	zi_api(miso,*),amat(nmat,nmat),denmass(miso,0:nzch)
 	real den(miso,0:nzch), nurec(miso,nzch)
 	real usum(MXNZCH), bmat(KXA*(MXMISO1)*KXA*(MXMISO1))
 	integer nrow(KXA*(MXMISO1)), z1
@@ -427,9 +427,9 @@ c
 	  do 10 m = 1,KXA
 	    if( (misa.ne.mise) .or. (m.ne.mflow) )then
 	      sbar(m,misa) =
-     >	      sdot(nz,zi(misa,1),miso,uresp(m,z1,misa,iforc),KXA)
+     >	      sdot(nz,zi_api(misa,1),miso,uresp(m,z1,misa,iforc),KXA)
 	      amat(m+i,1+j) =
-     >	      -sdot(nz,zi(misa,1),miso,uresp(m,z1,misa,iacci),KXA)
+     >	      -sdot(nz,zi_api(misa,1),miso,uresp(m,z1,misa,iacci),KXA)
 	    endif
 	  do 10 mpmisb = 1,KXA*miso
 	    do nzb = 1,nz
@@ -438,7 +438,7 @@ c
      >	              + uresp(m,nzb,misa,ilam3)*elab(ilam3,misa,mpmisb)
 	    enddo
 	    if( (misa.ne.mise) .or. (m.ne.mflow) )
-     >	    amat(m+i,mpmisb) = sdot(nz,zi(misa,z1),miso,usum,1)
+     >	    amat(m+i,mpmisb) = sdot(nz,zi_api(misa,z1),miso,usum,1)
 c
 c	PERFORM SUMS OVER MISA (ISOTOPE MASS A)
 c
@@ -673,7 +673,7 @@ c*****	Eqn 5.22 for N22 H&S.
       end
 c---- End of subroutine neomn ------------------------------------------
 c-----------------------------------------------------------------------
-	subroutine printit(amu,den,epar,zi,ela,
+	subroutine printit(amu,den,epar,zi_api,ela,
      >  caplam,sbar,usol,fmom,denmass,nuion,nurec,
      >	gradp,gradt,parcurrent,xirl,tempa,uneut,umass)
   	implicit real (a-h,o-z), integer (i-n)
@@ -683,7 +683,7 @@ c-----------------------------------------------------------------------
 	real denmass(miso,0:nzch)
 	real nuion(miso,0:nzch), nurec(miso,nzch),
      >	gradp(miso,*), gradt(miso,*), ela(3,3,miso),
-     >	       zi(miso,nzch), fmom(KXA,nzch,miso), amu(miso),
+     >	       zi_api(miso,nzch), fmom(KXA,nzch,miso), amu(miso),
      >	       tempa(miso), uneut(miso)
 	
 c*****	Print out average-ion quantities
@@ -710,7 +710,7 @@ c*****	Print out average-ion quantities
 	nzmax = natom(misa)
 	do 55 nz = 1,nzmax
 	force = fmom(m,nz,misa)
-	friction = zi(misa,nz) * ( ela(m,1,misa)*usol(1,nz,misa)
+	friction = zi_api(misa,nz) * ( ela(m,1,misa)*usol(1,nz,misa)
      >	+ ela(m,2,misa)*usol(2,nz,misa)
      >	+ ela(m,3,misa)*usol(3,nz,misa) + caplam(m,misa) )
 	friction = friction - denmass(misa,nz)*usol(m,nz,misa)*
@@ -724,7 +724,7 @@ c*****	Print out average-ion quantities
 	  sumflow = sumflow + denmass(misa,nz)*usol(1,nz,misa)
 	  sumaflow= sumaflow+ denmass(misa,nz)*abs(usol(1,nz,misa))
 	  write(*,550)nz,usol(m,nz,misa),force,friction,
-     >	  den(misa,nz),zi(misa,nz),nuion(misa,nz),nurec(misa,nz)
+     >	  den(misa,nz),zi_api(misa,nz),nuion(misa,nz),nurec(misa,nz)
 	else if( m.eq.2 )then
 	  pres = den(misa,nz)*tempa(misa)
 	  write(*,550)nz,-2.5*usol(m,nz,misa)*pres,
@@ -756,12 +756,12 @@ c*****	Print out average-ion quantities
 	end
 c---- End of subroutine printit ----------------------------------------
 c-----------------------------------------------------------------------
-	subroutine setden(amu,den,denmass,denz,denz2,zi)
+	subroutine setden(amu,den,denmass,denz,denz2,zi_api)
   	implicit real (a-h,o-z), integer (i-n)
 	Use(Reduced_ion_constants)
 	real amu(miso), denz2(miso)
 	real den(miso,0:nzch), denmass(miso,0:nzch), denz(miso,*)
-	real zi(miso,*)
+	real zi_api(miso,*)
 c*****	Sum over isotopes for electron density-isotope 1.
 	do misa = 2,miso
 	  do nza = 1,natom(misa)
@@ -776,8 +776,8 @@ c*****	Compute mass-density, ZI, SUM(ZI), and total mass density
 	  denz2(misa)=zero
 	  do nza = 1,natom(misa)
 	    denmass(misa,nza) = bmass*den(misa,nza)
-	    zi(misa,nza) = den(misa,nza)*real(nza)**2
-	    denz2(misa)=denz2(misa) + zi(misa,nza)
+	    zi_api(misa,nza) = den(misa,nza)*real(nza)**2
+	    denz2(misa)=denz2(misa) + zi_api(misa,nza)
 	    totmass = totmass + denmass(misa,nza)
 	  enddo
 	enddo
@@ -785,16 +785,16 @@ c*****	Compute neutral mass-density
 	do misa = 2,miso
 	  denmass(misa,0) = amu(misa)*promas*den(misa,0)
 	enddo
-c*****	Provide pedestal for zi to avoid matrix inversion singularity
-	ziped = 1.E-4
+c*****	Provide pedestal for zi_api to avoid matrix inversion singularity
+	zi_apiped = 1.E-4
 	do misa=1,miso
 	  zisum = zero
 	  do nza=1,natom(misa)
-	    zi(misa,nza)=zi(misa,nza)/denz2(misa) + ziped
-	    zisum = zisum + zi(misa,nza)
+	    zi_api(misa,nza)=zi_api(misa,nza)/denz2(misa) + zi_apiped
+	    zisum = zisum + zi_api(misa,nza)
 	  enddo
-	  do nza = 1,natom(misa)	!zi normed to 1
-	    zi(misa,nza) = zi(misa,nza)/zisum
+	  do nza = 1,natom(misa)	!zi_api normed to 1
+	    zi_api(misa,nza) = zi_api(misa,nza)/zisum
 	  enddo
 	enddo
 	return
@@ -1045,14 +1045,14 @@ c*****	Singular matrix found.
 	end
 c---- End of subroutine uinvm2 -----------------------------------------
 c-----------------------------------------------------------------------
-	subroutine zrespond(den,denmass,zi,ela,nuion,nurec,
+	subroutine zrespond(den,denmass,zi_api,ela,nuion,nurec,
      >	uresp,usave,caplams,fmom,ldir)
   	implicit real (a-h,o-z), integer (i-n)
 	Use(Reduced_ion_constants)
 	parameter( NSIZE = 2*KXA*KXA*MXNZCH )
 	real zmat(KNX,MXMISO), source(KXA*MXNZCH,MXMISO)
 	real amat(KNX), asource(KXA*MXNZCH*NBA)
-	real den(miso,0:nzch), zi(miso,nzch), ela(KXA,KXA,miso)
+	real den(miso,0:nzch), zi_api(miso,nzch), ela(KXA,KXA,miso)
 	real nuion(miso,0:nzch), nurec(miso,nzch)
 	real uresp(KXA,nzch,miso,NBA), usave(KXA,nzch,miso)
 	real fmom(KXA,nzch,miso),denmass(miso,0:nzch)
@@ -1126,7 +1126,7 @@ c ... Initalize asource array.
           asource(i)=zero
         enddo
 
-	call zsource(asource,zi,den,fmom(1,1,misa),denmass,misa,nz)
+	call zsource(asource,zi_api,den,fmom(1,1,misa),denmass,misa,nz)
 	nforc = nkz*(iforc-1)
 	nacci = nkz*(iacci-1)
 	if( ldir.le.1 )then
@@ -1156,11 +1156,11 @@ c ... Initialize amat array.
 c
 c	LOWER DIAGONAL ELEMENTS (IONIZATION FROM LOWER CHARGE STATE)
 c
-	ozi = al32(m)/zi(misa,jz)
+	ozi_api = al32(m)/zi_api(misa,jz)
 	if (jz.gt.1)then
 	  jp = jz-1
 	  if( (m.eq.mp) )then
-	  amat(index) = ozi*denmass(misa,jp)*nuion(misa,jp)
+	  amat(index) = ozi_api*denmass(misa,jp)*nuion(misa,jp)
 	  if( ldir.le.1 )
      >	  asource(is) = asource(is) - amat(index)*usave(mp,jp,misa)
 	  endif
@@ -1172,7 +1172,7 @@ c
 	amat(index) = ela(m,mp,misa)
 	if( (m.eq.mp) )
      >	amat(index) = amat(index) - denmass(misa,jz)*
-     >	( nuion(misa,jz) + nurec(misa,jz) )*ozi
+     >	( nuion(misa,jz) + nurec(misa,jz) )*ozi_api
 	if( ldir.le.1 )
      >	asource(is) = asource(is) - amat(index)*usave(mp,jz,misa)
 c
@@ -1182,7 +1182,7 @@ c
 	  index = index + KXA
 	  jp = jz+1
 	  if( (m.eq.mp) )then
-	  amat(index) = ozi*denmass(misa,jp)*nurec(misa,jp)
+	  amat(index) = ozi_api*denmass(misa,jp)*nurec(misa,jp)
 	  if( ldir.le.1 )
      >	  asource(is) = asource(is) - amat(index)*usave(mp,jp,misa)
 	  endif
@@ -1227,20 +1227,20 @@ c
 	end
 c---- End of subroutine zrespond ---------------------------------------
 c-----------------------------------------------------------------------
-	subroutine zsource(source,zi,den,fmom,denmass,misa,nz)
+	subroutine zsource(source,zi_api,den,fmom,denmass,misa,nz)
   	implicit real (a-h,o-z), integer (i-n)
 	Use(Reduced_ion_constants)
-	real zi(miso,*), den(miso,0:nz), source(KXA,nz,NBA), fmom(KXA,*)
+	real zi_api(miso,*), den(miso,0:nz), source(KXA,nz,NBA), fmom(KXA,*)
 	real denmass(miso,0:nz)
 	do 20 jz= 1,nz
 	do 20 m = 1,KXA
 	if( m.eq.1 )then
 	  source(m,jz,ilam1) = one
-	  source(m,jz,iacci) = denmass(misa,jz) * anorm / zi(misa,jz)
+	  source(m,jz,iacci) = denmass(misa,jz) * anorm / zi_api(misa,jz)
 	else if( (m.eq.ilam2) .or. (m.eq.ilam3) )then
 	  source(m,jz,m) = one
 	endif
-	source(m,jz,iforc) = fmom(m,jz)/zi(misa,jz)
+	source(m,jz,iforc) = fmom(m,jz)/zi_api(misa,jz)
  20	continue
 	return
 	end

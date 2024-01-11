@@ -870,8 +870,8 @@ c     physics rates as a function of temperature and density
 c     (data from POST 93 tables)
 
 c     Allocate arrays for spline fitting --
-      nxdata=mpe		# temperature
-      nydata=mpd		# density
+      nxdata_aph=mpe		# temperature
+      nydata_aph=mpd		# density
       call gchange("Aphwrk",0)
 
       call splined1
@@ -891,61 +891,61 @@ Use(Aphwrk)
       integer i,j
  
 c     Define data arrays --
-      do i=1,nxdata
-        xdata(i)=ekpt(i)
+      do i=1,nxdata_aph
+        xdata_aph(i)=ekpt(i)
       enddo
-      do j=1,nydata
-        ydata(j)=dkpt(j)
+      do j=1,nydata_aph
+        ydata_aph(j)=dkpt(j)
       enddo
-      ldf=nxdata
+      ldf_aph=nxdata_aph
 
 c     Define the order of the spline fit
-c     kxords=4		# cubic in x=log(temperature)
-c     kyords=4		# cubic in y=log10(density)
+c     kxords_aph=4		# cubic in x=log(temperature)
+c     kyords_aph=4		# cubic in y=log10(density)
 
 c     Compute the coefficients --
 c     first, for ionization:
-      do i=1,nxdata
-        do j=1,nydata
+      do i=1,nxdata_aph
+        do j=1,nydata_aph
            if (istabon .eq. 5) then
-             fdata(i,j)=log10( wsveh(i,j,1) )
+             fdata_aph(i,j)=log10( wsveh(i,j,1) )
            elseif (istabon .eq. 6) then
-             fdata(i,j)=wsveh(i,j,1)
+             fdata_aph(i,j)=wsveh(i,j,1)
            endif
         enddo
       enddo
-      iflag = 1
-      call s2copy (nxdata,nydata,fdata,1,nxdata,rsacoef,1,nxdata)
-      call B2INhT (xdata, nxdata, ydata, nydata, kxords, kyords,
-     .            xknots, yknots, rsacoef, ldf, workh, iflag)
+      iflag_aph = 1
+      call s2copy (nxdata_aph,nydata_aph,fdata_aph,1,nxdata_aph,rsacoef,1,nxdata_aph)
+      call B2INhT (xdata_aph, nxdata_aph, ydata_aph, nydata_aph, kxords_aph, kyords_aph,
+     .            xknots_aph, yknots_aph, rsacoef, ldf_aph, workh, iflag_aph)
 c     next, for recombination:
-      do i=1,nxdata
-        do j=1,nydata
+      do i=1,nxdata_aph
+        do j=1,nydata_aph
            if (istabon .eq. 5) then
-             fdata(i,j)=log10( wsveh0(i,j,1) )
+             fdata_aph(i,j)=log10( wsveh0(i,j,1) )
            elseif (istabon .eq. 6) then
-             fdata(i,j)=wsveh0(i,j,1)
+             fdata_aph(i,j)=wsveh0(i,j,1)
            endif
         enddo
       enddo
-      iflag = 1
-      call s2copy (nxdata,nydata,fdata,1,nxdata,rracoef,1,nxdata)
-      call B2INhT (xdata, nxdata, ydata, nydata, kxords, kyords,
-     .            xknots, yknots, rracoef, ldf, workh, iflag)
+      iflag_aph = 1
+      call s2copy (nxdata_aph,nydata_aph,fdata_aph,1,nxdata_aph,rracoef,1,nxdata_aph)
+      call B2INhT (xdata_aph, nxdata_aph, ydata_aph, nydata_aph, kxords_aph, kyords_aph,
+     .            xknots_aph, yknots_aph, rracoef, ldf_aph, workh, iflag_aph)
 c     next, for hydrogen line radiation:
-      do i=1,nxdata
-        do j=1,nydata
+      do i=1,nxdata_aph
+        do j=1,nydata_aph
            if (istabon .eq. 5) then
-             fdata(i,j)=log10( wlemiss(i,j) )
+             fdata_aph(i,j)=log10( wlemiss(i,j) )
            elseif (istabon .eq. 6) then
-             fdata(i,j)=wlemiss(i,j)
+             fdata_aph(i,j)=wlemiss(i,j)
            endif
         enddo
       enddo
-      iflag = 1
-      call s2copy (nxdata,nydata,fdata,1,nxdata,rqacoef,1,nxdata)
-      call B2INhT (xdata, nxdata, ydata, nydata, kxords, kyords,
-     .            xknots, yknots, rqacoef, ldf, workh, iflag)
+      iflag_aph = 1
+      call s2copy (nxdata_aph,nydata_aph,fdata_aph,1,nxdata_aph,rqacoef,1,nxdata_aph)
+      call B2INhT (xdata_aph, nxdata_aph, ydata_aph, nydata_aph, kxords_aph, kyords_aph,
+     .            xknots_aph, yknots_aph, rqacoef, ldf_aph, workh, iflag_aph)
       return
       end
 
