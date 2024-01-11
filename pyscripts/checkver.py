@@ -22,7 +22,6 @@ except:
    thatver = str(data['info']['version'])
 
 
-print()
 if thisver > thatver:
    #print('Uedge version '+thisver+' is newer than available with pip ('+thatver+')')
    pass
@@ -30,7 +29,10 @@ elif thisver == thatver:
    #print('Uedge version '+thisver+' is up-to-date')
    pass
 elif thisver < thatver:
+   print()
    print('Uedge version '+thisver+', an update is available to '+thatver)
+   print()
 else:
+   print()
    print('Some error checking pypi version')
-print()
+   print()
