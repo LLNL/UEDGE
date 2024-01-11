@@ -2492,7 +2492,7 @@ c...  Force fluxes and gradients on cuts to be zero for half-space problems
      .                                                            )
             seec(ix,iy) = seec(ix,iy)
      .          + (t1old*vol(ix,iy) - t2old)*oldseec
-     .          + ((t1+t2)*vol(ix,iy))*(1-oldseec)
+     .          + ((t1new+t2new)*vol(ix,iy))*(1-oldseec)
             if (nusp-isupgon(1).eq.1) smoc(ix,iy,1)=(( -cpgx*gpex(ix,iy)-
      .                   qe*nexface*gpondpotx(ix,iy) )*rrv(ix,iy)  +
      .                     pondomfpare_use(ix,iy) )*sx(ix,iy)/gxf(ix,iy)
