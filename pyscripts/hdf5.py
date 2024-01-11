@@ -22,6 +22,7 @@ def hdf5_restore(file):
     from numpy import array
     from h5py import File 
 
+    iprint = packageobject("com").__getattribute__("iprint")
     # Check that the requested file exists
     if not exists(file):
         raise Exception("{} not found: Aborting!".format(file))
@@ -40,7 +41,8 @@ def hdf5_restore(file):
     with File(file, "r") as hf:
         # Check whether an (very) old version of the save file is used
         if "nis@bbb" in list(hf.keys()):
-            print("\nReading old style, flat-structured, save-file '{}'.".format(file))
+            if iprint > 0:
+                print("\nReading old style, flat-structured, save-file '{}'.".format(file))
             for var in varlist:
                 # Restore variable if available from save
                 try:
@@ -56,11 +58,13 @@ def hdf5_restore(file):
             return True
         # Check whether file is UETOOLS-style file
         if "restore" in list(hf.keys()):
-            print("\nReading UETOOLS style save-file '{}'.".format(file))
+            if iprint > 0:
+                print("\nReading UETOOLS style save-file '{}'.".format(file))
             restoregroup = hf['restore/bbb']
         # Check whether file is uedge.hdf5-style file
         elif "bbb" in list(hf.keys()):
-            print("\nReading uedge.hdf5-style save-file '{}'.".format(file))
+            if iprint > 0:
+                print("\nReading uedge.hdf5-style save-file '{}'.".format(file))
             restoregroup = hf['bbb']
         # Unknown file structure, abort
         else:
@@ -71,7 +75,8 @@ def hdf5_restore(file):
                 packageobject('bbb').__setattr__(var, restoregroup[var][()]) 
             except:
                 raise
-    print(">>> Save read successfully")
+    if iprint > 0:
+        print(">>> Save read successfully")
     return True
 
 
