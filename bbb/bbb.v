@@ -451,7 +451,7 @@ isnicore(nispmx)  integer   /1,30*0/      +input #switch for ion-density core B.
 				    #=4, use impur. source terms (impur only)
 				    #=5, set d(ni)/dy=-ni/lynicore at midp &
                                     #    ni constant poloidally
-isfniycbozero   integer /0/ +input # Switch for divergence-free fluxes on core boundary
+isfniycbozero   real /0./ +input # Switch for divergence-free fluxes on core boundary
                     #=0, allows divergence-free fluxes to modify net core flux
                     #=1, redistributes fluxes due to divergence-free term 
                     #    without affecting the net core boundary flux

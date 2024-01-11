@@ -3346,7 +3346,7 @@ c ... Normalize core flux to zero to avoid introducing artifical core source/sin
             end do
             fniycboave = fniycboave / (ixpt2(1) - ixpt1(1))
             do ix = ixpt1(1)+1, ixpt2(1)
-              fniycbo(ix, ifld) = fniycbo(ix, ifld) - fniycboave
+              fniycbo(ix, ifld) = fniycbo(ix, ifld) - isfniycbozero*fniycboave
             end do
           end do
       else if (isfniycbozero .lt. 0) then 
