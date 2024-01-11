@@ -605,7 +605,7 @@ c    yldot is the RHS of ODE solver or RHS=0 for Newton solver (NKSOL)
       integer impflag
       # former Aux module variables
       integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
-      real tv,t0,t1,t2,a
+      real tv,t0,t1,t2,a,t1old,t1new,t2old,t2new
 cnxg      data igs/1/
 
       Use(Dim)      # nx,ny,nhsp,nusp,nzspt,nzsp,nisp,ngsp,nxpt
@@ -2473,28 +2473,26 @@ c...  Force fluxes and gradients on cuts to be zero for half-space problems
             ix1 = ixm1(ix,iy)
             ix2 = ixp1(ix,iy)
             nexface = 0.5*(ne(ix2,iy)+ne(ix,iy))
-            if (oldseec .gt. 0) then
-                t1 =.5*cvgp*(upe(ix,iy)*rrv(ix,iy)*
-     .                  ave(gx(ix,iy),gx(ix2,iy))*gpex(ix,iy)/gxf(ix,iy) +
-     .                  upe(ix1,iy)*rrv(ix1,iy)*
-     .                  ave(gx(ix,iy),gx(ix1,iy))*gpex(ix1,iy)/gxf(ix1,iy) )
-                t2 = 1.e-20* 0.25*(fqp(ix,iy)+fqp(ix1,iy))*
-     .                  (ex(ix,iy)+ex(ix1,iy))/gx(ix,iy)
-                seec(ix,iy) = seec(ix,iy) + t1*vol(ix,iy) - t2
-            else
-                iyp1 = min(iy+1,ny+1)
-                iym1 = max(iy-1,0)
-                t1 = .5*cvgp*( vex(ix,iy)*
-     .                  ave(gx(ix,iy),gx(ix2,iy))*gpex(ix,iy)/gxf(ix,iy) +
-     .                  vex(ix1,iy)*
-     .                  ave(gx(ix,iy),gx(ix1,iy))*gpex(ix1,iy)/gxf(ix1,iy) )
-                t2 = .5*cvgp*( vey(ix,iy)*
-     .                  ave(gy(ix,iy),gy(ix,iyp1))*gpey(ix,iy)/gyf(ix,iy) +
-     .                  vey(ix,iy)*
-     .                  ave(gy(ix,iy),gy(ix,iym1))*gpey(ix,iym1)/gyf(ix,iym1)
+            t1old =.5*cvgp*(upe(ix,iy)*rrv(ix,iy)*
+     .          ave(gx(ix,iy),gx(ix2,iy))*gpex(ix,iy)/gxf(ix,iy) +
+     .          upe(ix1,iy)*rrv(ix1,iy)*
+     .          ave(gx(ix,iy),gx(ix1,iy))*gpex(ix1,iy)/gxf(ix1,iy) )
+            t2old = 1.e-20* 0.25*(fqp(ix,iy)+fqp(ix1,iy))*
+     .          (ex(ix,iy)+ex(ix1,iy))/gx(ix,iy)
+            iyp1 = min(iy+1,ny+1)
+            iym1 = max(iy-1,0)
+            t1new = .5*cvgp*( vex(ix,iy)*
+     .          ave(gx(ix,iy),gx(ix2,iy))*gpex(ix,iy)/gxf(ix,iy) +
+     .          vex(ix1,iy)*
+     .          ave(gx(ix,iy),gx(ix1,iy))*gpex(ix1,iy)/gxf(ix1,iy) )
+            t2new = .5*cvgp*( vey(ix,iy)*
+     .          ave(gy(ix,iy),gy(ix,iyp1))*gpey(ix,iy)/gyf(ix,iy) +
+     .          vey(ix,iy)*
+     .          ave(gy(ix,iy),gy(ix,iym1))*gpey(ix,iym1)/gyf(ix,iym1)
      .                                                            )
-                seec(ix,iy) = seec(ix,iy) + (t1+t2)*vol(ix,iy)
-            endif
+            seec(ix,iy) = seec(ix,iy)
+     .          + (t1old*vol(ix,iy) - t2old)*oldseec
+     .          + ((t1+t2)*vol(ix,iy))*(1-oldseec)
             if (nusp-isupgon(1).eq.1) smoc(ix,iy,1)=(( -cpgx*gpex(ix,iy)-
      .                   qe*nexface*gpondpotx(ix,iy) )*rrv(ix,iy)  +
      .                     pondomfpare_use(ix,iy) )*sx(ix,iy)/gxf(ix,iy)
