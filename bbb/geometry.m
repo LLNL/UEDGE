@@ -786,7 +786,7 @@ c     Re-define midplane guard cells for symmetric double-null
 
 c...  For 1D poloidal flux-tube geometry (nysol=1), reset cell vertex
 c...  locations near ix=ixpt2 on iy=1 surface if nxpt2msh or nxpt2psh > 1
-      if (nxpt2msh+nxpt2psh > 0) call reset1dmeshpt
+      if (nxpt2msh+nxpt2psh > 0 .or. nxpt1msh+nxpt1psh > 0) call reset1dmeshpt
 
 *     Define guard cells around the edge of the mesh --
       call guardc
@@ -2889,10 +2889,14 @@ c...  Subroutine to shift cell vertices near ix=ixpt2 for 1D flux tube ...
       Use(Share)          # nxomit,nxpt2msh,nxpt2psh,rxpt2msh,zxpt2psh
 
 c...  local scalars
-      integer ix,ix2
+      integer ix,ix2,ix1 
       real lenginc,theta
 
-      ix2 = nxomit+ixpt2(1)    		#consider outer flux-surface only
+      if (nxomit .ge. 0) then
+        ix2 = nxomit+ixpt2(1)    		#consider outer flux-surface only
+      else
+	ix2 = ixpt2(1)
+      endif
 
 c...  First fix iy=1 cell vertices above X-point (ixpt2)
       theta = rxpt2msh/zxpt2msh   #defines curvature of flux surface
@@ -2910,6 +2914,32 @@ c...  Second, fix iy=1 cell vertices below X-point
         zm(ix,1,4) = zm(ix,1,3) - zxpt2psh  #zxpt2psh*(1.-0.5*theta**2)
         rm(ix+1,1,3) = rm(ix,1,4)
         zm(ix+1,1,3) = zm(ix,1,4)
+      enddo
+
+#..   Do the inner X-pt
+#..
+#..
+      if (nxomit .ge. 0) then
+        ix1 = nxomit+ixpt1(1)+1
+      else
+        ix1 = ixpt1(1)+1
+      endif
+c...  First fix iy=1 cell vertices above X-point (ixpt2)
+      theta = rxpt1msh/zxpt1msh   #defines curvature of flux surface
+      do ix = ix1, ix1+nxpt1msh-1
+        rm(ix,1,4) = rm(ix,1,3)
+        zm(ix,1,4) = zm(ix,1,3) + zxpt1msh
+        rm(ix-1,1,3) = rm(ix,1,4)
+        zm(ix-1,1,3) = zm(ix,1,4)
+      enddo
+
+c...  Second, fix iy=1 cell vertices below X-point
+      theta = rxpt1psh/zxpt1psh   #defines curvature of flux surface
+      do ix = ix1-1, ix1-nxpt1psh, -1
+        rm(ix,1,3) = rm(ix,1,4)
+        zm(ix,1,3) = zm(ix,1,4) - zxpt1psh
+        rm(ix+1,1,4) = rm(ix,1,3)
+        zm(ix+1,1,4) = zm(ix,1,3)
       enddo
 
       return
