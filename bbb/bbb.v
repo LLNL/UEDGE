@@ -220,16 +220,8 @@ rup21          real      /1./        +input #rup21=up2/up1 if isup1up2
 isupgon(ngspmx) integer /ngspmx*0/   +input #user:=1 for par neutral vel. eqn.; index igsp
 isteon      integer  /1/             +input #user:turns on (=1) electron energy eqn.
 istion      integer  /1/             +input #user:turns on (=1) ion enegy eqn.
-istiexclg   integer  /0/             # Ti is only solved for ions (=1, cftiexclg=0.0).
-istiinclg_test integer  /0/          # not often used. for one to turn on Tg
-                                     #       from a converged case without Tg turned on.
-			             #       One can start using =1 while cftiexclg=1,
-				     #       then slowly reducing cftiexclg to 0 and
-				     #       turn this switch back to =0.
 isngon(ngspmx) integer  /6*1/        +input #user:turns on (=1) neutral eqn.; index igsp
 istgon(ngspmx) integer  /6*0/        +input #user:turns on (=1) gas enegy eqn.
-ismanufactured(ngspmx) integer  /6*0/        # =0, pwrsorg = 0.0
-                                     #       =1, turns on manufactured source pwrsorg for varification of gas enegy eqn.
 isphion     integer  /0/             +input #user:turns on (=1) potential eqn.
 isphiofft integer  /0/ +input #user:=1 leaves old cur. on & ex=-d(phis)/dx; must be used
                        #with isphion=0
@@ -343,14 +335,12 @@ vboost    real      /1./    +input #previously scaled eqp; no longer in use
 cvgp      real      /1./    +input #Coef for v.Grad(p) ion/elec eng. terms
 cvgpg     real      /1./    +input #Coef for v.Grad(pg) gas eng. terms
 cfvgpx(1:nispmx) real /nispmx*1./ +input #Coefs for x components of v.grad(p) in ti-eq
-cftiexclg real      /1./    +input #Coef for including atom gas in Ti eq.
+cftiexclg real      /1./    +input #Coef =1.0 for including atom gas contrib. in Ti eq. Make it 0.0 when turn on atom temperature.
 cfvgpy(1:nispmx) real /nispmx*1./ +input #Coefs for y components of v.grad(p) in ti-eq
-cfvgpgx(1:ngspmx) real /ngspmx*0./ +input # Coefs for v*grad(pg) term (poloidal component) for Tg if isupgon=0.
-cfvgpgy(1:ngspmx) real /ngspmx*0./ +input # Coefs for v*grad(pg) term (poloidal component) for Tg if isupgon=0.
 cfbgt     real      /0./    +input #Coef for the B x Grad(T) terms.
 cfjhf     real      /1./    +input #Coef for convective cur (fqp) heat flow
 jhswitch  integer   /0/     +input #Coef for the Joule-heating terms
-oldseec   integer   /1/     +input #Switch for Joule-heating bugfix
+oldseec   real      /1./    +input #Switch for Joule-heating bugfix
 override  integer   /0/     +input #Switch to manually override checks on old models
 cf2ef     real      /0./    +input #Coef for ExB drift in 2-direction
 cfyef     real      /0./    +input #Coef for ExB drift in y-direction
@@ -471,6 +461,11 @@ isnicore(nispmx)  integer   /1,30*0/      +input #switch for ion-density core B.
 				    #=4, use impur. source terms (impur only)
 				    #=5, set d(ni)/dy=-ni/lynicore at midp &
                                     #    ni constant poloidally
+isfniycbozero   real /0./ +input # Switch for divergence-free fluxes on core boundary
+                    #=0, allows divergence-free fluxes to modify net core flux
+                    #=1, redistributes fluxes due to divergence-free term 
+                    #    without affecting the net core boundary flux
+                    #=-1,assumes no divergence-free fluxes on the core boundary
 isupcore(nispmx) integer /nispmx*0/ +input #=0 sets up=upcore on core bdry
 				    #=1 sets d(up)/dy=0 on the core bdry
 				    #=2 sets d^2(up)/dy^2 = 0
@@ -486,10 +481,11 @@ isngcore(ngspmx) integer /ngspmx*0/ +input #switch for neutral-density core B.C.
 				    #prev default inert hy
 				    # anything else same as =0
 istgcore(ngspmx) integer /ngspmx*1/ +input #switch for neutral-density core B.C.
-                                    #=0, set tg(ixcore,0,igsp)=ti(ixcore,0)
+                                    #=0, set tg(ixcore,0,igsp)=ti(ixcore,0)*cftgticore
 				    #=1, set fixed temp tgcore(igsp)
-				    #if > 1, set zero grad; tg(,0,)=tg(,1,)
-cftgticore(ngspmx) real /ngspmx*1./ +input #..
+				    #=2, set energy flux = cfalbedo(=2.0)*fng_alb*tg
+				    #if > 2, set zero grad; tg(,0,)=tg(,1,)
+cftgticore(ngspmx) real /ngspmx*1./ +input #set tg(ixcore,0,igsp)=ti(ixcore,0)*cftgticore(igsp) when istgcore(igsp) = 0.
 curcore(1:nispmx) real [A] /0.,30*0./ +input #value of current from core if isnicore=0
 lzcore(1:nispmx)  real [kg/ms] /nispmx*0./ +input #tor. ang. mom dens core bdry; phi eqn
 lzflux(1:nispmx)  real [kg/s**2]/nispmx*0./ +input #tor. ang. mom dens flux core bdry; up eqn
@@ -517,8 +513,6 @@ tepltl    real [eV]  /2./    +input #left plate Te B.C. if ibctepl=0
 tipltl    real [eV]  /2./    +input #left plate Ti B.C. if ibctipl=0
 tepltr    real [eV]  /2./    +input #right plate Te B.C. if ibcteplr=0
 tipltr    real [eV]  /2./    +input #right plate Ti B.C. if ibctiplr=0
-cftgtipltl(ngspmx)  real   /ngspmx*1./    +input #left plate Tg B.C. if ibctgpl=?
-cftgtipltr(ngspmx)  real   /ngspmx*1./    +input #right plate Tg B.C. if ibctgpr=?
 tbmin     real [eV] /.1/     +input #min. wall & pf temp for extrap. b.c.(isextrt..)
 nbmin     real [m**-3] /1.e17/ +input #min. wall & pf den for extrap. b.c.(isextrn..)
 ngbmin    real [m**-3] /1.e10/ +input #min. core gas den for extrap. b.c.(isextrngc)
@@ -534,7 +528,9 @@ istgwc(ngspmx) integer/ngspmx*0/    +input #switch for outer-wall BC on Tg(,0,ig
 			     # =1, use extrapolation BC
 			     # =2, set Tg scale length to lytg(2,
 			     # =3, eng flux = 2Tg*Maxw-flux
-                             # >3, report error in input
+			     # =4, eng flux = sum of all parts e.g. recycled,spttered,pumped, assuming a half-Maxw for each
+			     # =5, tg = ti*cftgtiwc
+                             # >5, report error in input
 istepfc   integer    /0/    +input  # switch for priv.-flux BC on Te
 			     # =0, set zero energy flux
 	 		     # =1, set fixed temp to tedge or tewalli
@@ -547,9 +543,11 @@ istgpfc(ngspmx) integer/ngspmx*0/   +input #switch for PF BC on Tg(,0,igsp)
 			     # =1, use extrapolation BC
 			     # =2, set Tg scale length to lytg(1,
 			     # =3, eng flux = 2Tg*Maxw-flux
-                             # >2, report error in input
-cftgtiwc(ngspmx)   real   /ngspmx*1./    +input #wall Tg B.C. if istgwc=?
-cftgtipfc(ngspmx)  real   /ngspmx*1./    +input #pfc Tg B.C. if istgpfc=?
+			     # =4, eng flux = sum of all parts e.g. recycled,spttered,pumped, assuming a half-Maxw for each
+                             # =5, tg = ti*cftgtipfc
+                             # >5, report error in input
+cftgtiwc(ngspmx)   real   /ngspmx*1./    +input #wall Tg B.C.: tg = ti*cftgtiwc if istgwc=5
+cftgtipfc(ngspmx)  real   /ngspmx*1./    +input #pfc Tg B.C.: tg = ti*cftgtipfc if istgpfc=5
 tewalli(0:nx+1) _real [eV] +input #/(nx+2)*0./
                              #inner wall Te for istepfc=1.; = tedge if not set
 tiwalli(0:nx+1) _real [eV] +input #/(nx+2)*0./
@@ -819,8 +817,18 @@ cgengpl   real		 /0./       +input #new scale fac atom eng plate loss; old cgpl
 cgengw    real           /0./   +input #new scale fac atom eng wall loss
 cgmompl   real           /1./   +input #scale fac atom par mom plate loss
 vgmomp    real     [m/s] /2.e3/ +input #vel used in exp factor of atom mom loss
-istglb(ngspmx) _integer  /0/    +input #=0 for tg=tgwall; =1 for extrap;=3, Maxw flux
-istgrb(ngspmx) _integer  /0/    +input #=0 for tg=tgwall; =1 for extrap;=3, Maxw flux
+istglb(ngspmx) _integer  /0/    +input #=0 for tg=tgwall; 
+                                       #=1 for extrap;
+			               #=3, Maxw flux;
+			               #=4 for assuming half-Maxwellian for all kinds of neutral sources e.g. recycled, sputtered, pumped etc.;
+				       #=5 for tg = ti*cftgtipltl.
+istgrb(ngspmx) _integer  /0/    +input #=0 for tg=tgwall;
+                                       #=1 for extrap;
+			               #=3, Maxw flux;
+			               #=4 for assuming half-Maxwellian for all kinds of neutral sources e.g. recycled, sputtered, pumped etc.;
+				       #=5 for tg = ti*cftgtipltr.
+cftgtipltl(ngspmx)  real   /ngspmx*1./    +input #left plate Tg B.C.: tg = cftgtipltl*ti if istglb=5
+cftgtipltr(ngspmx)  real   /ngspmx*1./    +input #right plate Tg B.C.: tg = cftgtipltr*ti if istgrb=5
 cgengmpl  real		 /1./   +input #scale fac mol plate eng loss for Maxw
 cgengmw  real		 /1./   +input #scale fac mol wall eng loss for Maxw
 
@@ -912,6 +920,12 @@ rdatlb(ngspmx,50,nxptmx) _real      /0./ +maybeinput #inner recycp data for each
 rdatrb(ngspmx,50,nxptmx) _real      /0./ +maybeinput #outer recycp data for each ydatrb
 alblb(0:ny+1,ngspmx,nxptmx) _real        +input #inner plate albedo; used if <1 (calc)
 albrb(0:ny+1,ngspmx,nxptmx) _real        +input #outer plate albedo; used if <1 (calc)
+areapl          real   /0./ +work   # Work variable for plate projection area for 
+                                    # albedo-like recycling
+isoldalbarea    real   /1./ +input # Switch whether to use old (wrong) albedo
+                                    # area which is perpendicular-to-poloidal flux
+                                    # tube area (=1) or the correct area projected
+                                    # onto the target plate (=0)
 albedo_by_user   integer            /0/  +input #if=1, user fills albedoo,i & albdlb,rb
 fngxslb(0:ny+1,ngspmx,nxptmx) _real [1/s]+input #inner plt liq vapor gas sour. if sputtlb>0
 fngxsrb(0:ny+1,ngspmx,nxptmx) _real [1/s]+input #outer plt liq vapor gas sour. if sputtlb>0
@@ -1122,7 +1136,7 @@ mfnksol      integer /-3/#nksol method flag; =1 means dogleg strategy,
                          #=3 means linesearch with GMRES method.
 			 #=4 full direct solve by RSmirnov;set premeth=banded
                          #negative mfnksol ignores global constaints
-iprint       integer /1/ #nksol optional statistics flag.
+xiprint       integer /1/ #nksol optional statistics flag.
                          #=0 means no optional statistics are printed.
                          #=1 means iteration count, norm of F(u) and
                          #   no. of F evaluations are printed.
@@ -1728,7 +1742,6 @@ volpsor(0:nx+1,0:ny+1,1:nisp) _real [1/s]+maybeinput #current src into ions in c
 volmsor(0:nx+1,0:ny+1,1:nisp) _real [kg m/s**2] +maybeinput #up mom src in cell ix,iy
 voljcsor(0:nx+1,0:ny+1) _real [A]      +maybeinput #uniform core-region curr sor. in ix,iy
 volpsorg(0:nx+1,0:ny+1,1:ngsp) _real [1/s]+maybeinput #curr source for gas in cell ix,iy
-pwrsorg(0:nx+1,0:ny+1,1:ngsp) _real [1/s]+maybeinput #power source for gas in cell ix,iy; only for manufactured solution verification
 pondpot(0:nx+1,0:ny+1)  _real [V] /0./ +maybeinput #elec ponderomotive potential
 psgov_use(0:nx+1,0:ny+1,1:ngsp) _real [1/m**3 s]+maybeinput #user-specified gas source
 jcvsor                  real [A]  /0./ +maybeinput #total core-region current for voljcsor
@@ -3887,7 +3900,7 @@ yielh(imx+1)	       _real
 yielz(imx+1,lnst+1)    _real
 
 ***** Ident_vars:
-uedge_ver  character*80 /'$Name: 8.0.4.0$'/
+uedge_ver  character*80 /'$Name: 8.0.6-beta.0$'/
 uedge_date character*80 /'Version date in README_Uedge_vers in dir uedge'/
 session_id  integer /0/ # Identifier for use with uetools
 max_session_id  integer /0/ # Identifier for max allocated runs, use with uetools

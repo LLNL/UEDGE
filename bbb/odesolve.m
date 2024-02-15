@@ -23,7 +23,6 @@
       Use(Stat)
       Use(Ident_vars) # exmain_evals
       Use(Ynorm)    # suscal,sfscal
-      Use(Ident_vars) # exmain_evals
       Use(Oldpla)
       Use(Decomp)   # ubw,lbw
       Use(Jacaux)   # yldot1,yldot0,issfon
@@ -40,6 +39,7 @@
 
       Use(Jacreorder)    # ireorder
       Use(Jacobian)      # nnzmx
+      Use(Flags)         # iprint
 
 c Diagnostic data
       Use(Comgeo)        # gxf,sx
@@ -603,6 +603,7 @@ c **- Initializes integration/solver routines for mpi parallel version
       Use(Lsode)
       Use(Npes_mpi)
       Use(Parallv)
+      Use(Flags)
 C diagnostic data
       Use(Indices_domain_dcl)
 c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
