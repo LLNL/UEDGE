@@ -2953,6 +2953,8 @@ fniyos_io 		integer /0/	     +maybeinput #=0,a flag to signal whether to read/wr
 feeyosn_io 		integer /0/	     +maybeinput #=0,a flag to signal whether to read/write kyi_use
 feiyosn_io 		integer /0/	     +maybeinput #=0,a flag to signal whether to read/write kyi_use
 isvolsorext             integer /0/   +maybeinput #volsor sources if =0; or user sors if =1
+isimpwallsor            integer /0/   +maybeinput #user imp ion wall fluxes; may have
+					          # prob with ixendo for nyomitmx>0
 
 ***** Interp:
 #Variables for the interpolation

@@ -63,7 +63,6 @@ cc      Use(Rccoef)
 
 *=======================================================================
 *//computation//
-
       id = 1
       call gallot("Grid",0)
       call gallot("Stat",0)
@@ -737,7 +736,6 @@ c-----------------------------------------------------------------------
 *  ---------------------------------------------------------------------
 *  preliminaries.
 *  ---------------------------------------------------------------------
-
 *  -- check nx, ny, nhsp --
       if (nx.lt.1 .or. ny.lt.1 .or. nhsp.lt.1) then
          call xerrab ('ueinit -- faulty argument nx, ny, nhsp')
@@ -1075,6 +1073,7 @@ c ... If isimpon > 0 and isph_sput = 1, init. DIVIMP data for physical sputt.
 c ... Set up new grid geometry, if desired.
       if(newgeo .eq. 1) then
          call nphygeo
+
 c...  "zero out" sx at ixpt2(1) if isfixlb=2 and ixpt1(1).le.0 to prevent
 c...  flux thru cut
          if (isfixlb(1).eq.2 .and. ixpt1(1).le.0 .and. ixpt2(1).ge.0) then
@@ -1238,7 +1237,6 @@ c...  Now set sidewall flux limit factors
         flalftgya(0) = 1.e20
         flalftgya(ny) = 1.e20
       endif
-	  
 c...  set wall sources
       call walsor
 
@@ -1251,15 +1249,17 @@ c...  set plate recycling coefficient profiles
 c...  set volume power sources if the internal Gaussian sources desired
       if (isvolsorext == 0) call volsor
 
-c ... Set impurity sources on inner and outer walls.
-      call imp_sorc_walls (nx, nzspt, xcpf, xcwo, sy(0,0), sy(0,ny),
+c ... Set impurity sources on inner and outer walls; poss prob if nyomitmx>0
+      if (isimpwallsor == 1) then  #impurity wall-flux sources
+        call imp_sorc_walls (nx, nzspt, xcpf, xcwo, sy(0,0), sy(0,ny),
      .                        ixp1(0,0), ixp1(0,ny), fnzysi, fnzyso)
+      endif
 
 c ... Initialize molecular thermal equilibration array in case not computed
       do igsp = 1,ngsp
         call s2fill (nx+2, ny+2, 0.0e0, eqpg(0:,0:,igsp), 1, nx+2)
       enddo
-      
+
 *---  bbbbbb begin ifloop b  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
       if (ig .eq. 1 .and. restart .eq. 0) then
 *---  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
@@ -1722,8 +1722,6 @@ c...  Check if any ion density is zero
         enddo
       enddo
 
-ccc      write(*,*)  'Just initialized psorc, etc.in ueinit; nisp = ',nisp
-
       do ifld = 1, nusp
          call s2fill (nx+2, ny+2, 0., fmixy(0:,0:,ifld), 1, nx+2)
          call s2fill (nx+2, ny+2, 0., frici(0:,0:,ifld), 1, nx+2)
@@ -1809,6 +1807,11 @@ c...  Set boundary conditions for ni and Te,i on walls if end-element zero
 *---  bbbbbb end ifloop b bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
       endif
 *---  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+
+c ... Now that new indexing (e.g., ixendi, ixendo etc.) is done, set
+c ... impurity wall sources that depend on these indices.
+ccc     call imp_sorc_walls (nx, nzspt, xcpf, xcwo, sy(0,0), sy(0,ny),
+ccc     .                        ixp1(0,0), ixp1(0,ny), fnzysi, fnzyso)
 
 c ... Set variable-normalization array.
       call set_var_norm (iscolnorm, neq, numvar, yl, norm_cons,
