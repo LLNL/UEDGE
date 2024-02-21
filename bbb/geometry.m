@@ -658,6 +658,8 @@ c ... Generate grid information or read it from file 'gridue'.
 
       if (ndomain .gt. 1) goto 13  # domain decomp.; rm,zm already passed
 
+        if (manualgrid == 0) then
+
       if(mhdgeo .eq. 1) then
          if (ismmon.ne.0 .and. isnonog.eq.0) then
            call remark('*** WARNING: ismmon.ne.0 BUT isnonog=0 ****')
@@ -724,6 +726,8 @@ c ...  now that the grid is read in, we can manipulate dnull for nxomit>0
          if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*) 'Read file "', fname, '" with runid:  ', runid
          if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*)
       endif
+
+        endif # End test on manualgrid
 
 c...  Reset separatrix index if nyomitmx > 0
       if (nyomitmx >= nysol(1)+nyout(1)) then
