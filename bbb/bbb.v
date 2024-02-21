@@ -340,7 +340,7 @@ cfvgpy(1:nispmx) real /nispmx*1./ +input #Coefs for y components of v.grad(p) in
 cfbgt     real      /0./    +input #Coef for the B x Grad(T) terms.
 cfjhf     real      /1./    +input #Coef for convective cur (fqp) heat flow
 jhswitch  integer   /0/     +input #Coef for the Joule-heating terms
-oldseec   real      /1./    +input #Switch for Joule-heating bugfix
+oldseec   real      /0./    +input #Switch for Joule-heating bugfix
 cf2ef     real      /0./    +input #Coef for ExB drift in 2-direction
 cfyef     real      /0./    +input #Coef for ExB drift in y-direction
 cftef     real      /0./    +input #Coef for ExB drift in toroidal direction
