@@ -921,7 +921,7 @@ alblb(0:ny+1,ngspmx,nxptmx) _real        +input #inner plate albedo; used if <1 
 albrb(0:ny+1,ngspmx,nxptmx) _real        +input #outer plate albedo; used if <1 (calc)
 areapl          real   /0./ +work   # Work variable for plate projection area for 
                                     # albedo-like recycling
-isoldalbarea    real   /1./ +input # Switch whether to use old (wrong) albedo
+isoldalbarea    real   /0./ +input # Switch whether to use old (wrong) albedo
                                     # area which is perpendicular-to-poloidal flux
                                     # tube area (=1) or the correct area projected
                                     # onto the target plate (=0)
