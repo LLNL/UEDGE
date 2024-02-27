@@ -23,10 +23,9 @@ jobs:
         python -m pip install forthon mppl numpy h5py
         python -m pip install flake8
         python -m pip install pytest-isolate pytest-xdist
-    - name: Checkout develop branch
+    - name: Checkout master branch
       uses: actions/checkout@v4
       with:
-        ref: develop
         repository: LLNL/UEDGE 
     - name: Build UEDGE
       run: |
@@ -35,7 +34,7 @@ jobs:
     - name: Return to pytests branch
       uses: actions/checkout@v4
       with:
-        ref: pytests-develop
+        ref: pytests
         repository: LLNL/UEDGE 
     - name: Test with pytest
       run: |
@@ -59,10 +58,9 @@ jobs:
         python -m pip install forthon mppl numpy h5py
         python -m pip install flake8
         python -m pip install pytest-isolate pytest-xdist
-    - name: Checkout develop branch
+    - name: Checkout master branch
       uses: actions/checkout@v4
       with:
-        ref: develop
         repository: LLNL/UEDGE 
     - name: Build UEDGE
       run: |
@@ -71,7 +69,7 @@ jobs:
     - name: Return to pytests branch
       uses: actions/checkout@v4
       with:
-        ref: pytests-develop
+        ref: pytests
         repository: LLNL/UEDGE 
     - name: Test with pytest
       run: |
@@ -95,10 +93,9 @@ jobs:
         python -m pip install forthon mppl numpy h5py
         python -m pip install flake8
         python -m pip install pytest-isolate pytest-xdist
-    - name: Checkout develop branch
+    - name: Checkout master branch
       uses: actions/checkout@v4
       with:
-        ref: develop
         repository: LLNL/UEDGE 
     - name: Build UEDGE
       run: |
@@ -107,7 +104,7 @@ jobs:
     - name: Return to pytests branch
       uses: actions/checkout@v4
       with:
-        ref: pytests-develop
+        ref: pytests
         repository: LLNL/UEDGE 
     - name: Test with pytest
       run: |
@@ -131,10 +128,9 @@ jobs:
         python -m pip install forthon mppl numpy h5py
         python -m pip install flake8
         python -m pip install pytest-isolate pytest-xdist
-    - name: Checkout develop branch
+    - name: Checkout master branch
       uses: actions/checkout@v4
       with:
-        ref: develop
         repository: LLNL/UEDGE 
     - name: Build UEDGE
       run: |
@@ -143,7 +139,7 @@ jobs:
     - name: Return to pytests branch
       uses: actions/checkout@v4
       with:
-        ref: pytests-develop
+        ref: pytests
         repository: LLNL/UEDGE 
     - name: Test with pytest
       run: |
@@ -167,10 +163,9 @@ jobs:
         python -m pip install forthon mppl numpy h5py
         python -m pip install flake8
         python -m pip install pytest-isolate pytest-xdist
-    - name: Checkout develop branch
+    - name: Checkout master branch
       uses: actions/checkout@v4
       with:
-        ref: develop
         repository: LLNL/UEDGE 
     - name: Build UEDGE
       run: |
@@ -179,7 +174,7 @@ jobs:
     - name: Return to pytests branch
       uses: actions/checkout@v4
       with:
-        ref: pytests-develop
+        ref: pytests 
         repository: LLNL/UEDGE 
     - name: Test with pytest
       run: |
