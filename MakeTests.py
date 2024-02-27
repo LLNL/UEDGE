@@ -6,7 +6,6 @@
 class MakeTests():
 
     def execute_case(self, testpath, testname):
-        from h5py import File
         from uedge import bbb, com
         from uedge.hdf5 import hdf5_restore
         from os import chdir, getcwd, listdir
@@ -48,6 +47,7 @@ class MakeTests():
         self.make_carbon()
         # Include orthogonal test as a fulltest to save time
 #        self.make_ortho()
+        self.make_mols()
         self.make_slab()
         self.make_fulltests()
             
@@ -59,6 +59,11 @@ class MakeTests():
     def make_nonog(self):
         self.make_unittests('pytests/unittests', 'templates', 'nonog', 
             'D_only', 'uedge_tst_template.py'
+        )
+
+    def make_mols(self):
+        self.make_unittests('pytests/unittests', 'templates', 'nonog_mols', 
+            'D_mols', 'uedge_tst_template.py'
         )
 
     def make_ortho(self):
