@@ -803,6 +803,8 @@ class UeRun():
         dtlim=1e4,
         ii1max=150,
         saveres=7,
+        newgeo=False,
+        commands = [],
         **kwargs):
         """ Solves var up to target using continuation method
         var - string for variable, or nested dict of variables and targets
@@ -833,6 +835,7 @@ class UeRun():
         dtlim - Cutoff on (target-var)/delta for which a time-dependent run is triggered
         ii1max - maximum number of dt iterations to take
         saveres - how many successful iterations are allowed between saves are dumped
+        newgeo - UEDGE re-evaluates the grid if newgeo is True
         kwargs passed to rundt
         """
         from uedge import bbb
@@ -847,9 +850,11 @@ class UeRun():
 
         self.tstart = time()
         # ==== HELPERS ====
-        def changevar():
+        def changevar(commands=[]):
             """ Changes var by delta """
             setvar(min(self.lastsuccess + self.delta, 1))
+            for command in self.contsolvecommands:
+                exec(command)
            
         def setvar(value):
             """ Sets var to value """
@@ -1093,6 +1098,7 @@ class UeRun():
         self.isave = saveres
         self.saveres = saveres
         self.delta = 1/initres
+        self.contsolvecommands = commands
         self.lastsuccess = 0
 
         # Set up dictionary with variables and targets
@@ -1149,7 +1155,7 @@ class UeRun():
         # Record original solver settings            
         self.orig = {}
         for ovar in ['itermx', 'dtreal', 'icntnunk', 'ftol', 'incpset',
-            'ismmaxuc', 'mmaxu'        
+            'ismmaxuc', 'mmaxu', 'newgeo' 
         ]:
             self.orig[ovar] = deepcopy(getattr(bbb, ovar))
         # Take the initial time-step
@@ -1186,6 +1192,11 @@ class UeRun():
                     're-execute command', seppad='*')
                 return
         # Start outer loop
+
+        if newgeo is False:
+            bbb.newgeo = False
+
+        changevar()
         while True:
             # Ensure we don't exceed the target value
             # Re-eval preconditioner: omit first step

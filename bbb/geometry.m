@@ -457,7 +457,7 @@ c  ---------------------------------------------------------------------
       Use(UEpar)          # thetar
       Use(Phyvar)         # pi
       Use(Bfield)         # b0old
-      Use(Lsode)          # iprint
+      Use(Flags)          # iprint
       Use(Npes_mpi)       # mype
       Use(Comgeo)         # area_core
 *  -- local scalars --
@@ -490,17 +490,17 @@ c            write(6,*) "Calling flxrun in globalmesh."
             fname = trim(GridFileName)
             call readgrid(fname, runid)
             if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*) 'Read file "', fname, '" with runid:  ', runid
-            write(*,*)
+            if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*)
          endif
       elseif (mhdgeo .eq. 2) then
          if (gengrid == 1) then
             call torangrd
-            write(*,*) '**** mhdgeo=2: Circ toroidal annulus generated *****'
+            if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*) '**** mhdgeo=2: Circ toroidal annulus generated *****'
          else
             fname = trim(GridFileName)
             call readgrid(fname, runid)
             if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*) 'Read file "', fname, '" with runid:  ', runid
-            write(*,*)
+            if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*)
          endif
       elseif (mhdgeo .eq. 0) then
          call idealgrd
@@ -516,7 +516,7 @@ c            write(6,*) "Calling flxrun in globalmesh."
          fname = trim(GridFileName)
          call readgrid(fname, runid)
          if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*) 'Read file "', fname, '" with runid:  ', runid
-         write(*,*)
+         if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*)
       endif
 
 c...  Reset separatrix index if nyomitmx > 0
@@ -637,7 +637,7 @@ c-----------------------------------------------------------------------
       Use(Indices_domain_dcl) # ixmnbcl,ixmxbcl
       Use(Math_problem_size)  # neqmx
       Use(Npes_mpi)       # mype
-      Use(Lsode)          # iprint
+      Use(Flags)          # iprint
 
 *  -- local scalars --
       integer nj, iu, ik, ij, jx, iysi, iyso, iyp1, ix_last_core_cell,
@@ -657,6 +657,8 @@ c-----------------------------------------------------------------------
 c ... Generate grid information or read it from file 'gridue'.
 
       if (ndomain .gt. 1) goto 13  # domain decomp.; rm,zm already passed
+
+        if (manualgrid == 0) then
 
       if(mhdgeo .eq. 1) then
          if (ismmon.ne.0 .and. isnonog.eq.0) then
@@ -701,29 +703,31 @@ c ...  now that the grid is read in, we can manipulate dnull for nxomit>0
       elseif (mhdgeo .eq. 2) then
          if (gengrid == 1) then
             call torangrd
-            write(*,*) '*** mhdgeo=2: Circ toroidal annulus ***'
+            if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*) '*** mhdgeo=2: Circ toroidal annulus ***'
          else
             fname = trim(GridFileName)
             call readgrid(fname, runid)
             if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*) 'Read file "', fname, '" with runid:  ', runid
-            write(*,*)
+            if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*)
          endif
       elseif (mhdgeo .eq. 0) then
          call idealgrd
-         write(*,*) '**** mhdgeo=0: cylindrical grid generated *****'
+         if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*) '**** mhdgeo=0: cylindrical grid generated *****'
       elseif (mhdgeo .eq. -1) then
          call idealgrd
-         write(*,*) '**** mhdgeo=-1: cartesian grid generated *****'
+         if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*) '**** mhdgeo=-1: cartesian grid generated *****'
       elseif (mhdgeo .eq. -2) then
          call mirrorgrd
-         write(*,*) '**** mhdgeo=-2: mag mirror grid generated *****'
+         if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*) '**** mhdgeo=-2: mag mirror grid generated *****'
       else
-         write(*,*) '**** mhdgeo < -1: reading grid from file *****'
+         if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*) '**** mhdgeo < -1: reading grid from file *****'
          fname = trim(GridFileName)
          call readgrid(fname, runid)
          if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*) 'Read file "', fname, '" with runid:  ', runid
-         write(*,*)
+         if (iprint*(1-isgriduehdf5) .ne. 0) write(*,*)
       endif
+
+        endif # End test on manualgrid
 
 c...  Reset separatrix index if nyomitmx > 0
       if (nyomitmx >= nysol(1)+nyout(1)) then
@@ -786,7 +790,7 @@ c     Re-define midplane guard cells for symmetric double-null
 
 c...  For 1D poloidal flux-tube geometry (nysol=1), reset cell vertex
 c...  locations near ix=ixpt2 on iy=1 surface if nxpt2msh or nxpt2psh > 1
-      if (nxpt2msh+nxpt2psh > 0) call reset1dmeshpt
+      if (nxpt2msh+nxpt2psh > 0 .or. nxpt1msh+nxpt1psh > 0) call reset1dmeshpt
 
 *     Define guard cells around the edge of the mesh --
       call guardc
@@ -2889,10 +2893,14 @@ c...  Subroutine to shift cell vertices near ix=ixpt2 for 1D flux tube ...
       Use(Share)          # nxomit,nxpt2msh,nxpt2psh,rxpt2msh,zxpt2psh
 
 c...  local scalars
-      integer ix,ix2
+      integer ix,ix2,ix1 
       real lenginc,theta
 
-      ix2 = nxomit+ixpt2(1)    		#consider outer flux-surface only
+      if (nxomit .ge. 0) then
+        ix2 = nxomit+ixpt2(1)    		#consider outer flux-surface only
+      else
+	ix2 = ixpt2(1)
+      endif
 
 c...  First fix iy=1 cell vertices above X-point (ixpt2)
       theta = rxpt2msh/zxpt2msh   #defines curvature of flux surface
@@ -2910,6 +2918,32 @@ c...  Second, fix iy=1 cell vertices below X-point
         zm(ix,1,4) = zm(ix,1,3) - zxpt2psh  #zxpt2psh*(1.-0.5*theta**2)
         rm(ix+1,1,3) = rm(ix,1,4)
         zm(ix+1,1,3) = zm(ix,1,4)
+      enddo
+
+#..   Do the inner X-pt
+#..
+#..
+      if (nxomit .ge. 0) then
+        ix1 = nxomit+ixpt1(1)+1
+      else
+        ix1 = ixpt1(1)+1
+      endif
+c...  First fix iy=1 cell vertices above X-point (ixpt2)
+      theta = rxpt1msh/zxpt1msh   #defines curvature of flux surface
+      do ix = ix1, ix1+nxpt1msh-1
+        rm(ix,1,4) = rm(ix,1,3)
+        zm(ix,1,4) = zm(ix,1,3) + zxpt1msh
+        rm(ix-1,1,3) = rm(ix,1,4)
+        zm(ix-1,1,3) = zm(ix,1,4)
+      enddo
+
+c...  Second, fix iy=1 cell vertices below X-point
+      theta = rxpt1psh/zxpt1psh   #defines curvature of flux surface
+      do ix = ix1-1, ix1-nxpt1psh, -1
+        rm(ix,1,3) = rm(ix,1,4)
+        zm(ix,1,3) = zm(ix,1,4) - zxpt1psh
+        rm(ix+1,1,4) = rm(ix,1,3)
+        zm(ix+1,1,4) = zm(ix,1,3)
       enddo
 
       return

@@ -276,6 +276,12 @@ zxpt2msh        real /0.01/ [m] # spacing iy=1 1D vertices reset above ixpt2
 rxpt2msh        real /0.0/  [m] # spacing iy=1 1D vertices reset above ixpt2
 zxpt2psh        real /0.01/ [m] # spacing iy=1 1D vertices reset below ixpt2
 rxpt2psh        real /0.0/  [m] # spacing iy=1 1D vertices reset below ixpt2
+nxpt1msh        integer /0/     # number of 1D cells above ixpt1 reset/no-cross
+nxpt1psh        integer /0/     # number of 1D cells below ixpt1 reset/no-cross
+zxpt1msh        real /0.01/ [m] # spacing iy=1 1D vertices reset above ixpt1
+rxpt1msh        real /0.0/  [m] # spacing iy=1 1D vertices reset above ixpt1
+zxpt1psh        real /0.01/ [m] # spacing iy=1 1D vertices reset below ixpt1
+rxpt1psh        real /0.0/  [m] # spacing iy=1 1D vertices reset below ixpt1
 ismpsym         integer /0/     +gridgen # =1 re-constructs "guard" cells at midplane
                                 # of "dnbot" via up/down symmetry
 isudsym         integer /0/     +input #=1 up-down symmetric setup (only down part is modeled)
@@ -696,3 +702,7 @@ tanh_multi(i:integer,a:real,j:integer,b:real,fname:string,d:real) subroutine
         # in b       psi values at eval pts
         # in fname   the filename
         # out d      values of fit
+
+***** Flags:
+# Common flags used by UEDGE
+iprint  integer     /1/     # Flag controlling whether to be verbose or not

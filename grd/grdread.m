@@ -148,6 +148,7 @@ c     ------------------------------------------------------------------
 Use(Share)            # geometry
 Use(Dim)              # nxm,nym
 Use(Xpoint_indices)   # ixlb,ixpt1,ixmdp,ixpt2,ixrb,iysptrx1,iysptrx2
+Use(Flags)            # iprint
       character*(*) fname, runid
       integer nuno,ios
       real simagxs_tmp, sibdrys_tmp
@@ -160,7 +161,7 @@ c     Read mesh parameters from a UEDGE code grid data file
       simagxs_tmp=0
       sibdrys_tmp=0
       call freeus (nuno)
-      write(*,*) 'Reading grid from file:',trim(fname)
+      if (iprint .ne. 0) write(*,*) 'Reading grid from file:',trim(fname)
       open (nuno, file=trim(fname), form='formatted', iostat=ios,
      &      status='old')
       if (ios .ne. 0) then
@@ -200,6 +201,7 @@ c     ------------------------------------------------------------------
 Use(Share)            # geometry, isgriduehdf5
 Use(Dim)              # nxm,nym
 Use(Xpoint_indices)   # ixlb,ixpt1,ixmdp,ixpt2,ixrb,iysptrx1,iysptrx2
+Use(Flags)            # iprint
       character*(*) fname, runid
       integer nuno,ios
       real simagxs_tmp, sibdrys_tmp
@@ -213,7 +215,7 @@ c     Read a UEDGE code grid data file
       simagxs_tmp=0
       sibdrys_tmp=0
       call freeus (nuno)
-      write(*,*) 'Reading grid from file:',trim(fname)
+      if (iprint .ne. 0) write(*,*) 'Reading grid from file:',trim(fname)
       open (nuno, file=trim(fname), form='formatted', iostat=ios,
      &      status='old')
       if (ios .ne. 0) then
