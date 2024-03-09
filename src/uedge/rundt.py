@@ -897,7 +897,7 @@ class UeRun():
             else:
                 if self.isave >= self.saveres:
                     self.isave = 0
-                    self.savesuccess(self.savefname.format('{:.3f}'.format(self.lastsuccess).replace('.','p')))
+                    self.savesuccess(self.savefname.format('{:.3f}'.format(100*self.lastsuccess).replace('.','p')))
                 else:
                     self.isave += 1
 
@@ -949,7 +949,7 @@ class UeRun():
                     bbb.sfscal[:bbb.neq])**2))**0.5
                 if bbb.dtreal > 1:
                     bbb.dtreal = 1e20
-                print('\n===== STATIC ITERATION AT DTREAL={:.2e} ====='.format(bbb.dtreal))
+                print('\n===== STATIC ITERATION FOR DTREAL={:.2e} AT {:.1f}% ====='.format(bbb.dtreal, self.lastsuccess*100))
                 bbb.ftol = max(min(bbb.ftol, 0.01*fnorm_old), 1e-9)
                 # Take a converging step
                 if self.exmain_isaborted():
@@ -970,7 +970,7 @@ class UeRun():
                     print('\n===== STATIC FNRM REDUCTION FAILED =====\n')
                     return False
             self.savesuccess(self.savefname.format('{:.3f}_staticiter'.format(\
-                    self.lastsuccess).replace('.','p')
+                    100*self.lastsuccess).replace('.','p')
                 ))
             print('===== CONVERGED AT STEADY STATE: RETURNING TO MAIN LOOP =====')
             bbb.dtreal = dtreal_orig
@@ -1000,7 +1000,7 @@ class UeRun():
             # Ensure a first time-step can be taken
             dtdelta = self.lastsuccess + dtdeltafac/100
             while bbb.iterm != 1:
-                dtdelta = self.lastsuccess + dtdeltafac/100
+                dtdelta = min(self.lastsuccess + dtdeltafac/100, 1)
                 setvar(dtdelta)
                 if self.exmain_isaborted():
                     setvar(self.lastsuccess)

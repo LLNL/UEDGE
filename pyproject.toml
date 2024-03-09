@@ -1,0 +1,80 @@
+[build-system]
+requires = ["setuptools >= 61.0", "forthon", "numpy"]
+build-backend = "setuptools.build_meta"
+
+[project]
+# TODO: Make version dynamic!
+dynamic = ["version"]
+#version = "8.1.0-beta.0"
+name = "uedge"
+dependencies = [
+    "forthon",
+    "numpy",
+]
+requires-python = ">= 3.7" # TODO: verify
+authors = [
+  {name = "Tom Rognlien"}
+]
+maintainers = [
+  {name = "Bill Meyer", email = "meyer8@llnl.gov"},
+  {name = "Andreas Holm", email = "holm10@llnl.gov"}
+]
+description = "2D Fluid simulation of plasma and neutrals in magnetic fusion devices"
+readme = "README.md"
+keywords = [
+    "plasma",
+    "fusion",
+    "tokamak",
+    "edge-plasma",
+    "scrape-off layer",
+    "multi-fluid"
+]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)",
+    "Operating System :: Unix",
+    "Operating System :: MacOS :: MacOS X",
+    "Programming Language :: Fortran",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+
+[project.urls]
+Homepage = "https://github.com/LLNL/UEDGE/"
+#Documentation = "https://readthedocs.org"
+Repository = "https://github.com/LLNL/UEDGE.git"
+Issues = "https://github.com/LLNL/UEDGE/issues"
+#Changelog = "https://github.com/me/spam/blob/master/CHANGELOG.md"
+
+
+
+
+[project.optional-dependencies]
+ueplot = [
+    "matplotlib",
+    "scipy",
+    "scikit-image",
+    "h5py",
+]
+
+# TODO: rewrite scripts to be importable
+#[project.scripts]
+#spam-cli = "spam:main_cli"
+
+# TODO: add scripts to separate folder
+[tool.setuptools]
+script-files = [
+    "pyscripts/pdb2hdf5",
+    "pyscripts/bas2py",
+    "pyscripts/hdf52pdb",
+]
+#packages = ["uedge"]
+#package-dir = {"" = "pyscripts"}
+
+
+
+[tool.setuptools.dynamic]
+#version = {attr = "uedge.__version__"}
+version = {file = ["src/uedge/VERSION"]}
+#version = {file = "VERSION"}
