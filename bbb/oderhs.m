@@ -8476,7 +8476,7 @@ c         print *, xc, yc, iv, neq, t
 
 c         call rltest1(xc, yc, iv, neq, t, yl, wk)
 
-         call pandf1_c (xc, yc, iv, neq, t, yl, wk)
+         call pandf1 (xc, yc, iv, neq, t, yl, wk)
          t_pandf = t_pandf + tock(t_start_pandf)
          n_pandf = n_pandf + 1
 
@@ -8525,7 +8525,7 @@ cc               if (rdoff.ne.0.e0) jacelem=jacelem*(1.0e0+ranf()*rdoff)
                yldot_pert(ii) = wk(ii)      # for diagnostic only
                if (istopjac == 2) then
                  yl(iv) = yold
-                 call pandf1_c (xc, yc, iv, neq, t, yl, wk)
+                 call pandf1 (xc, yc, iv, neq, t, yl, wk)
                endif
                call remark("***** non-zero jac_elem at irstop,icstop")
                write(*,*) 'irstop = ', irstop, ', icstop = ', icstop
@@ -8537,7 +8537,7 @@ cc               if (rdoff.ne.0.e0) jacelem=jacelem*(1.0e0+ranf()*rdoff)
 c ... Restore dependent variable yl & assoicated plasma vars near perturbation
          yl(iv) = yold
          t_start_pandf = tick()
-         call pandf1_c (xc, yc, iv, neq, t, yl, wk)
+         call pandf1 (xc, yc, iv, neq, t, yl, wk)
          t_pandf = t_pandf + tock(t_start_pandf)
          n_pandf = n_pandf + 1
 
@@ -8647,12 +8647,12 @@ c ... Begin loop over dependent variables.
 c############################################
       t_start_ivloop = tick()
       nnz = 1
-      call jac_calc_c(neq, t, yl, yldot00, ml, mu, wk,
-     .                nnzmx, rcsc, icsc, jcsc, yldot_pert, nnz)
-c      do iv = 1, neq
-c         call jac_calc_iv(iv, neq, t, yl, yldot00, ml, mu, wk,
-c     .                    nnzmx, jac, ja, ia, nnz)
-c      enddo             # end of main iv-loop over yl variables
+c      call jac_calc_c(neq, t, yl, yldot00, ml, mu, wk,
+c     .                nnzmx, rcsc, icsc, jcsc, yldot_pert, nnz)
+      do iv = 1, neq
+         call jac_calc_iv(iv, neq, t, yl, yldot00, ml, mu, wk,
+     .                    nnzmx, jac, ja, ia, yldot_pert, nnz)
+      enddo             # end of main iv-loop over yl variables
       t_ivloop = tock(t_start_ivloop)
 c##############################################################
 

@@ -29,8 +29,9 @@ int jac_calc_c_(Int *neq, real *t, real *yl, real *yldot00, Int *ml, Int *mu,
 {
    Int i;
 
-   omp_set_num_threads(4);
+   omp_set_num_threads(1);
    Int nt = omp_get_max_threads();
+   printf("nt = %ld\n", nt);
 
    real **jac_thread = (real **) calloc(nt, sizeof(real *));
    Int **ja_thread = (Int **) calloc(nt, sizeof(Int *));
@@ -193,7 +194,7 @@ void pandf1_c_(Int *xc, Int *yc, Int *iv, Int *neq, real *t, real *yl, real *wk)
    }
 }
 
-#if 1
+#if 0
 
 int rltest1_(Int *xcptr, Int *ycptr, Int *ivptr, Int *neqptr, real *tptr, real *yl, real *wk)
 {
