@@ -7,7 +7,7 @@ DIRLIST = com aph api bbb flx grd svr wdf ncl
 MYPYTHON = python3
 FORTHON = Forthon3
 BUILDBASE = -v --build-base $(BUILDDIR)
-INSTALLARGS = --pkgbase uedge $(BUILDBASE) 
+INSTALLARGS = --pkgbase uedge $(BUILDBASE) $(OMPFLAGS)
 ##MYPYTHON = /home1/rognlien/Python2/Python-2.4.2/python
 
 # Following 2 variables set in Makefile.PETSc, if used (if unset, ignored)

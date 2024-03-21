@@ -34,6 +34,7 @@ debug = 0
 fcomp = None
 parallel = 0
 petsc = 0
+OMP=False
 
 for o in optlist:
     if o[0] == '-g':
@@ -47,8 +48,31 @@ for o in optlist:
     elif o[0] == '--petsc':
         petsc = 1
     elif o[0] == '--omp':
+        OMP = True
         os.putenv("OMP","1")
-        
+
+CARGS=[]
+FARGS=['-g -fmax-errors=15', '-DFORTHON','-cpp','-Wconversion','-fimplicit-none']
+
+if OMP:
+    FARGS=FARGS+['-fopenmp']
+    CARGS=CARGS+['-fopenmp']
+    OMPargs=['--omp']
+else:
+    OMPargs=[]
+OMPFLAGS='OMPFLAGS = {}'.format(' '.join(OMPargs))
+
+FARGSDEBUG=['-fbacktrace','-ffree-line-length-0', '-fcheck=all','-ffpe-trap=invalid,overflow,underflow -finit-real=snan','-Og']
+FARGSOPT=['-Ofast']
+
+if debug==1:
+    FARGS=FARGS+FARGSDEBUG
+else:
+    FARGS=FARGS+FARGSOPT
+    
+FLAGS ='DEBUG = -v --fargs "{}"'.format(' '.join(FARGS))
+if CARGS!=[]:
+    FLAGS =FLAGS+' --cargs="{}"'.format(' '.join(CARGS))
 
 
 if petsc == 1 and os.getenv('PETSC_DIR') == None:
@@ -78,7 +102,7 @@ class uedgeBuild(build):
             raise SystemExit("Python versions < 3 not supported")
         else:
             if petsc == 0:
-                status = call(['make', '-f','Makefile.Forthon'])
+                status = call(['make', FLAGS,OMPFLAGS, '-f','Makefile.Forthon'])
             else:
                 status = call(['make', '-f', 'Makefile.PETSc'])
             if status != 0: raise SystemExit("Build failure")
@@ -156,14 +180,14 @@ define_macros=[("WITH_NUMERIC", "0"),
 # check for readline
 rlncom = "echo \"int main(){}\" | gcc -x c -lreadline - "
 rln = os.system(rlncom)
-if rln == 0: 
+if rln == 0:
    define_macros = define_macros + [("HAS_READLINE","1")]
    os.environ["READLINE"] = "-l readline"
    libraries = ['readline'] + libraries
 
 
-os.environ["CC"] = "gcc"
-print(sysconfig.get_config_var("CC"))
+#os.environ["CC"] = "gcc"
+#print(sysconfig.get_config_var("CC"))
 
 
 setup(name="uedge",
