@@ -8359,7 +8359,7 @@ ccc      call convsr_aux (-1,-1, yl) # test new convsr placement
 
       subroutine jac_calc_iv(iv, neq, t, yl, yldot00, ml, mu, wk,
      .                       nnzmx, csc_a, csc_ja, csc_ia, yldot_pert,
-     .                       nnz)
+     .                       nnz, t_pandf, n_pandf)
 
       implicit none
 
@@ -8372,6 +8372,8 @@ c ... Input arguments:
       integer ml, mu   # lower and upper bandwidths
       integer nnzmx    # maximum number of nonzeros in Jacobian
       integer nnz
+      integer n_pandf
+      real t_pandf
 c ... Output arguments:
       real csc_a(nnzmx)       # nonzero Jacobian elements
       integer csc_ja(nnzmx)   # row indices of nonzero Jacobian elements
@@ -8382,8 +8384,7 @@ c ... Work-array argument:
 c ... Local variables:
       integer ii, ii1, ii2, ix, iy, xc, yc
       real,external::tick,tock
-      integer n_pandf
-      real t_start_pandf, t_pandf
+      real t_start_pandf
       real yold, jacelem, dyl
 
 c ... Common blocks:
@@ -8583,7 +8584,7 @@ c ... Output arguments:
 
       real,external::tick,tock
       real t_start_jac
-      real t_start_csrcsc, t_start_ivloop, t_ivloop, t_start_pandf
+      real t_start_csrcsc, t_start_ivloop, t_ivloop
       real t_pandf
       integer n_pandf
 
@@ -8651,18 +8652,24 @@ c ... Begin loop over dependent variables.
 c############################################
       t_start_ivloop = tick()
       nnz = 1
+c TEST
+c       call pandf_time(neq, t, yl, yldot00, ml, mu, wk, nnzmx, yldot_pert)
+c C
 c      call jac_calc_c(neq, t, yl, yldot00, ml, mu, wk,
 c     .                nnzmx, rcsc, icsc, jcsc, yldot_pert, nnz)
+c Fortran
       do iv = 1, neq
          call jac_calc_iv(iv, neq, t, yl, yldot00, ml, mu, wk,
-     .                    nnzmx, rcsc, icsc, jcsc, yldot_pert, nnz, t_pandf, n_pandf)
+     .                    nnzmx, rcsc, icsc, jcsc, yldot_pert, nnz,
+     .                    t_pandf, n_pandf)
       enddo             # end of main iv-loop over yl variables
+c
       t_ivloop = tock(t_start_ivloop)
 c##############################################################
 
       jcsc(neq+1) = nnz
 
-      print *, ' @@Jacobian nnz@@', nnz - 1
+      print *, ' @@Jacobian n, nnz@@', neq, nnz - 1
 
 c ... Convert Jacobian from compressed sparse column to compressed
 c     sparse row format.
@@ -10148,6 +10155,24 @@ c ... Close file, and report file name.
       return
       end
 c-----------------------------------------------------------------------
+      subroutine jacmm
+
+      implicit none
+
+c ... Common blocks:
+      Use(Dim)        # nusp(for array fnorm in Ynorm not used here)
+      Use(Math_problem_size)   # neqmx
+      Use(Lsode)      # neq,yldot
+      Use(Ynorm)      # sfscal
+      Use(Jacobian)   # jac,jacj,jaci
+      Use(UEpar)      # svrpkg
+
+      call jacmm_c(neq, jac, jacj, jaci)
+
+      return
+      end
+c-----------------------------------------------------------------------
+
       subroutine jacout
 
       implicit none
