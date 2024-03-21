@@ -3273,6 +3273,8 @@ aplsb(nrow,ncol,a:real,ja,ia,s:real,b:real,\
   	# out ierr         error flag
 jacmap()                                  	 subroutine
   	# output Jacobian map to file
+jacmm()                                  	 subroutine
+  	# output Jacobian matrix in IJ format to file
 map_var_jac1d()                                	 subroutine
   	# compute Jacobian stencil ivl2gstnl with 1 where elements
 jacstnlout()                                  	 subroutine

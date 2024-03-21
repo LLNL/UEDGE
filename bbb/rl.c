@@ -3,25 +3,70 @@
 #include <math.h>
 #include <omp.h>
 #include <assert.h>
+#include <sys/time.h>
 
 #define uedge_min(a,b)  (((a)<(b)) ? (a) : (b))
 
-#define SEQ_CHECK
+//#define SEQ_CHECK
 
 typedef long Int;
 typedef double real;
 
-extern void pandf1_(Int *xc, Int *yc, Int *ieq, Int *neq, real *time, real *yl,
-                    real *yldot);
+extern void pandf1_(Int *xc, Int *yc, Int *ieq, Int *neq, real *time, real *yl, real *yldot);
+
+extern void pandf_(Int *xc, Int *yc, Int *neq, real *time, real *yl, real *yldot);
 
 extern void jac_calc_iv_(Int *iv, Int *neq, real *t, real* yl, real *yldot00, Int *ml, Int *mu,
-                         real *wk, Int *nnzmx, real *jac, Int *ja, Int *ia, real *yldot_pert, Int *nnz);
+                         real *wk, Int *nnzmx, real *jac, Int *ja, Int *ia, real *yldot_pert, Int *nnz,
+                         real *tpandf, Int *npandf);
 
 void uedge_GetThreadPartition(Int num_threads, Int thread_id, Int *begin, Int *end, Int n)
 {
    Int n_per_thread = (n + num_threads - 1) / num_threads;
    *begin = uedge_min(n_per_thread * thread_id, n);
    *end = uedge_min(*begin + n_per_thread, n);
+}
+
+int pandf_time_(Int *neq, real *t, real *yl, real *yldot00, Int *ml, Int *mu, real *wk, Int *nnzmx, real *yldot_pert)
+{
+   Int *ia0 = (Int *) calloc(*neq + 1, sizeof(Int));
+   Int *ja0 = (Int *) calloc(*nnzmx, sizeof(Int));
+   real *jac0 = (real *) calloc(*nnzmx, sizeof(real));
+   Int nnz0 = 1;
+   real tpandf = 0.0;
+   Int npandf = 0;
+
+   Int iv;
+   for (iv = 1; iv <= *neq; iv++)
+   {
+      jac_calc_iv_(&iv, neq, t, yl, yldot00,
+                   ml, mu, wk,
+                   nnzmx,
+                   jac0, ja0, ia0,
+                   yldot_pert, &nnz0, &tpandf, &npandf);
+   }
+   ia0[*neq] = nnz0;
+
+   Int mone = -1;
+   real time = 0.0;
+
+   struct timeval t1, t2;
+   gettimeofday(&t1, NULL);
+
+   pandf_(&mone, &mone, neq, &time, yl, wk);
+
+   gettimeofday(&t2, NULL);
+
+   double elapsedTime = (t2.tv_sec - t1.tv_sec);
+   elapsedTime += (t2.tv_usec - t1.tv_usec) / 1e6;
+
+   printf("%e seconds elapsed\n", elapsedTime);
+
+   free(ia0);
+   free(ja0);
+   free(jac0);
+
+   return 0;
 }
 
 int jac_calc_c_(Int *neq, real *t, real *yl, real *yldot00, Int *ml, Int *mu,
@@ -31,7 +76,7 @@ int jac_calc_c_(Int *neq, real *t, real *yl, real *yldot00, Int *ml, Int *mu,
 
    omp_set_num_threads(1);
    Int nt = omp_get_max_threads();
-   printf("nt = %ld\n", nt);
+   printf("nt %ld\n", nt);
 
    real **jac_thread = (real **) calloc(nt, sizeof(real *));
    Int **ja_thread = (Int **) calloc(nt, sizeof(Int *));
@@ -40,6 +85,8 @@ int jac_calc_c_(Int *neq, real *t, real *yl, real *yldot00, Int *ml, Int *mu,
    real **yl_thread = (real **) calloc(nt, sizeof(real *));
    real **yldot00_thread = (real **) calloc(nt, sizeof(real *));
    Int *nnz_thread = (Int *) calloc(nt, sizeof(Int));
+   real *tpandf_thread = (real *) calloc(nt, sizeof(real));
+   Int *npandf_thread = (Int *) calloc(nt, sizeof(Int));
    Int *n_thread = (Int *) calloc(nt, sizeof(Int));
    real *t_thread = (real *) calloc(nt, sizeof(real));
 
@@ -70,6 +117,7 @@ int jac_calc_c_(Int *neq, real *t, real *yl, real *yldot00, Int *ml, Int *mu,
    Int *ja0 = (Int *) calloc(*nnzmx, sizeof(Int));
    real *jac0 = (real *) calloc(*nnzmx, sizeof(real));
    Int nnz0 = 1;
+   Int npandf_seq = 0;
 
    Int iv;
    for (iv = 1; iv <= *neq; iv++)
@@ -78,7 +126,7 @@ int jac_calc_c_(Int *neq, real *t, real *yl, real *yldot00, Int *ml, Int *mu,
                    ml, mu, wk,
                    nnzmx,
                    jac0, ja0, ia0,
-                   yldot_pert, &nnz0);
+                   yldot_pert, &nnz0, &npandf_seq);
    }
    ia0[*neq] = nnz0;
 #endif
@@ -102,7 +150,7 @@ int jac_calc_c_(Int *neq, real *t, real *yl, real *yldot00, Int *ml, Int *mu,
                             ml, mu, wk_thread[thread_id],
                             nnzmx,
                             jac_thread[thread_id], ja_thread[thread_id], ia_thread[thread_id],
-                            yldot_pert, &nnz_thread[thread_id]);
+                            yldot_pert, &nnz_thread[thread_id], &tpandf_thread[thread_id], &npandf_thread[thread_id]);
             }
          }
          //printf("thread %ld: [%ld, %ld], nnz %ld\n", thread_id, iv_start+1, iv_end, nnz_thread[thread_id]);
@@ -179,6 +227,8 @@ int jac_calc_c_(Int *neq, real *t, real *yl, real *yldot00, Int *ml, Int *mu,
    free(ia_thread);
    free(wk_thread);
    free(nnz_thread);
+   free(tpandf_thread);
+   free(npandf_thread);
    free(n_thread);
    free(t_thread);
 
@@ -188,6 +238,9 @@ int jac_calc_c_(Int *neq, real *t, real *yl, real *yldot00, Int *ml, Int *mu,
 
 void pandf1_c_(Int *xc, Int *yc, Int *iv, Int *neq, real *t, real *yl, real *wk)
 {
+   //Int nt_max = omp_get_max_threads();
+   //Int nt = omp_get_num_threads();
+   //printf("%ld %ld\n", nt_max, nt);
 //#pragma omp critical
    {
       pandf1_(xc, yc, iv, neq, t, yl, wk);
@@ -258,3 +311,21 @@ int rltest1_(Int *xcptr, Int *ycptr, Int *ivptr, Int *neqptr, real *tptr, real *
 
 #endif
 
+int jacmm_c_(Int *neq, real *jac, Int *ja, Int *ia)
+{
+   Int i, j;
+   FILE *fp = fopen("Jacobian.IJ", "w");
+
+   fprintf(fp, "%% %ld %ld %ld\n", *neq, *neq, ia[*neq] - 1);
+
+   for (i = 0; i < *neq; i++)
+   {
+      for (j = ia[i]; j < ia[i + 1]; j++)
+      {
+         fprintf(fp, "%ld %ld %.15e\n", i + 1, ja[j - 1], jac[j - 1]);
+      }
+   }
+   fclose(fp);
+
+   return 0;
+}
