@@ -40,7 +40,7 @@ jobs:
 
   build_wheels:
     name: Build wheels on ${{ matrix.os }} for Python ${{ matrix.pyver }}
-    if: github.event_name == 'pull_request'
+ #   if: github.event_name == 'pull_request'
     needs: run-all-tests
     runs-on: ${{ matrix.os }}
     strategy:
@@ -84,7 +84,7 @@ jobs:
 
   build_wheels_pypy:
     name: Build PyPy wheels on ${{ matrix.os }} 
-    if: github.event_name == 'pull_request'
+#    if: github.event_name == 'pull_request'
     needs: run-all-tests
     runs-on: ${{ matrix.os }}
     strategy:
@@ -186,7 +186,7 @@ jobs:
   gather_wheels:
     name: Gather built wheels
     needs: [build_wheels, build_wheels_pypy]
-    if: github.event_name == 'pull_request'
+#    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Download all Artifacts and merges them
