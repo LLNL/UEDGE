@@ -1015,7 +1015,7 @@ class UeRun():
             if abort is False:
                 self.converge(dtreal=dtreal, savedir='.', 
                     savefname=self.savefname.format('{:.3f}_dtrun'.format(\
-                    dtdelta).replace('.','p')).replace('.hdf5',''), 
+                    dtdelta*100).replace('.','p')).replace('.hdf5',''), 
                     message='Solving for delta={:.3f}%'.format(dtdelta*100),
                     ii1max=ii1max, **kwargs)
                 if bbb.iterm == 1:

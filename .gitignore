@@ -18,3 +18,4 @@ uedge.egg-info
 *.c
 *.f
 pyscripts/__version__.py
+/dist

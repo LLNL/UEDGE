@@ -571,7 +571,7 @@ c    yldot is the RHS of ODE solver or RHS=0 for Newton solver (NKSOL)
      .     zeffave, noavex, noavey, tiavey, tgavey, psordisold, 
      .     nucxiold(nigmx), nueliold(nigmx), nuelgold(nigmx), rrfac, visxtmp,
      .     vttn, vttp, neavex, pwrebkgold, pwribkgold, feexflr, feixflr,
-     .     naavex,naavey,nuelmolx,nuelmoly,fniycboave
+     .     naavex,naavey,nuelmolx,nuelmoly,fniycboave, sycore
       real fqpo, fqpom, friceo, friceom, upeo, upeom, fricio(100), 
      .     friciom(100), upio(100), upiom(100), uupo(100), uupom(100)
       real nevol, ngvol, kionz, krecz, kcxrz, kionm, krecm, kcxrm, nzbg,
@@ -3348,24 +3348,23 @@ c ... Setup a correction to surface-flux for grad_B and grad_P effects at iy=0
       enddo
 
 c ... Normalize core flux to zero to avoid introducing artifical core source/sink
-      if (isfniycbozero .gt. 0) then 
-          fniycboave = 0
-          do ifld = 1, nfsp
+      do ifld = 1, nfsp
+          if (isfniycbozero(ifld) .gt. 0) then 
+            fniycboave = 0
+            sycore = 0
             do ix = ixpt1(1)+1, ixpt2(1)
               fniycboave = fniycboave + fniycbo(ix, ifld)
             end do
             fniycboave = fniycboave / (ixpt2(1) - ixpt1(1))
             do ix = ixpt1(1)+1, ixpt2(1)
-              fniycbo(ix, ifld) = fniycbo(ix, ifld) - isfniycbozero*fniycboave
+              fniycbo(ix, ifld) = fniycbo(ix, ifld) - isfniycbozero(ifld)*fniycboave
             end do
-          end do
-      else if (isfniycbozero .lt. 0) then 
-          do ifld = 1, nfsp
+          else if (isfniycbozero(ifld) .lt. 0) then 
             do ix = ixpt1(1)+1, ixpt2(1)
               fniycbo(ix, ifld) = 0
             end do
-          end do
-      end if
+          end if
+      end do
              
 
 
