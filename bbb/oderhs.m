@@ -8655,14 +8655,14 @@ c############################################
 c TEST
 c       call pandf_time(neq, t, yl, yldot00, ml, mu, wk, nnzmx, yldot_pert)
 c C
-c      call jac_calc_c(neq, t, yl, yldot00, ml, mu, wk,
-c     .                nnzmx, rcsc, icsc, jcsc, yldot_pert, nnz)
+      call jac_calc_c(neq, t, yl, yldot00, ml, mu, wk,
+     .                nnzmx, rcsc, icsc, jcsc, yldot_pert, nnz)
 c Fortran
-      do iv = 1, neq
-         call jac_calc_iv(iv, neq, t, yl, yldot00, ml, mu, wk,
-     .                    nnzmx, rcsc, icsc, jcsc, yldot_pert, nnz,
-     .                    t_pandf, n_pandf)
-      enddo             # end of main iv-loop over yl variables
+c      do iv = 1, neq
+c         call jac_calc_iv(iv, neq, t, yl, yldot00, ml, mu, wk,
+c     .                    nnzmx, rcsc, icsc, jcsc, yldot_pert, nnz,
+c     .                    t_pandf, n_pandf)
+c      enddo             # end of main iv-loop over yl variables
 c
       t_ivloop = tock(t_start_ivloop)
 c##############################################################

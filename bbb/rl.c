@@ -7,7 +7,7 @@
 
 #define uedge_min(a,b)  (((a)<(b)) ? (a) : (b))
 
-//#define SEQ_CHECK
+#define SEQ_CHECK
 
 typedef long Int;
 typedef double real;
@@ -72,9 +72,10 @@ int pandf_time_(Int *neq, real *t, real *yl, real *yldot00, Int *ml, Int *mu, re
 int jac_calc_c_(Int *neq, real *t, real *yl, real *yldot00, Int *ml, Int *mu,
                 real *wk, Int *nnzmx, real *jac, Int *ja, Int *ia, real *yldot_pert, Int *nnz)
 {
+   printf("=================\n Jac calc C\n ===============\n");
    Int i;
 
-   omp_set_num_threads(1);
+   omp_set_num_threads(2);
    Int nt = omp_get_max_threads();
    printf("nt %ld\n", nt);
 
@@ -118,6 +119,7 @@ int jac_calc_c_(Int *neq, real *t, real *yl, real *yldot00, Int *ml, Int *mu,
    real *jac0 = (real *) calloc(*nnzmx, sizeof(real));
    Int nnz0 = 1;
    Int npandf_seq = 0;
+   real tpandf_seq = 0.;
 
    Int iv;
    for (iv = 1; iv <= *neq; iv++)
@@ -126,7 +128,7 @@ int jac_calc_c_(Int *neq, real *t, real *yl, real *yldot00, Int *ml, Int *mu,
                    ml, mu, wk,
                    nnzmx,
                    jac0, ja0, ia0,
-                   yldot_pert, &nnz0, &npandf_seq);
+                   yldot_pert, &nnz0, &tpandf_seq, &npandf_seq);
    }
    ia0[*neq] = nnz0;
 #endif
@@ -153,7 +155,7 @@ int jac_calc_c_(Int *neq, real *t, real *yl, real *yldot00, Int *ml, Int *mu,
                             yldot_pert, &nnz_thread[thread_id], &tpandf_thread[thread_id], &npandf_thread[thread_id]);
             }
          }
-         //printf("thread %ld: [%ld, %ld], nnz %ld\n", thread_id, iv_start+1, iv_end, nnz_thread[thread_id]);
+         printf("thread %ld: [%ld, %ld], nnz %ld\n", thread_id, iv_start+1, iv_end, nnz_thread[thread_id]);
       }
    }
 
