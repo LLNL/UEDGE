@@ -8356,6 +8356,32 @@ ccc      call convsr_aux (-1,-1, yl) # test new convsr placement
       return
       end
 
+      subroutine part1d(num_threads, thread_id, begin, end, len)
+      implicit none
+c     Input
+      integer num_threads, thread_id, len
+c     Output
+      integer begin, end
+c     Local variable
+      integer n_per_thread
+      n_per_thread = (len + num_threads - 1) / num_threads;
+      begin = min(n_per_thread * thread_id, len);
+      end = min(begin + n_per_thread, len);
+      begin = begin + 1
+      end
+
+      subroutine omp_copy_module()
+      implicit none
+      use OmpCopycom
+      use OmpCopybbb
+      use OmpCopyapi
+      call OmpCopyPointercom
+      call OmpCopyScalarcom
+      call OmpCopyPointerbbb
+      call OmpCopyScalarbbb
+      call OmpCopyPointerapi
+      call OmpCopyScalarapi
+      end
 
       subroutine jac_calc_iv(iv, neq, t, yl, yldot00, ml, mu, wk,
      .                       nnzmx, csc_a, csc_ja, csc_ia, yldot_pert,
@@ -8473,11 +8499,6 @@ c     than that typical size.
 c ... Calculate right-hand sides near location of perturbed variable.
          t_start_pandf = tick()
 
-c         print *, xc, yc, iv, neq, t
-
-c         call rltest1(xc, yc, iv, neq, t, yl, wk)
-
-c         call pandf1_c (xc, yc, iv, neq, t, yl, wk)
          call pandf1 (xc, yc, iv, neq, t, yl, wk)
 
          t_pandf = t_pandf + tock(t_start_pandf)
@@ -8528,7 +8549,6 @@ cc               if (rdoff.ne.0.e0) jacelem=jacelem*(1.0e0+ranf()*rdoff)
                yldot_pert(ii) = wk(ii)      # for diagnostic only
                if (istopjac == 2) then
                  yl(iv) = yold
-c                 call pandf1_c (xc, yc, iv, neq, t, yl, wk)
                  call pandf1 (xc, yc, iv, neq, t, yl, wk)
                endif
                call remark("***** non-zero jac_elem at irstop,icstop")
@@ -8541,7 +8561,6 @@ c                 call pandf1_c (xc, yc, iv, neq, t, yl, wk)
 c ... Restore dependent variable yl & assoicated plasma vars near perturbation
          yl(iv) = yold
          t_start_pandf = tick()
-c         call pandf1_c (xc, yc, iv, neq, t, yl, wk)
          call pandf1 (xc, yc, iv, neq, t, yl, wk)
          t_pandf = t_pandf + tock(t_start_pandf)
          n_pandf = n_pandf + 1
@@ -8587,6 +8606,7 @@ c ... Output arguments:
       real t_start_csrcsc, t_start_ivloop, t_ivloop
       real t_pandf
       integer n_pandf
+      integer jac_calc_use_c
 
 c ... Common blocks:
       Use(Dim)                     # nx,ny,
@@ -8609,14 +8629,27 @@ c ... Common blocks:
       Use(Selec)                   # yinc
       Use(Jacaux)                  # ExtendedJacPhi
 
+      use OmpCopycom
+      use OmpCopybbb
+      use OmpCopyapi
+
 c ... Functions:
       logical tstguardc
       real(Size4) gettime
 cc      real(Size4) ranf
 
 c ... Local variables:
-      integer nnz, iv
+      integer nnz, iv, total_nnz, nt, tid, niv, b, e
       real(Size4) sec4, tsjstor, tsimpjf, dtimpjf
+
+      real, allocatable, dimension(:) :: yl_t
+      real, allocatable, dimension(:) :: yldot00_t
+      real, allocatable, dimension(:) :: wk_t
+      real, allocatable, dimension(:) :: yldot_pert_t
+
+      USE OMP_LIB
+
+      jac_calc_use_c = 1
 
       print *, ' ==Enter jac_calc'
 
@@ -8652,17 +8685,64 @@ c ... Begin loop over dependent variables.
 c############################################
       t_start_ivloop = tick()
       nnz = 1
+      total_nnz = 0
+      print *, 'neq', neq
 c TEST
 c       call pandf_time(neq, t, yl, yldot00, ml, mu, wk, nnzmx, yldot_pert)
+
+      if (jac_calc_use_c > 0) then
 c C
-      call jac_calc_c(neq, t, yl, yldot00, ml, mu, wk,
+         call jac_calc_c(neq, t, yl, yldot00, ml, mu, wk,
      .                nnzmx, rcsc, icsc, jcsc, yldot_pert, nnz)
+      else
 c Fortran
-c      do iv = 1, neq
-c         call jac_calc_iv(iv, neq, t, yl, yldot00, ml, mu, wk,
-c     .                    nnzmx, rcsc, icsc, jcsc, yldot_pert, nnz,
-c     .                    t_pandf, n_pandf)
-c      enddo             # end of main iv-loop over yl variables
+         CALL OMP_SET_DYNAMIC(.FALSE.)
+
+         call OmpCopyPointercom
+         call OmpCopyScalarcom
+         call OmpCopyPointerbbb
+         call OmpCopyScalarbbb
+         call OmpCopyPointerapi
+         call OmpCopyScalarapi
+
+!$omp parallel firstprivate(iv,neq,t,ml,mu,nnzmx,nnz,t_pandf,n_pandf)
+!$omp+ private(yl_t,yldot00_t,wk_t,yldot_pert_t,b,e,nt,tid) shared(total_nnz)
+         tid = OMP_GET_THREAD_NUM()
+         nt = OMP_GET_NUM_THREADS()
+c         print *, 'neq, thread id nt', neq, tid, nt
+
+         allocate(yl_t(neq+2))
+         allocate(yldot00_t(neq+2))
+         allocate(wk_t(neq))
+         allocate(yldot_pert_t(neq+2))
+
+         call part1d(nt, tid, b, e, neq)
+         print *, 'thread id', tid, b, e
+
+         do iv = 1, neq
+            wk_t(iv) = wk(iv)
+         end do
+         do iv = 1, neq + 2
+            yl_t(iv) = yl(iv)
+            yldot00_t(iv) = yldot00(iv)
+            yldot_pert_t(iv) = yldot_pert(iv)
+         end do
+
+         niv = 0
+
+         do iv = b, e
+            nnz = 0
+c!$omp critical
+            call jac_calc_iv(iv, neq, t, yl_t, yldot00_t, ml, mu, wk_t,
+     .                       nnzmx, rcsc, icsc, jcsc, yldot_pert_t, nnz,
+     .                       t_pandf, n_pandf)
+            total_nnz = total_nnz + nnz
+c!$omp end critical
+         enddo             # end of main iv-loop over yl variables
+!$omp end parallel
+         print *, ' total nnz', total_nnz
+         call exit(0)
+      endif
 c
       t_ivloop = tock(t_start_ivloop)
 c##############################################################
