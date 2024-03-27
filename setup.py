@@ -55,7 +55,7 @@ CARGS=[]
 FARGS=['-g -fmax-errors=15', '-DFORTHON','-cpp','-Wconversion','-fimplicit-none']
 
 if OMP:
-    FARGS=FARGS+['-fopenmp']
+    FARGS=FARGS+['-fopenmp', '-DUEDGE_WITH_OMP=1']
     CARGS=CARGS+['-fopenmp']
     OMPargs=['--omp']
 else:
@@ -69,7 +69,7 @@ if debug==1:
     FARGS=FARGS+FARGSDEBUG
 else:
     FARGS=FARGS+FARGSOPT
-    
+
 FLAGS ='DEBUG = -v --fargs "{}"'.format(' '.join(FARGS))
 if CARGS!=[]:
     FLAGS =FLAGS+' --cargs="{}"'.format(' '.join(CARGS))
@@ -185,10 +185,11 @@ if rln == 0:
    os.environ["READLINE"] = "-l readline"
    libraries = ['readline'] + libraries
 
-
-#os.environ["CC"] = "gcc"
-#print(sysconfig.get_config_var("CC"))
-
+if OMP:
+    define_macros = define_macros + [("UEDGE_WITH_OMP",1)]
+    C_OMPARGS=['-fopenmp']
+else:
+    C_OMPARGS=[]
 
 setup(name="uedge",
       version=version,
@@ -205,15 +206,15 @@ setup(name="uedge",
       ext_modules=[Extension('uedge.uedgeC',
                              ['uedgeC_Forthon.c',
                               os.path.join(builddir, 'Forthon.c'),
-                              'com/handlers.c', 'com/vector.c','bbb/exmain.c', 'bbb/rl.c'],
+                              'com/handlers.c', 'com/vector.c','bbb/exmain.c', 'bbb/jaccalc.c'],
                              include_dirs=[builddir, numpy.get_include()],
                              library_dirs=library_dirs,
                              libraries=libraries,
                              define_macros=define_macros,
                              extra_objects=uedgeobjects,
-                             extra_link_args=['-g','-DFORTHON', '-fopenmp'] +
+                             extra_link_args=['-g','-DFORTHON'] +
                              fcompiler.extra_link_args,
-                             extra_compile_args=fcompiler.extra_compile_args + ['-fopenmp']
+                             extra_compile_args=fcompiler.extra_compile_args + C_OMPARGS
                              )],
       cmdclass={'build': uedgeBuild, 'clean': uedgeClean},
       test_suite="pytests",
