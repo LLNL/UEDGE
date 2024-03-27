@@ -101,7 +101,7 @@ xlim(nlim)      _real   [m]
 ylim(nlim)      _real   [m]
      # vertical coordinates of limiter/vessel boundary from EFIT
 bscoef(nxefit,nyefit)    _real
-     # 2-d spline coefficients 
+     # 2-d spline coefficients
 kxord	integer	/4/
      # order of the 2-d spline in the x-direction
 kyord	integer	/4/
@@ -138,9 +138,9 @@ ycurve(npts,jdim)       _real    [m]
      # vertical position of nth data point on jth contour segment
 npoint(jdim)    _integer
      # number of data points on jth contour segment
-geqdskfname  character*128 /'neqdsk'/ 
+geqdskfname  character*128 /'neqdsk'/
      #File name for geqdsk/neqdsk EFIT file
-  
+
 ***** Aeqflxgrd:
      # information read from the A-file produced by the EFIT code
 vmonth	integer		# EFIT version month
