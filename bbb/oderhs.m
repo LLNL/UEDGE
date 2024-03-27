@@ -8356,20 +8356,7 @@ ccc      call convsr_aux (-1,-1, yl) # test new convsr placement
       return
       end
 
-      subroutine part1d(num_threads, thread_id, begin, end, len)
-      implicit none
-c     Input
-      integer num_threads, thread_id, len
-c     Output
-      integer begin, end
-c     Local variable
-      integer n_per_thread
-      n_per_thread = (len + num_threads - 1) / num_threads;
-      begin = min(n_per_thread * thread_id, len);
-      end = min(begin + n_per_thread, len);
-      begin = begin + 1
-      end
-
+c!ifdef UEDGE_WITH_OMP
       subroutine omp_copy_module()
       implicit none
       use OmpCopycom
@@ -8382,10 +8369,11 @@ c     Local variable
       call OmpCopyPointerapi
       call OmpCopyScalarapi
       end
+c!endif
 
       subroutine jac_calc_iv(iv, neq, t, yl, yldot00, ml, mu, wk,
      .                       nnzmx, csc_a, csc_ja, csc_ia, yldot_pert,
-     .                       nnz, t_pandf, n_pandf)
+     .                       nnz)
 
       implicit none
 
@@ -8398,8 +8386,6 @@ c ... Input arguments:
       integer ml, mu   # lower and upper bandwidths
       integer nnzmx    # maximum number of nonzeros in Jacobian
       integer nnz
-      integer n_pandf
-      real t_pandf
 c ... Output arguments:
       real csc_a(nnzmx)       # nonzero Jacobian elements
       integer csc_ja(nnzmx)   # row indices of nonzero Jacobian elements
@@ -8409,8 +8395,6 @@ c ... Work-array argument:
       real wk(neq)     # work space available to this subroutine
 c ... Local variables:
       integer ii, ii1, ii2, ix, iy, xc, yc
-      real,external::tick,tock
-      real t_start_pandf
       real yold, jacelem, dyl
 
 c ... Common blocks:
@@ -8475,7 +8459,6 @@ cc  This reset of ii1,2 may also cause storage prob.; see just above
             ii2 = min(iv+2*numvar*(nx+3), neq)    # guess to include extrap. bc
          endif
 
-c      print *, 'iv', iv, ':', ml, mu
 c ... Initialize all of those right-hand sides to their unperturbed
 c     values.
          do ii = ii1, ii2   # below wk is reset, but only over limited range
@@ -8497,12 +8480,7 @@ c     than that typical size.
          yl(iv) = yold + dyl
 
 c ... Calculate right-hand sides near location of perturbed variable.
-         t_start_pandf = tick()
-
          call pandf1 (xc, yc, iv, neq, t, yl, wk)
-
-         t_pandf = t_pandf + tock(t_start_pandf)
-         n_pandf = n_pandf + 1
 
 c ... Calculate possibly nonzero Jacobian elements for this variable,
 c     and store nonzero elements in compressed sparse column format.
@@ -8560,10 +8538,7 @@ cc               if (rdoff.ne.0.e0) jacelem=jacelem*(1.0e0+ranf()*rdoff)
 
 c ... Restore dependent variable yl & assoicated plasma vars near perturbation
          yl(iv) = yold
-         t_start_pandf = tick()
          call pandf1 (xc, yc, iv, neq, t, yl, wk)
-         t_pandf = t_pandf + tock(t_start_pandf)
-         n_pandf = n_pandf + 1
 
 c...  If this is the last variable before jumping to new cell, reset pandf
 ccc  Call not needed because goto 18 svrpkg=daspk option disabled above
@@ -8601,13 +8576,6 @@ c ... Output arguments:
       integer ja(nnzmx)   # col indices of nonzero Jacobian elements
       integer ia(neq+1)   # pointers to beginning of each row in jac,ja
 
-      real,external::tick,tock
-      real t_start_jac
-      real t_start_csrcsc, t_start_ivloop, t_ivloop
-      real t_pandf
-      integer n_pandf
-      integer jac_calc_use_c
-
 c ... Common blocks:
       Use(Dim)                     # nx,ny,
                                    # nusp[for fnorm not used here]
@@ -8629,37 +8597,14 @@ c ... Common blocks:
       Use(Selec)                   # yinc
       Use(Jacaux)                  # ExtendedJacPhi
 
-      use OmpCopycom
-      use OmpCopybbb
-      use OmpCopyapi
-
 c ... Functions:
       logical tstguardc
       real(Size4) gettime
 cc      real(Size4) ranf
 
 c ... Local variables:
-      integer nnz, iv, total_nnz, nt, tid, niv, b, e
+      integer nnz, iv
       real(Size4) sec4, tsjstor, tsimpjf, dtimpjf
-
-      real, allocatable, dimension(:) :: yl_t
-      real, allocatable, dimension(:) :: yldot00_t
-      real, allocatable, dimension(:) :: wk_t
-      real, allocatable, dimension(:) :: yldot_pert_t
-
-      USE OMP_LIB
-
-      jac_calc_use_c = 1
-
-      print *, ' ==Enter jac_calc'
-
-c      print *, yl(1), yl(2), yl(neq-1), yl(neq)
-
-      t_start_jac = tick()
-      n_pandf = 0
-      t_pandf = 0.0
-
-ccc      save
 
 c ... Get initial value of system cpu timer.
       if (istimingon .eq. 1) tsjstor = gettime(sec4)
@@ -8683,87 +8628,16 @@ c ... Set up diagnostic arrays for debugging
 c############################################
 c ... Begin loop over dependent variables.
 c############################################
-      t_start_ivloop = tick()
-      nnz = 1
-      total_nnz = 0
-      print *, 'neq', neq
-c TEST
-c       call pandf_time(neq, t, yl, yldot00, ml, mu, wk, nnzmx, yldot_pert)
-
-      if (jac_calc_use_c > 0) then
-c C
-         call jac_calc_c(neq, t, yl, yldot00, ml, mu, wk,
+      call jac_calc_c(neq, t, yl, yldot00, ml, mu, wk,
      .                nnzmx, rcsc, icsc, jcsc, yldot_pert, nnz)
-      else
-c Fortran
-         CALL OMP_SET_DYNAMIC(.FALSE.)
-
-         call OmpCopyPointercom
-         call OmpCopyScalarcom
-         call OmpCopyPointerbbb
-         call OmpCopyScalarbbb
-         call OmpCopyPointerapi
-         call OmpCopyScalarapi
-
-!$omp parallel firstprivate(iv,neq,t,ml,mu,nnzmx,nnz,t_pandf,n_pandf)
-!$omp+ private(yl_t,yldot00_t,wk_t,yldot_pert_t,b,e,nt,tid) shared(total_nnz)
-         tid = OMP_GET_THREAD_NUM()
-         nt = OMP_GET_NUM_THREADS()
-c         print *, 'neq, thread id nt', neq, tid, nt
-
-         allocate(yl_t(neq+2))
-         allocate(yldot00_t(neq+2))
-         allocate(wk_t(neq))
-         allocate(yldot_pert_t(neq+2))
-
-         call part1d(nt, tid, b, e, neq)
-         print *, 'thread id', tid, b, e
-
-         do iv = 1, neq
-            wk_t(iv) = wk(iv)
-         end do
-         do iv = 1, neq + 2
-            yl_t(iv) = yl(iv)
-            yldot00_t(iv) = yldot00(iv)
-            yldot_pert_t(iv) = yldot_pert(iv)
-         end do
-
-         niv = 0
-
-         do iv = b, e
-            nnz = 0
-c!$omp critical
-            call jac_calc_iv(iv, neq, t, yl_t, yldot00_t, ml, mu, wk_t,
-     .                       nnzmx, rcsc, icsc, jcsc, yldot_pert_t, nnz,
-     .                       t_pandf, n_pandf)
-            total_nnz = total_nnz + nnz
-c!$omp end critical
-         enddo             # end of main iv-loop over yl variables
-!$omp end parallel
-         print *, ' total nnz', total_nnz
-         call exit(0)
-      endif
-c
-      t_ivloop = tock(t_start_ivloop)
-c##############################################################
-
       jcsc(neq+1) = nnz
-
-      print *, ' @@Jacobian n, nnz@@', neq, nnz - 1
 
 c ... Convert Jacobian from compressed sparse column to compressed
 c     sparse row format.
-      t_start_csrcsc = tick()
       call csrcsc (neq, 1, 1, rcsc, icsc, jcsc, jac, ja, ia)
-c      print *, ' csrcsc', tock(t_start_csrcsc)
 
 c ... Accumulate cpu time spent here.
       if (istimingon .eq. 1) ttjstor = ttjstor + gettime(sec4) - tsjstor
-      print *, ' ==Leave jac_calc'
-      print *, ' @@Time@@ ', tock(t_start_jac)
-c      print *, ' @@Time@@ ', 'iv-loop', t_ivloop
-      print *, ' @@Time@@ ', 't_pandf', t_pandf,
-     .         'n_pandf', n_pandf, 't_pandf_avg', t_pandf / n_pandf
       return
       end
 c-----------------------------------------------------------------------
@@ -8807,8 +8681,6 @@ c ... Local variables:
 
       real,external::tick,tock
       real t_start_ilu
-
-      print *, ' ==Enter jac_lu_decomp'
       t_start_ilu = tick()
 
 c ... Convert compressed sparse row to banded format and use exact
@@ -8899,8 +8771,7 @@ c ... Finally, calculate approximate LU decomposition.
 c ... Accumulate cpu time spent here.
  99   ttmatfac = ttmatfac + (gettime(sec4) - tsmatfac)
 
-      print *, ' ==Leave jac_lu_decomp'
-      print *, ' @@Time@@ ', tock(t_start_ilu)
+      print *, '@@Time ILU@@ ', tock(t_start_ilu), 's'
       return
       end
 c-----------------------------------------------------------------------
@@ -9461,9 +9332,6 @@ c ... Local variables:
       real tp
       integer i
 
-      print *, ' ==Enter psetnk'
-      t_start_pset = tick()
-
 c ... Calculate maximum of f0*sf to control yl(neq+2) = nufak
       ydt_max = 1.e-100
       do i = 1, neq    # need to avoid neq+1 and neq+2
@@ -9528,8 +9396,6 @@ c ... Copy LU decomp into common arrays for diagostic
 
       ierr = 0
 
-      print *, ' ==Leave psetnk'
-      print *, ' @@Time@@ ', tock(t_start_pset)
       return
       end
 c-----------------------------------------------------------------------
