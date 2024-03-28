@@ -1,0 +1,163 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Build UEDGE and run test suite
+
+on: [push, pull_request]
+
+jobs:
+  fulltests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install pip dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install forthon mppl numpy h5py
+        python -m pip install flake8
+        python -m pip install pytest-isolate pytest-xdist
+    - name: Build UEDGE
+      run: |
+        python setup.py build
+        python setup.py install
+    - name: Return to pytests branch
+      uses: actions/checkout@v4
+      with:
+        ref: pytests
+        repository: LLNL/UEDGE 
+    - name: Test with pytest
+      run: |
+        # Create a clean UEDGE instance for every test
+        pytest --isolate --tb=native pytests/fulltests
+
+  unittests_D-and-C:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install pip dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install forthon mppl numpy h5py
+        python -m pip install flake8
+        python -m pip install pytest-isolate pytest-xdist
+    - name: Build UEDGE
+      run: |
+        python setup.py build
+        python setup.py install
+    - name: Return to pytests branch
+      uses: actions/checkout@v4
+      with:
+        ref: pytests
+        repository: LLNL/UEDGE 
+    - name: Test with pytest
+      run: |
+        # Create a clean UEDGE instance for every test
+        pytest --isolate --tb=native pytests/unittests/D+C
+
+  unittests_D-mols:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install pip dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install forthon mppl numpy h5py
+        python -m pip install flake8
+        python -m pip install pytest-isolate pytest-xdist
+    - name: Build UEDGE
+      run: |
+        python setup.py build
+        python setup.py install
+    - name: Return to pytests branch
+      uses: actions/checkout@v4
+      with:
+        ref: pytests
+        repository: LLNL/UEDGE 
+    - name: Test with pytest
+      run: |
+        # Create a clean UEDGE instance for every test
+        pytest --isolate --tb=native pytests/unittests/D_mols
+
+  unittests_D-only:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install pip dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install forthon mppl numpy h5py
+        python -m pip install flake8
+        python -m pip install pytest-isolate pytest-xdist
+    - name: Build UEDGE
+      run: |
+        python setup.py build
+        python setup.py install
+    - name: Return to pytests branch
+      uses: actions/checkout@v4
+      with:
+        ref: pytests
+        repository: LLNL/UEDGE 
+    - name: Test with pytest
+      run: |
+        # Create a clean UEDGE instance for every test
+        pytest --isolate --tb=native pytests/unittests/D_only
+
+  unittests_slab-D-only:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install pip dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install forthon mppl numpy h5py
+        python -m pip install flake8
+        python -m pip install pytest-isolate pytest-xdist
+    - name: Build UEDGE
+      run: |
+        python setup.py build
+        python setup.py install
+    - name: Return to pytests branch
+      uses: actions/checkout@v4
+      with:
+        ref: pytests
+        repository: LLNL/UEDGE 
+    - name: Test with pytest
+      run: |
+        # Create a clean UEDGE instance for every test
+        pytest --isolate --tb=native pytests/unittests/slab_D_only
+

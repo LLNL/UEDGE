@@ -27,7 +27,7 @@ c     erl1 [J/sec]    = radiation rate
 c----------------------------------------------------------------------c
       if (istabon .le. 7) then   # various older models
 
-         erl1 = (rqa(te,ne,0)-13.6*ev*rsa(te,ne,0.,0))*ne
+         erl1 = (rqa(te,ne,0)-13.6*ev_aph*rsa(te,ne,0.,0))*ne
 
 c----------------------------------------------------------------------c
       elseif (istabon .eq. 8 .or. istabon .eq. 9) then # linear interpolation
@@ -35,7 +35,7 @@ c----------------------------------------------------------------------c
          jr = 1
 
 c     compute abscissae --
-         zloge=log(te/ev)
+         zloge=log(te/ev_aph)
          rle=max(rlemin, min(zloge,rlemax))
          zlogd=log10(ne)
          rld=max(rldmin, min(zlogd,rldmax))
@@ -63,7 +63,7 @@ c     log-log interp on Stotler DEGAS2 tables
          jr = 1
 
 c     compute abscissae --
-         zloge=log(te/ev)
+         zloge=log(te/ev_aph)
          rle=max(rlemin, min(zloge,rlemax))
          zlogd=log10(ne)
          rld=max(rldmin, min(zlogd,rldmax))
@@ -98,7 +98,7 @@ c----------------------------------------------------------------------c
          endif
 
 c     compute abscissae --
-         zloge=log(te/ev)
+         zloge=log(te/ev_aph)
          rle=max(rlemin, min(zloge,rlemax))
          zlogd=log10(ne)
          rld=max(rldmin, min(zlogd,rldmax))
@@ -174,7 +174,7 @@ c     erl2 [J/sec]    = radiation rate
 c----------------------------------------------------------------------c
       if (istabon .le. 7) then   # various older models
 
-	 erl2 = (13.6*ev+1.5*te)*ne*rra(te,ne,0.,1)
+	 erl2 = (13.6*ev_aph+1.5*te)*ne*rra(te,ne,0.,1)
 
 c----------------------------------------------------------------------c
       elseif (istabon .eq. 8 .or. istabon .eq. 9) then # linear interpolation
@@ -182,7 +182,7 @@ c----------------------------------------------------------------------c
          jr = 1
 
 c     compute abscissae --
-         zloge=log(te/ev)
+         zloge=log(te/ev_aph)
          rle=max(rlemin, min(zloge,rlemax))
          zlogd=log10(ne)
          rld=max(rldmin, min(zlogd,rldmax))
@@ -210,7 +210,7 @@ c     log-log interp on Stotler DEGAS2 tables
          jr = 1
 
 c     compute abscissae --
-         zloge=log(te/ev)
+         zloge=log(te/ev_aph)
          rle=max(rlemin, min(zloge,rlemax))
          zlogd=log10(ne)
          rld=max(rldmin, min(zlogd,rldmax))
@@ -245,7 +245,7 @@ c----------------------------------------------------------------------c
          endif
 
 c     compute abscissae --
-         zloge=log(te/ev)
+         zloge=log(te/ev_aph)
          rle=max(rlemin, min(zloge,rlemax))
          zlogd=log10(ne)
          rld=max(rldmin, min(zlogd,rldmax))
@@ -329,7 +329,7 @@ c     indices for interpolation --
          iti = 0
          ini = 0
 c     compute abscissae --
-         rlti = log(t0/ev)
+         rlti = log(t0/ev_aph)
          rlni = max(htln(0),min(htln(htnn),log(n0)))
 c     find iti --
  51      if (iti .lt. htnt-1) then
@@ -370,7 +370,7 @@ c----------------------------------------------------------------------c
 c			use DEGAS table look-up
 
 c     compute abscissa --
-         zloge=log(t0/ev)
+         zloge=log(t0/ev_aph)
          rle=max(rlemin, min(zloge,rlemax))
 c     table index for interpolation --
          je=int((rle-rlemin)/delekpt) + 1
@@ -394,7 +394,7 @@ c----------------------------------------------------------------------c
 c----------------------------------------------------------------------c
       else     #     use analytic model (hydrogen) for all other istabon
 
-         a = 3*t0 / (10*ev)
+         a = 3*t0 / (10*ev_aph)
          rcx = 1.7e-14 * a**0.333
          if (issgvcxc.eq.1) rcx = sgvcxc # use fixed sig-v 
          if (issgvcxc.eq.2) rcx = sgvcxc*sqrt(t0/m_prot) # fixed sig
@@ -443,8 +443,8 @@ c     rqa [J*m**3/sec] = <sigma*v>*dE where dE is electron energy loss
 c----------------------------------------------------------------------c
       if (istabon .eq. 0) then   # use analytic model (hydrogen) with
 c                                  # constant energy loss per ionization
-         a = te / (10*ev)
-         rqa = erad * ev * 3.0e-14 * a*a / (3.0 + a*a)
+         a = te / (10*ev_aph)
+         rqa = erad * ev_aph * 3.0e-14 * a*a / (3.0 + a*a)
 
 c----------------------------------------------------------------------c
       elseif ((istabon .eq. 1) .or. (istabon .eq. 2)) then
@@ -454,7 +454,7 @@ c     indices for interpolation --
          ite = 0
          ine = 0
 c     compute abscissae --
-         rlte = log(te/ev)
+         rlte = log(te/ev_aph)
          rlne = max(htln(0),min(htln(htnn),log(ne)))
 c     find ite --
  51      if (ite .lt. htnt-1) then
@@ -488,7 +488,7 @@ c     compute coefficients for linear interpolation --
 c     compute electron energy loss rate parameter --
          t0 = (1-fxne)*htlqa(ite,ine,k) + fxne*htlqa(ite,ine+1,k)
          t1 = (1-fxne)*htlqa(ite+1,ine,k) + fxne*htlqa(ite+1,ine+1,k)
-         rqa = ev*exp((1-fxte)*t0+fxte*t1)
+         rqa = ev_aph*exp((1-fxte)*t0+fxte*t1)
 
 c----------------------------------------------------------------------c
       elseif (istabon .eq. 3) then
@@ -497,7 +497,7 @@ c			use DEGAS table look-up
          jr = 1
 
 c     compute abscissae --
-         zloge=log(te/ev)
+         zloge=log(te/ev_aph)
          rle=max(rlemin, min(zloge,rlemax))
          zlogd=log10(ne)
          rld=max(rldmin, min(zlogd,rldmax))
@@ -518,14 +518,14 @@ c     electron energy loss per ionization --
          w2=w21+fjd*(w22-w21)
          w = w1 + fje*(w2-w1)
 c     electron energy loss rate parameter --
-         rqa = ev * w * rsa(te,ne,0.,k)
+         rqa = ev_aph * w * rsa(te,ne,0.,k)
 
 c----------------------------------------------------------------------c
       elseif (istabon .eq. 4) then
 c			use POST93 table look-up
 
 c     compute abscissae --
-         zloge=log(te/ev)
+         zloge=log(te/ev_aph)
          rle=max(rlemin, min(zloge,rlemax))
          zlogd=log10(ne)
          rld=max(rldmin, min(zlogd,rldmax))
@@ -546,16 +546,16 @@ c     hydrogen line radiation rate --
          w2=w21+fjd*(w22-w21)
          w = w1 + fje*(w2-w1)
 c     electron energy loss rate parameter --
-         rqa = w + 13.6 * ev * rsa(te,ne,0.,k)
+         rqa = w + 13.6 * ev_aph * rsa(te,ne,0.,k)
 
 c----------------------------------------------------------------------c
       elseif (istabon .eq. 5) then
 c			use spline fit to POST93 table data
-c      xuse=min(max(xdata(1),log(te/ev)),xdata(nxdata))
-c      yuse=min(max(ydata(1),log10(ne)),ydata(nydata))
+c      xuse=min(max(xdata_aph(1),log(te/ev_aph)),xdata_aph(nxdata_aph))
+c      yuse=min(max(ydata_aph(1),log10(ne)),ydata_aph(nydata_aph))
 
 c     compute abscissae --
-         zloge=log(te/ev)
+         zloge=log(te/ev_aph)
          rle=max(rlemin, min(zloge,rlemax))
          zlogd=log10(ne)
          rld=max(rldmin, min(zlogd,rldmax))
@@ -563,23 +563,23 @@ c     compute abscissae --
       xuse=rle
       yuse=rld
 
-      nxcoef=nxdata
-      nycoef=nydata
+      nxcoef=nxdata_aph
+      nycoef=nydata_aph
 
-      vlogw = B2VAhL(xuse, yuse, 0, 0, xknots, yknots, nxcoef,
-     .          nycoef, kxords, kyords, rqacoef, ldf, workh, iflag)
+      vlogw = B2VAhL(xuse, yuse, 0, 0, xknots_aph, yknots_aph, nxcoef,
+     .          nycoef, kxords_aph, kyords_aph, rqacoef, ldf_aph, workh, iflag_aph)
       w=10**vlogw
 c     electron energy loss rate parameter --
-         rqa = w + 13.6 * ev * rsa(te,ne,0.,k)
+         rqa = w + 13.6 * ev_aph * rsa(te,ne,0.,k)
 
 c----------------------------------------------------------------------c
       elseif (istabon .eq. 6) then
 c			use spline fit to POST93 table data
-c      xuse=min(max(xdata(1),log(te/ev)),xdata(nxdata))
-c      yuse=min(max(ydata(1),log10(ne)),ydata(nydata))
+c      xuse=min(max(xdata_aph(1),log(te/ev_aph)),xdata_aph(nxdata_aph))
+c      yuse=min(max(ydata_aph(1),log10(ne)),ydata_aph(nydata_aph))
 
 c     compute abscissae --
-         zloge=log(te/ev)
+         zloge=log(te/ev_aph)
          rle=max(rlemin, min(zloge,rlemax))
          zlogd=log10(ne)
          rld=max(rldmin, min(zlogd,rldmax))
@@ -587,22 +587,22 @@ c     compute abscissae --
       xuse=rle
       yuse=rld
 
-      nxcoef=nxdata
-      nycoef=nydata
+      nxcoef=nxdata_aph
+      nycoef=nydata_aph
 
       tsval = gettime(sec4)
-      w = B2VAhL(xuse, yuse, 0, 0, xknots, yknots, nxcoef, nycoef,
-     .          kxords, kyords, rqacoef, ldf, workh, iflag)
+      w = B2VAhL(xuse, yuse, 0, 0, xknots_aph, yknots_aph, nxcoef, nycoef,
+     .          kxords_aph, kyords_aph, rqacoef, ldf_aph, workh, iflag_aph)
       totb2val = totb2val + gettime(sec4) - tsval
 c     electron energy loss rate parameter --
-         rqa = w + 13.6 * ev * rsa(te,ne,0.,k)
+         rqa = w + 13.6 * ev_aph * rsa(te,ne,0.,k)
 
 c----------------------------------------------------------------------c
       elseif (istabon .eq. 7) then
 c                       use polynomial fit from Bob Campbell -  8/93
-c     Note that the 13.6 * ev * rsa(te,ne,k) is omitted here as Campbell
+c     Note that the 13.6 * ev_aph * rsa(te,ne,k) is omitted here as Campbell
 c     has already added it in
-         rqa = svradp(te/ev,ne)
+         rqa = svradp(te/ev_aph,ne)
 
 c----------------------------------------------------------------------c
       elseif (istabon .gt. 7) then	# write error message 
@@ -662,7 +662,7 @@ c     indices for interpolation --
          ite = 0
          ine = 0
 c     compute abscissae --
-         rlte = log(te/ev)
+         rlte = log(te/ev_aph)
          rlne = max(htln(0),min(htln(htnn),log(ne)))
 c     find ite --
  51      if (ite .lt. htnt-1) then
@@ -706,7 +706,7 @@ c             use DEGAS or POST93 or DEGAS93 or Stotler95 table look-up
          jr = 1
 
 c     compute abscissae --
-         zloge=log(te/ev)
+         zloge=log(te/ev_aph)
          rle=max(rlemin, min(zloge,rlemax))
          zlogd=log10(ne)
          rld=max(rldmin, min(zlogd,rldmax))
@@ -730,11 +730,11 @@ c     recombination rate parameter --
 c----------------------------------------------------------------------c
       elseif (istabon .eq. 5) then
 c			use spline fit to POST93 table data
-c      xuse=min(max(xdata(1),log(te/ev)),xdata(nxdata))
-c      yuse=min(max(ydata(1),log10(ne)),ydata(nydata))
+c      xuse=min(max(xdata_aph(1),log(te/ev_aph)),xdata_aph(nxdata_aph))
+c      yuse=min(max(ydata_aph(1),log10(ne)),ydata_aph(nydata_aph))
 
 c     compute abscissae --
-         zloge=log(te/ev)
+         zloge=log(te/ev_aph)
          rle=max(rlemin, min(zloge,rlemax))
          zlogd=log10(ne)
          rld=max(rldmin, min(zlogd,rldmax))
@@ -742,21 +742,21 @@ c     compute abscissae --
       xuse=rle
       yuse=rld
 
-      nxcoef=nxdata
-      nycoef=nydata
+      nxcoef=nxdata_aph
+      nycoef=nydata_aph
 
-      vlog10rra = B2VAhL(xuse, yuse, 0, 0, xknots, yknots, nxcoef,
-     .          nycoef, kxords, kyords, rracoef, ldf, workh, iflag)
+      vlog10rra = B2VAhL(xuse, yuse, 0, 0, xknots_aph, yknots_aph, nxcoef,
+     .          nycoef, kxords_aph, kyords_aph, rracoef, ldf_aph, workh, iflag_aph)
       rra=10**vlog10rra
 
 c----------------------------------------------------------------------c
       elseif (istabon .eq. 6) then
 c			use spline fit to POST93 table data
-c      xuse=min(max(xdata(1),log(te/ev)),xdata(nxdata))
-c      yuse=min(max(ydata(1),log10(ne)),ydata(nydata))
+c      xuse=min(max(xdata_aph(1),log(te/ev_aph)),xdata_aph(nxdata_aph))
+c      yuse=min(max(ydata_aph(1),log10(ne)),ydata_aph(nydata_aph))
 
 c     compute abscissae --
-         zloge=log(te/ev)
+         zloge=log(te/ev_aph)
          rle=max(rlemin, min(zloge,rlemax))
          zlogd=log10(ne)
          rld=max(rldmin, min(zlogd,rldmax))
@@ -764,24 +764,24 @@ c     compute abscissae --
       xuse=rle
       yuse=rld
 
-      nxcoef=nxdata
-      nycoef=nydata
+      nxcoef=nxdata_aph
+      nycoef=nydata_aph
 
       tsval = gettime(sec4)
-      rra = B2VAhL(xuse, yuse, 0, 0, xknots, yknots, nxcoef, nycoef,
-     .          kxords, kyords, rracoef, ldf, workh, iflag)
+      rra = B2VAhL(xuse, yuse, 0, 0, xknots_aph, yknots_aph, nxcoef, nycoef,
+     .          kxords_aph, kyords_aph, rracoef, ldf_aph, workh, iflag_aph)
       totb2val = totb2val + gettime(sec4) - tsval
 c----------------------------------------------------------------------c
       elseif (istabon .eq. 7) then
 c                       use polynomial fit from Bob Campbell -  8/93
-         rra = srecf(te/ev,ne)
+         rra = srecf(te/ev_aph,ne)
 
 c----------------------------------------------------------------------c
       elseif ((istabon>9 .and. istabon<14) .or. istabon .eq. 17) then 
 c     log-log interp on Stotler DEGAS2 tables
          jr = 1
 c     compute abscissae --
-         zloge=log(te/ev)
+         zloge=log(te/ev_aph)
          rle=max(rlemin, min(zloge,rlemax))
          zlogd=log10(ne)
          rld=max(rldmin, min(zlogd,rldmax))
@@ -816,7 +816,7 @@ c----------------------------------------------------------------------c
          endif
 
 c     compute abscissae --
-         zloge=log(te/ev)
+         zloge=log(te/ev_aph)
          rle=max(rlemin, min(zloge,rlemax))
          zlogd=log10(ne)
          rld=max(rldmin, min(zlogd,rldmax))
@@ -909,7 +909,7 @@ c     rsa [m**3/sec]  = <sigma v>
 
 c----------------------------------------------------------------------c
       if (istabon .eq. 0) then   # use analytic model (hydrogen)
-         a = te / (10*ev)
+         a = te / (10*ev_aph)
          rsa = 3.0e-14 * a*a / (3.0 + a*a)
 
 c----------------------------------------------------------------------c
@@ -920,7 +920,7 @@ c     indices for interpolation --
          ite = 0
          ine = 0
 c     compute abscissae --
-         rlte = log(te/ev)
+         rlte = log(te/ev_aph)
          rlne = max(htln(0),min(htln(htnn),log(ne)))
 c     find ite --
  51      if (ite .lt. htnt-1) then
@@ -964,7 +964,7 @@ c       	use DEGAS or POST93 or DEGAS93 or Stotler95 table look-up
          jr = 1
 
 c     compute abscissae --
-         zloge=log(te/ev)
+         zloge=log(te/ev_aph)
          rle=max(rlemin, min(zloge,rlemax))
          zlogd=log10(ne)
          rld=max(rldmin, min(zlogd,rldmax))
@@ -988,11 +988,11 @@ c     ionization rate parameter --
 c----------------------------------------------------------------------c
       elseif (istabon .eq. 5) then
 c			use spline fit to POST93 table data
-c      xuse=min(max(xdata(1),log(te/ev)),xdata(nxdata))
-c      yuse=min(max(ydata(1),log10(ne)),ydata(nydata))
+c      xuse=min(max(xdata_aph(1),log(te/ev_aph)),xdata_aph(nxdata_aph))
+c      yuse=min(max(ydata_aph(1),log10(ne)),ydata_aph(nydata_aph))
 
 c     compute abscissae --
-         zloge=log(te/ev)
+         zloge=log(te/ev_aph)
          rle=max(rlemin, min(zloge,rlemax))
          zlogd=log10(ne)
          rld=max(rldmin, min(zlogd,rldmax))
@@ -1000,21 +1000,21 @@ c     compute abscissae --
       xuse=rle
       yuse=rld
 
-      nxcoef=nxdata
-      nycoef=nydata
+      nxcoef=nxdata_aph
+      nycoef=nydata_aph
 
-      vlog10rsa = B2VAhL(xuse, yuse, 0, 0, xknots, yknots, nxcoef,
-     .          nycoef, kxords, kyords, rsacoef, ldf, workh, iflag)
+      vlog10rsa = B2VAhL(xuse, yuse, 0, 0, xknots_aph, yknots_aph, nxcoef,
+     .          nycoef, kxords_aph, kyords_aph, rsacoef, ldf_aph, workh, iflag_aph)
       rsa=10**vlog10rsa
 
 c----------------------------------------------------------------------c
       elseif (istabon .eq. 6) then
 c			use spline fit to POST93 table data
-c      xuse=min(max(xdata(1),log(te/ev)),xdata(nxdata))
-c      yuse=min(max(ydata(1),log10(ne)),ydata(nydata))
+c      xuse=min(max(xdata_aph(1),log(te/ev_aph)),xdata_aph(nxdata_aph))
+c      yuse=min(max(ydata_aph(1),log10(ne)),ydata_aph(nydata_aph))
 
 c     compute abscissae --
-         zloge=log(te/ev)
+         zloge=log(te/ev_aph)
          rle=max(rlemin, min(zloge,rlemax))
          zlogd=log10(ne)
          rld=max(rldmin, min(zlogd,rldmax))
@@ -1022,17 +1022,17 @@ c     compute abscissae --
       xuse=rle
       yuse=rld
 
-      nxcoef=nxdata
-      nycoef=nydata
+      nxcoef=nxdata_aph
+      nycoef=nydata_aph
 
       tsval = gettime(sec4)
-      rsa = B2VAhL(xuse, yuse, 0, 0, xknots, yknots, nxcoef, nycoef,
-     .          kxords, kyords, rsacoef, ldf, workh, iflag)
+      rsa = B2VAhL(xuse, yuse, 0, 0, xknots_aph, yknots_aph, nxcoef, nycoef,
+     .          kxords_aph, kyords_aph, rsacoef, ldf_aph, workh, iflag_aph)
       totb2val = totb2val + gettime(sec4) - tsval      
 c----------------------------------------------------------------------c
       elseif (istabon .eq. 7) then
 c                       use polynomial fit from Bob Campbell -  8/93
-         rsa = sionf(te/ev,ne)
+         rsa = sionf(te/ev_aph,ne)
 
 c----------------------------------------------------------------------c
       elseif ((istabon>9 .and. istabon<14) .or. istabon .eq. 17) then 
@@ -1041,7 +1041,7 @@ c     log-log interp on Stotler DEGAS2 tables
          jr = 1
 
 c     compute abscissae --
-         zloge=log(te/ev)
+         zloge=log(te/ev_aph)
          rle=max(rlemin, min(zloge,rlemax))
          zlogd=log10(ne)
          rld=max(rldmin, min(zlogd,rldmax))
@@ -1076,7 +1076,7 @@ c----------------------------------------------------------------------c
          endif
 
 c     compute abscissae --
-         zloge=log(te/ev)
+         zloge=log(te/ev_aph)
          rle=max(rlemin, min(zloge,rlemax))
          zlogd=log10(ne)
          rld=max(rldmin, min(zlogd,rldmax))
@@ -1328,7 +1328,7 @@ c     local variables --
       b7 =  2.159670289222e-04
       b8 = -4.928545325189e-06   
 
-      logt = log (te/ev)
+      logt = log (te/ev_aph)
       logsv = b0+logt*(b1+logt*(b2+logt*(b3+logt*(b4
      .          +logt*(b5+logt*(b6+logt*(b7+logt*b8)))))))
       svdiss = (1e-6)*exp(logsv)

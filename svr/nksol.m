@@ -1494,7 +1494,6 @@ c-----------------------------------------------------------------------
 c
       save
       data onept5/1.5e0/
-
 c-----------------------------------------------------------------------
 c     call user-supplied routine pset to load preconditioner matrix
 c     data if threshold achieved.  set ipcur=1 if p is re-evaluated.
@@ -2063,7 +2062,6 @@ ccc 300    z(i) = (ftem(i) - vtem(i))/(2*sigma) - vtem(i)*u(n+2) # 2nd order Jac
 cccc                                       vtem(i)*su(i)*u(n+2)/sf(i)
       do 310 i = 1,n
  310    z(i) = z(i)*sf(i)
-
       return
 c----------------------- end of subroutine atv -------------------------
       end
@@ -2536,7 +2534,6 @@ c-----------------------------------------------------------------------
           if (ier .ne. 0) go to 300
           endif
         endif
-
       return
 c-----------------------------------------------------------------------
 c this block handles error returns forced by routine psol.
@@ -3687,39 +3684,39 @@ c-----------------------------------------------------------------------
 c
       if (iermsg .gt. 0) return
       if (iterm .eq. 1) then
-        write(iunit,9000)
+        if (iprint .ge. 1) write(iunit,9000)
         return
         endif
       if (iterm .eq. 2) then
-        write(iunit,9010)
+        if (iprint .ge. 1) write(iunit,9010)
         return
         endif
       if (iterm .eq. 3) then
-        write(iunit,9020)
+        if (iprint .ge. 1) write(iunit,9020)
         return
         endif
       if (iterm .eq. 4) then
-        write(iunit,9030)
+        if (iprint .ge. 1) write(iunit,9030) 
         return
         endif
       if (iterm .eq. 5) then
-        write(iunit,9040)
+        if (iprint .ge. 1) write(iunit,9040) 
         return
         endif
       if (iterm .eq. 6) then
-        write(iunit,9050)
+        if (iprint .ge. 1) write(iunit,9050) 
         return
         endif
       if (iterm .eq. 7) then
-        write(iunit,9060)
+        if (iprint .ge. 1) write(iunit,9060) 
         return
         endif
       if (iterm .eq. 8) then
-        write(iunit,9070)
+        if (iprint .ge. 1) write(iunit,9070) 
         return
         endif
       if (iterm .eq. 9) then
-        write(iunit,9080)
+        if (iprint .ge. 1) write(iunit,9080) 
         return
         endif
 c-----------------------------------------------------------------------
@@ -3883,7 +3880,6 @@ c
       save
       data one/1.0e0/,two/2.0e0/
       data pt99/0.99e0/,beta/0.9e0/
-
 c
       mxtkn = .false.
       pnrm = vnormnk(n,p,su)
@@ -3932,7 +3928,6 @@ c
       fnrmp = vnormnk(n,savf,sf)
       f1nrmp = fnrmp*fnrmp/two
       if (pnrm .gt. pt99*stepmx) mxtkn = .true.
-
       return
 c----------------------- end of subroutine inexct ----------------------
       end

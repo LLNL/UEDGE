@@ -12,7 +12,7 @@ import getopt
 import logging
 import sysconfig
 
-version='8.0.4.1'
+version='8.1.0-beta.0'
 
 try:
     os.environ['PATH'] += os.pathsep + site.USER_BASE + '/bin'

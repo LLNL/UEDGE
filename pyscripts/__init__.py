@@ -29,3 +29,8 @@ elif path.exists(_homefile):
    with open(_homefile) as f:
       exec(open(_homefile).read())
       
+#
+# Ensure that the UEDGE internal version matches the Python release
+#
+
+uedge.bbb.uedge_ver = __version__
