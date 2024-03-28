@@ -1,3 +1,0 @@
-python -i CMod_test.py
-mp.plotmesh()
-mu.uelist("nx")
