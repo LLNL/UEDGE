@@ -2327,7 +2327,7 @@ c ... Set up nuiz & sources for hydrogen molecular gas
         endif
         do iy = iys1, iyf6
          do ix = ixs1, ixf6
-           nuiz(ix,iy,2) = ne(ix,iy) * (  #.. Tom 
+           nuiz(ix,iy,2) = ne(ix,iy) * (  #.. Tom
      .                          svdiss( te(ix,iy) )
      .                        + cfizmol*rsa(te(ix,iy),ne_sgvi,rtau(ix,iy),0)
      .                        + sigvi_floor )
@@ -2581,7 +2581,7 @@ c...  Add friction part of Q_e here
 c ... Now include seic contribution from hydrogen atoms if isupgon=1
 c ... Then "ion" species 2 (redundant as gas species 1) is hydr atom
 
-      if(isupgon(1)==1 .and. zi(2)<1.e-20) then # .and. istgon(1)==0) then 
+      if(isupgon(1)==1 .and. zi(2)<1.e-20) then # .and. istgon(1)==0) then
         if(cfvgpx(2) > 0.) then
           do iy = j2, j5
             do ix = i2, i5
@@ -2589,11 +2589,11 @@ c ... Then "ion" species 2 (redundant as gas species 1) is hydr atom
               ix2 = ixp1(ix,iy)
               iy1 = max(0,iy-1)
               seic(ix,iy) = seic(ix,iy) + cftiexclg
-     .                                   *0.5*cfvgpx(2)*( 
+     .                                   *0.5*cfvgpx(2)*(
      .                       uuxg(ix, iy,1)*gpix(ix,iy,2) +
      .                       uuxg(ix1,iy,1)*gpix(ix1,iy,2) )*vol(ix,iy)
               seic(ix,iy) = seic(ix,iy) + cftiexclg
-     .                                   *0.5*cfvgpy(2)*( 
+     .                                   *0.5*cfvgpy(2)*(
      .                        vyg(ix, iy,1)*gpiy(ix,iy,2) +
      .                        vyg(ix,iy1,1)*gpiy(ix,iy1,2) )*vol(ix,iy)
             enddo
@@ -3041,7 +3041,7 @@ c IJ 2016/10/10	add cfneutsor_ei multiplier to control fraction of neutral energ
                qshx = cshx * (tg(ix,iy,1)-tg(ix1,iy,1)) * gxf(ix,iy)
 	       hcxn(ix,iy) = cshx  /
      .                      (1 + (abs(qshx/qflx))**flgamtg)**(1./flgamtg)
-               hcxi(ix,iy) = hcxi(ix,iy) + 
+               hcxi(ix,iy) = hcxi(ix,iy) +
      .                          cftiexclg*cfneut*cfneutsor_ei*hcxn(ix,iy)
 c          Now for the radial flux limit - good for nonorthog grid too
                qfly = flalftgya(iy) * sqrt(tgavey/mi(iigsp)) * noavey *
@@ -3052,7 +3052,7 @@ c          Now for the radial flux limit - good for nonorthog grid too
                qshy = cshy * (tgy0(ix,iy1,1)-tgy1(ix,iy1,1))/dynog(ix,iy)
                hcyn(ix,iy) = cshy /
      .                      (1 + (abs(qshy/qfly))**flgamtg)**(1./flgamtg)
-               hcyi(ix,iy) = hcyi(ix,iy) + 
+               hcyi(ix,iy) = hcyi(ix,iy) +
      .                          cftiexclg*cfneut*cfneutsor_ei*hcyn(ix,iy)
 c
   63        continue
@@ -3147,7 +3147,7 @@ c..   Now radial direction
      .                     cfhcygc(igsp)*noavey*kyg_use(ix,iy,igsp)
           enddo
         enddo
-        if (igsp.eq.1 .and. isupgon(igsp).eq.1) then 
+        if (igsp.eq.1 .and. isupgon(igsp).eq.1) then
           hcxg(:,:,igsp) = hcxn(:,:)
           hcyg(:,:,igsp) = hcyn(:,:)
         endif
@@ -3348,7 +3348,7 @@ c ... Setup a correction to surface-flux for grad_B and grad_P effects at iy=0
       enddo
 
 c ... Normalize core flux to zero to avoid introducing artifical core source/sink
-      if (isfniycbozero .gt. 0) then 
+      if (isfniycbozero .gt. 0) then
           fniycboave = 0
           do ifld = 1, nfsp
             do ix = ixpt1(1)+1, ixpt2(1)
@@ -3359,14 +3359,14 @@ c ... Normalize core flux to zero to avoid introducing artifical core source/sin
               fniycbo(ix, ifld) = fniycbo(ix, ifld) - isfniycbozero*fniycboave
             end do
           end do
-      else if (isfniycbozero .lt. 0) then 
+      else if (isfniycbozero .lt. 0) then
           do ifld = 1, nfsp
             do ix = ixpt1(1)+1, ixpt2(1)
               fniycbo(ix, ifld) = 0
             end do
           end do
       end if
-             
+
 
 
 c----------------------------------------------------------------------c
@@ -3788,7 +3788,7 @@ c     The neutral species, momentum coupling AND other source terms:
      .                                ni(ix,iy,iigsp)*ti(ix,iy))+
      .                              (1.0-cftiexclg)*
      .                               (ni(ix2,iy,iigsp)*tg(ix2,iy,1)-
-     .                                ni(ix,iy,iigsp)*tg(ix,iy,1)) ) 
+     .                                ni(ix,iy,iigsp)*tg(ix,iy,1)) )
      .                    -cfupcx*0.25*volv(ix,iy)*
      .                       (nucx(ix,iy,1)+nucx(ix2,iy,1))*
      .                       (nm(ix,iy,iigsp)+nm(ix2,iy,iigsp))*
@@ -4024,7 +4024,7 @@ c IJ 2016/10/10	add cfneutsor_ei multiplier to control fraction of neutral energ
             do 726 iy = j4, j8
                do 725 ix = i1, i5
                   floxi(ix,iy) = floxi(ix,iy) +
-     .                 cftiexclg*cfcvti*2.5*cfneut*cfneutsor_ei*fnix(ix,iy,ifld) 
+     .                 cftiexclg*cfcvti*2.5*cfneut*cfneutsor_ei*fnix(ix,iy,ifld)
  725           continue   # next correct for incoming neut pwr = 0
                do jx = 1, nxpt  #if at plate, sub (1-cfloxiplt)*neut-contrib
                  if(ixmnbcl==1) then  #real plate-need for parallel UEDGE
@@ -4365,7 +4365,7 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
                t1 = max(ti(ix2,iy),temin*ev)
                vttn = t0*sqrt( t0/mi(1) )
                vttp = t1*sqrt( t1/mi(1) )
-               qfl = flalftxy * (cftiexclg*0.125+(1.-cftiexclg)*0.25) * sx(ix,iy) * (vttn + vttp) * 
+               qfl = flalftxy * (cftiexclg*0.125+(1.-cftiexclg)*0.25) * sx(ix,iy) * (vttn + vttp) *
      .               (ni(ix,iy,1)+cftiexclg*ng(ix,iy,1)+ni(ix2,iy,1)+cftiexclg*ng(ix2,iy,1))
                feixy(ix,iy) = feixy(ix,iy) /
      .                              sqrt(1. + (feixy(ix,iy)/qfl)**2)
@@ -4587,15 +4587,15 @@ c to the friction force between neutrals and ions
                t0 = 1.5*( tg(ix,iy,1)* (psor(ix,iy,1)+tv)
      .                     -ti(ix,iy) * (psorrg(ix,iy,1)+tv) )
                resei(ix,iy) = resei(ix,iy) + w0(ix,iy)
-     .             + cfneut * cfneutsor_ei * cfnidh * 0.5*mi(1) * 
-     .                          ( (t1-t2)*(t1-t2)+temp3+temp4 ) * 
+     .             + cfneut * cfneutsor_ei * cfnidh * 0.5*mi(1) *
+     .                          ( (t1-t2)*(t1-t2)+temp3+temp4 ) *
      .                    (  psor(ix,iy,1) + cftiexclg*psorrg(ix,iy,1)
      .              + tv + cftiexclg * tv  )
      .              + (1.0-cftiexclg) * t0
      .             + cftiexclg * cfneut * cfneutsor_ei * cnsor
      .               *( eion*ev+cfnidhdis*
-     .                  0.5*mg(1)*(t2*t2+temp3+temp4) )*psordis(ix,iy) 
-     .             + cfnidh2* 
+     .                  0.5*mg(1)*(t2*t2+temp3+temp4) )*psordis(ix,iy)
+     .             + cfnidh2*
      .                       ( -mi(1)*t1*t2*(psor(ix,iy,1)+tv)
      .                         +0.5*mi(1)*t1*t1*
      .                          (psor(ix,iy,1)+psorrg(ix,iy,1)+2*tv) )
@@ -4605,7 +4605,7 @@ c to the friction force between neutrals and ions
      .                            * (psorrg(ix,iy,1)+tv)
      .                            + ( eion*ev + cfnidh*cfnidhdis*
      .                   0.5*mg(1)*(t2*t2+temp3+temp4) )*psordis(ix,iy)
-     .                     + cfnidh2* 
+     .                     + cfnidh2*
      .                       ( -mg(1)*t1*t2*(psorrg(ix,iy,1)+tv)
      .                         +0.5*mg(1)*(t2*t2+temp3+temp4)*
      .                          (psor(ix,iy,1)+psorrg(ix,iy,1)+2*tv) )
@@ -4625,7 +4625,7 @@ c to the friction force between neutrals and ions
 
 
 c ... If molecules are present as gas species 2, add ion/atom cooling
-      # energy transfer between ions and molecueles due to 
+      # energy transfer between ions and molecueles due to
       # ion/molecule elastic collisions have been moved in
       # engbalg subroutine, so comment the following lines...
 #      if(ishymol == 1) then
@@ -4902,7 +4902,7 @@ c******************************************************************
 	       wvh(ix,iy,ifld) = wvh(ix,iy,ifld) -
      .                             sin(thetacc)*cfvcsy(ifld)*cfvisy*
      .                                   visy(ix,iy,ifld)*dupdx*dupdy
-            if (zi(ifld)==0.0 .and. ifld.eq.iigsp) then 
+            if (zi(ifld)==0.0 .and. ifld.eq.iigsp) then
               resei(ix,iy) = resei(ix,iy) + cftiexclg*wvh(ix,iy,ifld)*vol(ix,iy)
               reseg(ix,iy,1) = reseg(ix,iy,1) + wvh(ix,iy,ifld)*vol(ix,iy)
             else
@@ -6086,7 +6086,7 @@ c
       Use(MCN_dim)      # ngsp, ...
       Use(MCN_sources)  # cfneut_sng, cfneutdiv_fng, ... mcfngx, mcfngy, ...
       Use(Interp)		# ngs, tgs
-      Use(Bfield)   # rbfbt 
+      Use(Bfield)   # rbfbt
 
 *  -- procedures --
       real ave
@@ -6544,7 +6544,7 @@ c **- loop for uu just as in the previous version - needed for correct Jac?
          do iy = j4, j6
             do ix = i1, i6
                uu(ix,iy,iigsp) = uug(ix,iy,igsp)
-               v2(ix,iy,iigsp) = ( uuxg(ix,iy,igsp) 
+               v2(ix,iy,iigsp) = ( uuxg(ix,iy,igsp)
      .                            - up(ix,iy,iigsp)*rrv(ix,iy) )
      .                       /(rbfbt(ix,iy) + rbfbt(ixp1(ix,iy),iy))*2.
             enddo
@@ -7713,7 +7713,7 @@ c...  already added to uug(ix,iy,igsp)
               ix4 = ixp1(ix,iy1)
               ix5 = ixm1(ix,iy+1)
               ix6 = ixp1(ix,iy+1)
-              t0 = max(tg(ix,iy,igsp),tgmin*ev) 
+              t0 = max(tg(ix,iy,igsp),tgmin*ev)
               t1 = max(tg(ix2,iy,igsp),tgmin*ev)
               vtn = sqrt( t0/mg(igsp) )
               vtnp = sqrt( t1/mg(igsp) )
@@ -8151,7 +8151,7 @@ c ....            Fix limiter case with algebraic eqns, not ODEs
                  iv1 = idxti(ix,iy)
                  if(iseqalg(iv1) == 0) then
                    if(isupgon(1)==1) then
-                     yldot(iv1) = ( yldot(iv1)*nnorm - 
+                     yldot(iv1) = ( yldot(iv1)*nnorm -
      .                              yl(iv1)*(nbidot + cftiexclg*nbgdot) ) /
      .                               (nit(ix,iy) + cftiexclg*ni(ix,iy,2) )
                    else
@@ -8787,8 +8787,8 @@ c############################################
 c      nnz = 1
 c      do iv = 1, neq
 c ... End loop over dependent variables and finish Jacobian storage.
-c##############################################################      
-      enddo             # end of main iv-loop over yl variables
+c##############################################################
+c      enddo             # end of main iv-loop over yl variables
 c##############################################################
 
       call jac_calc_c(neq, t, yl, yldot00, ml, mu, wk,
