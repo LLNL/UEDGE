@@ -209,6 +209,9 @@ jac_calc_omp_c_(Int  *neq,
    {
       printf(" =============================================\n"
              " Jac_calc OpenMP C version, Num. Threads = %ld\n"
+#if SEQ_CHECK
+             "  ** Check with serial version is ON **       \n"
+#endif
              " =============================================\n", num_threads);
    }
 

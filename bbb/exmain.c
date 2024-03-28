@@ -37,8 +37,7 @@ void int_handler() {
    printf("or a single line to be evaluated by Python.\n");
 #pragma omp master
    {
-      int condition;
-      condition=1;
+      /* int condition=1; */
       while(1){
 #ifdef HAS_READLINE
          ret = readline("Debug>>> ");
