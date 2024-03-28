@@ -8792,7 +8792,7 @@ c      jcsc(neq+1) = nnz
 c##############################################################
 
       call jac_calc_c(neq, t, yl, yldot00, ml, mu, wk,
-     .                nnzmx, rcsc, icsc, jcsc, yldot_pert, nnz)
+     .                nnzmx, 0.0, rcsc, icsc, jcsc, yldot_pert, nnz)
 
 c ... Convert Jacobian from compressed sparse column to compressed
 c     sparse row format.
