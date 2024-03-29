@@ -8786,14 +8786,13 @@ c ... Begin loop over dependent variables.
 c############################################
 c      nnz = 1
 c      do iv = 1, neq
-c ... End loop over dependent variables and finish Jacobian storage.
 c##############################################################
 c      enddo             # end of main iv-loop over yl variables
+c      jcsc(neq+1) = nnz
 c##############################################################
 
       call jac_calc_c(neq, t, yl, yldot00, ml, mu, wk,
-     .                nnzmx, rcsc, icsc, jcsc, yldot_pert, nnz)
-      jcsc(neq+1) = nnz
+     .                nnzmx, 0.0, rcsc, icsc, jcsc, yldot_pert, nnz)
 
 c ... Convert Jacobian from compressed sparse column to compressed
 c     sparse row format.
