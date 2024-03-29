@@ -44,12 +44,10 @@ jac_calc_seq_c_(Int  *neq,
    return 0;
 }
 
-#define UEDGE_WITH_OMP 1
-
 #if defined(UEDGE_WITH_OMP)
 
 #define USE_OMP_VERSION 1
-#define SEQ_CHECK       1
+#define SEQ_CHECK       0
 
 typedef struct
 {
