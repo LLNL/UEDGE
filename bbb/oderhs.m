@@ -8795,8 +8795,6 @@ c##############################################################
       call jac_calc_c(neq, t, yl, yldot00, ml, mu, wk,
      .                nnzmx, 0.0, rcsc, icsc, jcsc, yldot_pert, nnz)
 
-      print *, 'nnz', nnz - 1
-      call exit
 c ... Convert Jacobian from compressed sparse column to compressed
 c     sparse row format.
       call csrcsc (neq, 1, 1, rcsc, icsc, jcsc, jac, ja, ia)
