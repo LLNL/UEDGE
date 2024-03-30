@@ -8786,7 +8786,8 @@ c ... Begin loop over dependent variables.
 c############################################
 c      nnz = 1
 c      do iv = 1, neq
-c##############################################################
+c         call jac_calc_iv(iv, neq, t, yl, yldot00, ml, mu, wk, nnzmx,
+c     .                    rcsc, icsc, jcsc, yldot_pert, nnz)
 c      enddo             # end of main iv-loop over yl variables
 c      jcsc(neq+1) = nnz
 c##############################################################
@@ -8794,6 +8795,8 @@ c##############################################################
       call jac_calc_c(neq, t, yl, yldot00, ml, mu, wk,
      .                nnzmx, 0.0, rcsc, icsc, jcsc, yldot_pert, nnz)
 
+      print *, 'nnz', nnz - 1
+      call exit
 c ... Convert Jacobian from compressed sparse column to compressed
 c     sparse row format.
       call csrcsc (neq, 1, 1, rcsc, icsc, jcsc, jac, ja, ia)

@@ -33,7 +33,17 @@ jac_calc_seq_c_(Int  *neq,
                 real *yldot_pert,
                 Int  *nnz)
 {
+   if (PRINT_LEVEL > 0)
+   {
+      printf(" =============================================\n"
+             " Jac_calc C SEQ version                       \n"
+             "  ** n = %ld, nnzmx = %ld **                  \n"
+             " =============================================\n",
+             *neq, *nnzmx);
+   }
+
    Int iv;
+
    *nnz = 1;
    for (iv = 1; iv <= *neq; iv++)
    {
