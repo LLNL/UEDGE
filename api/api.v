@@ -157,7 +157,7 @@ work2(nwork2)	_real		# work array for B3VAL
 nwork3	integer			# size of array work3
 work3(nwork3)	_real		# work array for B3INT
 iworki(10)	integer		# work array for B3VAL
-icont		integer	/0/	# input flag for B3VAL
+icont		integer	/0/	+threadprivate # input flag for B3VAL
 kxords_api	integer	/4/	# order of spline fit versus x
 #	kxords_api=4 (default) is cubic interpolation
 kyords_api	integer	/4/	# order of spline fit versus y

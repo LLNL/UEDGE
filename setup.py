@@ -10,6 +10,7 @@ import site
 from Forthon.compilers import FCompiler
 import getopt
 import logging
+import sysconfig
 
 version='8.1.0-beta.0'
 
@@ -33,6 +34,7 @@ debug = 0
 fcomp = None
 parallel = 0
 petsc = 0
+OMP=False
 
 for o in optlist:
     if o[0] == '-g':
@@ -46,8 +48,31 @@ for o in optlist:
     elif o[0] == '--petsc':
         petsc = 1
     elif o[0] == '--omp':
+        OMP = True
         os.putenv("OMP","1")
-        
+
+CARGS=[]
+FARGS=['-g -fmax-errors=15', '-DFORTHON','-cpp','-Wconversion','-fimplicit-none']
+
+if OMP:
+    FARGS=FARGS+['-fopenmp', '-DUEDGE_WITH_OMP=1']
+    CARGS=CARGS+['-fopenmp']
+    OMPargs=['--omp']
+else:
+    OMPargs=[]
+OMPFLAGS='OMPFLAGS = {}'.format(' '.join(OMPargs))
+
+FARGSDEBUG=['-fbacktrace','-ffree-line-length-0', '-fcheck=all','-ffpe-trap=invalid,overflow,underflow -finit-real=snan','-Og']
+FARGSOPT=['-Ofast']
+
+if debug==1:
+    FARGS=FARGS+FARGSDEBUG
+else:
+    FARGS=FARGS+FARGSOPT
+
+FLAGS ='DEBUG = -v --fargs "{}"'.format(' '.join(FARGS))
+if CARGS!=[]:
+    FLAGS =FLAGS+' --cargs="{}"'.format(' '.join(CARGS))
 
 
 if petsc == 1 and os.getenv('PETSC_DIR') == None:
@@ -77,7 +102,7 @@ class uedgeBuild(build):
             raise SystemExit("Python versions < 3 not supported")
         else:
             if petsc == 0:
-                status = call(['make', '-f','Makefile.Forthon'])
+                status = call(['make', FLAGS,OMPFLAGS, '-f','Makefile.Forthon'])
             else:
                 status = call(['make', '-f', 'Makefile.PETSc'])
             if status != 0: raise SystemExit("Build failure")
@@ -155,11 +180,16 @@ define_macros=[("WITH_NUMERIC", "0"),
 # check for readline
 rlncom = "echo \"int main(){}\" | gcc -x c -lreadline - "
 rln = os.system(rlncom)
-if rln == 0: 
+if rln == 0:
    define_macros = define_macros + [("HAS_READLINE","1")]
    os.environ["READLINE"] = "-l readline"
    libraries = ['readline'] + libraries
 
+if OMP:
+    define_macros = define_macros + [("UEDGE_WITH_OMP",1)]
+    C_OMPARGS=['-fopenmp']
+else:
+    C_OMPARGS=[]
 
 setup(name="uedge",
       version=version,
@@ -176,17 +206,16 @@ setup(name="uedge",
       ext_modules=[Extension('uedge.uedgeC',
                              ['uedgeC_Forthon.c',
                               os.path.join(builddir, 'Forthon.c'),
-                              'com/handlers.c', 'com/vector.c','bbb/exmain.c'],
+                              'com/handlers.c', 'com/vector.c','bbb/exmain.c', 'bbb/jaccalc.c'],
                              include_dirs=[builddir, numpy.get_include()],
                              library_dirs=library_dirs,
                              libraries=libraries,
                              define_macros=define_macros,
                              extra_objects=uedgeobjects,
-                             extra_link_args=['-g','-DFORTHON'] +
+                             extra_link_args=CARGS+['-g','-DFORTHON'] +
                              fcompiler.extra_link_args,
-                             extra_compile_args=fcompiler.extra_compile_args
+                             extra_compile_args=fcompiler.extra_compile_args + C_OMPARGS
                              )],
-
       cmdclass={'build': uedgeBuild, 'clean': uedgeClean},
       test_suite="pytests",
       install_requires=['forthon'],

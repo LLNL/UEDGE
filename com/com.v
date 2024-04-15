@@ -25,7 +25,7 @@ nzspt   integer /1/     # total number of impurity species
 nzspmx  integer	   /10/	# maximum of nzsp(igsp) used for storage allocation
 nisp	integer	/1/	+input # number of ion species
 nusp	integer		+input # number of parallel momentum equations
-nfsp	integer		+input # number of cont. eqns or flux species (calc internal)
+nfsp	integer	    +input +threadprivate # number of cont. eqns or flux species (calc internal)
 ngsp	integer	/1/ +input +regrid	# number of gas species
 nhgsp   integer /1/     +input # number of hydrogen gas species (prepare for tritium)
 imx     integer /50/    # size in x of Zagorski arrays
@@ -101,7 +101,7 @@ xlim(nlim)      _real   [m] +griddata
 ylim(nlim)      _real   [m] +griddata
      # vertical coordinates of limiter/vessel boundary from EFIT
 bscoef(nxefit,nyefit)    _real
-     # 2-d spline coefficients 
+     # 2-d spline coefficients
 kxord	integer	/4/
      # order of the 2-d spline in the x-direction
 kyord	integer	/4/
@@ -138,9 +138,9 @@ ycurve(npts,jdim)       _real    [m]
      # vertical position of nth data point on jth contour segment
 npoint(jdim)    _integer
      # number of data points on jth contour segment
-geqdskfname  character*128 /'neqdsk'/ 
+geqdskfname  character*128 /'neqdsk'/
      #File name for geqdsk/neqdsk EFIT file
-  
+
 ***** Aeqflxgrd:
      # information read from the A-file produced by the EFIT code
 vmonth	integer		# EFIT version month
@@ -174,11 +174,11 @@ mco2v	integer	/3/
      # number of vertical co2 chords
 mco2r	integer	/1/
      # number of radial co2 chords
-rco2v(mco2v)	_real	
+rco2v(mco2v)	_real
      # radial positions of vertical co2 chords
 dco2v(mco2v)	_real
      # densities for vertical co2 chords
-rco2r(mco2r)	_real	
+rco2r(mco2r)	_real
      # vertical positions of radial co2 chords
 dco2r(mco2r)	_real
      # densities for radial co2 chords
@@ -198,7 +198,7 @@ nesum	integer	/2/
      # number of e-coils
 eccurt(nesum)	_real
      # data from e-coils
-aeqdskfname  character*128 /'aeqdsk'/ 
+aeqdskfname  character*128 /'aeqdsk'/
      #File name for aeqdsk EFIT file
 
 ***** RZ_grid_info:
@@ -424,9 +424,9 @@ hxv(0:nx+1,0:ny+1)  _real   [1/m]   #harmonic average of neighboring gx's
 syv(0:nx+1,0:ny+1)  _real
 sygytotc             real  [1/m**3] #total volume for iy=1 cell of core region
 area_core            real  [1/m**3] #area of core boundary at iy=0
-ghxpt                real   [m^-1]  #1/(horiz dist.) between x-pt velocity centers
-gvxpt                real   [m^-1]  #1/(vert. dist.) between x-pt velocity centers
-sxyxpt               real   [m^2]   #average velocity cell area touching x-point
+ghxpt                real   [m^-1]   +threadprivate  #1/(horiz dist.) between x-pt velocity centers
+gvxpt                real   [m^-1]   +threadprivate #1/(vert. dist.) between x-pt velocity centers
+sxyxpt               real   [m^2]    +threadprivate #average velocity cell area touching x-point
 ghxpt_lower          real   [m^-1]  #1/(horiz dist.) between x-pt velocity centers
 gvxpt_lower          real   [m^-1]  #1/(vert. dist.) between x-pt velocity centers
 sxyxpt_lower         real   [m^2]   #average velocity cell area touching x-point
@@ -501,10 +501,10 @@ redopltvtag  integer       /0/    #if=1, redo plate vtag if numerically inaccur
 ***** Timing:
 istimingon integer         /1/    # =1 calcs timing data; call wtottim to output
 iprinttim  integer         /0/    # =1 to write timing report to terminal
-ttotfe     real            /0./   # time spent in full f evaluation (pandf)
-ttimpfe    real            /0./   # time spent in full f eval. for impurities
-ttotjf     real            /0./   # time spent in Jacobian f evaluation (pandf)
-ttimpjf    real            /0./   # time spent in Jac. eval. for impurities
+ttotfe     real            /0./    +threadprivate   # time spent in full f evaluation (pandf)
+ttimpfe    real            /0./    +threadprivate  # time spent in full f eval. for impurities
+ttotjf     real            /0./    +threadprivate  # time spent in Jacobian f evaluation (pandf)
+ttimpjf    real            /0./    +threadprivate  # time spent in Jac. eval. for impurities
 ttmatfac   real            /0./   # time spent in factoring Jacobian
 ttmatsol   real            /0./   # time spent in backsolve for using Jacobian
 ttjstor    real            /0./   # time spent in storing Jacobian
@@ -513,11 +513,11 @@ ttjreorder real            /0./   # time spent in row and column reordering
 ttimpc     real	           /0./	  # time spent in impurity calculations
 tstart     real            /0./   # initial time from function second
 tend       real            /0./   # final time from function second
-ttnpg      real            /0./   # time spent in neudifpg
-ttngxlog   real            /0./   # time spent for fngx in neudifpg
-ttngylog   real            /0./   # time spent for fngy in neudifpg
-ttngfd2    real            /0./   # time spent in fd2tra for neudifpg
-ttngfxy    real            /0./   # time spent for fngxy in neudifpg
+ttnpg      real            /0./    +threadprivate  # time spent in neudifpg
+ttngxlog   real            /0./    +threadprivate   # time spent for fngx in neudifpg
+ttngylog   real            /0./    +threadprivate   # time spent for fngy in neudifpg
+ttngfd2    real            /0./    +threadprivate   # time spent in fd2tra for neudifpg
+ttngfxy    real            /0./    +threadprivate   # time spent for fngxy in neudifpg
 
 ***** Linkbbb:
 # information shared by bbb and wdf packages
@@ -562,7 +562,7 @@ fngysobbb(0:nx+1)	_real
 
 ***** Timespl:
 # Timing data for splines
-totb2val   real            /0./   # time spent in spline b2val routine
+totb2val   real            /0./    +threadprivate  # time spent in spline b2val routine
 totintrv   real            /0./   # time spent in spline intrv routine
 
 ***** Limiter:
@@ -683,13 +683,13 @@ eprofile_fit(num_elem) _real /0./ #expt profile values at epsi_fit
 xerrab(msg:string)                  subroutine
         # interface to remark and kaboom
 readne_dat(fname:string)			subroutine
-        # reads tanh coeffs for radial elec density profile fits 
+        # reads tanh coeffs for radial elec density profile fits
         # in fname   the filename
 readte_dat(fname:string)			subroutine
-        # reads tanh coeffs for radial elec temp profile fits 
+        # reads tanh coeffs for radial elec temp profile fits
         # in fname   the filename
 readti_dat(fname:string)			subroutine
-        # reads spline coeffs for radial ion temp profile fits 
+        # reads spline coeffs for radial ion temp profile fits
         # in fname   the filename
 fit_neteti()                                    subroutine
         # fits ne and te to radial tanh profile; ti to radial spline

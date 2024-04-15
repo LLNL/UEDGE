@@ -77,7 +77,7 @@ c 10-19-93  changed function name vnorm to vnormnk to avoid conflict
 c           with vnorm included in some versions of lsode source
 c           (Gary R. Smith).
 c 11-16-93  Added epscon1 and epscon2 as input variables to define the
-c           tolerance level for the linear iteration: 
+c           tolerance level for the linear iteration:
 c           epsfac = epscon1 * min(epscon2, frnm) (Tom Rognlien)
 c  8-07-95  added arrays su and sf to the calling sequence for psol.
 c           the calling sequence for dogstp needed to add sf.
@@ -102,7 +102,7 @@ c newton method as the basic nonlinear iteration, where the newton
 c equations are solved only approximately by a linear krylov iteration,
 c coupled with either a linesearch or dogleg global strategy.  the
 c user may optionally choose either arnoldi-s method (with linesearch
-c backtracking) or the generalized minimum residual method (gmres) 
+c backtracking) or the generalized minimum residual method (gmres)
 c (with either the linesearch or dogleg strategy) as the krylov
 c iteration technique, with or without preconditioning.
 c
@@ -116,7 +116,7 @@ c nksol generates a sequence of approximations u(k) to a root of f.
 c the stopping criteria for the nonlinear iteration are the
 c following..
 c
-c 1.  maxnorm( sf*f(u(k)) ) .le. ftol, 
+c 1.  maxnorm( sf*f(u(k)) ) .le. ftol,
 c
 c where maxnorm() is the maximum norm function and ftol is a
 c user-supplied stopping tolerance.
@@ -208,7 +208,7 @@ c
 c f      = the name of the user-supplied subroutine for defining the
 c          nonlinear system f(u) = 0.  f is a vector-valued function
 c          of the vector u.  subroutine f is to compute the function
-c          f.  it is to have the form 
+c          f.  it is to have the form
 c           subroutine f(n, u, savf)
 c           dimension u(*), savf(n)
 c          where n and u are input and the array savf = f(u) is output.
@@ -291,7 +291,7 @@ c
 c lrw    = integer scalar containing the length of the array rwork,
 c          as declared by the user.  (this will be checked by the
 c          solver).
-c        
+c
 c iwork  = an integer work array.  the length of iwork must be at least
 c                20 + mmax + lenimp,
 c          where lenimp is the length of the user-defined integer work
@@ -342,7 +342,7 @@ c          iterm= 5 means 5 consecutive steps of length stepmx (the
 c                   maximum stepsize limit) have been taken.  either
 c                   norm(f) asymptotes from above to a finite value
 c                   in some direction, or stepmx is too small.  stepmx
-c                   is computed internally as 
+c                   is computed internally as
 c                      stepmx = 1000*max(norm(su*u0),norm(su)),
 c                   where u0 is the initial guess, and norm() is the
 c                   euclidean norm.  norm(su) here means the euclidean
@@ -383,7 +383,7 @@ c                   for the iwork array.  see the leniw optional output
 c                   value for the minimum needed length of iwork.
 c          iterm=-10 means that the initial guess u did not
 c                    satisfy the constraints.
-c                  
+c
 c pset   = the name of the optional user-supplied subroutine for
 c          calculating any matrix data associated with the
 c          preconditioner p.  it is to have the form
@@ -510,7 +510,7 @@ c                   subroutines pset and psol.  the default value
 c                   of lenimp is 0.
 c
 c iprint  iwork(5)  flag indicating whether optional statistics are
-c                   desired.  
+c                   desired.
 c                   iprint=0 means no statistics are printed.
 c                            this is the default.
 c                   iprint=1 means the nonlinear iteration count,
@@ -763,8 +763,11 @@ c     nks003 common block.
 c-----------------------------------------------------------------------
       real pthrsh
       common /nks003/ pthrsh, ipcur, nnipset, incpset
+      real,external::tick,tock
+      real t_start_nksol
 c
       save
+      t_start_nksol = tick()
       zero=0.
       one=1.0
       two=2.0
@@ -794,7 +797,7 @@ c-----------------------------------------------------------------------
 c      pthrsh = two
       if (icntnu .eq. 0) then
 	pthrsh = two
-      else	
+      else
 c set pthrsh = 0
 	pthrsh = zero
 c set ipcur = 0 to indicate that the preconditioner is from an earlier
@@ -837,7 +840,7 @@ c-----------------------------------------------------------------------
         elseif (mf .eq. -1) then
           methn = 0
           methk = 2
-ccc MVU: 15-jan-2020					  
+ccc MVU: 15-jan-2020
 c        elseif (mf .ge. 2) then
 c          methn = 2
 c          methk = mf - 1
@@ -974,7 +977,7 @@ c insufficient storage in iwork
         endif
       if (itermx .eq. 0) itermx = 200
       nbcfmx = 10
-      if (iprint.gt.1) write(*,*)'0) sptol,epsmch', stptol,epsmch  
+      if (iprint.gt.1) write(*,*)'0) sptol,epsmch', stptol,epsmch
       if (stptol .eq. 0.0) stptol = epsmch**(2.0/3.0)
       if (iprint.gt.1) write(*,*)'1) sptol', stptol
       if (stepmx .eq. zero) then
@@ -1119,6 +1122,8 @@ c-----------------------------------------------------------------------
       rwork(1) = stepmx
       rwork(2) = fnrm
       rwork(3) = tau
+
+      print *, '@@Time nksol@@ ', tock(t_start_nksol), 's'
       return
 c----------------------- end of subroutine nksol -----------------------
       end
@@ -1200,7 +1205,7 @@ c            iterm=5 means 5 consecutive steps of length stepmx (the
 c                    maximum stepsize limit) have been taken.  either
 c                    norm(f) asymptotes from above to a finite value
 c                    in some direction, or stepmx is too small.
-c                    
+c
 c-----------------------------------------------------------------------
       implicit none
       integer n, iret, iter, itermx, ncscmx, iterm, locwmp, locimp
@@ -1421,7 +1426,7 @@ c----------------------- end of function vnormnk -------------------------
       subroutine model(n, wm, lenwm, iwm, leniwm, u, savf, x, f, jac,
      *                 su, sf, pset, psol)
 c-----------------------------------------------------------------------
-c this routine interfaces to subroutine solpk for the approximate 
+c this routine interfaces to subroutine solpk for the approximate
 c solution of the newton equations in the newton iteration.
 c
 c on entry
@@ -2547,7 +2552,7 @@ c----------------------- end of subroutine spigmr ----------------------
 c-----------------------------------------------------------------------
 c this is the real version of subroutine dogdrv, which is the driver for
 c the dogleg step.  its purpose is to find a unew on the dogleg curve
-c such that f(unew) .le. f(u) + alpha*gt(unew-u) (alpha=1.e-4 used), 
+c such that f(unew) .le. f(u) + alpha*gt(unew-u) (alpha=1.e-4 used),
 c and scaled steplength = tau, starting with the input tau but
 c increasing or decreasing tau if necessary.  also, it produces the
 c starting trust region size tau for the next iteration.
@@ -2730,7 +2735,7 @@ c----------------------- end of subroutine dogdrv ----------------------
       real ygm, ycp, beta, hes, tau, ynew, xnew, xnewl, v
       real wk, wmp, u, su, sf, savf
       dimension ygm(m), ycp(m), hes(mmaxp1,m), ynew(mp1), xnew(n),
-     *          v(n,m), wk(n), wmp(*), iwmp(*), u(*), su(n), sf(n), 
+     *          v(n,m), wk(n), wmp(*), iwmp(*), u(*), su(n), sf(n),
      *          savf(n)
       logical dog1, nwttkn
 c-----------------------------------------------------------------------
@@ -2902,7 +2907,7 @@ c----------------------- end of subroutine dogstp ----------------------
       end
       subroutine trgupd (m, mp1, mmaxp1, n, np1, u, savf, f1nrm, x, xl,
      *                   ynew, su, sf, nwttkn, stepmx, beta, hes,
-     *                   stptol, mxtkn, tau, uprev, fprev, f1prv, upls, 
+     *                   stptol, mxtkn, tau, uprev, fprev, f1prv, upls,
      *                   f1pls, wk, ivio, iret, f)
       implicit none
       integer m, mp1, mmaxp1, n, np1, ivio, iret, locwmp, locimp
@@ -3097,7 +3102,7 @@ c f1(upls) sufficiently small.
              call saxpy (mp1, ynew(i), hes(1,i), 1, wk, 1)
  50          continue
            dfpred = slpi + pt5*sdot (mp1, wk, 1, wk, 1)
-           if ( (iret.ne.2) .and. 
+           if ( (iret.ne.2) .and.
      *          ( (abs(dfpred-delf).le.pt1*abs(delf)) .or.
      *                (delf.le.slpi) ) .and. (.not.nwttkn) .and.
      *                (tau.le.pt99*stepmx) .and. (ivio.eq.0) ) then
@@ -3288,7 +3293,7 @@ c-----------------------------------------------------------------------
       fnrmp = vnormnk(n,savf,sf)
       f1nrmp = fnrmp*fnrmp/two
       acond=f1nrmp/adjf1 - f1nrm + alpha*slpi*rl
- 
+
       if (iprint .gt. 1) then
        write(iunit,125) rl,f1nrm,f1nrmp,acond,nfe
       endif
@@ -3322,7 +3327,7 @@ c alpha-condition satisfied.  now check for beta-condition.
      *           (rl .lt. rlmax) ) go to 130
             endif
           if ( (rl.lt.one) .or.
-     *       ((rl.gt.one).and.(f1nrmp/adjf1.gt.f1nrm+alpha*slpi*rl)) ) 
+     *       ((rl.gt.one).and.(f1nrmp/adjf1.gt.f1nrm+alpha*slpi*rl)) )
      *                                                    then
             rllo = min(rl,rlprev)
             rldiff = abs(rlprev-rl)
@@ -3350,7 +3355,7 @@ c alpha-condition satisfied.  now check for beta-condition.
                 rldiff = rldiff - rlincr
                 f1lo = f1nrmp
               endif
-	    
+
 	    if (iprint .gt. 1) then
 	     mcond=rldiff-rlmin
 	     acond=f1nrmp/adjf1 - f1nrm + alpha*slpi*rl
@@ -3529,7 +3534,7 @@ c            if icnstr(i) .gt. 0, then u(i)+x(i) must be .gt. 0,
 c            if icnstr(i) .lt. 0, then u(i)+x(i) must be .lt. 0, while
 c            if icnstr(i) .eq. 0, then u(i)+x(i) is not constrained.
 c
-c   rlx    = real scalar restricting update to abs(x/u) < fac2*rlx 
+c   rlx    = real scalar restricting update to abs(x/u) < fac2*rlx
 c
 c   tau    = the current size of the trust region.  it is the trust
 c            region size tried at the beginning of the dogleg step.
@@ -3656,7 +3661,7 @@ c-----------------------------------------------------------------------
                iret = 1
                ivar = i
                return
-            endif 
+            endif
         endif
  100  continue
       return
@@ -3664,7 +3669,7 @@ c----------------------- end of subroutine cnstrt0 ---------------------
       end
       subroutine infgen (iterm, v1, v2, i1, i2)
 c-----------------------------------------------------------------------
-c this routine prints informational messages from the driver nksol.  
+c this routine prints informational messages from the driver nksol.
 c the output from this routine can be turned off by setting a flag in
 c iwork.
 c-----------------------------------------------------------------------
