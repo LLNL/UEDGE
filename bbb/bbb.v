@@ -10,9 +10,9 @@ nispmxngspmx = nispmx*ngspmx # tot numb ion*gas species
 nstramx = 10 # maximum number of strata for MC neutrals code
 }
 
-***** Com_Dim_Vars hidden:    
+***** Com_Dim_Vars hidden:
 dim_vars_hidden     integer    # Do not edit this group. It is used to build
-                               # the Basis version of the code. 
+                               # the Basis version of the code.
 
 ***** Math_problem_size:
 neqmx		integer		# number of math. eqns to be solved/integrated
@@ -25,7 +25,7 @@ csfaclb(nispmx,nxptmx)  real /ndcsmx*1./  +input #frac of cs used for Bohm sheat
 csfacrb(nispmx,nxptmx)  real /ndcsmx*1./  +input #frac of cs used for Bohm sheath b.c.
 csfacti   real            /1./  +input #Bohm speed = sqrt((te+csfacti*ti)/mi)
 cslim     real            /1./  +input #frac of cs used for limiter Bohm sheath b.c.
-dcslim    real            /0./  +input 
+dcslim    real            /0./  +input
                                 #reduce sonic flow at limiter by the factor
                                 #cslim*[1-exp(-(iy-iy_lims+1)/dcslim)]
 islnlamcon integer        /0/   +input #=0, loglambda=Braginskii;if=1,loglambda=lnlam
@@ -34,7 +34,7 @@ methe     integer         /33/  +input #elec. eng. eqn: 22-cd, 33-uw, 44-hyb, 55
 methu     integer         /33/  +input #ion mom. eqn: 22-cd, 33-uw, 44-hyb, 55-p-law
 methn     integer         /33/  +input #ion cont. eqn: 22-harmonic average, 33-uw
 methi     integer         /33/  +input #ion eng. eqn: 22-cd, 33-uw, 44-hyb, 55-p-law
-methg     integer         /33/  +input 
+methg     integer         /33/  +input
                                 #neut. gas eqn: 22-cd, 33-uw, 44-hyb, 55-p-law
                                 #66 nonorth. log intrp, 77 nonorth. 1/ng intrp
 methp     integer         /33/  +input #potential eqn: 22-cd, 33-uw, 44-hyb, 55-p-law
@@ -54,37 +54,37 @@ cphiatol  real            /1./  +input #multiplier for atol for phi
 tolbf     real            /1./  +input #multiplier for atol&rtol for the boundary eqns
 tadj      real            /10./ +input #reduces time step by 1/tadj if iopts=1
 icnuiz    integer         /0/   +input #=1 constant ioniz. freq., cnuiz; =2 freezes
-icnucx    integer         /0/   +input 
+icnucx    integer         /0/   +input
                                 #=0, var nucx;=1 const. nucx=cnucx;
                                 # =2, use sigcx, so nucx~(Tg)**.5
 cnuiz     real [1/s]      /5.e+4/ +input #constant ioniz. freq. for icnuiz=1
 cnucx     real [1/s]      /1.e+0/ +input #constant charge exhange freq. for icnucx=1
-isrecmon  integer         /0/  +input 
+isrecmon  integer         /0/  +input
 				 #flag to turn-on recombination (yes=1); use
 				 #cfrecom to turn-off recomb after isrecmon was on
-cfrecom   real            /1./ +input 
+cfrecom   real            /1./ +input
                                   #scale factor multiplying recombination freq.
 igas      integer         /0/     +input #=1 invokes local rate eqn. for ng
-ngbackg(ngspmx) real [1/m**3] /ngspmx*1.e14/ +input 
+ngbackg(ngspmx) real [1/m**3] /ngspmx*1.e14/ +input
                                   #background gas density
-ingb      integer         /2/     +input 
+ingb      integer         /2/     +input
                                   #background gas source=nuiz*ngbackg*
                                   #                  (.9+.1*(ngbackg/ng)**ingb)
-inflbg    integer         /4/     +input 
+inflbg    integer         /4/     +input
                                   #expon to force flalfg large near ng~ngback
                 				  #ex:flalfgx,y*(1.+(cflgb*ngbackg/ng)**inflbg)
 cflbg     real            /10./   +input #scaling fac for flalfgx,y using inflbg
-facngbackg2ngs(ngspmx) real /ngspmx*1.e-8/ +input 
+facngbackg2ngs(ngspmx) real /ngspmx*1.e-8/ +input
                                   #fraction of ngbackg add to initial ngs
 nzbackg(nispmx) real [1/m**3] /nispmx*1.e9/ +input #background impurity density
 inzb      integer         /2/     +input
                                   #background impurity source=nuiz*nzbackg*
                                   #                 (.9+.1*(nzbackg/nzi)**ingb)
-facnzbackg2nis(nispmx) real /nispmx*1.e-8/ +input 
+facnzbackg2nis(nispmx) real /nispmx*1.e-8/ +input
                                   #fraction of nzbackg add to initial nis
-upclng(nispmx) real [m/s] /nispmx*1.e8/ +input 
+upclng(nispmx) real [m/s] /nispmx*1.e8/ +input
                                   #max ion vel at beginning of iteration
-facupclng2ups(nispmx) real /nispmx*1.e-8/ +input 
+facupclng2ups(nispmx) real /nispmx*1.e-8/ +input
                                   #fraction of upclng subtract from initial ups
 tebg      real [eV]    /1.e-20/   +input #backgrd elec eng sor to limit te~tebg
 tibg      real [eV]    /1.e-20/   +input #backgrd ion eng sor to limit te~tebg
@@ -164,13 +164,13 @@ itrap_negt integer /1/  +solver #flag to trap negative Te,i condition
 itrap_negng integer /1/ +solver #flag to trap negative ng condition
 isybdryog integer  /0/  +input #=1 sets fx0, fmx stencil to orthog values at iy=0 & ny
 isybdrywd integer  /0/  +input #=1 vy diffusion-only for iy=0 & ny if matwalli,o=1
-isxmpog   integer  /0/  +input 
+isxmpog   integer  /0/  +input
                         #=1 sets fy0, fmy stencil to orthog values at ix=nxc-1
                         # and ix=nxc+1 for geometry='dnbot'
-iexclnxc1 integer  /0/  +input 
+iexclnxc1 integer  /0/  +input
                         #if=0; include nxc+1 for fee,iytotc if geometry=dnbot;
                         #if=1; exclude nxc+1 for fee,iytotc
-ineudif   integer  /2/  +input 
+ineudif   integer  /2/  +input
                 #=1 gas sub. neudif uses ng, tg for gas vel & fngx->fnix
 		        #=2 gas sub. neudifgp uses pg for gas vel & fngx->fnix
 		        #=3 gas sub. neudifl use log_ng, tg for gas vel
@@ -182,8 +182,8 @@ iseesorave real   /0./  +input #cell ave factor; 0 ctr only; 1 5 pt ave elec eng
 ispsorave real    /0./  +input #cell ave factor; 0 ctr only; 1 5 pt ave of psorg,psor,etc.
 fsprd     real /.0625 / +input #fraction of eng. sor. spread to each of 4 neighbors
 issyvxpt0 integer /0/   +input #if=1, set syv=0 around x-point; ambig. rad. mom. flux
-isrrvave  integer /0/   +input 
-                        #if=0, rrv from vertex B's; 
+isrrvave  integer /0/   +input
+                        #if=0, rrv from vertex B's;
                         #if=1, rrv=0.5*(rr_1+rr_2);
                         #if=2, average of cases 0 and 1
 rr_fac    real    /1./ +input #scale factor to multiple rr and rrv
@@ -249,16 +249,16 @@ fdttixy(0:nx+1,0:ny+1)      _real /0./ #user:=1 for ti eqn off; =0 for eqn on
 fdtngxy(0:nx+1,0:ny+1,ngsp) _real /0./ #user:=1 for ng eqn off; =0 for eqn on
 fdttgxy(0:nx+1,0:ny+1,ngsp) _real /0./ #user:=1 for tg eqn off; =0 for eqn on
 fdtphixy(0:nx+1,0:ny+1)     _real /0./ #user:=1 for phi eqn off; =0 for eqn on
-isugfm1side               integer /0/   +input 
+isugfm1side               integer /0/   +input
                                         #=0, use pol ave gas vels in par up eqn
                                         #=1, use 1-sided vals for domain decomp
-isnupdot1sd               integer /0/   +input 
+isnupdot1sd               integer /0/   +input
                                         #=0, use 2-pt ndot for (n*up)_dot;
                                         #=1, use 1-sided n_dot for (n*up)_dot
 isphicore0		  integer /0/  +input #=1 sets phi=phi_mp in core if isphion=1
 is_z0_imp_const           integer /0/  +input #=0 use hydr Keilhacker;=1 z0_imp_const
 z0_imp_const              real    /1./ +input #z0 in therm force if is_z0_imp_const=1
-					
+
 ***** Model_choice restart:
 #Flags for choosing one or another calculation of a part of the model
 iondenseqn	character*8	/"llnl"/	# ion continuity equation
@@ -348,7 +348,7 @@ cf2bf     real      /0./    +input #Coef for Grad B drift in 2-direction
 cfybf     real      /0./    +input #Coef for Grad B drift in y-direction
 cfcbti    real      /0./    +input #Coef for adding fnixcb & fniycb to Ti eqn.
 cfcurv	  real      /1./    +input #Coef for curvature part of Grad_B drift
-cfgradb   real      /1./    +input #Coef for p_perp part of Grad_B drift	
+cfgradb   real      /1./    +input #Coef for p_perp part of Grad_B drift
 cfq2bf    real      /0./    +input #Coef for Grad_B current in 2-direction
 cfqybf    real      /0./    +input #Coef for Grad_B current in y-direction
 cfqyn     real      /0./    +input #Coef for cx coll. rad current in y-direction
@@ -362,7 +362,7 @@ cfvisxneov real     /0./    +input #Coef for v-driven parallel viscosity
 cfvisxneoq real     /0./    +input #Coef for q-driven parallel viscosity
 cfvycr    real      /0./    +input #Coef for thermal force class. vel. vycr
 cfvycf    real      /0./    +input #Coef for visc. force class. vel. vycf
-cfvyavis  real      /0./    +input #Coef for vy from anom perp viscosity 
+cfvyavis  real      /0./    +input #Coef for vy from anom perp viscosity
 cfjve     real      /0./    +input #Coef for J-contribution to ve.
 cfjp2     real      /0./    +input #Coef for B x gradP terms in div(J) eqn
 cfjpy     real      /0./    +input #Coef for B x gradP terms in div(J) eqn
@@ -404,31 +404,31 @@ cfhcxgc(ngspmx) real /ngspmx*0./ +input # Coef constant pol heat conduct (chixg_
 cfhcygc(ngspmx) real /ngspmx*0./ +input # Coef constant rad heat conduct (chiyg_use)
 cftgcond  real      /1./    +input #Coef for gas thermal cond (usually molecules)
 cftgeqp  real       /1.5/   +input #Coef for gas thermal equipartion (usually molecules)
- 
+
 
 ***** Bcond restart:
 #Variables for setting the boundary conditions.
-ibctepl   integer	/1/	+input 
+ibctepl   integer	/1/	+input
                 #Switch for ix=0 energy flux bc's
 				#=0, fixed te (see tepltl)
 				#=1, standard sheath transmission b.c.
 				#=2, zero poloidal gradients for te
 ibctipl	  integer       /1/     +input # Same as ibctepl, with te --> ti
-ibctepr   integer	/1/	+input 
+ibctepr   integer	/1/	+input
                 #Switch for ix=nx+1 energy flux bc's
 				#=0, fixed te (see tepltr)
 				#=1, standard sheath transmission b.c.
 				#=2, zero poloidal gradients for te
 ibctipr   integer       /1/	+input # Same as ibctepr, with te --> ti
-isphilbc	integer	/0/     +input 
+isphilbc	integer	/0/     +input
                 #Switch for ix=0 b.c. on phi
 				#=0, phi = phi0l + kappal * te
 				#=1, phi = phi0l
-isphirbc	integer	/0/     +input 
+isphirbc	integer	/0/     +input
                 #Switch for ix=nx+1 b.c. on phi
 				#=0, phi = phi0r + kappar * te
 				#=1, phi = phi0r
-iphibcc 	integer /3/	+input #core BC at iy=1 when isnewpot=1;iy=0 
+iphibcc 	integer /3/	+input #core BC at iy=1 when isnewpot=1;iy=0
                                 #=1, d^2(ey)/dy^2=0
                                 #=2, te=constant & ey(ixmp,0)=eycore
                                 #=3, phi=constant & ey(ixmp,0)=eycore
@@ -462,7 +462,7 @@ isnicore(nispmx)  integer   /1,30*0/      +input #switch for ion-density core B.
                                     #    ni constant poloidally
 isfniycbozero   real /0./ +input # Switch for divergence-free fluxes on core boundary
                     #=0, allows divergence-free fluxes to modify net core flux
-                    #=1, redistributes fluxes due to divergence-free term 
+                    #=1, redistributes fluxes due to divergence-free term
                     #    without affecting the net core boundary flux
                     #=-1,assumes no divergence-free fluxes on the core boundary
 isupcore(nispmx) integer /nispmx*0/ +input #=0 sets up=upcore on core bdry
@@ -587,13 +587,13 @@ ckinfl    real    /1./       +input #includes kinetic viscosity in energy bound.
 isupss(nispmx) integer /nispmx*0/ +input
                              #=0, up=cs; =1, up>=1; =-1, dup/dx=0 at plates
 isbohmms  integer /0/       +input  #=0 for single-species Bohm; =1 for multispecies B
-isnwconi(1:nispmx) integer /nispmx*0/ +input 
+isnwconi(1:nispmx) integer /nispmx*0/ +input
 		#switch for private-flux wall (iy=0) density B.C.
 		#=0, old case; if ifluxni=0, dn/dy=0; if ifluxni=1, fniy=0
 		#=1, fixed density to nwalli(ix) array
 		#=2, extrapolation B.C.
 		#=3, approx grad-length lyni, but limited by nwimin
-isnwcono(1:nispmx) integer /nispmx*0/ +input 
+isnwcono(1:nispmx) integer /nispmx*0/ +input
 		#switch for outer wall (iy=ny+1) density B.C.
 		#=0, old case; if ifluxni=0, dn/dy=0; if ifluxni=1, fniy=0
 		#=1, fixed density to nwallo(ix) array
@@ -631,12 +631,12 @@ jxsoro(10)  integer  /10*1/  +input # xgaso=0. is located at left boundary
 xgasi(10) real [m]   /10*0./ +input
                              #location of inner wall sources; if issorlb(i)=1,0
                              #measured from left plate, right plate
-xgaso(10) real [m]   /10*0./ +input 
+xgaso(10) real [m]   /10*0./ +input
                              #location of outer wall sources; if issorlb(i)=1,0,
                              #measured from left plate, right plate
-wgasi(10)  real [m] /10*100./+input 
+wgasi(10)  real [m] /10*100./+input
                              #total cosine widths of inner wall gas sources
-wgaso(10)  real [m] /10*100./+input 
+wgaso(10)  real [m] /10*100./+input
                              #total cosine widths of outer wall gas sources
 albdsi(10) real [m] /10*1.0/ +input #albedos at inner gas source locations
 albdso(10) real [m] /10*1.0/ +input #albedos at outer gas source locations
@@ -663,20 +663,20 @@ fngysi(0:nx+1,ngsp)  _real   +maybeinput
                              #gas input flux from igasi on inner wall (calc)
 fngyi_use(0:nx+1,ngsp) _real [1/m**3s] +input #user supplied gas input flux*area
 fngysig(0:nxg+1,ngsp) _real  +maybeinput #global value of fngysi if domain decomp (parll)
-fngyso(0:nx+1,ngsp)  _real   +maybeinput 
+fngyso(0:nx+1,ngsp)  _real   +maybeinput
                              #gas input flux from igaso on outer wall (calc)
 fngyo_use(0:nx+1,ngsp) _real [1/m**3s] +input #user supplied gas input flux*area
 fngysog(0:nxg+1,ngsp) _real  +maybeinput #global value of fngyso if domain-decomp (parll)
 albedoo(0:nx+1,ngsp) _real   +input
                              #albedo outer iy=ny+1 surface for neutrals (calc)
 albedoog(0:nxg+1,ngsp) _real +maybeinput #global val albedoo if domain-decomp (parll)
-albedoi(0:nx+1,ngsp) _real   +input 
+albedoi(0:nx+1,ngsp) _real   +input
                              #albedo of inner iy=0 surface for neutrals (calc)
 albedoig(0:nxg+1,ngsp) _real +maybeinput #global val albedoi if domain-decomp (parll)
-matwallo(0:nx+1)     _integer +maybeinput 
+matwallo(0:nx+1)     _integer +maybeinput
                              #flag (=1) denoting outer material side wall
 matwallog(0:nxg+1)  _integer +maybeinput #global val matwallo if domain-decomp (parll)
-matwalli(0:nx+1)    _integer +maybeinput 
+matwalli(0:nx+1)    _integer +maybeinput
                              #flag (=1) denoting inner material side wall (pf)
 matwallig(0:nxg+1)  _integer +maybeinput #global val matwalli if domain-decomp (parll)
 sinphi    real         /.1/     +input #sine of angle between side wall and flux surf.
@@ -708,51 +708,51 @@ isutcore  integer      /0/      +input #Used for ix=ixcore phi BC ONLY IF iphibc
 				#=0, tor mom=lzcore on core;
                 #=1, d<uz>/dy=0;
 				#>1, d^2(Ey)/dy^2=0 at outer midplane
-isupwi(nispmx) integer /nispmx*2/ +input 
+isupwi(nispmx) integer /nispmx*2/ +input
                         #=0 sets up=0 on inner wall
                         #=1 sets fmiy=0 (parallel mom-dens y-flux)
               			#=2 sets dup/dy=0 on inner wall
               			#=3 sets (1/up)dup/dy=1/lyup(1) scale length
-isupwo(nispmx) integer /nispmx*2/ +input 
+isupwo(nispmx) integer /nispmx*2/ +input
                         #=0 sets up=0 on outer wall
                         #=1 sets fmiy=0 (parallel mom-dens y-flux)
               			#=2 sets dup/dy=0 on outer wall
               			#=3 sets (1/up)dup/dy=1/lyup(2) scale length
-islbcn    integer      /2/	+input 
+islbcn    integer      /2/	+input
                 # b.c. for ni at limiter guard cells;
 				# =0,1 set ni in 2 cells
 				# =2 set ni in 1 cell, fnix at interface
-islbcu    integer      /5/	+input 
+islbcu    integer      /5/	+input
                 # b.c. for up at limiter guard cells;
 				# =0,1 set up in 3 cells
 				# =2 set up in 2 cells, fmix at interface
 				# =3,4,6 set fmix at interface
 				# =5 set fmix-fmixy at interface
-islbce    integer      /2/	+input 
+islbce    integer      /2/	+input
                 # b.c. for te at limiter guard cells;
 				# =0,1 set te in 2 cells
 				# =2 set te in 1 cell, feex at interface
-islbci    integer      /2/	+input 
+islbci    integer      /2/	+input
                 # b.c. for ti at limiter guard cells;
 				# =0,1 set ti in 2 cells
 				# =2 set ti in 1 cell, feix at interface
-islbcg    integer      /2/	+input 
+islbcg    integer      /2/	+input
                 # b.c. for ng at limiter guard cells;
 				# =0,1 set ng in 2 cells
 				# =2 set ng in 1 cell, fngx at interface
-islbcp    integer      /2/	+input 
+islbcp    integer      /2/	+input
                 # b.c. for phi at limiter guard cells;
 				# =0,1 set phi in 2 cells
 				# =2 set phi in 1 cell, fqx at interface
-isph_sput(ngspmx) integer /ngspmx*0/  +input 
+isph_sput(ngspmx) integer /ngspmx*0/  +input
                 #flag for plate sputtering;
 				#0=old fixed case; 1=DIVIMP/JET phys sputt fits
 				#=2 adds h-ion chem sputt;=3 adds h-neut c_sput
-isi_sputw(ngspmx) integer /ngspmx*0/ +input 
+isi_sputw(ngspmx) integer /ngspmx*0/ +input
                 #flag for outer wall ion-based sputter;
 				#=0, no ion sputtering
 				#=1 adds phys ion sputt; =2 adds chem ion sputt
-isi_sputpf(ngspmx) integer /ngspmx*0/ +input 
+isi_sputpf(ngspmx) integer /ngspmx*0/ +input
                 #flag for priv flux ion-based sputter;
 				#=0, no ion sputtering
 				#=1 adds phys ion sputt; =2 adds chem ion sputt
@@ -761,10 +761,10 @@ matp	  integer               #output flag from syld96 for sputt. plasma
 cion      integer     /6/       +input #input to syld96; atom num. of sputt. target
 cizb      integer     /1/       +input #input to syld96; max charge state of plasma
 crmb	  real        /2./[AMU] +input #input to syld96; mass of plasma ions
-isch_sput(ngspmx) integer /ngspmx*0/ +input 
+isch_sput(ngspmx) integer /ngspmx*0/ +input
                     #chem sputt. opt; 0=old;
-			        #5=Roth,G-R; 
-                    #6=Haasz97; 
+			        #5=Roth,G-R;
+                    #6=Haasz97;
                     #7=Haasz97+Davis at low E
 eincid    real         [eV]     +input #incident energy of ion or neut. for chem sputt
 t_wall    real       /300./ [K] +input #temp. of side wall; now use tvwallo,i
@@ -816,7 +816,7 @@ cgengpl   real		 /0./       +input #new scale fac atom eng plate loss; old cgpl
 cgengw    real           /0./   +input #new scale fac atom eng wall loss
 cgmompl   real           /1./   +input #scale fac atom par mom plate loss
 vgmomp    real     [m/s] /2.e3/ +input #vel used in exp factor of atom mom loss
-istglb(ngspmx) _integer  /0/    +input #=0 for tg=tgwall; 
+istglb(ngspmx) _integer  /0/    +input #=0 for tg=tgwall;
                                        #=1 for extrap;
 			               #=3, Maxw flux;
 			               #=4 for assuming half-Maxwellian for all kinds of neutral sources e.g. recycled, sputtered, pumped etc.;
@@ -873,7 +873,7 @@ ue_pot_engh2p1lb(0:ny+1,nxptmx)  _real [J] #inner plt deut ion pot energy
 ue_pot_engh2p1rb(0:ny+1,nxptmx)  _real [J] #outer plt deut ion pot energy
 ue_pot_engh2p1yi(0:nx+1)         _real [J] #inner (PF) wall deut ion pot energy
 ue_pot_engh2p1yo(0:nx+1)         _real [J] #outer (PF) wall deut ion pot energy
-  
+
 ***** Rccoef:
 #Variables for recycling coeff. profiles on divertor plates
 #Set for ngspmx gas species
@@ -883,7 +883,7 @@ recylb(0:ny+1,ngspmx,nxptmx) _real     +input
 				       #if in range [-1,0], acts as albedo
 				       #if in range (-2,-1), gives ng=nglfix
 				       #if recylb <= -2, gives ng(1)=ng(0)
-recyrb(0:ny+1,ngspmx,nxptmx) _real     +input 
+recyrb(0:ny+1,ngspmx,nxptmx) _real     +input
                        #tot outer plate recycling coeff. (calc)
 				       #if recyrb > 0, recycling coeff
 				       #if in range [-1,0], acts as albedo
@@ -919,7 +919,7 @@ rdatlb(ngspmx,50,nxptmx) _real      /0./ +maybeinput #inner recycp data for each
 rdatrb(ngspmx,50,nxptmx) _real      /0./ +maybeinput #outer recycp data for each ydatrb
 alblb(0:ny+1,ngspmx,nxptmx) _real        +input #inner plate albedo; used if <1 (calc)
 albrb(0:ny+1,ngspmx,nxptmx) _real        +input #outer plate albedo; used if <1 (calc)
-areapl          real   /0./ +work   # Work variable for plate projection area for 
+areapl          real   /0./ +work   # Work variable for plate projection area for
                                     # albedo-like recycling
 isoldalbarea    real   /0./ +input # Switch whether to use old (wrong) albedo
                                     # area which is perpendicular-to-poloidal flux
@@ -1266,7 +1266,7 @@ vconyv(0:ny+1,1:nisp) _real [m/s] /0./   +input #convec radial vel if isbohmcalc
 inbtdif		real		 /2/	+input #if isbohmcalc=3, D,chi ~1/Bt**inbtdif
 inbpdif		integer		 /1/	+input #if isbohmcalc=3, D,chi ~1/Bp**inbpdif
 ixbpmin         integer          /0/    +input #isbohmcalc=3, min bpol(ixpt2-ixbpmin,
-isbohmcalc      integer          /1/	+input 
+isbohmcalc      integer          /1/	+input
                     #if=1, calc Bohm diff if facb... > 0
 					#if=2, harmonic ave of Bohm, difni, etc.
 					#if=3, D=difniv*(B0/B)**inbdif, etc
@@ -1295,7 +1295,7 @@ isflxlde      integer       /0/         +input #=1,elec flux limit diff;=0, conv
 isflxldi      integer       /2/         +input #=1,ion flux limit diff;=0, conv/diff
                                         #=2, diff on individ hxcij
 kxe           real          /1./        +input #pol Braginsk elec heat conduc factor;
-                                        #prev 1.35->Balescu explain by M.Zhao 
+                                        #prev 1.35->Balescu explain by M.Zhao
 alfkxi        real          /0./        +input #reduces ion thermal conduc, K_||, if
                                         #|ti(ix+1)-ti(ix)|<alfkxi*ti(ix)
 alfkxe        real          /0./        +input #reduces elec thermal conduc, K_||, if
@@ -1357,7 +1357,7 @@ keligig(ngspmx) real [m**3/s]/6*5e-16/  +input #elastic coll. coeff:imp_gas+imp_
 cfmassfac       real         /1./       +input #scales elas scat factor 16mi/(3mg+mi)
 sigvi_floor   real [m**3/s]  /0./       +input #minimum of ioniz. rates allowed(1e-18)
 fupe_cur      real []        /1./       +input #=1 fixes cur err to upe for isimpon=6
-diffusivity(0:nx+1,0:ny+1)  _real 
+diffusivity(0:nx+1,0:ny+1)  _real
    # anomalous (turbulent) diffusivity (calculated during rhs eval)
 diffusivwrk(0:nx+1,0:ny+1)  _real -restart
    # anomalous (turbulent) diffusivity (mixed w/difni using cdifnit)
@@ -1442,7 +1442,7 @@ gamee(0:ny+1)     _real [W/m**2s] /0./ # elec radial energy flux
 pfmpg(0:ny+1)     _real [1/m**2s] /0./ # radial neutral particle flux
 facgam(0:nx+1,0:ny+1) _real       /0./ # geom factor for flux-surf averaging
 floyd(0:nx+1,0:ny+1)  _real [1/s] /0./ # equiv radial ion particle current
-							
+
 ***** Turbulence:
 # Variables used in calculating anomalous diffusivities
 kappabar      real [1/m]  /0.003/ +maybeinput # field-line avg'd curvature
@@ -1820,7 +1820,7 @@ vy0(0:nx+1,0:ny+1,1:nisp)  _real [m/s]   #old radial velocity
 ***** Comflo:
 #Variables in common -- flows
 fqp(0:nx+1,0:ny+1)         _real [Amp]  #pol proj of par cur, east face
-cfparcur                    real /0./   +input #scale fac fqp=cfparcur*parcurrent if	
+cfparcur                    real /0./   +input #scale fac fqp=cfparcur*parcurrent if
                                         #isimpon=5 (fmombal from Hirshman)
 fq2(0:nx+1,0:ny+1)         _real [Amp]  #pol proj of 2 cur, east face
 fqx(0:nx+1,0:ny+1)         _real [Amp]  #net poloidal current, east face
@@ -1871,7 +1871,7 @@ feix(0:nx+1,0:ny+1)        _real [J/s]  #poloidal ion thermal current, east face
 feiy(0:nx+1,0:ny+1)        _real [J/s]  #radial ion thermal current, north face
 fegx(0:nx+1,0:ny+1,ngsp)   _real [J/s]  #poloidal neut thermal curr, east face ### IJ 2016/09/2
 fegy(0:nx+1,0:ny+1,ngsp)   _real [J/s]  #radial neut thermal curr, north face  ### IJ 2016/09/22
-fegxy(0:nx+1,0:ny+1,ngsp)  _real [J/s]  #pol. nonog neut thermal curr, north face 
+fegxy(0:nx+1,0:ny+1,ngsp)  _real [J/s]  #pol. nonog neut thermal curr, north face
 isfegxyqflave            integer  /0/   +input #=0fegxy T*vt,ng ave;=1, use harm aves
 cfegxy                      real  /1./  +input #coeff multiple fegxy
 qipar(0:nx+1,0:ny+1,nisp)  _real [J/m**2s] #parallel conductive ion heat flux
@@ -1942,7 +1942,7 @@ bcei               real  /2.5/ +input
                                 #ion sheath energy trans. factor(newbc=0)
 bceew              real  /4./   +input #elec wall energy trans factor
 bceiw              real  /2.5/  +input #ion wall energy trans factor
-bcen               real  /0./   +input #neut energy trans. factor on plates 
+bcen               real  /0./   +input #neut energy trans. factor on plates
                                 #For combined neutral+ion energy equation
 bcenw              real  /0./   +input #neut eng trans fac on walls
 isfdiax            real  /0./   +input #switch to turn on diamagnetic drift for sheath
@@ -1965,10 +1965,10 @@ bcir(0:ny+1,nxpt)      _real  [ ]   +maybeinput #ion sheath energy transmission 
                                     #on the right boundary
 kappal(0:ny+1,nxpt)  _real  [ ]	+maybeinput #sheath pot'l drop on left  boundary, phi/Te
 kappar(0:ny+1,nxpt)  _real  [ ]	+maybeinput #sheath pot'l drop on right boundary, phi/Te
-bctype(0:ny+1)    _integer #/0,ny*0,0/+maybeinput 
+bctype(0:ny+1)    _integer #/0,ny*0,0/+maybeinput
 phi0r(0:ny+1,nxpt)	_real [V] /0./ +maybeinput #plate pot'l at right poloidal boundary
 phi0l(0:ny+1,nxpt)	_real [V] /0./ +maybeinput #plate pot'l at left  poloidal boundary
-capx(1:ny)        _real    #/ny*0.0/+maybeinput 
+capx(1:ny)        _real    #/ny*0.0/+maybeinput
 dphi_iy1(0:nx+1)  _real [V] #/(nx+2)*0./  +maybeinput #incremental phi at iy=1 to have
                                           #Te=constant for second phi BC
 kincorlb(0:ny+1,nxpt)   _real [ ]   +maybeinput # kinetic corr. factor for elec part. loss, left b
@@ -2166,9 +2166,9 @@ erliz(0:nx+1,0:ny+1)          _real  [J/s]     # H rad'n loss for ioniz'n
 erlrc(0:nx+1,0:ny+1)          _real  [J/s]     # H rad'n loss for recom'n
 vsoreec(0:nx+1,0:ny+1)	      _real  [J/s]     # cell ctr tot elec vol eng source
 vsoree(0:nx+1,0:ny+1)	      _real  [J/s]     # cell ave tot elec vol eng source
-pwrebkg(0:nx+1,0:ny+1)	      _real  [W/m**3] 
+pwrebkg(0:nx+1,0:ny+1)	      _real  [W/m**3]
                                # elec energy backgrd source; limits te~tebg
-pwribkg(0:nx+1,0:ny+1)	      _real  [W/m**3] 
+pwribkg(0:nx+1,0:ny+1)	      _real  [W/m**3]
                                # ion energy backgrd source; limits ti~tibg
 wjdote(0:nx+1,0:ny+1)         _real  [J/s]     # Joule heating rate
 wvh(0:nx+1,0:ny+1,1:nusp)     _real  [kg/m-s**3]  #ion viscous heating
@@ -2295,7 +2295,7 @@ tg_ue_rsd(0:nx+1,0:ny+1,nfl)	_real	[#]
 # neutral gas temperature rsd from Monte-Carlo-Neutrals model
 
 sng_ue(0:nx+1,0:ny+1,1:nfl)		_real	[part/m**3-s]	#neutral particle source density (convective only)
-smg_ue(0:nx+1,0:ny+1,1:nfl)		_real	[N/m**3]		#neutral parallel momentum source density 
+smg_ue(0:nx+1,0:ny+1,1:nfl)		_real	[N/m**3]		#neutral parallel momentum source density
 seg_ue(0:nx+1,0:ny+1,1:nfl)		_real	[W/m**3]		#neutral energy source density (convective only)
 
 
@@ -2388,7 +2388,7 @@ fegy_ue_rsd(0:nx+1,0:ny+1,nfl)	 	_real	[#]
 
 
 
- 
+
 
 ### Tensors ###
 
@@ -2617,8 +2617,8 @@ bkcmd  		character*32 	/"./readbackground"/ 	#degas2 readbackground executable
 bkufile		character*32 	/"uedata.u"/		 	#uedge output file for degas2 readbackground
 	#NOTE: the same file(grid) must also be used for readgeometry, as specified in the geufile
 bkdfile 	character*32  	/"bk_uers.nc"/ 			#degas2 readbackground output file
-degas2outcmd character*32   /"./outputbrowser"/     #degas2 outputbrowser executable 
-degas2outscript character*32   /"output.input"/     #degas2 outputbrowser input file 
+degas2outcmd character*32   /"./outputbrowser"/     #degas2 outputbrowser executable
+degas2outscript character*32   /"output.input"/     #degas2 outputbrowser input file
 degas2outsh  character*32   /"seddata.sh *.dat"/          #sed script to clean up output files
 
 mcnflights(1:nstramx) integer /nstramx*500/  		#number of mc pseudo-particle trajectories
@@ -2660,7 +2660,7 @@ pnc_opt		integer			/0/						# specifies choice of plasma-neutral coupling
 pnc_step	integer			/0/						# step count for plasma-neutral coupling
 pnc_maxstep	integer			/10/					# maximum number of coupled plasma+neutral steps
 pnc_time	real			/0/						# time since beginning of coupled run
-#pnc_ftol	real			/1e-4/					# ftol for PNC 
+#pnc_ftol	real			/1e-4/					# ftol for PNC
 dtneut	    real	[s] 	/1.e20/	 				# time step for neutrals
 dtplasma	real	[s]		/1e-6/					# time step for plasma-neutral coupling
 dtold	    real	[s] 	/1.e20/	 				# old time step
@@ -2756,7 +2756,7 @@ del_sni    	real		#maximum absolute change in ion particle source
 del_smor   	real		#maximum absolute change in radial ion momentum source
 del_smophi 	real		#maximum absolute change in toroidal ion momentum source
 del_smoz  	real		#maximum absolute change in vertical ion momentum source
-del_sei  	real		#maximum absolute change in ion energy source 
+del_sei  	real		#maximum absolute change in ion energy source
 del_see    	real		#maximum absolute change in electron energy source
 
 ***** Save_terms:
@@ -2806,6 +2806,8 @@ rconds(300,ngrid)	_real	# condition numbers of Jacobians
 
 ***** Jacobian:
 #Jacobian matrix in compressed sparse row format
+savemm      integer /0  # if save every Jacobian in a file in MatrixMarket format
+mmcount     integer /0/ # number of Jacobian matrix saved in MatrixMarket format
 neqp1		integer		# Dimension (=neq+1) of jaci
 nnzmx		integer		# Maximum no. of nonzeros in Jacobian matrix.
 jac(nnzmx)	_real		# Nonzero entries of the Jacobian matrix.
@@ -2942,7 +2944,7 @@ ziin(1:nispmx)  real  /nispmx*1./ +input
 znuclin(1:nispmx) integer /nispmx*1./ +input #total nuclear charge of ion (i.d. isotope)
 isallloc		integer   /0/        #=1 for local process. allocation with mpi
 newaph			integer  /1/ +input #=1 calls aphread for hyd. atomic data;=0 not
-newapi		integer /1/	     +input #=1, call readmc for new imp. data;=0, no						
+newapi		integer /1/	     +input #=1, call readmc for new imp. data;=0, no
 pyrestart_file    character*80 /""/ #Python file that can also be used to restart
 read_diffs		integer /0/	     +maybeinput #=0,a flag to signal whether to read diffusivities
 dif_io		integer /0/	     +maybeinput #=0,a flag to signal whether to read/write dif_use
@@ -3353,6 +3355,8 @@ aplsb(nrow,ncol,a:real,ja,ia,s:real,b:real,\
   	# out ierr         error flag
 jacmap()                                  	 subroutine
   	# output Jacobian map to file
+jacmm()                                  	 subroutine
+  	# output Jacobian MatrixMarket to file
 map_var_jac1d()                                	 subroutine
   	# compute Jacobian stencil ivl2gstnl with 1 where elements
 jacstnlout()                                  	 subroutine
@@ -3567,14 +3571,14 @@ fit_neteti()                                    subroutine
      # out ix               global poloidal index corresponding to 1D running lindex
      # out iy               global radial index corresponding to 1D running lindex
      # out surfacename      name of bounding surface corresponding to lindex
-###set2dat2dpoint(darray:real,ix:integer,iy:integer,val:real)   subroutine 
+###set2dat2dpoint(darray:real,ix:integer,iy:integer,val:real)   subroutine
      # Sets value of 2D array "darray" at global index point ix,iy to value "val".
      # Assumes that darray is dimensioned (0:nx+1,0:ny+1).
      # out darray(*,*)  global array being set
      # in ix       poloidal index at which darray is set
      # in iy       radial index at which darray is set
      # in val      value to which darray(ix,iy) is set
-###set1dat1dpoint(darray:real,lindex:integer,val:real)   subroutine 
+###set1dat1dpoint(darray:real,lindex:integer,val:real)   subroutine
      # Sets value of 1D array "darray" at global index point ix,iy to value "val".
      # out darray(*)       global array being set
      # in index           poloidal index at which darray is set
@@ -3590,7 +3594,7 @@ fit_neteti()                                    subroutine
      # in darray(*,*)     global darray being set
      # in lindex          poloidal index at which darray is set
 ru_active(amumass:integer,znucleus:integer,charge:integer)  integer function
-     # tests if given mass, charge, znucleus ion is active                  
+     # tests if given mass, charge, znucleus ion is active
      # in amumass is particle mass in AMU
      # in znucleus is the total charge of the atomic nucleus
      # in charge is particle charge in abs value of fundamental charge
@@ -3691,7 +3695,7 @@ mcnblend(out:real,uevar:real,mcvar:real,out_rsd:real,mcrsd:real,alpha:real)	subr
 	# interpolation between fluid and MC kinetic results based on rel. std. dev.
 	# out = mcvar*(1-mcrsd)**alpha + uevar*(1-(1-mcrsd)**alpha)
 
-mult23(var2:real,var3:real,n3:integer)			function	
+mult23(var2:real,var3:real,n3:integer)			function
 	# component-wise multiplication of 2d*3d variable along x and y directions
 
 mult24(var2:real,var4:real,n3:integer,n4:integer)	function
@@ -3944,7 +3948,7 @@ tendoned         real     /0.1/     # final time
 ndtmax           integer  /10000/   # max number of timesteps allowed
 ntim             integer  /50/      # number of output times
 ito              integer   /1/
-xcz(1:nxx)       _real  
+xcz(1:nxx)       _real
 xfz(1:nxx)       _real
 vrz(1:nxx)       _real
 drz(1:nxx)       _real
@@ -3984,5 +3988,5 @@ PrintTimingPandf() subroutine
 **** Uetools:
 # Variables for explicit use by uetools
 dummy           real    /0./     # Dummy variable for testing etc.
-gridmorph       real    /0./     # Grid morphing factor to be used with UETOOLS 
+gridmorph       real    /0./     # Grid morphing factor to be used with UETOOLS
 
