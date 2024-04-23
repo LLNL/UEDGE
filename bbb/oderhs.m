@@ -8549,7 +8549,7 @@ c ... Common blocks:
       Use(Grid)                    # ngrid,ig,ijac,ijactot
       Use(Indexes)                 # igyl,iseqalg
       Use(Variable_perturbation)   # del,dylconst
-      Use(Jacobian)                # savemm
+      Use(Jacobianmm)              # savemm
       Use(Jacobian_clipping)       # jaccliplim,istopjac,irstop,icstop
       Use(Jacobian_csc)            # rcsc,jcsc,icsc,yldot_pert
       Use(Ynorm)                   # suscal,sfscal
@@ -8735,7 +8735,7 @@ c ... Convert Jacobian from compressed sparse column to compressed
 c     sparse row format.
       call csrcsc (neq, 1, 1, rcsc, icsc, jcsc, jac, ja, ia)
 c     Save Jacobian in MatrixMarket form
-      if (savemm .ge. 0) then
+      if (savemm .gt. 0) then
          call jacmm()
       endif
 
@@ -10275,7 +10275,8 @@ c     calling this routine from the UEDGE> prompt.
 
 c ... Common blocks:
       Use(Lsode)      # neq
-      Use(Jacobian)   # jac,jacj,jaci, mmcount
+      Use(Jacobian)   # jac,jacj,jaci
+      Use(Jacobianmm) # mmcount
 
 c ... Local variables:
       integer i, j, us

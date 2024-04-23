@@ -2804,10 +2804,12 @@ lbw                  integer
 ***** Condition_number:
 rconds(300,ngrid)	_real	# condition numbers of Jacobians
 
+***** Jacobianmm:
+savemm      integer /0/ # if save every Jacobian in a file in MatrixMarket format
+mmcount     integer /0/ # number of Jacobian matrix saved in MatrixMarket format
+
 ***** Jacobian:
 #Jacobian matrix in compressed sparse row format
-savemm      integer /0  # if save every Jacobian in a file in MatrixMarket format
-mmcount     integer /0/ # number of Jacobian matrix saved in MatrixMarket format
 neqp1		integer		# Dimension (=neq+1) of jaci
 nnzmx		integer		# Maximum no. of nonzeros in Jacobian matrix.
 jac(nnzmx)	_real		# Nonzero entries of the Jacobian matrix.
