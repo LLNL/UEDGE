@@ -400,6 +400,10 @@ cftgeqp  real       /1.5/   +input #Coef for gas thermal equipartion (usually mo
 
 ***** Bcond restart:
 #Variables for setting the boundary conditions.
+ispfbcvsix integer      /0/ +input #=0 for uniform BC on PF wall;
+                                   #=1 for user variable BC vs pol ix index
+iswobcvsix integer      /0/ +input #=0 for uniform BC on outer wall;
+                                   #=1 for user variable BC vs pol ix index
 ibctepl   integer	/1/	+input 
                 #Switch for ix=0 energy flux bc's
 				#=0, fixed te (see tepltl)
@@ -426,14 +430,16 @@ iphibcc 	integer /3/	+input #core BC at iy=1 when isnewpot=1;iy=0
                                 #=3, phi=constant & ey(ixmp,0)=eycore
                                 #>3 or < 1 now unavailable, previously
 				#dphi(ix,1)=dphi_iy1,isutcore ctrls ix=ixmp
-iphibcwi        integer /0/   +input #=0, d(ey)/dy=0
+iphibcwi integer /0/   +input #=0, d(ey)/dy=0
 				#=1, phi(ix,0) = phintewi*te(ix,0)/ev
 				#=3, d(phi)/dy/phi = 1/lyphi(1)
 				#=4, phi(ix,0)=phiwi(ix) in PF region
-iphibcwo        integer /0/    +input  #=0, d(ey)/dy=0
+iphibcwiix(0:nx+1) _integer +input # pol depend iphibcwi if ispfbcvsix=1
+iphibcwo integer /0/    +input  #=0, d(ey)/dy=0
 				#=1, phi(ix,ny+1) = phintewi*te(ix,ny+1)/ev
 				#=3, d(phi)/dy/phi = 1/lyphi(2)
 				#=4, phi(ix,ny+1)=phiwo(ix)
+iphibcwoix(0:nx+1) _integer +input # pol depend iphibcwo if iswobcvsix=1
 phiwi(0:nx+1) _real [eV] +input #/(nx+2)*0./
                                 #PF wall phi profile if iphicwi=4;user set
 phiwo(0:nx+1) _real [eV] +input #/(nx+2)*0./
@@ -500,32 +506,38 @@ tipltr    real [eV]  /2./    +input #right plate Ti B.C. if ibctiplr=0
 tbmin     real [eV] /.1/     +input #min. wall & pf temp for extrap. b.c.(isextrt..)
 nbmin     real [m**-3] /1.e17/ +input #min. wall & pf den for extrap. b.c.(isextrn..)
 ngbmin    real [m**-3] /1.e10/ +input #min. core gas den for extrap. b.c.(isextrngc)
-istewc    integer    /1/     +input # switch for outer-wall BC on Te
+istewc integer /1/ +input # switch for outer-wall BC on Te
 			     # =0, set zero energy flux
 	 		     # =1, set fixed temp to tedge or tewallo
 			     # =2, use extrapolation BC
 			     # =3, set Te scale length to lyte
                              # =4, set feey = bceew*fniy*te
-istiwc    integer    /1/     +input #switch for outer-wall BC on Ti, see istewc detail
-istgwc(ngspmx) integer/ngspmx*0/    +input #switch for outer-wall BC on Tg(,0,igsp)
+istewcix(0:nx+1) _integer +input # pol depend BC for istewc if iswobcvsix=1
+istiwc integer /1/ +input #switch for outer-wall BC on Ti, see istewc detail
+istiwcix(0:nx+1) _integer +input # pol depend BC for istiwc if iswobcvsix=1
+istgwc(ngspmx) integer /ngspmx*0/ +input #switch for outer-wall BC on Tg(,0,igsp)
 	 		     # =0, set fixed temp to tgwall
 			     # =1, use extrapolation BC
 			     # =2, set Tg scale length to lytg(2,
 			     # =3, eng flux = 2Tg*Maxw-flux
                              # >3, report error in input
-istepfc   integer    /0/    +input  # switch for priv.-flux BC on Te
+istgwcix(0:nx+1,ngspmx) _integer +input #pol depend BC for chamber wall tg if iswobcvsix=1
+istepfc integer  /0/ +input  # switch for priv.-flux BC on Te
 			     # =0, set zero energy flux
 	 		     # =1, set fixed temp to tedge or tewalli
 			     # =2, use extrapolation BC
 			     # =3, set Te scale length to lyte
                              # =4, set feey = bceew*fniy*te
-istipfc   integer    /0/    +input  #switch for priv.-flux BC on Ti, see istewc detail
-istgpfc(ngspmx) integer/ngspmx*0/   +input #switch for PF BC on Tg(,0,igsp)
+istepfcix(0:nx+1) _integer #/(nx+2)*0/ +input  #pol depend BC for pf wall te if ispfbcvsix=1 
+istipfc integer  /0/ +input  #switch for priv.-flux To BC, see istepfc detail
+istipfcix(0:nx+1) _integer +input  #pol depend BC for pf wall ti if ispfbcvsix=1
+istgpfc integer /0/   +input #switch for PF BC on Tg(,0,igsp)
 	 		     # =0, set fixed temp to tgwall
 			     # =1, use extrapolation BC
 			     # =2, set Tg scale length to lytg(1,
 			     # =3, eng flux = 2Tg*Maxw-flux
                              # >2, report error in input
+istgpfcix(0:nx+1,ngspmx) _integer +input # pol depend BC for pf wall tg if ispfbcvsix=1
 tewalli(0:nx+1) _real [eV] +input #/(nx+2)*0./
                              #inner wall Te for istepfc=1.; = tedge if not set
 tiwalli(0:nx+1) _real [eV] +input #/(nx+2)*0./
@@ -536,20 +548,20 @@ tiwallo(0:nx+1) _real [eV] +input #/(nx+2)*0./
                              #outer wall Ti for istiwc=1.; = tedge if not set
 tgwall(ngspmx)   real [eV] /ngspmx*0.025/ +input #Wall gas temp BC
 lyte(1:2)  real /2*1e20/ [m] +input #decaying rad Te grad leng;(1,2) istepfc,wc=3
-isulytex        integer /0/  +input #if=0, lytex filled with lyte
+##isulytex        integer /0/  +input #if=0, lytex filled with lyte
                              #if=1, user values of lytex used
-lytex(2,0:nx+1)    _real [m] +input # pol dep radial te grad length if set < 1e5
+lyteix(2,0:nx+1)    _real [m] +input # pol dep radial te grad length if set < 1e5
                              # istepfc,wc=3: 1:2=i:o, 2nd dim ix
 lyti(1:2)  real /2*1e20/ [m] +input #decaying rad Ti grad leng;(1,2) istipfc,wc=3
 lytg(1:2,ngspmx) real /12*1e20/ +input #rad tg scale length: PF (1,; Outer(2,
-isulytix        integer /0/  +input #if=0, lytix filled with lyti
+##isulytix        integer /0/  +input #if=0, lytix filled with lyti
                              #if=1, user values of lytex used
-lytix(2,0:nx+1)    _real [m] +input # pol dep radial ti grad length if set < 1e5
+lytiix(2,0:nx+1)    _real [m] +input # pol dep radial ti grad length if set < 1e5
                              # istipfc,wc=3: 1:2=i:o, 2nd dim ix
 lyphi(1:2) real /2*1e20/ [m] +input #decaying rad phi grad leng;(1,2) iphibcwi,o=3
-isulyphix       integer /0/  +input #if=0, lyphix filled with lyphix
+##isulyphix       integer /0/  +input #if=0, lyphix filled with lyphix
                              #if=1, user values of lyphix used
-lyphix(2,0:nx+1)   _real [m] +input # pol dep radial phi grad length if set < 1e5
+lyphiix(2,0:nx+1)   _real [m] +input # pol dep radial phi grad length if set < 1e5
                              # isphipfc,wc=3: 1:2=i:o, 2nd dim ix
 isextrnp  integer   /0/      +input #=1 sets extrap. b.c. at div. plate bound'y for ni
 isextrnpf integer   /0/      +input #=1 sets extrap. b.c. at p.f. bound'y for ni
@@ -572,28 +584,30 @@ isnwconi(1:nispmx) integer /nispmx*0/ +input
 		#=1, fixed density to nwalli(ix) array
 		#=2, extrapolation B.C.
 		#=3, approx grad-length lyni, but limited by nwimin
-isnwcono(1:nispmx) integer /nispmx*0/ +input 
+isnwconiix(0:nx+1,1:nispmx) _integer +input  #pol depen isnwconi if ispfvsix=1
+isnwcono(1:nispmx) integer /nispmx*0/ +input
 		#switch for outer wall (iy=ny+1) density B.C.
 		#=0, old case; if ifluxni=0, dn/dy=0; if ifluxni=1, fniy=0
 		#=1, fixed density to nwallo(ix) array
 		#=2, extrapolation B.C.
 		#=3, approx grad-length lyni, but limited by nwomin
+isnwconoix(0:nx+1,1:nispmx) _integer +input  #pol depen isnwcono if iswobcvsix=1
 nwalli(0:nx+1) _real [m**-3] +input #inner wall dens set by isnwconi
 nwallo(0:nx+1) _real [m**-3] +input #outer wall dens set by isnwcono
 nwimin(nispmx)  real [m**-3] /nispmx*1e16/  +input # min inner wall dens if isnwconi=3
 nwomin(nispmx)  real [m**-3] /nispmx*1e16/  +input # min outer wall dens if isnwcono=3
 ncoremin(nispmx) real [m**-3] /nispmx*1e10/ +input # min ncore for isnicore=5
 lyni(2)         real [m]     /2*1e20/       +input #rad dens grad length -isnwconi,o=3
-isulynix        integer      /0/            +input #if=0, lynix filled with lyni
+##isulynix        integer      /0/            +input #if=0, lynix filled with lyni
 					    #if=1, user values of lynix used
-lynix(2,0:nx+1,nisp) _real [m] +input # pol dep radial dens grad length if set < 1e5
+lyniix(2,0:nx+1,nisp) _real [m] +input # pol dep radial dens grad length if set < 1e5
 			         # isnwconi,o=3: 1:2=i:o, 2nd dim ix, 3rd spec
 lynicore(nispmx) real [m] /nispmx*1e20/     +input # ni core BC rad scale-length if
 					    # isnicore=5
 lyup(2) real    /2*1e20/     +input #radial up grad length if isupwi,o=3: 1:2=i:o
 isulyupx        integer      /0/            #if=0, lyupx filled with lyup
 					    #if=1, user values of lynup used
-lyupx(2,0:nx+1,nusp) _real [m] +input # pol dep radial up grad length if set < 1e5
+lyupix(2,0:nx+1,nisp) _real [m] +input # pol dep radial up grad length if set < 1e5
 			       # isupwi,o=3: indices,1:2=i:o, 2nd dim ix, 3rd spec
 nwsor     integer    /1/     +input #number of sources on wall; must be < 10
 igasi(10) real [Amp] /10*0./ +input #Gas currents from inner wall (iy=0)
@@ -687,16 +701,18 @@ isutcore  integer      /0/      +input #Used for ix=ixcore phi BC ONLY IF iphibc
 				#=0, tor mom=lzcore on core;
                 #=1, d<uz>/dy=0;
 				#>1, d^2(Ey)/dy^2=0 at outer midplane
-isupwi(nispmx) integer /nispmx*2/ +input 
+isupwi(nispmx) integer /nispmx*2/ +input #options for up BC on inner (PF) wall
                         #=0 sets up=0 on inner wall
                         #=1 sets fmiy=0 (parallel mom-dens y-flux)
               			#=2 sets dup/dy=0 on inner wall
               			#=3 sets (1/up)dup/dy=1/lyup(1) scale length
-isupwo(nispmx) integer /nispmx*2/ +input 
+isupwiix(0:nx+1,nispmx) _integer +input #pol depend BC for isupwi if ispfbcvsix=1
+isupwo(nispmx) integer /nispmx*2/ +input #options for up BC on outer (main-chamber) wall
                         #=0 sets up=0 on outer wall
                         #=1 sets fmiy=0 (parallel mom-dens y-flux)
               			#=2 sets dup/dy=0 on outer wall
               			#=3 sets (1/up)dup/dy=1/lyup(2) scale length
+isupwoix(0:nx+1,nispmx) _integer +input #pol depend BC for isupwo if iswobcvsix=1
 islbcn    integer      /2/	+input 
                 # b.c. for ni at limiter guard cells;
 				# =0,1 set ni in 2 cells

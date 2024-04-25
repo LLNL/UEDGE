@@ -44,7 +44,7 @@ c-----------------------------------------------------------------------
       Use(Reduced_ion_interface)   # misotope,natomic,nchstate
       Use(Ynorm)               # iscolnorm
       Use(Selec)               # xlinc,xrinc,yinc
-      Use(Bcond)               # nwsor,igspsori
+      Use(Bcond)               # nwsor,igspsori,ispfbcvsix,iswobcvsix
       Use(Parallv)             # nxg,nyg
       Use(Jac_work_arrays)     # lwp,liwp
       Use(Indices_domain_dcg)  # isddcon
@@ -208,6 +208,7 @@ ccc         call xerrab("")
       endif
 
 c ... Check consistency of radial gradient boundary conditions
+c ... Note: only ix=1 is checked for "is..." flag as they are now function of ix
       if ((isnwcono(1)==3 .or. isnwconi(1)==3) .and.
      .                                       lyni(1)+lyni(2)>1e9) then
         call remark('*** WARNING: large lyni does not give 0 flux B.C.')
@@ -302,6 +303,12 @@ c...  Compute which equations are actually evolved from input parameters
 c...  Calculate actual number of equations (some may be turned-off)
       call setonxy   #sets neq = acutal number eqns; neqmx adds 2 - usually
 
+c...  Set PF and main-chamber boundary-condition arrays that either be uniform
+c...  in the ix poloidal direction or varying by user input. The two walls are
+c...  treated independtly with flags bbb.ispfbcvsix and bbb.iswobcvsix where 0
+c...  yields uniform BCs versus ix and 1 utilizes array values set by user
+      call setwallbcarrays
+      
       if (svrpkg .eq. "cvode" .or. svrpkg .eq. "kinsol") then
         neqmx = neq      #cvode, kinsol allow no extra storage for yl
       else
@@ -518,6 +525,80 @@ c	  Allocate PNC_data group
 ***************************************
 c----------------------------------------------------------------------c
 
+      subroutine setwallbcarrays
+
+c...  Set boundary condition flags/arrays on private-flux wall depending on
+c...  input flag ispfbcvsix, where 0 gives uniform bndry conds and 1 leaves
+c...  arrays as set by the user after allocation
+
+      implicit none
+
+      Use(Dim)      # nx,ny,nisp,ngsp
+      Use(Bcond)    # wall BC arrays
+#      Use(UEpar)    # isnion,isupon,isngon,isteon,istion,isphion
+                    # isnionxy,isuponxy,isngonxy,isteonxy,istionxy,isphionxy
+                    # isnioffxy,isupoffxy,isngoffxy,isteoffxy,istioffxy,isphioffxy
+#      Use(Math_problem_size)   # neqmx
+#      Use(Lsode)    # neq
+#      Use(Indices_domain_dcl)  # ixmxbcl,ixmnbcl,iymxbcl,iymnbcl
+
+      integer ix,ifld,igsp
+      
+      if(ispfbcvsix == 0) then  #inner private-flux wall
+
+        do ix = 0, nx+1
+          iphibcwiix(ix) = iphibcwi
+          istepfcix(ix) = istepfc
+          istipfcix(ix) = istipfc
+          lyteix(1,ix) = lyte(1)
+          lytiix(1,ix) = lyti(1)
+          lyphiix(1,ix) = lyphi(1)
+          do ifld = 1, nisp
+            isnwconiix(ix,ifld) = isnwconi(ifld)
+            isupwiix(ix,ifld) = isupwi(ifld)
+            lyniix(1,ix,ifld) = lyni(1)
+          enddo       
+          do ifld = 1, nusp
+            isupwiix(ix,ifld) = isupwi(ifld)
+            lyupix(1,ix,ifld) =lyup(1)
+          enddo
+          do igsp = 1, ngsp
+            istgpfcix(ix,igsp) = istgpfc
+          enddo  
+        enddo
+        
+      endif   #test on ispfbcvsix for private-flux wall
+
+c ..................
+      if(iswobcvsix == 0) then  #outer main-chamber wall
+
+        do ix = 0, nx+1
+          iphibcwoix(ix) = iphibcwo
+          istewcix(ix) = istewc
+          istiwcix(ix) = istiwc
+          lyteix(2,ix) = lyte(2)
+          lytiix(2,ix) = lyti(2)
+          lyphiix(2,ix) = lyphi(2)
+          do ifld = 1, nisp
+            lyniix(2,ix,ifld) = lyni(2)
+            isnwconoix(ix,ifld) = isnwcono(ifld)
+            isupwoix(ix,ifld) = isupwo(ifld)
+          enddo
+          do ifld = 1, nusp
+            isupwoix(ix,ifld) = isupwo(ifld)
+            lyupix(2,ix,ifld) =lyup(2)
+          enddo
+          do igsp = 1, ngsp
+            istgwcix(ix,igsp) = istgwc(igsp)
+          enddo
+        enddo
+        
+      endif   #test on iswobcvsix for main-chamber wall
+          
+      return
+      end
+c----------------------------------------------------------------------c
+      
       subroutine setonxy
 
 c...  Compute which equations are evolved based on input vars isnionffxy etc.
@@ -986,32 +1067,32 @@ c...  Initialize external eng fluxes to 0 if ext_flags=0 as used anyway
       endif
 
 c...  Set boundary conditions for lyni on walls; if isulynix=0, use lyni
-      if (isulynix == 0) then
-        do ifld = 1, nisp
-          do iu = 0, nx+1
-            lynix(1,iu,ifld)=lyni(1)
-            lynix(2,iu,ifld)=lyni(2)
-          enddo
-        enddo
-      endif
-      if (isulytex == 0) then
-        do iu = 0, nx+1
-          lytex(1,iu) = lyte(1)
-          lytex(2,iu) = lyte(2)
-        enddo
-      endif
-      if (isulytix == 0) then
-        do iu = 0, nx+1
-          lytix(1,iu) = lyti(1)
-          lytix(2,iu) = lyti(2)
-        enddo
-      endif
-      if (isulyphix == 0) then
-        do iu = 0, nx+1
-          lyphix(1,iu) = lyphi(1)
-          lyphix(2,iu) = lyphi(2)
-        enddo
-      endif
+ccTR      if (isulynix == 0) then
+ccTR       do ifld = 1, nisp
+ccTR          do iu = 0, nx+1
+ccTR            lynix(1,iu,ifld)=lyni(1)
+ccTR            lynix(2,iu,ifld)=lyni(2)
+ccTR          enddo
+ccTR        enddo
+ccTR      endif
+ccTR     if (isulytex == 0) then
+ccTR       do iu = 0, nx+1
+ccTR          lytex(1,iu) = lyte(1)
+ccTR          lytex(2,iu) = lyte(2)
+ccTR        enddo
+ccTR      endif
+ccTR      if (isulytix == 0) then
+ccTR        do iu = 0, nx+1
+ccTR          lytix(1,iu) = lyti(1)
+ccTR          lytix(2,iu) = lyti(2)
+ccTR        enddo
+ccTR      endif
+ccTR      if (isulyphix == 0) then
+ccTR        do iu = 0, nx+1
+ccTR          lyphix(1,iu) = lyphi(1)
+ccTR          lyphix(2,iu) = lyphi(2)
+ccTR        enddo
+ccTR      endif
 
 c...  Set values of sheath potential/Te to 3.0 if values are zero
       do jx=1,nxpt

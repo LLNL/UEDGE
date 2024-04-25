@@ -3,7 +3,7 @@ c!include "../sptodp.h"
 c-----------------------------------------------------------------------
       subroutine bouncon(neq, yl, yldot)
 
-*   BOUNCON provides the evaluation of the equations for the boundaries.
+*   Bouncon provides the evaluation of the equations for the boundaries.
 
       implicit none
 
@@ -27,7 +27,7 @@ c-----------------------------------------------------------------------
                     # tewalli,tiwalli,tewallo,tiwallo,isextrnp,
                     # isextrnpf,isextrtpf,isextrngc,isextrnw,isextrtw,
                     # iflcore,pcoree,pcorei,ifluxni,ckinfl,isupss,
-                    # isnwconi,isnwcono,nwalli,nwallo,iscpli,iscplo,
+                    # isnwconiix,isnwconoix,nwalli,nwallo,iscpli,iscplo,
                     # fngysi,fngyso,albedoo,albedoi,matwallo,matwalli,
                     # sinphi,isfixlb,nib,teb,tib,nibprof,tebprof,tibprof,
                     # engbsr,epsbs,rlimiter,ngcore,isngcore,isutcore,
@@ -256,7 +256,7 @@ c
                   else
 		            call xerrab ('** isnicore value not valid option **')
                   endif
-               elseif (isnwconi(ifld) .eq. 0) then
+               elseif (isnwconiix(ix,ifld) .eq. 0) then
                # ix not on core boundary; set zero gradient (or flux)
                   yldot(iv1) = nurlxn * ( (1-ifluxni)*
      .                      (niy1(ix,0,ifld) - niy0(ix,0,ifld))
@@ -264,21 +264,21 @@ c
      .                 - 0.001*ni(ix,1,ifld)*vy(ix,0,ifld)/vpnorm 
      .                 ))/n0(ifld)
 c...  the last term going as 0.001 is to prevent very small densities
-               elseif (isnwconi(ifld) .eq. 1) then
+               elseif (isnwconiix(ix,ifld) .eq. 1) then
                # ix is not part of the core boundary; set fixed density
                   yldot(iv1) = nurlxn*(nwalli(ix) - ni(ix,0,ifld))/
      .                                                        n0(ifld)
-               elseif (isnwconi(ifld) .eq. 2) then
+               elseif (isnwconiix(ix,ifld) .eq. 2) then
                # ix is not part of the core boundary; set extrapolation bc
                   nbound =  ni(ix,1,ifld) - gyf(ix,1)*
      .                         (ni(ix,2,ifld)-ni(ix,1,ifld))/gyf(ix,0)
                   nbound = 1.2*nbound/( 1+0.5*exp( -2*(nbound/
      .                          ni(ix,1,ifld)-1) ) ) + 0.2*ni(ix,1,ifld)
                   yldot(iv1) = nurlxn *(nbound - ni(ix,0,ifld))/n0(ifld)
-               elseif (isnwconi(ifld) .eq. 3) then  #spec. gradient
+               elseif (isnwconiix(ix,ifld) .eq. 3) then  #spec. gradient
                     yldot(iv1) =-nurlxn*( niy0(ix,0,ifld) -
-     .                niy1(ix,0,ifld)*(2*gyf(ix,0)*lynix(1,ix,ifld)-1)/
-     .                                (2*gyf(ix,0)*lynix(1,ix,ifld)+1) -
+     .                niy1(ix,0,ifld)*(2*gyf(ix,0)*lyniix(1,ix,ifld)-1)/
+     .                                (2*gyf(ix,0)*lyniix(1,ix,ifld)+1) -
      .                                  nwimin(ifld) ) / n0(ifld)
                endif   # end if-test for core and p.f. boundaries
 
@@ -363,13 +363,13 @@ c...  Now do the parallel velocity BC at iy = 0 for full mom eqn species
                     call xerrab ("*** Illegal setting of isupcore ***")
                   endif
 
-               elseif (isupwi(ifld)==1) then   # isixcore if-test; PF bdry
+               elseif (isupwiix(ix,ifld)==1) then   # isixcore if-test; PF bdry
                   yldot(iv2) = -nurlxu * fmiy(ix,0,ifld) / 
      .                                    (vpnorm*sy(ix,0)*fnorm(ifld))
-               elseif (isupwi(ifld)==2) then   # PF bdry
+               elseif (isupwiix(ix,ifld)==2) then   # PF bdry
                   yldot(iv2) = nurlxu * nm(ix,0,ifld) / fnorm(ifld) *
      .                               (up(ix,1,ifld) - up(ix,0,ifld))
-               elseif (isupwi(ifld)==3) then   # PF bdry
+               elseif (isupwiix(ix,ifld)==3) then   # PF bdry
                   yldot(iv2) = -nurlxu * nm(ix,0,ifld) / fnorm(ifld) *
      .                         ( up(ix,0,ifld) - up(ix,1,ifld)*
      .                            (2*gyf(ix,0)*lyup(1)-1)/
@@ -432,23 +432,23 @@ c     the adjacent cells.
      .                                       ni(ix,0,iimp) ) / n0(ifld)
                   endif
                else   # ix is not part of the core boundary:
-                  if (isnwconi(iimp) .eq. 0) then
+                  if (isnwconiix(ix,iimp) .eq. 0) then
                      yldot(iv) = -nurlxn *
      .                           (fniy(ix,0,iimp) - fnzysi(ix,ifld)) /
      .                           (sy(ix,0) * n0(iimp) * vpnorm)
-                  elseif (isnwconi(iimp) .eq. 1) then
+                  elseif (isnwconiix(ix,iimp) .eq. 1) then
                      yldot(iv) = nurlxn*(nwalli(ix) - ni(ix,0,iimp))/
      .                                                        n0(iimp)
-                  elseif (isnwconi(iimp) .eq. 2) then  #extrapolation bc
+                  elseif (isnwconiix(ix,iimp) .eq. 2) then  #extrapolation bc
                      nbound =  ni(ix,1,iimp) - gyf(ix,1)*
      .                         (ni(ix,2,iimp)-ni(ix,1,iimp))/gyf(ix,0)
                      nbound = 1.2*nbound/( 1+0.5*exp( -2*(nbound/
      .                          ni(ix,1,iimp)-1) ) ) + 0.2*ni(ix,1,iimp)
                      yldot(iv) = nurlxn *(nbound - ni(ix,0,iimp))/n0(iimp)
-                  elseif (isnwconi(iimp) .eq. 3) then  #spec. gradient
+                  elseif (isnwconiix(ix,iimp) .eq. 3) then  #spec. gradient
                      yldot(iv) = -nurlxn*( niy0(ix,0,iimp) -
-     .                 niy1(ix,0,iimp)*(2*gyf(ix,0)*lynix(1,ix,iimp)-1)/
-     .                                 (2*gyf(ix,0)*lynix(1,ix,iimp)+1) -
+     .                 niy1(ix,0,iimp)*(2*gyf(ix,0)*lyniix(1,ix,iimp)-1)/
+     .                                 (2*gyf(ix,0)*lyniix(1,ix,iimp)+1) -
      .                                     nwimin(iimp) ) / n0(iimp)
                   endif
                endif   # end if-test for core and p.f. boundaries
@@ -547,21 +547,21 @@ c ... Set Te and Ti BCs
                  yldot(iv1) = -nurlxe*(te(ix,0)-te(ix,1))*n0(1)/ennorm
               endif
             else   # ix is not part of the core boundary; various PF cases:
-               if (istepfc .eq. 0) then          # zero electron energy flux
+               if (istepfcix(ix) .eq. 0) then          # zero electron energy flux
                  yldot(iv1) = -nurlxe*(feey(ix,0)/(n0(1)*vpnorm*sy(ix,0)))
      .                                                       / (temp0*ev) 
-               elseif (istepfc .eq. 1) then      # fixed Te
+               elseif (istepfcix(ix) .eq. 1) then      # fixed Te
                  yldot(iv1) =nurlxe*(tewalli(ix)*ev-te(ix,0))/(temp0*ev)
-               elseif (istepfc .eq. 2) then       # extrapolation
+               elseif (istepfcix(ix) .eq. 2) then       # extrapolation
                  tbound = te(ix,1) - gyf(ix,1)*
      .                                     (te(ix,2)-te(ix,1))/gyf(ix,0)
                  tbound = max(tbound, tbmin*ev)
                  yldot(iv1) = nurlxe *(tbound - te(ix,0))/(temp0*ev)
-               elseif (istepfc .eq. 3) then         # specified gradient
+               elseif (istepfcix(ix) .eq. 3) then         # specified gradient
                  yldot(iv1) = nurlxe*( (te(ix,1) - te(ix,0)) -
      .                             0.5*(te(ix,1) + te(ix,0))/
-     .                              (gyf(ix,0)*lytex(1,ix)) )/(temp0*ev)
-               elseif (istepfc .eq. 4) then      
+     .                              (gyf(ix,0)*lyteix(1,ix)) )/(temp0*ev)
+               elseif (istepfcix(ix) .eq. 4) then      
                  yldot(iv1) = -nurlxe*(feey(ix,0) - bceew*ne(ix,0)*
      .                               vey(ix,0)*sy(ix,0)*te(ix,0)) /
      .                              (vpnorm*ennorm*sy(ix,0))
@@ -600,21 +600,21 @@ ccc               yldot(iv2) = -nurlxi*(feiy(ix,0) -
 ccc     .             (bcei*fniy(ix,0,1) + bcen*fniy(ix,0,iigsp))*ti(ix,0)) /
 ccc     .             (vpnorm*ennorm*sy(ix,0))
             else                                 # various PF cases
-               if (istipfc .eq. 0) then          # zero ion energy flux
+               if (istipfcix(ix) .eq. 0) then          # zero ion energy flux
                  yldot(iv2) = -nurlxi*(feiy(ix,0)/(n0(1)*vpnorm*sy(ix,0)))
      .                                                       / (temp0*ev) 
-               elseif (istipfc .eq. 1) then      # fixed Ti
+               elseif (istipfcix(ix) .eq. 1) then      # fixed Ti
                  yldot(iv2) =nurlxi*(tiwalli(ix)*ev-ti(ix,0))/(temp0*ev)
-               elseif (istipfc .eq. 2) then      # extrapolation
+               elseif (istipfcix(ix) .eq. 2) then      # extrapolation
                  tbound = ti(ix,1) - gyf(ix,1)*
      .                                     (ti(ix,2)-ti(ix,1))/gyf(ix,0)
                  tbound = max(tbound, tbmin*ev)
                  yldot(iv2) = nurlxi *(tbound - ti(ix,0))/(temp0*ev)
-               elseif (istipfc .eq. 3) then      # specified gradient
+               elseif (istipfcix(ix) .eq. 3) then      # specified gradient
                  yldot(iv2) = nurlxi*( (ti(ix,1) - ti(ix,0)) -
      .                           0.5*(ti(ix,1) + ti(ix,0))/
-     .                             (gyf(ix,0)*lytix(1,ix)) )/(temp0*ev)
-               elseif (istipfc .eq. 4) then      # sheath-like condition
+     .                             (gyf(ix,0)*lytiix(1,ix)) )/(temp0*ev)
+               elseif (istipfcix(ix) .eq. 4) then      # sheath-like condition
                  t0 = max(tg(ix,0,1), temin*ev)
                  fngyw=0.25*sqrt(8*t0/(pi*mg(1)))*ng(ix,1,1)*sy(ix,0)
                  yldot(iv2) = -nurlxi*( feiy(ix,0) - bceiw*fniy(ix,0,1)*
@@ -782,26 +782,26 @@ c... BC for neutral gas temperature/energy at iy=0
      .                                                      (temp0*ev)
               endif
             else   # PF wall
-              if (istgpfc(igsp) == 0) then   # fixed Tg
+              if (istgpfcix(ix,igsp) == 0) then   # fixed Tg
                 yldot(iv) = nurlxg*(tgwall(igsp)*ev-tg(ix,0,igsp))/
      .                                                      (temp0*ev)
-              elseif (istgpfc(igsp) == 1)    # extrapolation
+              elseif (istgpfcix(ix,igsp) == 1)    # extrapolation
                 tbound = tg(ix,1,igsp) - gyf(ix,1)*
      .                      (tg(ix,2,igsp)-tg(ix,1,igsp))/gyf(ix,0)
                 tbound = max(tbound, 0.25*tbmin*ev)  #tbmin=.1 eV
                 yldot(iv) = nurlxi *(tbound - tg(ix,0,igsp))/(temp0*ev)
-              elseif (istgpfc(igsp) == 2)    # specified gradient
+              elseif (istgpfcix(ix,igsp) == 2)    # specified gradient
                 yldot(iv) = nurlxi*( (tg(ix,1,igsp) - tg(ix,0,igsp)) -
      .                           0.5*(tg(ix,1,igsp) + tg(ix,0,igsp))/
      .                           (gyf(ix,0)*lytg(1,igsp)) )/(temp0*ev)
-              elseif (istgpfc(igsp) == 3)  #Maxwell thermal flux to wall
+              elseif (istgpfcix(ix,igsp) == 3)  #Maxwell thermal flux to wall
                 t0 = max(cdifg(igsp)*tg(ix,1,igsp), temin*ev)
                 vyn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
                 yldot(iv) =  -nurlxg*( fegy(ix,0,igsp) + 2*cgengmw*
      .                               ng(ix,1,igsp)*vyn*t0*sy(ix,0) )/
      .                                     (sy(ix,0)*vpnorm*ennorm)
-              elseif (istgpfc(igsp) > 3)
-                 call xerrab("***Input error: invalid istgpfc ***")
+              elseif (istgpfcix(ix,igsp) > 3)
+                 call xerrab("***Input error: invalid istgpfcix ***")
               endif
 
             endif           
@@ -816,7 +816,7 @@ ccc  - - - - - - - - - - - - - -
             iv3 = idxphi(ix,0)
             yldot(iv3) = nurlxp*( (phi(ix,1) - phi(ix,0)) -
      .                             0.5*(phi(ix,1) + phi(ix,0))/
-     .                              (gyf(ix,0)*lyphix(1,ix)) )/temp0
+     .                              (gyf(ix,0)*lyphiix(1,ix)) )/temp0
             if (isnewpot==-1) then
                if (isixcore(ix)==1) then   # ix is part of the core boundary:
                   ix4 = ixm1(ix,0)
@@ -1061,16 +1061,16 @@ c  ###################################################################
 c  ### Finally set private-flux (PF) phi BC at iy=0 & 1
 c  ###################################################################
             else   # ix is not part of the core boundary:
-               if(iphibcwi == 0) then
+               if(iphibcwiix(ix) == 0) then
                  yldot(iv) = nurlxp*( phi(ix,1) - phi(ix,0) )/temp0
-               elseif(iphibcwi == 1) then
+               elseif(iphibcwiix(ix) == 1) then
                  yldot(iv) = nurlxp*
      .                     (phintewi*te(ix,0)/ev - phi(ix,0))/temp0
-	       elseif(iphibcwi == 3) then
+	       elseif(iphibcwiix(ix) == 3) then
                  yldot(iv) = nurlxp*( (phi(ix,1) - phi(ix,0)) -
      .                             0.5*(phi(ix,1) + phi(ix,0))/
-     .                               (gyf(ix,0)*lyphix(1,ix)) )/temp0
-               elseif(iphibcwi == 4) then
+     .                               (gyf(ix,0)*lyphiix(1,ix)) )/temp0
+               elseif(iphibcwiix(ix) == 4) then
                  yldot(iv) = nurlxp*
      .                     (phiwi(ix) - phi(ix,0))/temp0
                endif
@@ -1135,7 +1135,7 @@ c...   Caution: the wall source models assume gas species 1 only is inertial
      .                                        / (vyn*sy(ix,ny)* n0(ifld))
             else
 
-              if(isnwcono(ifld) .eq. 0) then
+              if(isnwconoix(ix,ifld) .eq. 0) then
                  yldot(iv1) = nurlxn * ( (1-ifluxni)*
      .                         (niy0(ix,ny,ifld) - niy1(ix,ny,ifld))
      .            + ifluxni*( fniy(ix,ny,ifld)/(sy(ix,ny)*vpnorm) 
@@ -1143,23 +1143,23 @@ c...   Caution: the wall source models assume gas species 1 only is inertial
      .                                                      /n0(ifld)
 c...  the last term going as 0.001 is to prevent very small densities
 c...  This next if is a recalc. if constant ni wanted - could be done better
-              elseif (isnwcono(ifld) .eq. 1) then
+              elseif (isnwconoix(ix,ifld) .eq. 1) then
                  yldot(iv1) =nurlxn*(nwallo(ix) - ni(ix,ny+1,ifld))/
      .                                                      n0(ifld)
-              elseif (isnwcono(ifld) .eq. 2) then  #extrapolation
+              elseif (isnwconoix(ix,ifld) .eq. 2) then  #extrapolation
                  nbound = ni(ix,ny,ifld) + gyf(ix,ny-1)*
      .                      (ni(ix,ny,ifld)-ni(ix,ny-1,ifld))/gyf(ix,ny)
                  nbound = 1.2*nbound/( 1+0.5*exp( -2*(nbound/
      .                         ni(ix,ny,ifld)-1) ) ) + 0.2*ni(ix,ny,ifld)
 ccc                 nbound = max(nbound, 0.3*ni(ix,ny,ifld))
                  yldot(iv1) = nurlxn*(nbound - ni(ix,ny+1,ifld))/n0(ifld)
-              elseif (isnwcono(ifld) .eq. 3) then   #spec. gradient 
+              elseif (isnwconoix(ix,ifld) .eq. 3) then   #spec. gradient 
                   yldot(iv1) = -nurlxn*( niy1(ix,ny,ifld) -
-     .              niy0(ix,ny,ifld)*(2*gyf(ix,ny)*lynix(2,ix,ifld)-1)/
-     .                               (2*gyf(ix,ny)*lynix(2,ix,ifld)+1) -
+     .              niy0(ix,ny,ifld)*(2*gyf(ix,ny)*lyniix(2,ix,ifld)-1)/
+     .                               (2*gyf(ix,ny)*lyniix(2,ix,ifld)+1) -
      .                         nwomin(ifld) ) / n0(ifld)
 
-              endif            # endif for if (isnwcono.eq.1 .and. ..
+              endif            # endif for if (isnwconoix.eq.1 .and. ..
             endif              # endif for neut. ni; i.e., if (isupgon .eq. 1
           endif                # endif for isnionxy
   278   continue               # end loop over ix for ni BC
@@ -1190,13 +1190,13 @@ c...  Do the parallel velocity BC along iy = ny+1
          do ix = i4+1-ixmnbcl, i8-1+ixmxbcl
             if (isuponxy(ix,ny+1,ifld)==1) then
                iv2 = idxu(ix,ny+1,ifld)
-               if (isupwo(ifld)==1) then  #zero parallel momentum flux
+               if (isupwoix(ix,ifld)==1) then  #zero parallel momentum flux
                   yldot(iv2) = nurlxu * fmiy(ix,ny,ifld) / 
      .                                 (vpnorm*sy(ix,ny)*fnorm(ifld))
-               elseif (isupwo(ifld)==2) then  #  d(up)/dy = 0
+               elseif (isupwoix(ix,ifld)==2) then  #  d(up)/dy = 0
                   yldot(iv2) = nurlxu * nm(ix,ny,ifld) / fnorm(ifld) *
      .                           (up(ix,ny,ifld) - up(ix,ny+1,ifld))
-               elseif (isupwo(ifld)==3) then  # d(up)/dy = up/lyup
+               elseif (isupwoix(ix,ifld)==3) then  # d(up)/dy = up/lyup
                   yldot(iv2) = -nurlxu * nm(ix,ny,ifld) / fnorm(ifld) *
      .                             ( up(ix,ny+1,ifld) - up(ix,ny,ifld)*
      .                                (2*gyf(ix,ny)*lyup(2)-1)/
@@ -1219,23 +1219,23 @@ c     of the adjacent cells.
           do ix = i2, i5  # i2 and i5 limits omit the ix=0 and nx+1 corners
             if (isnionxy(ix,ny+1,iimp)==1) then
                iv = idxn(ix,ny+1,iimp)  
-               if (isnwcono(iimp) .eq. 0) then       #fix flux
+               if (isnwconoix(ix,iimp) .eq. 0) then       #fix flux
                   yldot(iv) = nurlxn *
      .                        (fniy(ix,ny,iimp) + fnzyso(ix,ifld)) /
      .                            (sy(ix,ny) * n0(iimp) * vpnorm)
-               elseif (isnwcono(iimp) .eq. 1) then   #set to nwallo
+               elseif (isnwconoix(ix,iimp) .eq. 1) then   #set to nwallo
                   yldot(iv) =nurlxn*(nwallo(ix) - ni(ix,ny+1,iimp))/
      .                                                      n0(iimp)
-               elseif (isnwcono(iimp) .eq. 2) then   #extrapolation
+               elseif (isnwconoix(ix,iimp) .eq. 2) then   #extrapolation
                   nbound = ni(ix,ny,iimp) + gyf(ix,ny-1)*
      .                      (ni(ix,ny,iimp)-ni(ix,ny-1,iimp))/gyf(ix,ny)
                   nbound = 1.2*nbound/( 1+0.5*exp( -2*(nbound/
      .                         ni(ix,ny,iimp)-1) ) ) + 0.2*ni(ix,ny,iimp)
                   yldot(iv) = nurlxn*(nbound - ni(ix,ny+1,iimp))/n0(iimp)
-               elseif (isnwcono(iimp) .eq. 3) then   #spec. gradient 
+               elseif (isnwconoix(ix,iimp) .eq. 3) then   #spec. gradient 
                   yldot(iv) = -nurlxn*( niy1(ix,ny,iimp) -
-     .              niy0(ix,ny,iimp)*(2*gyf(ix,ny)*lynix(2,ix,iimp)-1)/
-     .                               (2*gyf(ix,ny)*lynix(2,ix,iimp)+1) -
+     .              niy0(ix,ny,iimp)*(2*gyf(ix,ny)*lyniix(2,ix,iimp)-1)/
+     .                               (2*gyf(ix,ny)*lyniix(2,ix,iimp)+1) -
      .                         nwomin(iimp) ) / n0(iimp)
                endif
             endif       # end if for isnionxy
@@ -1270,21 +1270,21 @@ ccc  - - - - - - - - - - - - - -
          ix1 = ixm1(ix,ny+1)
          if(isteonxy(ix,ny+1) .eq. 1) then
            iv1 = idxte(ix,ny+1)
-           if (istewc .eq. 0) then       # fix flux to zero
+           if (istewcix(ix) .eq. 0) then       # fix flux to zero
              yldot(iv1) = nurlxe*(feey(ix,ny)/(n0(1)*vpnorm*sy(ix,ny)))
      .                                                      / (temp0*ev)
-           elseif (istewc .eq. 1) then   # set to tewallo
+           elseif (istewcix(ix) .eq. 1) then   # set to tewallo
              yldot(iv1) = nurlxe*(tewallo(ix)*ev-te(ix,ny+1))/(temp0*ev)
-           elseif (istewc .eq. 2) then   # extrapolation
+           elseif (istewcix(ix) .eq. 2) then   # extrapolation
              tbound = te(ix,ny) + gyf(ix,ny-1)*(te(ix,ny)-
      .                           te(ix,ny-1))/gyf(ix,ny)
              tbound = max(tbound, tbmin*ev)
              yldot(iv1) = nurlxe*(tbound - te(ix,ny+1)) / (temp0*ev) 
-           elseif (istewc .eq. 3) then   #spec. gradient 
+           elseif (istewcix(ix) .eq. 3) then   #spec. gradient 
              yldot(iv1) = nurlxe*( (te(ix,ny) - te(ix,ny+1)) -
      .                         0.5*(te(ix,ny) + te(ix,ny+1))/
-     .                           (gyf(ix,ny)*lytex(2,ix)) )/(temp0*ev)
-           elseif (istewc .eq. 4) then   #heat flux ~bcee*te*elec_flux
+     .                           (gyf(ix,ny)*lyteix(2,ix)) )/(temp0*ev)
+           elseif (istewcix(ix) .eq. 4) then   #heat flux ~bcee*te*elec_flux
              yldot(iv1) = nurlxe*( feey(ix,ny) - bceew*ne(ix,ny)*
      .                             vey(ix,ny)*sy(ix,ny)*te(ix,ny+1) )/
      .                                      (vpnorm*ennorm*sy(ix,ny))
@@ -1293,21 +1293,21 @@ ccc  - - - - - - - - - - - - - -
 
          if(istionxy(ix,ny+1) .eq. 1) then
            iv2 = idxti(ix,ny+1)
-           if (istiwc .eq. 0) then       # fix flux to zero
+           if (istiwcix(ix) .eq. 0) then       # fix flux to zero
              yldot(iv2) = nurlxi*(feiy(ix,ny)/(n0(1)*vpnorm*sy(ix,ny)))
      .                                                      / (temp0*ev)
-           elseif (istiwc .eq. 1) then   # set to tiwallo
+           elseif (istiwcix(ix) .eq. 1) then   # set to tiwallo
              yldot(iv2) = nurlxi*(tiwallo(ix)*ev-ti(ix,ny+1))/(temp0*ev)
-           elseif (istiwc .eq. 2) then   # extrapolation
+           elseif (istiwcix(ix) .eq. 2) then   # extrapolation
              tbound = ti(ix,ny) + gyf(ix,ny-1)*(ti(ix,ny)-
      .                           ti(ix,ny-1))/gyf(ix,ny)
              tbound = max(tbound, tbmin*ev)
              yldot(iv2) = nurlxi*(tbound - ti(ix,ny+1)) / (temp0*ev)
-           elseif (istiwc .eq. 3) then   #spec. gradient 
+           elseif (istiwcix(ix) .eq. 3) then   #spec. gradient 
              yldot(iv2) = nurlxi*( (ti(ix,ny) - ti(ix,ny+1)) -
      .                         0.5*(ti(ix,ny) + ti(ix,ny+1))/
-     .                            (gyf(ix,ny)*lytix(2,ix)) )/(temp0*ev)
-           elseif (istiwc .eq. 4) then   #heat flux ~bcei*ti*elec_flux
+     .                            (gyf(ix,ny)*lytiix(2,ix)) )/(temp0*ev)
+           elseif (istiwcix(ix) .eq. 4) then   #heat flux ~bcei*ti*elec_flux
              t0 = max(tg(ix,ny+1,1), temin*ev)
              fngyw=0.25*sqrt(8*t0/(pi*mg(1)))*ng(ix,ny,1)*sy(ix,ny)
              yldot(iv2) = nurlxi*( feiy(ix,ny) - bceiw*ne(ix,ny)*
@@ -1422,25 +1422,25 @@ ccc
 c... BC for neutral gas temperature/energy at iy=ny+1
           if (istgonxy(ix,ny+1,igsp) == 1) then
             iv = idxtg(ix,ny+1,igsp)
-            if (istgwc(igsp) == 0) then    # fixed Tg
+            if (istgwcix(ix,igsp) == 0) then    # fixed Tg
               yldot(iv) = nurlxg*(tgwall(igsp)*ev-tg(ix,ny+1,igsp))/
      .                                                    (temp0*ev)
-            elseif (istgwc(igsp) == 1)    # extrapolation
+            elseif (istgwcix(ix,igsp) == 1)    # extrapolation
               tbound = tg(ix,ny,igsp) + gyf(ix,ny)*
      .                     (tg(ix,ny,igsp)-tg(ix,ny-1,igsp))/gyf(ix,ny)
               tbound = max(tbound, 0.25*tbmin*ev)  #tbmin=.1 eV
               yldot(iv) = nurlxi *(tbound - tg(ix,ny+1,igsp))/(temp0*ev)
-            elseif (istgwc(igsp) == 2)    # specified gradient
+            elseif (istgwcix(ix,igsp) == 2)    # specified gradient
               yldot(iv) = nurlxi*( (tg(ix,ny,igsp) - tg(ix,ny+1,igsp)) -
      .                         0.5*(tg(ix,ny,igsp) + tg(ix,ny+1,igsp))/
      .                         (gyf(ix,ny)*lytg(2,igsp)) )/(temp0*ev)
-            elseif (istgwc(igsp) == 3)  #Maxwell thermal flux to wall
+            elseif (istgwcix(ix,igsp) == 3)  #Maxwell thermal flux to wall
               t0 = max(cdifg(igsp)*tg(ix,ny,igsp), temin*ev)
               vyn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
               yldot(iv) =  nurlxg*( fegy(ix,ny,igsp) - 2*cgengmw*
      .                              ng(ix,ny,igsp)*vyn*t0*sy(ix,ny) )/
      .                                      (sy(ix,ny)*vpnorm*ennorm)
-            elseif (istgwc(igsp) > 3)
+            elseif (istgwcix(ix,igsp) > 3)
                call xerrab("***Input error: invalid istgwc ***")
             endif
           endif
@@ -1454,16 +1454,16 @@ ccc  - - - - - - - - - - - -
          if(isphionxy(ix,ny+1) .eq. 1) then
             iv3 = idxphi(ix,ny+1)
 	    iv2 = idxphi(ix,ny)
-            if(iphibcwo == 0) then
+            if(iphibcwoix(ix) == 0) then
               yldot(iv3) = nurlxp*(phi(ix,ny) - phi(ix,ny+1))/temp0
-            elseif(iphibcwo == 1) then
+            elseif(iphibcwoix(ix) == 1) then
               yldot(iv3) = nurlxp*
      .               (phintewo*te(ix,ny+1)/ev - phi(ix,ny+1))/temp0
-	    elseif(iphibcwo == 3) then
+	    elseif(iphibcwoix(ix) == 3) then
               yldot(iv3) = nurlxp*( (phi(ix,ny) - phi(ix,ny+1)) -
      .                         0.5*(phi(ix,ny) + phi(ix,ny+1))/
-     .                            (gyf(ix,ny)*lyphix(2,ix)) )/temp0
-	    elseif(iphibcwo == 4) then  #fixed prof = phiwo
+     .                            (gyf(ix,ny)*lyphiix(2,ix)) )/temp0
+	    elseif(iphibcwoix(ix) == 4) then  #fixed prof = phiwo
               yldot(iv3) = nurlxp*(phiwo(ix) - phi(ix,ny+1))/temp0
 ccc              yldot(iv2) = nurlxp*(phiwo(ix) - phi(ix,ny))/temp0
             endif
@@ -1561,7 +1561,7 @@ CCC   isnewpot*isphion=1000, so one can generally ignore this if section)
             ix4 = ixm1(ix,ny-1)
             yldot(iv) = nurlxp*( (phi(ix,ny) - phi(ix,ny+1)) -
      .                         0.5*(phi(ix,ny) + phi(ix,ny+1))/
-     .                             (gyf(ix,ny)*lyphix(2,ix)) )/temp0
+     .                             (gyf(ix,ny)*lyphiix(2,ix)) )/temp0
             yldot(iv1) = -nurlxp*( phi(ix,ny) - phi(ix,ny+1) +
      .                           gyf(ix,ny-1)*(phi(ix,ny)-phi(ix,ny-1))/
      .                                                      gyf(ix,ny) )
