@@ -1379,7 +1379,7 @@ c ... add ion sputtering to gas BC
             fng_alb = (1-albedoo(ix,igsp))*nharmave*vyn*sy(ix,ny)
             yldot(iv) = nurlxg*( fngy(ix,ny,igsp) - fng_alb + fng_chem +
      .                                             sputflxw(ix,igsp) )
-     .                                      /(vyn*sy(ix,ny)* n0g(igsp))
+     .                                      /(vyn*sy(ix,ny)*n0g(igsp))
             if(matwallo(ix) .gt. 0) then
               if (recycwot(ix,igsp) .gt. 0.) then
 ccc
@@ -1447,6 +1447,7 @@ c... BC for neutral gas temperature/energy at iy=ny+1
 
         enddo  # igsp loop over gas species
       enddo  # ix-loop for ng and Tg
+
 
 ccc  Now do the potential
 ccc  - - - - - - - - - - - -
@@ -2956,8 +2957,8 @@ c...  Do boundary condition for impurities along ix=nxc
 
  194        continue
          endif
-      endif                  # end of ix = nxc b.c. for double null
-
+         endif                  # end of ix = nxc b.c. for double-null
+         
 cc    if (islimon .ne. 0) call subroutine limterbc  #to-be-done subroutine
 cc                                                  #to replace next
 c...############## Include bdry cond for limiter if present ##########
@@ -3190,12 +3191,14 @@ c...  Now do potential; start at iy=2 since 0,1 already set as core BCs
      .                                +phi(ix_lim,iy)) / temp0
               endif
             endif
-          enddo
-
+            enddo
+            
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c...  For flux tubes that do intersect physical limiter; iy>1 required
+c...  Limit iy< ny; avoids non-physical flux from double-guard-cell corner
+c...  Eq for iy=ny at ix=ix_lim,ix_lim+1 is at end;set Grad_y(Pg)=0
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-          do 197 iy = max(j2,iy_lims), j5  #iy loop around limiter
+          do 197 iy = max(j2,iy_lims), min(j5,ny-1)  #iy loop around limiter
 c...  Do the ion density on limiter
             do ifld = 1, nisp
               if(isnionxy(ix_lim,iy,ifld)*
@@ -3477,7 +3480,7 @@ cc ##########end of most limiter BC on right-side of limiter ###
  197        continue  #large loop for all iy on physical limiter
      
 c ... Do potential BC for the limiter surfaces
-            do iy = max(j2p,iy_lims), j5p
+            do iy = max(j2p,iy_lims), min(j5p,ny-1)
 	       if(isphionxy(ix_lim,iy)*isphionxy(ix_lim+1,iy)==1) then  
                   iv = idxphi(ix_lim,iy)
                   iv2 = idxphi(ix_lim+1,iy)
@@ -3488,16 +3491,17 @@ c ... Do potential BC for the limiter surfaces
                endif
             enddo 
 
-c ... Set the corner gas density cells at iy=ny+1 to avoid probs
+c ... Corner guard-cell reset: Grad(Pg)=0 at iy=ny face for fngy~0 there
+c ... Here normalize pressure by ev*n0g, implying Tg ~ 1 eV
 	    do igsp = 1, ngsp
               if(isngonxy(ix_lim,ny+1,igsp)*
      .                          isngonxy(ix_lim+1,ny+1,igsp)==1) then
 	        iv = idxg(ix_lim,ny+1,igsp)
 	        iv2 = idxg(ix_lim+1,ny+1,igsp)
-	        yldot(iv) = -nurlxg*(ng(ix_lim,ny+1,igsp)-
-     .                               ng(ix_lim,ny  ,igsp))/n0g(igsp)
-	        yldot(iv2) =-nurlxg*(ng(ix_lim+1,ny+1,igsp)-
-     .                               ng(ix_lim+1,ny  ,igsp))/n0g(igsp)
+	        yldot(iv) = -nurlxg*(pg(ix_lim,ny+1,igsp)-
+     .                         pg(ix_lim,ny,igsp))/(ev*n0g(igsp))
+	        yldot(iv2) =-nurlxg*(pg(ix_lim+1,ny+1,igsp)-
+     .                         pg(ix_lim+1,ny,igsp))/(ev*n0g(igsp))
               endif
             enddo
               

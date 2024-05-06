@@ -531,7 +531,7 @@ istepfc integer  /0/ +input  # switch for priv.-flux BC on Te
 istepfcix(0:nx+1) _integer #/(nx+2)*0/ +input  #pol depend BC for pf wall te if ispfbcvsix=1 
 istipfc integer  /0/ +input  #switch for priv.-flux To BC, see istepfc detail
 istipfcix(0:nx+1) _integer +input  #pol depend BC for pf wall ti if ispfbcvsix=1
-istgpfc integer /0/   +input #switch for PF BC on Tg(,0,igsp)
+istgpfc(ngspmx) integer /ngspmx*0/   +input #switch for PF BC on Tg(,0,igsp)
 	 		     # =0, set fixed temp to tgwall
 			     # =1, use extrapolation BC
 			     # =2, set Tg scale length to lytg(1,
@@ -548,19 +548,13 @@ tiwallo(0:nx+1) _real [eV] +input #/(nx+2)*0./
                              #outer wall Ti for istiwc=1.; = tedge if not set
 tgwall(ngspmx)   real [eV] /ngspmx*0.025/ +input #Wall gas temp BC
 lyte(1:2)  real /2*1e20/ [m] +input #decaying rad Te grad leng;(1,2) istepfc,wc=3
-##isulytex        integer /0/  +input #if=0, lytex filled with lyte
-                             #if=1, user values of lytex used
 lyteix(2,0:nx+1)    _real [m] +input # pol dep radial te grad length if set < 1e5
                              # istepfc,wc=3: 1:2=i:o, 2nd dim ix
 lyti(1:2)  real /2*1e20/ [m] +input #decaying rad Ti grad leng;(1,2) istipfc,wc=3
 lytg(1:2,ngspmx) real /12*1e20/ +input #rad tg scale length: PF (1,; Outer(2,
-##isulytix        integer /0/  +input #if=0, lytix filled with lyti
-                             #if=1, user values of lytex used
 lytiix(2,0:nx+1)    _real [m] +input # pol dep radial ti grad length if set < 1e5
                              # istipfc,wc=3: 1:2=i:o, 2nd dim ix
 lyphi(1:2) real /2*1e20/ [m] +input #decaying rad phi grad leng;(1,2) iphibcwi,o=3
-##isulyphix       integer /0/  +input #if=0, lyphix filled with lyphix
-                             #if=1, user values of lyphix used
 lyphiix(2,0:nx+1)   _real [m] +input # pol dep radial phi grad length if set < 1e5
                              # isphipfc,wc=3: 1:2=i:o, 2nd dim ix
 isextrnp  integer   /0/      +input #=1 sets extrap. b.c. at div. plate bound'y for ni
@@ -598,8 +592,6 @@ nwimin(nispmx)  real [m**-3] /nispmx*1e16/  +input # min inner wall dens if isnw
 nwomin(nispmx)  real [m**-3] /nispmx*1e16/  +input # min outer wall dens if isnwcono=3
 ncoremin(nispmx) real [m**-3] /nispmx*1e10/ +input # min ncore for isnicore=5
 lyni(2)         real [m]     /2*1e20/       +input #rad dens grad length -isnwconi,o=3
-##isulynix        integer      /0/            +input #if=0, lynix filled with lyni
-					    #if=1, user values of lynix used
 lyniix(2,0:nx+1,nisp) _real [m] +input # pol dep radial dens grad length if set < 1e5
 			         # isnwconi,o=3: 1:2=i:o, 2nd dim ix, 3rd spec
 lynicore(nispmx) real [m] /nispmx*1e20/     +input # ni core BC rad scale-length if

@@ -544,6 +544,9 @@ c...  arrays as set by the user after allocation
 
       integer ix,ifld,igsp
       
+c...  Need to allocate BC arrays with proper dimensions
+      call gchange("Bcond",0)
+
       if(ispfbcvsix == 0) then  #inner private-flux wall
 
         do ix = 0, nx+1
@@ -558,12 +561,12 @@ c...  arrays as set by the user after allocation
             isupwiix(ix,ifld) = isupwi(ifld)
             lyniix(1,ix,ifld) = lyni(1)
           enddo       
-          do ifld = 1, nusp
+          do ifld = 1, nisp
             isupwiix(ix,ifld) = isupwi(ifld)
             lyupix(1,ix,ifld) =lyup(1)
           enddo
           do igsp = 1, ngsp
-            istgpfcix(ix,igsp) = istgpfc
+            istgpfcix(ix,igsp) = istgpfc(igsp)
           enddo  
         enddo
         
@@ -584,7 +587,7 @@ c ..................
             isnwconoix(ix,ifld) = isnwcono(ifld)
             isupwoix(ix,ifld) = isupwo(ifld)
           enddo
-          do ifld = 1, nusp
+          do ifld = 1, nisp
             isupwoix(ix,ifld) = isupwo(ifld)
             lyupix(2,ix,ifld) =lyup(2)
           enddo
@@ -800,7 +803,7 @@ c-----------------------------------------------------------------------
       real ssmin, s2min
 
 *  -- local scalars --
-      integer i, iu, ir
+      integer i, iu, ir, irstart, irend
       integer ifld
       integer impflag
       real crni, ctemp, cj, zn_last, proffacx, proffacy, proffacv
@@ -1656,28 +1659,45 @@ c..   Continue ordering if double null or snowflake
           ixend(4) = ixrb(1)+1
           ixst(5) = ixlb(2) 
         endif  # remain indices are the same
-          ixend(5) = ixcut4
-          ixst(6) = ixcut4+1
-          ixend(6) = ixrb(2)+1
+        ixend(5) = ixcut4
+        ixst(6) = ixcut4+1
+        ixend(6) = ixrb(2)+1
       endif  # if-test on nxpt
+              
+c...  Set number of regions for interpolation; 3 for single null, 6
+c...  for double null, and 1 for core-only simulations
+      if (nysol(1) <= nyomitmx) then  #core only, no divertor legs
+         irstart = 2
+         irend = 2
+         ixst(2) = 1
+         ixsto(2) = 1
+         ixend(2) = ixend(2) - 1
+         ixendo(2) = ixendo(2) - 1
+      elseif (nxpt == 1) then  #single-null with SOL, divertor legs
+         irstart = 1
+         irend = 3
+      else   #must be double-null with nxpt=2
+          irstart = 1
+          irend = 6
+      endif
 
 c...  Construct first intermediate density grid, (xnrmox,ynrmox)
       call gchange("Interp",0)
-      do ir = 1, 3*nxpt
+      do ir = irstart, irend
         call grdintpy(ixst(ir),ixend(ir),ixsto(ir),ixendo(ir),
      .                0,ny+1,0,nyold+1,nx,ny,nxold,nyold,
      .                xnrm,ynrm,xnrmo,ynrmo,xnrmox,ynrmox,ixmg,iyomg)
       enddo
          
 c...  Construct second intermediate density grid, (xnrmnx,ynrmnx)
-      do ir = 1, 3*nxpt
+      do ir = irstart, irend
         call grdintpy(ixsto(ir),ixendo(ir),ixst(ir),ixend(ir),
      .                0,ny+1,0,ny+1,nxold,ny,nx,ny,
      .                xnrmox,ynrmox,xnrm,ynrm,xnrmnx,ynrmnx,ix2g,iy2g)
       enddo
 
 c...  Construct first intermediate velocity grid (xvnrmox,yvnrmnox)
-      do ir = 1, 3*nxpt
+      do ir = irstart, irend
         call grdintpy(ixst(ir),ixend(ir),ixsto(ir),ixendo(ir),
      .                0,ny+1,0,nyold+1,nx,ny,nxold,nyold,
      .                xvnrm,yvnrm,xvnrmo,yvnrmo,xvnrmox,yvnrmox,
@@ -1685,7 +1705,7 @@ c...  Construct first intermediate velocity grid (xvnrmox,yvnrmnox)
       enddo
 
 c...  Construct second intermediate velocity grid (xvnrmnx,yvnrmnx)
-      do ir = 1, 3*nxpt
+      do ir = irstart, irend
         call grdintpy(ixsto(ir),ixendo(ir),ixst(ir),ixend(ir),
      .                0,ny+1,0,ny+1,nxold,ny,nx,ny,
      .                xvnrmox,yvnrmox,xvnrm,yvnrm,xvnrmnx,yvnrmnx,
