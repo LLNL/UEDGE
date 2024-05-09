@@ -891,7 +891,7 @@ class UeRun():
                 print('++++++++++++++++++++++++++++++++++++++++')
                 print('Total runtime: {}'.format(timedelta(
                         seconds=round(time()-self.tstart))))
-                self.savesuccess('SUCCESS_{}.hdf5'.format(self.savedir))
+                self.savesuccess('{}/SUCCESS.hdf5'.format(self.savedir))
                 self.restorevalues()
                 return True
             else:

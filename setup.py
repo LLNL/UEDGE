@@ -12,10 +12,15 @@ import getopt
 import logging
 from subprocess import call
 import numpy
-from setuptools import Extension, setup, Distribution
-from setuptools.command.build import build
-from setuptools.command.develop import develop
-from setuptools.command.egg_info import egg_info
+try:
+    from setuptools import Extension, setup, Distribution
+    from setuptools.command.build import build
+#    from setuptools.command.develop import develop
+#    from setuptools.command.egg_info import egg_info
+except:
+    from distutils.core import Extension, setup
+    from distutils.dist import Distribution
+    from distutils.command.build import build
 os.environ['PATH'] += os.pathsep + site.USER_BASE + '/bin'
 
 
@@ -93,16 +98,16 @@ class uedgeClean(build):
                 raise SystemExit("Clean failure")
 
 
-class CustomDevelopCommand(develop):
-    def run(self):
-        print("Develop called")
-        develop.run(self)
+#class CustomDevelopCommand(develop):
+#    def run(self):
+#        print("Develop called")
+#        develop.run(self)
 
 
-class CustomEggInfoCommand(egg_info):
-    def run(self):
-        print("EggInfo called")
-        egg_info.run(self)
+#class CustomEggInfoCommand(egg_info):
+#    def run(self):
+#        print("EggInfo called")
+#        egg_info.run(self)
 
 uedgepkgs = ['aph', 'api', 'bbb', 'com', 'flx', 'grd', 'svr', 'wdf', 'ncl']
 
@@ -187,8 +192,8 @@ setup(
         cmdclass={
             'build': uedgeBuild, 
             'clean': uedgeClean,
-            'develop': CustomDevelopCommand,
-            'egg_info': CustomEggInfoCommand,
+#            'develop': CustomDevelopCommand,
+#            'egg_info': CustomEggInfoCommand,
         },
 #      test_suite="pytests",
 )
