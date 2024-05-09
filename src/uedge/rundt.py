@@ -1232,7 +1232,8 @@ class UeRun():
                         print('===== CONTINUATION SOLVE FAILED =====')
                         print('=====================================')
                         print('Last successful step for {}: {:.4e}'.format(\
-                            self.var, self.lastsuccess)
+                            str(list(self.var.keys())).replace('[','').replace(']',''), 
+                            self.lastsuccess)
                         )
                         return
                     # Start trying to reset convergence
