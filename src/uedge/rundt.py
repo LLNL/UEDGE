@@ -1258,6 +1258,7 @@ class UeRun():
                                 nstaticiter += 1
                             # Enter loop for time-dependent simulations
                             if (bbb.iterm != 1) or (dtcall is True) or (nstaticiter==staticiter_max):
+                                bbb.iterm = 0
                                 print('===== ENTER TIME-DEPENDENT SOLVE =====')
                                 if dtsolve(dtdeltafac) is False:
                                     return
