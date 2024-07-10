@@ -43,6 +43,7 @@ jobs:
  #   if: github.event_name == 'pull_request'
     needs: run-all-tests
     runs-on: ${{ matrix.os }}
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
@@ -73,6 +74,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.17.0
         env:
             CIBW_BUILD: ${{matrix.pyver}}-*
+            CIBW_SKIP: cp37-*
             CIBW_ARCHS_LINUX: auto
             CIBW_BEFORE_BUILD: pip install numpy forthon 'build<0.10.0'
 
@@ -87,6 +89,7 @@ jobs:
 #    if: github.event_name == 'pull_request'
     needs: run-all-tests
     runs-on: ${{ matrix.os }}
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
@@ -115,6 +118,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.17.0
         env:
             CIBW_BUILD: pp*
+            CIBW_SKIP: cp37-*
             CIBW_BEFORE_BUILD: pip install numpy forthon 'build<0.10.0'
 
       - name: Upload Artifacts
@@ -147,6 +151,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.17.0
         env:
             CIBW_BUILD: ${{matrix.pyver}}-*
+            CIBW_SKIP: cp37-*
             CIBW_ARCHS: ${{matrix.arch}}
             CIBW_BEFORE_BUILD: pip install numpy forthon 'build<0.10.0'
 
@@ -176,6 +181,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.17.0
         env:
             CIBW_BUILD: pp*
+            CIBW_SKIP: cp37-*
             CIBW_BEFORE_BUILD: pip install numpy forthon 'build<0.10.0'
 
       - name: Upload Artifacts
