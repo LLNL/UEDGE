@@ -129,6 +129,7 @@ jobs:
     if: false
 #    needs: run-all-tests
     runs-on: ubuntu-latest
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
@@ -160,6 +161,7 @@ jobs:
     if: false
 #    needs: run-all-tests
     runs-on: ubuntu-latest
+    continue-on-error: true
     strategy:
       fail-fast: false
 
