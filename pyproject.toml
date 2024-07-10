@@ -15,7 +15,7 @@ dependencies = [
     "forthon",
     "numpy<2; python_version>='3.9'",
 ]
-requires-python = ">= 3.7" # TODO: verify
+requires-python = ">= 3.8" # TODO: verify
 authors = [
   {name = "Tom Rognlien"}
 ]
