@@ -25,7 +25,7 @@ jobs:
         python -m pip install pytest-isolate pytest-xdist
     - name: Build UEDGE
       run: |
-        pip install .
+        python -m pip install .
     - name: Return to pytests branch
       uses: actions/checkout@v4
       with:
