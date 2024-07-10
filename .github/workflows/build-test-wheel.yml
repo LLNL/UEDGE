@@ -21,7 +21,7 @@ jobs:
     - name: Install pip dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install forthon numpy==1.26.4 h5py
+        python -m pip install forthon>=0.10.7 numpy==1.26.4 h5py
         python -m pip install flake8
         python -m pip install pytest-isolate pytest-xdist
     - name: Build UEDGE
@@ -43,11 +43,12 @@ jobs:
  #   if: github.event_name == 'pull_request'
     needs: run-all-tests
     runs-on: ${{ matrix.os }}
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-13, macos-14] 
-        pyver: [cp37, cp38, cp39, cp310, cp311, cp312]
+        pyver: [cp38, cp39, cp310, cp311, cp312]
 
     steps:
       - name: Checks out repo
@@ -73,8 +74,9 @@ jobs:
         uses: pypa/cibuildwheel@v2.17.0
         env:
             CIBW_BUILD: ${{matrix.pyver}}-*
+            CIBW_SKIP: "pp37-* cp37-* *-win32 *-manylinux_i686"
             CIBW_ARCHS_LINUX: auto
-            CIBW_BEFORE_BUILD: pip install numpy forthon 'build<0.10.0'
+            CIBW_BEFORE_BUILD: pip install numpy 'forthon>=0.10.7' 'build<0.10.0'
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -87,6 +89,7 @@ jobs:
 #    if: github.event_name == 'pull_request'
     needs: run-all-tests
     runs-on: ${{ matrix.os }}
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
@@ -115,7 +118,8 @@ jobs:
         uses: pypa/cibuildwheel@v2.17.0
         env:
             CIBW_BUILD: pp*
-            CIBW_BEFORE_BUILD: pip install numpy forthon 'build<0.10.0'
+            CIBW_SKIP: "pp37-* cp37-* *-win32 *-manylinux_i686"
+            CIBW_BEFORE_BUILD: pip install numpy 'forthon>=0.10.7' 'build<0.10.0'
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -129,10 +133,11 @@ jobs:
     if: false
 #    needs: run-all-tests
     runs-on: ubuntu-latest
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
-        pyver: [cp37, cp38, cp39, cp310, cp311, cp312]
+        pyver: [cp38, cp39, cp310, cp311, cp312]
         arch: [aarch64, ppc64le]
 
     steps:
@@ -146,8 +151,9 @@ jobs:
         uses: pypa/cibuildwheel@v2.17.0
         env:
             CIBW_BUILD: ${{matrix.pyver}}-*
+            IBW_SKIP: cp37-*
             CIBW_ARCHS: ${{matrix.arch}}
-            CIBW_BEFORE_BUILD: pip install numpy forthon 'build<0.10.0'
+            CIBW_BEFORE_BUILD: pip install numpy 'forthon>=0.10.7' 'build<0.10.0'
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -160,6 +166,7 @@ jobs:
     if: false
 #    needs: run-all-tests
     runs-on: ubuntu-latest
+    continue-on-error: true
     strategy:
       fail-fast: false
 
@@ -174,7 +181,8 @@ jobs:
         uses: pypa/cibuildwheel@v2.17.0
         env:
             CIBW_BUILD: pp*
-            CIBW_BEFORE_BUILD: pip install numpy forthon 'build<0.10.0'
+            CIBW_SKIP: "pp37-* cp37-* *-win32 *-manylinux_i686"
+            CIBW_BEFORE_BUILD: pip install numpy 'forthon>=0.10.7' 'build<0.10.0'
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4

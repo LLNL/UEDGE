@@ -1,8 +1,8 @@
 [build-system]
 requires = [
         "setuptools >= 61.0", 
-        "forthon", 
-        "numpy<2; python_version>='3.9'"
+        "forthon>=0.10.7", 
+        "numpy"
     ]
 build-backend = "setuptools.build_meta"
 
@@ -12,8 +12,8 @@ dynamic = ["version"]
 #version = "8.1.0-beta.0"
 name = "uedge"
 dependencies = [
-    "forthon",
-    "numpy<2; python_version>='3.9'",
+    "forthon>=0.10.7",
+    "numpy"
 ]
 requires-python = ">= 3.7" # TODO: verify
 authors = [
