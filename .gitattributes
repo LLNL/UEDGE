@@ -1,0 +1,3 @@
+.github/workflows/build-test-wheel.yml merge=ours
+src/uedge/VERSION merge=ours
+
