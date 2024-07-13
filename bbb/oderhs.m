@@ -571,7 +571,7 @@ c    yldot is the RHS of ODE solver or RHS=0 for Newton solver (NKSOL)
      .     zeffave, noavex, noavey, tiavey, tgavey, psordisold, 
      .     nucxiold(nigmx), nueliold(nigmx), nuelgold(nigmx), rrfac, visxtmp,
      .     vttn, vttp, neavex, pwrebkgold, pwribkgold, feexflr, feixflr,
-     .     naavex,naavey,nuelmolx,nuelmoly,fniycboave, sycore
+     .     naavex,naavey,nuelmolx,nuelmoly,fniycboave, corecells, sycore
       real fqpo, fqpom, friceo, friceom, upeo, upeom, fricio(100), 
      .     friciom(100), upio(100), upiom(100), uupo(100), uupom(100)
       real nevol, ngvol, kionz, krecz, kcxrz, kionm, krecm, kcxrm, nzbg,
@@ -3355,7 +3355,15 @@ c ... Normalize core flux to zero to avoid introducing artifical core source/sin
             do ix = ixpt1(1)+1, ixpt2(1)
               fniycboave = fniycboave + fniycbo(ix, ifld)
             end do
-            fniycboave = fniycboave / (ixpt2(1) - ixpt1(1))
+            corecells =  (ixpt2(1) - ixpt1(1))
+            if (geometry == 'dnull') then
+                do ix = ixpt1(2)+1, ixpt2(2)
+                  fniycboave = fniycboave + fniycbo(ix, ifld)
+                end do
+                corecells =  corecells + (ixpt2(2) - ixpt1(2))
+            end if 
+c ... TODO: Add double-null fix here (now only does one half-mesh...)            
+            fniycboave = fniycboave / corecells
             do ix = ixpt1(1)+1, ixpt2(1)
               fniycbo(ix, ifld) = fniycbo(ix, ifld) - isfniycbozero(ifld)*fniycboave
             end do
@@ -3363,6 +3371,11 @@ c ... Normalize core flux to zero to avoid introducing artifical core source/sin
             do ix = ixpt1(1)+1, ixpt2(1)
               fniycbo(ix, ifld) = 0
             end do
+            if (geometry == 'dnull') then
+                do ix = ixpt1(2)+1, ixpt2(2)
+                  fniycbo(ix, ifld) = 0
+                end do
+            end if
           end if
       end do
              
