@@ -540,6 +540,7 @@ c...  arrays as set by the user after allocation
                     # isnioffxy,isupoffxy,isngoffxy,isteoffxy,istioffxy,isphioffxy
 #      Use(Math_problem_size)   # neqmx
 #      Use(Lsode)    # neq
+      Use(Parallv)    # neq
 #      Use(Indices_domain_dcl)  # ixmxbcl,ixmnbcl,iymxbcl,iymnbcl
 
       integer ix,ifld,igsp
