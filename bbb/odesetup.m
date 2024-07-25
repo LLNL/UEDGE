@@ -138,6 +138,10 @@ c----------------------------------------------------------------------c
                ixpt1(1) = (nxm - ixpt2(1))/2
                ixpt2(1) = (nxm + ixpt2(1))/2
             endif
+            if (nyomitmx >= nysol(igrid)+nyout(1)) then
+               ixmnbcl = 0
+               ixmxbcl = 0
+            endif
 c----------------------------------------------------------------------c
          endif	# end if-test on mhdgeo
 c----------------------------------------------------------------------c
@@ -540,7 +544,7 @@ c...  arrays as set by the user after allocation
                     # isnioffxy,isupoffxy,isngoffxy,isteoffxy,istioffxy,isphioffxy
 #      Use(Math_problem_size)   # neqmx
 #      Use(Lsode)    # neq
-      Use(Parallv)    # neq
+##      Use(Parallv)    # neq
 #      Use(Indices_domain_dcl)  # ixmxbcl,ixmnbcl,iymxbcl,iymnbcl
 
       integer ix,ifld,igsp
@@ -1771,6 +1775,9 @@ c...  Reset gas density to minimum if too small or negative
       endif          # end of very-large 2-branch-if: (1), same mesh size
                      # or (2), index-based interp with isnintp=1 
 
+      if (nyomitmx >= nysol(1)+nyout(1)) then
+        call filldead_guardcells
+      endif
 c...  Check if any ion density is zero
       do ifld = 1, nisp
         do iy = 0, ny+1
@@ -1856,6 +1863,11 @@ c...  Set boundary conditions for ni and Te,i on walls if end-element zero
       if (tewallo(nx+1).lt.1.e-10) call sfill (nx+2,tedge,tewallo(0:),1)
       if (tiwallo(nx+1).lt.1.e-10) call sfill (nx+2,tedge,tiwallo(0:),1)
 
+c...  Initialize dead pol guard cells if core-only simulation
+      if (nyomitmx >= nysol(1)+nyout(1)) then
+        call filldead_guardcells
+      endif
+         
       call convert
       if (svrpkg.eq.'daspk') then
 	 call pandf1(-1,-1,0,ipar(1),tv,yl,yldot)
