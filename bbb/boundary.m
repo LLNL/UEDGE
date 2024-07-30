@@ -815,7 +815,7 @@ c... BC for neutral gas temperature/energy at iy=0
                 yldot(iv) =  -nurlxg*( fegy(ix,0,igsp) + 2*cgengmw*
      .                               ng(ix,1,igsp)*vyn*t0*sy(ix,0) )/
      .                                     (sy(ix,0)*vpnorm*ennorm)
-              elseif (istgpfcix(igsp) == 4) 
+              elseif (istgpfcix(ix,igsp) == 4) 
         	t0 = max(tg(ix,0,igsp),tgmin*ev)
                 vyn = sqrt( 0.5*t0/(pi*mg(igsp)) )
                 nharmave = 2.*(ng(ix,0,igsp)*ng(ix,1,igsp)) /
@@ -1483,7 +1483,7 @@ c... BC for neutral gas temperature/energy at iy=ny+1
               yldot(iv) =  nurlxg*( fegy(ix,ny,igsp) - 2*cgengmw*
      .                              ng(ix,ny,igsp)*vyn*t0*sy(ix,ny) )/
      .                                      (sy(ix,ny)*vpnorm*ennorm)
-            elseif (istgwcix(igsp) == 4) 
+            elseif (istgwcix(ix,igsp) == 4) 
 	      t0 = max(tg(ix,ny+1,igsp),tgmin*ev)
               vyn = sqrt( 0.5*t0/(pi*mg(igsp)) )
               nharmave = 2.*(ng(ix,ny,igsp)*ng(ix,ny+1,igsp)) /
@@ -1509,7 +1509,7 @@ c... BC for neutral gas temperature/energy at iy=ny+1
 	          elseif (istgwc(igsp) == 5) then    # set tg=ti*cftgtiwc
               yldot(iv) = nurlxg*(ti(ix,ny+1)*cftgtiwc(igsp) -
      .                                   tg(ix,ny+1,igsp))/(temp0*ev)
-            elseif (istgwcix(igsp) > 5)
+            elseif (istgwcix(ix,igsp) > 5)
                call xerrab("***Input error: invalid istgwc ***")
             endif
           endif
