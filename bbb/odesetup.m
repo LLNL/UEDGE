@@ -437,12 +437,14 @@ ccc         call gallot("Jacobian_part",0)
 
 *  -- Allocation of the different common blocks
       if (newgeo .eq. 1) then
+        if (manualgrid == 0) then
          call gallot("Comgeo",0)
          call gallot("Noggeo",0)
          call gallot("RZ_grid_info",0)
          call gallot("RZ_cell_info",0)
          call gallot("Bfield",0)
          call gallot("Linkbbb",0)
+        endif
       endif
       if (isddcon .eq. 1) call gallot("Indices_domain_dcl",0)
       if (isallloc .eq. 0) then
@@ -6596,7 +6598,7 @@ c ---------------------------------------------------------------------c
       Use(Math_problem_size)   # neqmx(for arrays not used here)
       Use(UEpar)    # cnurn,cnuru,cnure,cnuri,cnurg,cnurp,
                     # nurlxn,nurlxu,nurlxe,nurlxi,nurlxg,nurlxp,
-                    # label,svrpkg
+                    # label,svrpkg, istgon
       Use(Ident_vars)          # uedge_ver
       Use(Lsode)    # iterm,icntnunk
       Use(Grid)     # ngrid,inewton,imeth,nurlx,ijac,ijactot
@@ -6609,7 +6611,8 @@ c ---------------------------------------------------------------------c
       Use(Npes_mpi)            # npes,mype,ispmion
       Use(UEint)               # isallloc
       Use(Rccoef)              # isoutwall
-      Use(Coefeq)              # oldseec, override
+      Use(Coefeq)              # oldseec, override, cftiexclg
+      Use(Flags)               # iprint
 c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
 
       integer ifake  #forces Forthon scripts to put implicit none above here
@@ -6634,7 +6637,7 @@ c_mpi         call MPI_BARRIER(uedgeComm, ierr)
            ifexmain = 1
            call allocate
            ifexmain = 0
-	   if (icall == 0) write(*,*) 'UEDGE ',uedge_ver
+	   if ((icall == 0) .and. (iprint .ne. 0)) write(*,*) 'UEDGE ',uedge_ver
            icall = 1
          elseif (ismpion.eq.1 .and. icall==0) then
            call init_pll
@@ -6643,7 +6646,16 @@ c_mpi         call MPI_BARRIER(uedgeComm, ierr)
          endif
 
 c   Check model switches for UEDGE updates/bugs
+      if (isoldalbarea .ne. 0) then
+            write(*,*) "           **** WARNING ****"
+            write(*,*) "Switch isoldalbarea > 0 is deprecated and should not"
+            write(*,*) "be used. The option isoldalbarea > 0 will be removed" 
+            write(*,*) "from future versions of UEDGE."
+            write(*,*) "Please set isoldalbarea = 0 "
+      endif
       if (oldseec .gt. 0) then
+            write(*,*) ""
+            write(*,*) ""
             write(*,*) "        **** WARNING ****"
             write(*,*) "Using old, deprecated seec model"
             write(*,*) "Set switch oldseec = 0 to use new model "
@@ -6651,25 +6663,45 @@ c   Check model switches for UEDGE updates/bugs
             write(*,*) "future versions of UEDGE"
             write(*,*) "Please set oldseec = 0 "
             write(*,*) ""
-            if (override .eq. 0) then
-                write(*,*) "To use the deprecated model oldseec = 1, manually"
-                write(*,*) "override the settings by using override=1"
-                call xerrab("Error: oldseec=1 used without override=1")
-            endif
       endif
       if (jhswitch .gt. 0) then
+            write(*,*) ""
+            write(*,*) ""
             write(*,*) "           **** WARNING ****"
             write(*,*) "Switch jhswitch > 0 is deprecated and should not"
             write(*,*) "be used. The option jhswitch > 0 will be removed" 
             write(*,*) "from future versions of UEDGE."
             write(*,*) "Please set jhswitch = 0 "
             write(*,*) ""
-            if (override .eq. 0) then
-                write(*,*) "To use the deprecated model jhswitch > 0, manually"
-                write(*,*) "override the settings by using override=1"
-                call xerrab("Error: jhswitch>0 used without override=1")
-            endif
       endif
+      if ((cftiexclg .gt. 1e-10) .and. (istgon(1) .eq. 1)) then
+            write(*,*) ""
+            write(*,*) ""
+            write(*,*) "           **** WARNING ****"
+            write(*,*) "The gas equation (istgon) for atoms is turned on"
+            write(*,*) "while the switch cftiexclg>0, which accounts for"
+            write(*,*) "the atomic energy in the ion energy equation, "
+            write(*,*) "resulting in double-accounting for the atomic"
+            write(*,*) "energy. "
+            write(*,*) ""
+            write(*,*) "Please change cftiexclg=0 when using istgon for"
+            write(*,*) "atoms. (The scale factor can be changed gradually)."
+            write(*,*) ""
+      else if ((cftiexclg .ne. 1.0) .and. (istgon(1) .eq. 0)) then
+            write(*,*) ""
+            write(*,*) ""
+            write(*,*) "           **** WARNING ****"
+            write(*,*) "The gas equation (istgon) for atoms is turned off"
+            write(*,*) "while the switch cftiexclg!=0, which accounts for"
+            write(*,*) "the atomic energy in the ion energy equation, "
+            write(*,*) "resulting in a discrepancy for the atomic"
+            write(*,*) "energy. "
+            write(*,*) ""
+            write(*,*) "Please change cftiexclg=1 when not using a separate"
+            write(*,*) "atom energy equation. "
+            write(*,*) ""
+      endif
+
 
 
 
@@ -6732,7 +6764,7 @@ c ...    If a parallel run, send and gather data to PE0 first
                   call comp_vertex_vals  # gen plasma/neut values at rm,zm(,,4)
                endif
             endif
-         write(6,*) "Interpolants created; mype =", mype
+        if (iprint .ne. 0) write(6,*) "Interpolants created; mype =", mype
          endif
 
   100 continue

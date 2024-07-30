@@ -8,18 +8,12 @@ MYPYTHON = python3
 FORTHON = Forthon3
 BUILDBASE = -v --build-base $(BUILDDIR)
 INSTALLARGS = --pkgbase uedge $(BUILDBASE) 
-##MYPYTHON = /home1/rognlien/Python2/Python-2.4.2/python
-
-# Following 2 variables set in Makefile.PETSc, if used (if unset, ignored)
-# SETUPOPTS =
-# PETSC-UEDGE =
-# PETSC-COM =
 
 all: mppl2f90 $(BUILDDIR)/compydep $(BUILDDIR)/grdpydep $(BUILDDIR)/flxpydep $(BUILDDIR)/bbbpydep $(BUILDDIR)/svrpydep $(BUILDDIR)/wdfpydep $(BUILDDIR)/aphpydep $(BUILDDIR)/apipydep $(BUILDDIR)/nclpydep
 	rm -f uedgeC.so
 
 mppl2f90:
-	(export PYTHONPATH=.:./pyscripts; $(MYPYTHON) convertor)
+	(export PYTHONPATH=.:./buildscripts; $(MYPYTHON) convertor)
 
 $(BUILDDIR)/compydep: com/blasext.F com/brent.F com/comutil.F com/misc.F com/mnbrak.F com/dsum.f com/dummy_py.f com/error.f com/getmsg.f com/ssum.f com/$(PETSC-COM) com/com.v
 	$(FORTHON) -a $(INSTALLARGS) -a $(FCOMP) $(DEBUG) --interfacefile com/com.v -f com/blasext.F com com/brent.F com/comutil.F com/misc.F com/mnbrak.F com/dsum.f com/dummy_py.f com/error.f com/getmsg.f com/ssum.f $(PETSC-COM)
@@ -77,7 +71,6 @@ clean:
 #--- Build command for opendx wrapper.
 DX: pyDXObject.c
 	$(MYPYTHON) DXsetup.py build --build-platlib .
-	#cp pyDXObject.so /home/dave/scriptsnew
 
 #----------------------------------------------------------------------------
 
