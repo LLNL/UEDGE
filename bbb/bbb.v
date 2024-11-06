@@ -1781,55 +1781,55 @@ spfwallr(0:nx+1,nxpt)   _real [W/m**2]#radiation pwr flux to PF wall
 
 ***** Volsrc:
 #Parameters for volume particle, mom. & power sources for electrons and ions
-pwrsore(0:nx+1,0:ny+1) _real [W]       +maybeinput #power src into electrons in cell ix,iy
-pwrsori(0:nx+1,0:ny+1) _real [W]       +maybeinput #power src into ions in cell ix,iy
-volpsor(0:nx+1,0:ny+1,1:nisp) _real [1/s]+maybeinput #current src into ions in cell ix,iy
-volmsor(0:nx+1,0:ny+1,1:nisp) _real [kg m/s**2] +maybeinput #up mom src in cell ix,iy
-voljcsor(0:nx+1,0:ny+1) _real [A]      +maybeinput #uniform core-region curr sor. in ix,iy
-volpsorg(0:nx+1,0:ny+1,1:ngsp) _real [1/s]+maybeinput #curr source for gas in cell ix,iy
-pondpot(0:nx+1,0:ny+1)  _real [V] /0./ +maybeinput #elec ponderomotive potential
-psgov_use(0:nx+1,0:ny+1,1:ngsp) _real [1/m**3 s]+maybeinput #user-specified gas source
-jcvsor                  real [A]  /0./ +maybeinput #total core-region current for voljcsor
-ix_sjcsor	        integer   /0/  +maybeinput #if nonzero, beginning ix for voljcsor
-ix_ejcsor	        integer   /0/  +maybeinput #if nonzero, ending ix for voljcsor
-iy_sjcsor	        integer   /0/  +maybeinput #if nonzero, beginning iy for voljcsor
-iy_ejcsor	        integer   /0/  +maybeinput #if nonzero, ending iy for voljcsor
-pvole                   real [W]  /0./ +maybeinput #total power into electrons
-pvoli                   real [W]  /0./ +maybeinput #total power into ions
-z0pe                    real [m]  /0./ +maybeinput #axial or x loc. of elec. power profile
-z0pi                    real [m]  /0./ +maybeinput #axial or x loc. of ion power profile
-r0pe                    real [m]  /0./ +maybeinput #radial or y loc. of elec. power profile
-r0pi                    real [m]  /0./ +maybeinput #radial or y loc. of ion power profile
-zwpe                    real [m] /3./  +maybeinput #axial or x Gauss. 1/2 width of e-power
-zwpi                    real [m] /3./  +maybeinput #axial or y Gaussian 1/2 width ion power
-rwpe                    real [m] /.05/ +maybeinput #rad. or x Gaussian 1/2 width e-power
-rwpi                    real [m] /.05/ +maybeinput #rad. or y Gaussian 1/2 width ion power
-ivolcur(1:nisp)        _real [A]  /0./ +maybeinput #total volume current
-mvolcur(1:nisp)        _real [kgA m/s] /0./ +maybeinput #total volume parallel mom. curr.
-z0ni                    real [m]  /0./ +maybeinput #axial or x loc. of ion particle profile
-r0ni                    real [m]  /0./ +maybeinput #rad. or y loc. of ion particle profile
-zwni                    real [m] /3./  +maybeinput #axial or y Gaussian 1/2 width ion prtcl
-rwni                    real [m] /.05/ +maybeinput #rad. or y Gaussian 1/2 width ion prtcl
-z0up                    real [m]  /0./ +maybeinput #axial or x loc. of ion mom. profile
-r0up                    real [m]  /0./ +maybeinput #rad. or y loc. of ion mom. profile
-zwup                    real [m] /3./  +maybeinput #axial or y Gaussian 1/2 width ion mom.
-rwup                    real [m] /.05/ +maybeinput #rad. or y Gaussian 1/2 width ion mom.
-ponderompot             real [V] /0./  +maybeinput #peak elec ponderomotive potential
-z0pondp                 real [m]  /0./ +maybeinput #axial or x loc. of ion mom. profile
-r0pondp                 real [m]  /0./ +maybeinput #rad. or y loc. of ion mom. profile
-zwpondp                 real [m] /3./  +maybeinput #axial or y Gaussian 1/2 width ion mom.
-rwpondp                 real [m] /.05/ +maybeinput #rad. or y Gaussian 1/2 width ion mom.
-thetarot		real [rad]/0./ +maybeinput #rotation angle for R,Z with effec. R,Z
+pwrsore(0:nx+1,0:ny+1) _real [W]       +input #power src into electrons in cell ix,iy
+pwrsori(0:nx+1,0:ny+1) _real [W]       +input #power src into ions in cell ix,iy
+volpsor(0:nx+1,0:ny+1,1:nisp) _real [1/s]+input #current src into ions in cell ix,iy
+volmsor(0:nx+1,0:ny+1,1:nisp) _real [kg m/s**2] +input #up mom src in cell ix,iy
+voljcsor(0:nx+1,0:ny+1) _real [A]      +input #uniform core-region curr sor. in ix,iy
+volpsorg(0:nx+1,0:ny+1,1:ngsp) _real [1/s]+input #curr source for gas in cell ix,iy
+pondpot(0:nx+1,0:ny+1)  _real [V] /0./ +input #elec ponderomotive potential
+psgov_use(0:nx+1,0:ny+1,1:ngsp) _real [1/m**3 s]+input #user-specified gas source
+jcvsor                  real [A]  /0./ +input #total core-region current for voljcsor
+ix_sjcsor	        integer   /0/  +input #if nonzero, beginning ix for voljcsor
+ix_ejcsor	        integer   /0/  +input #if nonzero, ending ix for voljcsor
+iy_sjcsor	        integer   /0/  +input #if nonzero, beginning iy for voljcsor
+iy_ejcsor	        integer   /0/  +input #if nonzero, ending iy for voljcsor
+pvole                   real [W]  /0./ +input #total power into electrons
+pvoli                   real [W]  /0./ +input #total power into ions
+z0pe                    real [m]  /0./ +input #axial or x loc. of elec. power profile
+z0pi                    real [m]  /0./ +input #axial or x loc. of ion power profile
+r0pe                    real [m]  /0./ +input #radial or y loc. of elec. power profile
+r0pi                    real [m]  /0./ +input #radial or y loc. of ion power profile
+zwpe                    real [m] /3./  +input #axial or x Gauss. 1/2 width of e-power
+zwpi                    real [m] /3./  +input #axial or y Gaussian 1/2 width ion power
+rwpe                    real [m] /.05/ +input #rad. or x Gaussian 1/2 width e-power
+rwpi                    real [m] /.05/ +input #rad. or y Gaussian 1/2 width ion power
+ivolcur(1:nisp)        _real [A]  /0./ +input #total volume current
+mvolcur(1:nisp)        _real [kgA m/s] /0./ +input #total volume parallel mom. curr.
+z0ni                    real [m]  /0./ +input #axial or x loc. of ion particle profile
+r0ni                    real [m]  /0./ +input #rad. or y loc. of ion particle profile
+zwni                    real [m] /3./  +input #axial or y Gaussian 1/2 width ion prtcl
+rwni                    real [m] /.05/ +input #rad. or y Gaussian 1/2 width ion prtcl
+z0up                    real [m]  /0./ +input #axial or x loc. of ion mom. profile
+r0up                    real [m]  /0./ +input #rad. or y loc. of ion mom. profile
+zwup                    real [m] /3./  +input #axial or y Gaussian 1/2 width ion mom.
+rwup                    real [m] /.05/ +input #rad. or y Gaussian 1/2 width ion mom.
+ponderompot             real [V] /0./  +input #peak elec ponderomotive potential
+z0pondp                 real [m]  /0./ +input #axial or x loc. of ion mom. profile
+r0pondp                 real [m]  /0./ +input #rad. or y loc. of ion mom. profile
+zwpondp                 real [m] /3./  +input #axial or y Gaussian 1/2 width ion mom.
+rwpondp                 real [m] /.05/ +input #rad. or y Gaussian 1/2 width ion mom.
+thetarot		real [rad]/0./ +input #rotation angle for R,Z with effec. R,Z
 		                       # R_e= R0+(R-R0)cos(th)+(Z-Z0)sin(th),
 		                       # Z_e= Z0-(R-R0)sin(th)+(Z-Z0)cos(th),
-rcutmin			real [m] /0./  +maybeinput #source zero if R<rcutmin
-zcutmin			real [m] /0./ +maybeinput  #source zero if Z<zcutmin
+rcutmin			real [m] /0./  +input #source zero if R<rcutmin
+zcutmin			real [m] /0./ +input  #source zero if Z<zcutmin
 effvng(1:ngsp)	       _real [m] /0./  # normalizing factor of gas source; calc
-ivolcurg(1:ngsp)       _real [A] /0./  +maybeinput #tot. volumn gas source strength
-z0ng(1:ngsp)	       _real [m] /0./  +maybeinput #axial or x loc. of gas particle profile
-r0ng(1:ngsp)           _real [m] /0./  +maybeinput #rad. or y loc. of gas particle profile
-zwng(1:ngsp)           _real [m] /3./  +maybeinput #axial or y Gaussian 1/2 width gas prtcl
-rwng(1:ngsp)           _real [m] /.05/ +maybeinput #rad. or y Gaussian 1/2 width gas prtcl
+ivolcurg(1:ngsp)       _real [A] /0./  +input #tot. volumn gas source strength
+z0ng(1:ngsp)	       _real [m] /0./  +input #axial or x loc. of gas particle profile
+r0ng(1:ngsp)           _real [m] /0./  +input #rad. or y loc. of gas particle profile
+zwng(1:ngsp)           _real [m] /3./  +input #axial or y Gaussian 1/2 width gas prtcl
+rwng(1:ngsp)           _real [m] /.05/ +input #rad. or y Gaussian 1/2 width gas prtcl
 
 ***** Bfield:
 #Variables for the B-field and grad_B drift geo/B-field factors
@@ -3769,8 +3769,8 @@ isimpon                 integer   /0/ +input
                                #   see also isofric for full-Z drag term
                                # 7 for simultaneous fixed-fraction and
                                #       multi-charge-state (isimpon=6) models
-nusp_imp        integer  /0/   # fixes nusp for total num. of par. mom. eqns.
-isupimpap       integer  /1/   # =1 includes imp atm phys in up eqn; =0, omits
+nusp_imp        integer  /0/   +input # fixes nusp for total num. of par. mom. eqns.
+isupimpap       integer  /1/   +input # =1 includes imp atm phys in up eqn; =0, omits
 ismctab		integer		/1/	+input
 # Determines which data is used for multi-charge-state rates.
 #	=1  tables originally generated by R. Campbell for D. Knoll,
