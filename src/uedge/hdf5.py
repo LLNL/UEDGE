@@ -88,7 +88,7 @@ def hdf5_save(file, varlist=['bbb.ngs', 'bbb.ng',
                              'bbb.up', 'bbb.ups',
                              'bbb.tg', 'bbb.tgs',
                              'bbb.ev', 'bbb.prad',
-                             'bbb.pradhyd', 'bbb.tipers','com.nx',
+                             'bbb.pradhyd', 'com.nx',
                              'com.ny', 'com.rm', 'com.zm'],
               addvarlist=[]):
     """
@@ -103,6 +103,12 @@ def hdf5_save(file, varlist=['bbb.ngs', 'bbb.ng',
                to the default list in varlist. 
 
     """
+    try:
+        bbb.tipers
+        varlist.append('bbb.tipers')
+    except:
+        pass
+
     grps = {}
     vars = {}
     try:

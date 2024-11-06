@@ -803,6 +803,8 @@ class UeRun():
         dtlim=1e4,
         ii1max=150,
         saveres=7,
+        newgeo=False,
+        commands = [],
         **kwargs):
         """ Solves var up to target using continuation method
         var - string for variable, or nested dict of variables and targets
@@ -833,6 +835,7 @@ class UeRun():
         dtlim - Cutoff on (target-var)/delta for which a time-dependent run is triggered
         ii1max - maximum number of dt iterations to take
         saveres - how many successful iterations are allowed between saves are dumped
+        newgeo - UEDGE re-evaluates the grid if newgeo is True
         kwargs passed to rundt
         """
         from uedge import bbb
@@ -847,9 +850,11 @@ class UeRun():
 
         self.tstart = time()
         # ==== HELPERS ====
-        def changevar():
+        def changevar(commands=[]):
             """ Changes var by delta """
             setvar(min(self.lastsuccess + self.delta, 1))
+            for command in self.contsolvecommands:
+                exec(command)
            
         def setvar(value):
             """ Sets var to value """
@@ -886,13 +891,13 @@ class UeRun():
                 print('++++++++++++++++++++++++++++++++++++++++')
                 print('Total runtime: {}'.format(timedelta(
                         seconds=round(time()-self.tstart))))
-                self.savesuccess('SUCCESS_{}.hdf5'.format(self.savedir))
+                self.savesuccess('{}/SUCCESS.hdf5'.format(self.savedir))
                 self.restorevalues()
                 return True
             else:
                 if self.isave >= self.saveres:
                     self.isave = 0
-                    self.savesuccess(self.savefname.format('{:.3f}'.format(self.lastsuccess).replace('.','p')))
+                    self.savesuccess(self.savefname.format('{:.3f}'.format(100*self.lastsuccess).replace('.','p')))
                 else:
                     self.isave += 1
 
@@ -944,7 +949,7 @@ class UeRun():
                     bbb.sfscal[:bbb.neq])**2))**0.5
                 if bbb.dtreal > 1:
                     bbb.dtreal = 1e20
-                print('\n===== STATIC ITERATION AT DTREAL={:.2e} ====='.format(bbb.dtreal))
+                print('\n===== STATIC ITERATION FOR DTREAL={:.2e} AT {:.1f}% ====='.format(bbb.dtreal, self.lastsuccess*100))
                 bbb.ftol = max(min(bbb.ftol, 0.01*fnorm_old), 1e-9)
                 # Take a converging step
                 if self.exmain_isaborted():
@@ -965,7 +970,7 @@ class UeRun():
                     print('\n===== STATIC FNRM REDUCTION FAILED =====\n')
                     return False
             self.savesuccess(self.savefname.format('{:.3f}_staticiter'.format(\
-                    self.lastsuccess).replace('.','p')
+                    100*self.lastsuccess).replace('.','p')
                 ))
             print('===== CONVERGED AT STEADY STATE: RETURNING TO MAIN LOOP =====')
             bbb.dtreal = dtreal_orig
@@ -995,7 +1000,7 @@ class UeRun():
             # Ensure a first time-step can be taken
             dtdelta = self.lastsuccess + dtdeltafac/100
             while bbb.iterm != 1:
-                dtdelta = self.lastsuccess + dtdeltafac/100
+                dtdelta = min(self.lastsuccess + dtdeltafac/100, 1)
                 setvar(dtdelta)
                 if self.exmain_isaborted():
                     setvar(self.lastsuccess)
@@ -1010,7 +1015,7 @@ class UeRun():
             if abort is False:
                 self.converge(dtreal=dtreal, savedir='.', 
                     savefname=self.savefname.format('{:.3f}_dtrun'.format(\
-                    dtdelta).replace('.','p')).replace('.hdf5',''), 
+                    dtdelta*100).replace('.','p')).replace('.hdf5',''), 
                     message='Solving for delta={:.3f}%'.format(dtdelta*100),
                     ii1max=ii1max, **kwargs)
                 if bbb.iterm == 1:
@@ -1093,6 +1098,7 @@ class UeRun():
         self.isave = saveres
         self.saveres = saveres
         self.delta = 1/initres
+        self.contsolvecommands = commands
         self.lastsuccess = 0
 
         # Set up dictionary with variables and targets
@@ -1149,7 +1155,7 @@ class UeRun():
         # Record original solver settings            
         self.orig = {}
         for ovar in ['itermx', 'dtreal', 'icntnunk', 'ftol', 'incpset',
-            'ismmaxuc', 'mmaxu'        
+            'ismmaxuc', 'mmaxu', 'newgeo' 
         ]:
             self.orig[ovar] = deepcopy(getattr(bbb, ovar))
         # Take the initial time-step
@@ -1186,6 +1192,11 @@ class UeRun():
                     're-execute command', seppad='*')
                 return
         # Start outer loop
+
+        if newgeo is False:
+            bbb.newgeo = False
+
+        changevar()
         while True:
             # Ensure we don't exceed the target value
             # Re-eval preconditioner: omit first step
@@ -1221,7 +1232,8 @@ class UeRun():
                         print('===== CONTINUATION SOLVE FAILED =====')
                         print('=====================================')
                         print('Last successful step for {}: {:.4e}'.format(\
-                            self.var, self.lastsuccess)
+                            str(list(self.var.keys())).replace('[','').replace(']',''), 
+                            self.lastsuccess)
                         )
                         return
                     # Start trying to reset convergence
@@ -1246,6 +1258,7 @@ class UeRun():
                                 nstaticiter += 1
                             # Enter loop for time-dependent simulations
                             if (bbb.iterm != 1) or (dtcall is True) or (nstaticiter==staticiter_max):
+                                bbb.iterm = 0
                                 print('===== ENTER TIME-DEPENDENT SOLVE =====')
                                 if dtsolve(dtdeltafac) is False:
                                     return

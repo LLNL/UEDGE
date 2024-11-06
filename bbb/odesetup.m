@@ -427,12 +427,14 @@ ccc         call gallot("Jacobian_part",0)
 
 *  -- Allocation of the different common blocks
       if (newgeo .eq. 1) then
+        if (manualgrid == 0) then
          call gallot("Comgeo",0)
          call gallot("Noggeo",0)
          call gallot("RZ_grid_info",0)
          call gallot("RZ_cell_info",0)
          call gallot("Bfield",0)
          call gallot("Linkbbb",0)
+        endif
       endif
       if (isddcon .eq. 1) call gallot("Indices_domain_dcl",0)
       if (isallloc .eq. 0) then

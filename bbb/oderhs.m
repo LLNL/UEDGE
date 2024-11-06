@@ -571,7 +571,7 @@ c    yldot is the RHS of ODE solver or RHS=0 for Newton solver (NKSOL)
      .     zeffave, noavex, noavey, tiavey, tgavey, psordisold, 
      .     nucxiold(nigmx), nueliold(nigmx), nuelgold(nigmx), rrfac, visxtmp,
      .     vttn, vttp, neavex, pwrebkgold, pwribkgold, feexflr, feixflr,
-     .     naavex,naavey,nuelmolx,nuelmoly
+     .     naavex,naavey,nuelmolx,nuelmoly,fniycboave, corecells, sycore
       real fqpo, fqpom, friceo, friceom, upeo, upeom, fricio(100), 
      .     friciom(100), upio(100), upiom(100), uupo(100), uupom(100)
       real nevol, ngvol, kionz, krecz, kcxrz, kionm, krecm, kcxrm, nzbg,
@@ -605,7 +605,7 @@ c    yldot is the RHS of ODE solver or RHS=0 for Newton solver (NKSOL)
       integer impflag
       # former Aux module variables
       integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
-      real tv,t0,t1,t2,a
+      real tv,t0,t1,t2,a,t1old,t1new,t2old,t2new
 cnxg      data igs/1/
 
       Use(Dim)      # nx,ny,nhsp,nusp,nzspt,nzsp,nisp,ngsp,nxpt
@@ -2485,28 +2485,26 @@ c...  Force fluxes and gradients on cuts to be zero for half-space problems
             ix1 = ixm1(ix,iy)
             ix2 = ixp1(ix,iy)
             nexface = 0.5*(ne(ix2,iy)+ne(ix,iy))
-            if (oldseec .gt. 0) then
-                t1 =.5*cvgp*(upe(ix,iy)*rrv(ix,iy)*
-     .                  ave(gx(ix,iy),gx(ix2,iy))*gpex(ix,iy)/gxf(ix,iy) +
-     .                  upe(ix1,iy)*rrv(ix1,iy)*
-     .                  ave(gx(ix,iy),gx(ix1,iy))*gpex(ix1,iy)/gxf(ix1,iy) )
-                t2 = 1.e-20* 0.25*(fqp(ix,iy)+fqp(ix1,iy))*
-     .                  (ex(ix,iy)+ex(ix1,iy))/gx(ix,iy)
-                seec(ix,iy) = seec(ix,iy) + t1*vol(ix,iy) - t2
-            else
-                iyp1 = min(iy+1,ny+1)
-                iym1 = max(iy-1,0)
-                t1 = .5*cvgp*( vex(ix,iy)*
-     .                  ave(gx(ix,iy),gx(ix2,iy))*gpex(ix,iy)/gxf(ix,iy) +
-     .                  vex(ix1,iy)*
-     .                  ave(gx(ix,iy),gx(ix1,iy))*gpex(ix1,iy)/gxf(ix1,iy) )
-                t2 = .5*cvgp*( vey(ix,iy)*
-     .                  ave(gy(ix,iy),gy(ix,iyp1))*gpey(ix,iy)/gyf(ix,iy) +
-     .                  vey(ix,iy)*
-     .                  ave(gy(ix,iy),gy(ix,iym1))*gpey(ix,iym1)/gyf(ix,iym1)
+            t1old =.5*cvgp*(upe(ix,iy)*rrv(ix,iy)*
+     .          ave(gx(ix,iy),gx(ix2,iy))*gpex(ix,iy)/gxf(ix,iy) +
+     .          upe(ix1,iy)*rrv(ix1,iy)*
+     .          ave(gx(ix,iy),gx(ix1,iy))*gpex(ix1,iy)/gxf(ix1,iy) )
+            t2old = 1.e-20* 0.25*(fqp(ix,iy)+fqp(ix1,iy))*
+     .          (ex(ix,iy)+ex(ix1,iy))/gx(ix,iy)
+            iyp1 = min(iy+1,ny+1)
+            iym1 = max(iy-1,0)
+            t1new = .5*cvgp*( vex(ix,iy)*
+     .          ave(gx(ix,iy),gx(ix2,iy))*gpex(ix,iy)/gxf(ix,iy) +
+     .          vex(ix1,iy)*
+     .          ave(gx(ix,iy),gx(ix1,iy))*gpex(ix1,iy)/gxf(ix1,iy) )
+            t2new = .5*cvgp*( vey(ix,iy)*
+     .          ave(gy(ix,iy),gy(ix,iyp1))*gpey(ix,iy)/gyf(ix,iy) +
+     .          vey(ix,iy)*
+     .          ave(gy(ix,iy),gy(ix,iym1))*gpey(ix,iym1)/gyf(ix,iym1)
      .                                                            )
-                seec(ix,iy) = seec(ix,iy) + (t1+t2)*vol(ix,iy)
-            endif
+            seec(ix,iy) = seec(ix,iy)
+     .          + (t1old*vol(ix,iy) - t2old)*oldseec
+     .          + ((t1new+t2new)*vol(ix,iy))*(1-oldseec)
             if (nusp-isupgon(1).eq.1) smoc(ix,iy,1)=(( -cpgx*gpex(ix,iy)-
      .                   qe*nexface*gpondpotx(ix,iy) )*rrv(ix,iy)  +
      .                     pondomfpare_use(ix,iy) )*sx(ix,iy)/gxf(ix,iy)
@@ -3360,6 +3358,39 @@ c ... Setup a correction to surface-flux for grad_B and grad_P effects at iy=0
      .                            cfniydbo*(1-cfydd)*vycp(ix,0,ifld) )
          enddo
       enddo
+
+c ... Normalize core flux to zero to avoid introducing artifical core source/sink
+      do ifld = 1, nfsp
+          if (isfniycbozero(ifld) .gt. 0) then 
+            fniycboave = 0
+            sycore = 0
+            do ix = ixpt1(1)+1, ixpt2(1)
+              fniycboave = fniycboave + fniycbo(ix, ifld)
+            end do
+            corecells =  (ixpt2(1) - ixpt1(1))
+            if (geometry == 'dnull') then
+                do ix = ixpt1(2)+1, ixpt2(2)
+                  fniycboave = fniycboave + fniycbo(ix, ifld)
+                end do
+                corecells =  corecells + (ixpt2(2) - ixpt1(2))
+            end if 
+c ... TODO: Add double-null fix here (now only does one half-mesh...)            
+            fniycboave = fniycboave / corecells
+            do ix = ixpt1(1)+1, ixpt2(1)
+              fniycbo(ix, ifld) = fniycbo(ix, ifld) - isfniycbozero(ifld)*fniycboave
+            end do
+          else if (isfniycbozero(ifld) .lt. 0) then 
+            do ix = ixpt1(1)+1, ixpt2(1)
+              fniycbo(ix, ifld) = 0
+            end do
+            if (geometry == 'dnull') then
+                do ix = ixpt1(2)+1, ixpt2(2)
+                  fniycbo(ix, ifld) = 0
+                end do
+            end if
+          end if
+      end do
+             
 
 
 c----------------------------------------------------------------------c

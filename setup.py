@@ -10,29 +10,26 @@ import site
 from Forthon.compilers import FCompiler
 import getopt
 import logging
-
-version='8.0.6-beta.0'
-
+from subprocess import call
+import numpy
 try:
-    os.environ['PATH'] += os.pathsep + site.USER_BASE + '/bin'
-    import setuptools
-    import distutils
-    from distutils.core import setup
-    from distutils.core import Extension
+    from setuptools import Extension, setup, Distribution
+    from setuptools.command.build import build
+#    from setuptools.command.develop import develop
+#    from setuptools.command.egg_info import egg_info
+except:
+    from distutils.core import Extension, setup
     from distutils.dist import Distribution
     from distutils.command.build import build
-    from distutils.command.install import install
-    from subprocess import call
-    import numpy
-except:
-    raise SystemExit("Distutils problem")
+os.environ['PATH'] += os.pathsep + site.USER_BASE + '/bin'
 
-optlist, args = getopt.getopt(sys.argv[1:], 'gt:F:', ['parallel', 'petsc', 'omp'])
+
+optlist, args = getopt.getopt(sys.argv[1:], 'gt:F:', ['parallel', 'omp'])
 machine = sys.platform
 debug = 0
 fcomp = None
 parallel = 0
-petsc = 0
+#petsc = 0
 
 for o in optlist:
     if o[0] == '-g':
@@ -43,19 +40,19 @@ for o in optlist:
         fcomp = o[1]
     elif o[0] == '--parallel':
         parallel = 1
-    elif o[0] == '--petsc':
-        petsc = 1
+#    elif o[0] == '--petsc':
+#        petsc = 1
     elif o[0] == '--omp':
         os.putenv("OMP","1")
         
 
 
-if petsc == 1 and os.getenv('PETSC_DIR') == None:
-    raise SystemExit("PETSc requested but PETSC_DIR not set")
-if os.getenv('PETSC_DIR') != None:
-    petsc = 1
-if petsc == 1 and os.getenv('PETSC_ARCH') == None:
-    raise SystemExit("PETSc requested but PETSC_ARCH not set")
+#if petsc == 1 and os.getenv('PETSC_DIR') == None:
+#    raise SystemExit("PETSc requested but PETSC_DIR not set")
+#if os.getenv('PETSC_DIR') != None:
+#    petsc = 1
+#if petsc == 1 and os.getenv('PETSC_ARCH') == None:
+#    raise SystemExit("PETSc requested but PETSC_ARCH not set")
 
 
 sys.argv = ['setup2.py']+args
@@ -64,36 +61,53 @@ fcompiler = FCompiler(machine=machine,
                       fcompname=fcomp)
 
 
-class uedgeInstall(build):
-    def run(self):
-       install.run(self)
-       logging.basicConfig(stream=sys.stderr,level=logging.INFO)
-       log = logging.getLogger()
-       log.info("test")
+#class uedgeInstall(build):
+#    def run(self):
+#       install.run(self)
+#       logging.basicConfig(stream=sys.stderr,level=logging.INFO)
+#       log = logging.getLogger()
+#       log.info("test")
+
 class uedgeBuild(build):
     def run(self):
+        print("Building UEDGE...")
         # with python2 everything is put into a single uedgeC.so file
         if sys.hexversion < 0x03000000:
             raise SystemExit("Python versions < 3 not supported")
         else:
-            if petsc == 0:
-                status = call(['make', '-f','Makefile.Forthon'])
-            else:
-                status = call(['make', '-f', 'Makefile.PETSc'])
-            if status != 0: raise SystemExit("Build failure")
+#            if petsc == 0:
+            status = call(['make', '-f','Makefile.Forthon'])
+#            else:
+#                status = call(['make', '-f', 'Makefile.PETSc'])
+            if status != 0: 
+                raise SystemExit("Build failure")
             build.run(self)
 
 
 class uedgeClean(build):
     def run(self):
+        print("Cleaning UEDGE")
         if sys.hexversion < 0x03000000:
             raise SystemExit("Python versions < 3 not supported")
         else:
-            if petsc == 0:
-                status = call(['make', '-f', 'Makefile.Forthon', 'clean'])
-            else:
-                status = call(['make', '-f', 'Makefile.PETSc', 'clean'])
-            if status != 0: raise SystemExit("Clean failure")
+#            if petsc == 0:
+            status = call(['make', '-f', 'Makefile.Forthon', 'clean'])
+#            else:
+#                status = call(['make', '-f', 'Makefile.PETSc', 'clean'])
+            if status != 0: 
+                raise SystemExit("Clean failure")
+
+
+#class CustomDevelopCommand(develop):
+#    def run(self):
+#        print("Develop called")
+#        develop.run(self)
+
+
+#class CustomEggInfoCommand(egg_info):
+#    def run(self):
+#        print("EggInfo called")
+#        egg_info.run(self)
 
 uedgepkgs = ['aph', 'api', 'bbb', 'com', 'flx', 'grd', 'svr', 'wdf', 'ncl']
 
@@ -126,27 +140,27 @@ else:
     library_dirs = fcompiler.libdirs
     libraries = fcompiler.libs
 
-if petsc:
+#if petsc:
     # PETSC_DIR = '/homes/mccomic/petsc-uedge'
     # PETSC_ARCH = 'linux-uedge'
-    PETSC_DIR = os.getenv('PETSC_DIR')
-    PETSC_ARCH = os.getenv('PETSC_ARCH')
-    library_dirs = fcompiler.libdirs + \
-        [os.path.join(PETSC_DIR, PETSC_ARCH, 'lib')]
-    libraries = ['petscts', 'petscsnes', 'petscksp', 'petscdm', 'petscmat',
-                 'petscvec', 'petsc', 'HYPRE', 'mpich', 'lapack', 'blas', 'X11',
-                 'pthread', 'rt', 'stdc++', 'm'] + fcompiler.libs
-    libraries = ['petsc'] + fcompiler.libs
+#    PETSC_DIR = os.getenv('PETSC_DIR')
+#    PETSC_ARCH = os.getenv('PETSC_ARCH')
+#    library_dirs = fcompiler.libdirs + \
+#        [os.path.join(PETSC_DIR, PETSC_ARCH, 'lib')]
+#    libraries = ['petscts', 'petscsnes', 'petscksp', 'petscdm', 'petscmat',
+#                 'petscvec', 'petsc', 'HYPRE', 'mpich', 'lapack', 'blas', 'X11',
+#                 'pthread', 'rt', 'stdc++', 'm'] + fcompiler.libs
+#    libraries = ['petsc'] + fcompiler.libs
 
 if parallel:
     library_dirs = fcompiler.libdirs + ['/usr/lpp/ppe.poe/lib']
     libraries = fcompiler.libs + ['mpi']
     # uedgeobjects = uedgeobjects + ['/usr/local/mpi/ifc_farg.o']
 
-with open('pyscripts/__version__.py','w') as ff:
-    ff.write("__version__ = '%s'\n"%version)
-with open('pyscripts/__src__.py','w') as ff:
-    ff.write("__src__ = '%s'\n"%os.getcwd())
+#with open('pyscripts/__version__.py','w') as ff:
+#    ff.write("__version__ = '%s'\n"%version)
+#with open('pyscripts/__src__.py','w') as ff:
+#    ff.write("__src__ = '%s'\n"%os.getcwd())
 
 define_macros=[("WITH_NUMERIC", "0"),
                ("FORTHON_PKGNAME", '\"uedgeC\"'),
@@ -161,37 +175,25 @@ if rln == 0:
    libraries = ['readline'] + libraries
 
 
-setup(name="uedge",
-      version=version,
-      author='Tom Rognlien',
-      author_email="trognlien@llnl.gov",
-      maintainer='Bill Meyer',
-      maintainer_email='meyer8@llnl.gov',
-      description="2D Fluid simulation of plasma and neutrals in magnetic fusion devices",
-      platforms="Unix, Windows (cygwin), Mac OSX",
-      packages=['uedge'],
-      package_dir={'uedge': 'pyscripts'},
-      # include_package_data=True,
-      scripts=['pyscripts/pdb2hdf5', 'pyscripts/bas2py', 'pyscripts/hdf52pdb'],
-      ext_modules=[Extension('uedge.uedgeC',
-                             ['uedgeC_Forthon.c',
-                              os.path.join(builddir, 'Forthon.c'),
-                              'com/handlers.c', 'com/vector.c','bbb/exmain.c'],
-                             include_dirs=[builddir, numpy.get_include()],
-                             library_dirs=library_dirs,
-                             libraries=libraries,
-                             define_macros=define_macros,
-                             extra_objects=uedgeobjects,
-                             extra_link_args=['-g','-DFORTHON'] +
-                             fcompiler.extra_link_args,
-                             extra_compile_args=fcompiler.extra_compile_args
-                             )],
-
-      cmdclass={'build': uedgeBuild, 'clean': uedgeClean},
-      test_suite="pytests",
-      install_requires=['forthon'],
-      # note that include_dirs may have to be expanded in the line above
-      classifiers=['Programming Language :: Python',
-                   'Programming Language :: Python :: 3']
-
-      )
+setup(
+        ext_modules=[Extension('uedge.uedgeC',
+                            ['uedgeC_Forthon.c',
+                            os.path.join(builddir, 'Forthon.c'),
+                            'com/handlers.c', 'com/vector.c','bbb/exmain.c'],
+                            include_dirs=[builddir, numpy.get_include()],
+                            library_dirs=library_dirs,
+                            libraries=libraries,
+                            define_macros=define_macros,
+                            extra_objects=uedgeobjects,
+                            extra_link_args=['-g','-DFORTHON'] +
+                            fcompiler.extra_link_args,
+                            extra_compile_args=fcompiler.extra_compile_args
+                    )],
+        cmdclass={
+            'build': uedgeBuild, 
+            'clean': uedgeClean,
+#            'develop': CustomDevelopCommand,
+#            'egg_info': CustomEggInfoCommand,
+        },
+#      test_suite="pytests",
+)

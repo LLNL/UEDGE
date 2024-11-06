@@ -345,8 +345,7 @@ cfvgpy(1:nispmx) real /nispmx*1./ +input #Coefs for y components of v.grad(p) in
 cfbgt     real      /0./    +input #Coef for the B x Grad(T) terms.
 cfjhf     real      /1./    +input #Coef for convective cur (fqp) heat flow
 jhswitch  integer   /0/     +input #Coef for the Joule-heating terms
-oldseec   integer   /1/     +input #Switch for Joule-heating bugfix
-override  integer   /0/     +input #Switch to manually override checks on old models
+oldseec   real      /0./    +input #Switch for Joule-heating bugfix
 cf2ef     real      /0./    +input #Coef for ExB drift in 2-direction
 cfyef     real      /0./    +input #Coef for ExB drift in y-direction
 cftef     real      /0./    +input #Coef for ExB drift in toroidal direction
@@ -466,6 +465,11 @@ isnicore(nispmx)  integer   /1,30*0/      +input #switch for ion-density core B.
 				    #=4, use impur. source terms (impur only)
 				    #=5, set d(ni)/dy=-ni/lynicore at midp &
                                     #    ni constant poloidally
+isfniycbozero(nispmx)   real /nispmx*0./ +input # Switch for divergence-free fluxes on core boundary
+                    #=0, allows divergence-free fluxes to modify net core flux
+                    #=1, redistributes fluxes due to divergence-free term 
+                    #    without affecting the net core boundary flux
+                    #=-1,assumes no divergence-free fluxes on the core boundary
 isupcore(nispmx) integer /nispmx*0/ +input #=0 sets up=upcore on core bdry
 				    #=1 sets d(up)/dy=0 on the core bdry
 				    #=2 sets d^2(up)/dy^2 = 0
@@ -922,7 +926,7 @@ alblb(0:ny+1,ngspmx,nxptmx) _real        +input #inner plate albedo; used if <1 
 albrb(0:ny+1,ngspmx,nxptmx) _real        +input #outer plate albedo; used if <1 (calc)
 areapl          real   /0./ +work   # Work variable for plate projection area for 
                                     # albedo-like recycling
-isoldalbarea    real   /1./ +input # Switch whether to use old (wrong) albedo
+isoldalbarea    real   /0./ +input # Switch whether to use old (wrong) albedo
                                     # area which is perpendicular-to-poloidal flux
                                     # tube area (=1) or the correct area projected
                                     # onto the target plate (=0)
@@ -2924,7 +2928,7 @@ iwkd2(ndiagmx) _integer       # work array used by cdiagsrt
 #Auxiliary variables for Ueinit.
 GridFileName   character*200 /"gridue"/ +input
                               # name of Grid file to be read
-newgeo         integer   /1/  +input #flag to calculate new grid (1=yes)
+newgeo         integer   /1/  +setup #flag to calculate new grid (1=yes)
 mhdgeo         integer  /-1/  +input #flag for grid geometry
                               #mhdgeo =  2 ==> toroidal circular limiter
                               #mhdgeo =  1 ==> toroidal MHD equilibrium
@@ -2932,6 +2936,7 @@ mhdgeo         integer  /-1/  +input #flag for grid geometry
                               #mhdgeo = -1 ==> cartesian geometry
                               #mhdgeo = -2 ==> mag mirror (FRC-annulus)
 gengrid        integer   /1/  +input #flag to generate grid, else read from file GridFileName
+manualgrid     integer   /0/  +setup #flag whether to read grid values from gridue or memory
 isgindx        integer   /1/  #=1 for interpolating grid based on indices
 nfmax          integer   /10/
 restart        integer   /0/  +input #flag for restart from previous case(yes=1)
@@ -3207,6 +3212,7 @@ exmain                                           subroutine
 exmain_prelims                                   subroutine
 uedriv()                                         subroutine
 convert()                                        subroutine
+guardc()                                         subroutine
 convsr_vo(i,j,yl:real)                           subroutine
 	# in i
 	# in j
@@ -3987,4 +3993,10 @@ TotTimeNeudif real /0.0/
 Timefd2tra real /0.0/
 TotTimefd2tra real /0.0/
 PrintTimingPandf() subroutine
+
+
+**** Uetools:
+# Variables for explicit use by uetools
+dummy           real    /0./     # Dummy variable for testing etc.
+gridmorph       real    /0./     # Grid morphing factor to be used with UETOOLS 
 

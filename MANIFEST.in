@@ -1,7 +1,8 @@
 include *
 recursive-include  pyscripts *
-recursive-include  pytests *
-recursive-include  jupyter *
+#recursive-include  pytests *
+#recursive-include  jupyter *
+recursive-include  buildscripts *
 recursive-include  aph *
 recursive-include  api *
 recursive-include  bbb *
@@ -10,6 +11,7 @@ recursive-include  flx *
 recursive-include  grd *
 recursive-include  svr *
 recursive-include  wdf *
+recursive-include  ncl *
 #recursive-include  dst *
 #recursive-include  idf *
 #recursive-include  psi *
