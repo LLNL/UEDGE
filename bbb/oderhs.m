@@ -4617,13 +4617,13 @@ c              Ion energy source/sink from ioniz & recom
 
 c              Ion energy source from mol. diss
                seid(ix,iy) = cftiexclg * cfneut * cfneutsor_ei * cnsor
-     .              * (eion*ev + cfnidhdis*0.5*mg(1)*(upgcc*upgcc + vycc + v2cc) )
+     .              * (eion*ev + cfnidhdis*0.5*mg(1)*(upgcc**2 + vycc + v2cc) )
      .              * psordis(ix,iy) 
 
 c              Ion energy source from drift heating 
                seidh(ix,iy) = cfnidh2* 
      .              ( -mi(1)*up1cc*upgcc*(psor(ix,iy,1)+psicx(ix,iy))
-     .              + 0.5*mi(1)*up1cc*up1cc
+     .              + 0.5*mi(1)*up1cc**2
      .              * (psor(ix,iy,1)+psorrg(ix,iy,1)+2*psicx(ix,iy)) )
 
 c             Ion internal energy sink/source from ioniz & recom
@@ -4639,18 +4639,18 @@ c              Total Ion Energy residual
      .              + (1.0-cftiexclg)*seit(ix,iy)
 
 c              Atom kinetic energy source from recom & CX
-               seak(ix,iy) = 0.5*mg(1) * ( (up1cc-upgcc)*(up1cc-upgcc) + vycc + v2cc )
+               seak(ix,iy) = 0.5*mg(1) * ( (up1cc-upgcc)**2 + vycc + v2cc )
      .              * (psorrg(ix,iy,1)+psicx(ix,iy))
 
 c              Atom kinetic energy source from diss
                sead(ix,iy) = ( eion*ev + cfnidh*cfnidhdis*0.5*mg(1)*
-     .              (upgcc*upgcc + vycc + v2cc) )*psordis(ix,iy)
+     .              (upgcc**2 + vycc + v2cc) )*psordis(ix,iy)
 
 
 c              Atom energy source from drift heating 
                seadh(ix,iy) = cfnidh2* ( -mg(1) *up1cc*upgcc 
      .              * (psorrg(ix,iy,1)+psicx(ix,iy)) 
-     .              + 0.5*mg(1) * (upgcc*upgcc + vycc + v2cc)
+     .              + 0.5*mg(1) * (upgcc**2 + vycc + v2cc)
      .              * (psor(ix,iy,1)+psorrg(ix,iy,1)+2*psicx(ix,iy)) )
 
                reseg(ix,iy,1) = reseg(ix,iy,1)
