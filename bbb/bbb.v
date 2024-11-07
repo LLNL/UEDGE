@@ -2228,6 +2228,15 @@ seec(0:nx+1,0:ny+1)           _real
 seev(0:nx+1,0:ny+1)           _real
 seic(0:nx+1,0:ny+1)           _real
 seiv(0:nx+1,0:ny+1)           _real
+seik(0:nx+1,0:ny+1)           _real +work   # Kinetic energy source from recom.
+                                            # and ioniz. (ions)
+seid(0:nx+1,0:ny+1)           _real +work   # Kinetic energy source from 
+                                            # dissociation (ions)
+seidh(0:nx+1,0:ny+1)          _real +work   # Drift heating (ions)
+seit(0:nx+1,0:ny+1)           _real +work   # Internal energy source/sink
+                                            # from ioniz and recom (ions)
+psicx(0:nx+1,0:ny+1)          _real +work   # CX rate (ions)
+
 segc(0:nx+1,0:ny+1,1:ngsp)    _real [J/(sm**3)]#v_grad_P for neutral eng. eqn
 resco(0:nx+1,0:ny+1,1:nisp)   _real
 resng(0:nx+1,0:ny+1,1:ngsp)   _real

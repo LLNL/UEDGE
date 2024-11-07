@@ -606,6 +606,8 @@ c    yldot is the RHS of ODE solver or RHS=0 for Newton solver (NKSOL)
       # former Aux module variables
       integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
       real tv,t0,t1,t2,a,t1old,t1new,t2old,t2new
+      # new helper variables
+      real up1cc, upgcc
 cnxg      data igs/1/
 
       Use(Dim)      # nx,ny,nhsp,nusp,nzspt,nzsp,nisp,ngsp,nxpt
@@ -1830,6 +1832,9 @@ c ... If isybdrywd = 1, make vey diffusive, just like vy
             seev(ix,iy) = 0.0
             seic(ix,iy) = 0.0
             seiv(ix,iy) = 0.0
+            seik(ix,iy) = 0.0
+            seid(ix,iy) = 0.0
+            seidh(ix,iy) = 0.0
 	    psorbgz(ix,iy) = 0.    # diagnostic only
   701    continue
   702 continue
@@ -4594,38 +4599,51 @@ c*************************************************************
             if (isupgon(1).eq.1) then
 c These terms include electron-ion equipartition as well as terms due
 c to the friction force between neutrals and ions
-               t1 = 0.5*(up(ix,iy,1)+up(ix1,iy,1))
-               t2 = 0.5*(up(ix,iy,iigsp)+up(ix1,iy,iigsp))
+               up1cc = 0.5*(up(ix,iy,1)+up(ix1,iy,1))
+               upgcc = 0.5*(up(ix,iy,iigsp)+up(ix1,iy,iigsp))
                temp3 = cfnidhgy*0.25*(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
      .                              *(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
                temp4 = cfnidhg2*0.25*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
      .                              *(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
-               tv = cfticx*nucx(ix,iy,1)*ng(ix,iy,1)*vol(ix,iy)
-               t0 = 1.5*( tg(ix,iy,1)* (psor(ix,iy,1)+tv)
-     .                     -ti(ix,iy) * (psorrg(ix,iy,1)+tv) )
+
+c              Ion rate from CX
+               psicx(ix,iy) = cfticx*nucx(ix,iy,1)*ng(ix,iy,1)*vol(ix,iy)
+
+c              Ion energy source/sink from ioniz & recom
+               seik(ix,iy) = cfneut * cfneutsor_ei * cfnidh * 
+     .              0.5*mi(1) * ( (up1cc-upgcc)*(up1cc-upgcc)+temp3+temp4 ) * 
+     .              (  psor(ix,iy,1) + cftiexclg*psorrg(ix,iy,1)
+     .              + (1 + cftiexclg) * psicx(ix,iy) )
+
+c              Ion energy source from mol. diss
+               seid(ix,iy) = cftiexclg * cfneut * cfneutsor_ei * cnsor
+     .              * (eion*ev + cfnidhdis*0.5*mg(1)*(upgcc*upgcc+temp3+temp4) )
+     .              * psordis(ix,iy) 
+
+c              Ion energy source from drift heating 
+               seidh(ix,iy) = cfnidh2* 
+     .              ( -mi(1)*up1cc*upgcc*(psor(ix,iy,1)+psicx(ix,iy))
+     .              + 0.5*mi(1)*up1cc*up1cc
+     .              * (psor(ix,iy,1)+psorrg(ix,iy,1)+2*psicx(ix,iy)) )
+
+c             Ion internal energy sink/source from ioniz & recom
+              seit(ix,iy) = 1.5*( tg(ix,iy,1)* (psor(ix,iy,1)+psicx(ix,iy))
+     .              - ti(ix,iy) * (psorrg(ix,iy,1)+psicx(ix,iy)) )
+
                resei(ix,iy) = resei(ix,iy) + w0(ix,iy)
-     .             + cfneut * cfneutsor_ei * cfnidh * 0.5*mi(1) * 
-     .                          ( (t1-t2)*(t1-t2)+temp3+temp4 ) * 
-     .                    (  psor(ix,iy,1) + cftiexclg*psorrg(ix,iy,1)
-     .              + tv + cftiexclg * tv  )
-     .              + (1.0-cftiexclg) * t0
-     .             + cftiexclg * cfneut * cfneutsor_ei * cnsor
-     .               *( eion*ev+cfnidhdis*
-     .                  0.5*mg(1)*(t2*t2+temp3+temp4) )*psordis(ix,iy) 
-     .             + cfnidh2* 
-     .                       ( -mi(1)*t1*t2*(psor(ix,iy,1)+tv)
-     .                         +0.5*mi(1)*t1*t1*
-     .                          (psor(ix,iy,1)+psorrg(ix,iy,1)+2*tv) )
+     .             + seik(ix, iy) + seid(ix, iy) + seidh(ix,iy) 
+     .             + (1.0-cftiexclg)*seit(ix,iy)
+
                reseg(ix,iy,1) = reseg(ix,iy,1)
-     .                            - t0+0.5*mg(1) * ( (t1-t2)*(t1-t2)
+     .                            - seit(ix,iy) +0.5*mg(1) * ( (up1cc-upgcc)*(up1cc-upgcc)
      .                                              +temp3+temp4 )
-     .                            * (psorrg(ix,iy,1)+tv)
+     .                            * (psorrg(ix,iy,1)+psicx(ix,iy))
      .                            + ( eion*ev + cfnidh*cfnidhdis*
-     .                   0.5*mg(1)*(t2*t2+temp3+temp4) )*psordis(ix,iy)
+     .                   0.5*mg(1)*(upgcc*upgcc+temp3+temp4) )*psordis(ix,iy)
      .                     + cfnidh2* 
-     .                       ( -mg(1)*t1*t2*(psorrg(ix,iy,1)+tv)
-     .                         +0.5*mg(1)*(t2*t2+temp3+temp4)*
-     .                          (psor(ix,iy,1)+psorrg(ix,iy,1)+2*tv) )
+     .                       ( -mg(1)*up1cc*upgcc*(psorrg(ix,iy,1)+psicx(ix,iy))
+     .                         +0.5*mg(1)*(upgcc*upgcc+temp3+temp4)*
+     .                          (psor(ix,iy,1)+psorrg(ix,iy,1)+2*psicx(ix,iy)) )
             else
                resei(ix,iy) = resei(ix,iy) + w0(ix,iy)
      .             + cfneut * cfneutsor_ei * ctsor*1.25e-1*mi(1)*
