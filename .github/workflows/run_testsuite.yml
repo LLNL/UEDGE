@@ -30,8 +30,7 @@ jobs:
         repository: LLNL/UEDGE 
     - name: Build UEDGE
       run: |
-        python setup.py build
-        python setup.py install
+        pip install .
     - name: Return to pytests branch
       uses: actions/checkout@v4
       with:
@@ -66,8 +65,7 @@ jobs:
         repository: LLNL/UEDGE 
     - name: Build UEDGE
       run: |
-        python setup.py build
-        python setup.py install
+        pip install .
     - name: Return to pytests branch
       uses: actions/checkout@v4
       with:
@@ -102,8 +100,7 @@ jobs:
         repository: LLNL/UEDGE 
     - name: Build UEDGE
       run: |
-        python setup.py build
-        python setup.py install
+        pip install .
     - name: Return to pytests branch
       uses: actions/checkout@v4
       with:
@@ -138,8 +135,7 @@ jobs:
         repository: LLNL/UEDGE 
     - name: Build UEDGE
       run: |
-        python setup.py build
-        python setup.py install
+        pip install .
     - name: Return to pytests branch
       uses: actions/checkout@v4
       with:
@@ -174,8 +170,7 @@ jobs:
         repository: LLNL/UEDGE 
     - name: Build UEDGE
       run: |
-        python setup.py build
-        python setup.py install
+        pip install .
     - name: Return to pytests branch
       uses: actions/checkout@v4
       with:
