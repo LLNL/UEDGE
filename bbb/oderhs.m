@@ -607,7 +607,7 @@ c    yldot is the RHS of ODE solver or RHS=0 for Newton solver (NKSOL)
       integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
       real tv,t0,t1,t2,a,t1old,t1new,t2old,t2new
       # new helper variables
-      real up1cc, upgcc
+      real up1cc, upgcc, vycc, v2cc
 cnxg      data igs/1/
 
       Use(Dim)      # nx,ny,nhsp,nusp,nzspt,nzsp,nisp,ngsp,nxpt
@@ -4601,7 +4601,7 @@ c These terms include electron-ion equipartition as well as terms due
 c to the friction force between neutrals and ions
                up1cc = 0.5*(up(ix,iy,1)+up(ix1,iy,1))
                upgcc = 0.5*(up(ix,iy,iigsp)+up(ix1,iy,iigsp))
-               temp3 = cfnidhgy*0.25*(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
+               vycc = cfnidhgy*0.25*(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
      .                              *(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
                temp4 = cfnidhg2*0.25*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
      .                              *(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
@@ -4611,13 +4611,13 @@ c              Ion rate from CX
 
 c              Ion energy source/sink from ioniz & recom
                seik(ix,iy) = cfneut * cfneutsor_ei * cfnidh * 
-     .              0.5*mi(1) * ( (up1cc-upgcc)**2 + temp3 + temp4 ) * 
+     .              0.5*mi(1) * ( (up1cc-upgcc)**2 + vycc + temp4 ) * 
      .              (  psor(ix,iy,1) + cftiexclg*psorrg(ix,iy,1)
      .              + (1 + cftiexclg) * psicx(ix,iy) )
 
 c              Ion energy source from mol. diss
                seid(ix,iy) = cftiexclg * cfneut * cfneutsor_ei * cnsor
-     .              * (eion*ev + cfnidhdis*0.5*mg(1)*(upgcc**2 + temp3 + temp4) )
+     .              * (eion*ev + cfnidhdis*0.5*mg(1)*(upgcc**2 + vycc + temp4) )
      .              * psordis(ix,iy) 
 
 c              Ion energy source from drift heating 
@@ -4630,20 +4630,34 @@ c             Ion internal energy sink/source from ioniz & recom
               seit(ix,iy) = 1.5*( tg(ix,iy,1)* (psor(ix,iy,1)+psicx(ix,iy))
      .              - ti(ix,iy) * (psorrg(ix,iy,1)+psicx(ix,iy)) )
 
-               resei(ix,iy) = resei(ix,iy) + w0(ix,iy)
-     .             + seik(ix, iy) + seid(ix, iy) + seidh(ix,iy) 
-     .             + (1.0-cftiexclg)*seit(ix,iy)
+c              Total Ion Energy residual
+               resei(ix,iy) = resei(ix,iy) 
+     .              + w0(ix,iy)
+     .              + seik(ix, iy) 
+     .              + seid(ix, iy) 
+     .              + seidh(ix,iy) 
+     .              + (1.0-cftiexclg)*seit(ix,iy)
+
+c              Atom kinetic energy source from recom & CX
+               seak(ix,iy) = 0.5*mg(1) * ( (up1cc-upgcc)**2 + vycc + temp4 )
+     .              * (psorrg(ix,iy,1)+psicx(ix,iy))
+
+c              Atom kinetic energy source from diss
+               sead(ix,iy) = ( eion*ev + cfnidh*cfnidhdis*0.5*mg(1)*
+     .              (upgcc*2 + vycc + temp4) )*psordis(ix,iy)
+
+
+c              Atom energy source from drift heating 
+               seadh(ix,iy) = cfnidh2* ( -mg(1) *up1cc*upgcc 
+     .              * (psorrg(ix,iy,1)+psicx(ix,iy)) 
+     .              + 0.5*mg(1) * (upgcc**2 + vycc + temp4)
+     .              * (psor(ix,iy,1)+psorrg(ix,iy,1)+2*psicx(ix,iy)) )
 
                reseg(ix,iy,1) = reseg(ix,iy,1)
-     .                            - seit(ix,iy) +0.5*mg(1) * ( (up1cc-upgcc)**2
-     .                                              +temp3+temp4 )
-     .                            * (psorrg(ix,iy,1)+psicx(ix,iy))
-     .                            + ( eion*ev + cfnidh*cfnidhdis*
-     .                   0.5*mg(1)*(upgcc*2 + temp3 + temp4) )*psordis(ix,iy)
-     .                     + cfnidh2* 
-     .                       ( -mg(1) *up1cc*upgcc* (psorrg(ix,iy,1)+psicx(ix,iy))
-     .                         +0.5*mg(1)*(upgcc**2 + temp3 + temp4)*
-     .                          (psor(ix,iy,1)+psorrg(ix,iy,1)+2*psicx(ix,iy)) )
+     .                  - seit(ix,iy) 
+     .                  + seak(ix,iy)
+     .                  + sead(ix,iy)
+     .                  + seadh(ix,iy)
             else
                resei(ix,iy) = resei(ix,iy) + w0(ix,iy)
      .             + cfneut * cfneutsor_ei * ctsor*1.25e-1*mi(1)*
