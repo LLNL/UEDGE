@@ -4611,19 +4611,19 @@ c              Ion rate from CX
 
 c              Ion energy source/sink from ioniz & recom
                seik(ix,iy) = cfneut * cfneutsor_ei * cfnidh * 
-     .              0.5*mi(1) * ( (up1cc-upgcc)**2 + temp3 + temp4 ) * 
+     .              0.5*mi(1) * ( (up1cc-upgcc)*(up1cc-upgcc)+temp3+temp4 ) * 
      .              (  psor(ix,iy,1) + cftiexclg*psorrg(ix,iy,1)
      .              + (1 + cftiexclg) * psicx(ix,iy) )
 
 c              Ion energy source from mol. diss
                seid(ix,iy) = cftiexclg * cfneut * cfneutsor_ei * cnsor
-     .              * (eion*ev + cfnidhdis*0.5*mg(1)*(upgcc**2 + temp3 + temp4) )
+     .              * (eion*ev + cfnidhdis*0.5*mg(1)*(upgcc*upgcc+temp3+temp4) )
      .              * psordis(ix,iy) 
 
 c              Ion energy source from drift heating 
                seidh(ix,iy) = cfnidh2* 
-     .              ( -mi(1)* up1cc*upgcc* (psor(ix,iy,1)+psicx(ix,iy))
-     .              + 0.5*mi(1)*up1cc**2
+     .              ( -mi(1)*up1cc*upgcc*(psor(ix,iy,1)+psicx(ix,iy))
+     .              + 0.5*mi(1)*up1cc*up1cc
      .              * (psor(ix,iy,1)+psorrg(ix,iy,1)+2*psicx(ix,iy)) )
 
 c             Ion internal energy sink/source from ioniz & recom
@@ -4635,14 +4635,14 @@ c             Ion internal energy sink/source from ioniz & recom
      .             + (1.0-cftiexclg)*seit(ix,iy)
 
                reseg(ix,iy,1) = reseg(ix,iy,1)
-     .                            - seit(ix,iy) +0.5*mg(1) * ( (up1cc-upgcc)**2
+     .                            - seit(ix,iy) +0.5*mg(1) * ( (up1cc-upgcc)*(up1cc-upgcc)
      .                                              +temp3+temp4 )
      .                            * (psorrg(ix,iy,1)+psicx(ix,iy))
      .                            + ( eion*ev + cfnidh*cfnidhdis*
-     .                   0.5*mg(1)*(upgcc*2 + temp3 + temp4) )*psordis(ix,iy)
+     .                   0.5*mg(1)*(upgcc*upgcc+temp3+temp4) )*psordis(ix,iy)
      .                     + cfnidh2* 
-     .                       ( -mg(1) *up1cc*upgcc* (psorrg(ix,iy,1)+psicx(ix,iy))
-     .                         +0.5*mg(1)*(upgcc**2 + temp3 + temp4)*
+     .                       ( -mg(1)*up1cc*upgcc*(psorrg(ix,iy,1)+psicx(ix,iy))
+     .                         +0.5*mg(1)*(upgcc*upgcc+temp3+temp4)*
      .                          (psor(ix,iy,1)+psorrg(ix,iy,1)+2*psicx(ix,iy)) )
             else
                resei(ix,iy) = resei(ix,iy) + w0(ix,iy)
