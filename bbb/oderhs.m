@@ -4609,7 +4609,7 @@ c              Ion rate from CX
 
 c              Ion energy source/sink from ioniz & recom
                seik(ix,iy) = cfneut * cfneutsor_ei * cfnidh * 
-     .              0.5*mi(1) * ( (up1cc-upgcc)**2 + vycc**2 + v2cc**2) * 
+     .              0.5*mi(1) * ( (up1cc-upgcc)**2 + vycc**2 + v2cc**2 ) * 
      .              (  psor(ix,iy,1) + cftiexclg*psorrg(ix,iy,1)
      .              + (1 + cftiexclg) * psicx(ix,iy) )
 
@@ -4620,7 +4620,7 @@ c              Ion energy source from mol. diss
 
 c              Ion energy source from drift heating 
                seidh(ix,iy) = cfnidh2* 
-     .              ( -mi(1)* up1cc*upgcc* (psor(ix,iy,1)+psicx(ix,iy))
+     .              ( -mi(1)*up1cc*upgcc*(psor(ix,iy,1)+psicx(ix,iy))
      .              + 0.5*mi(1)*up1cc**2
      .              * (psor(ix,iy,1)+psorrg(ix,iy,1)+2*psicx(ix,iy)) )
 
@@ -4642,7 +4642,7 @@ c              Atom kinetic energy source from recom & CX
 
 c              Atom kinetic energy source from diss
                sead(ix,iy) = ( eion*ev + cfnidh*cfnidhdis*0.5*mg(1)*
-     .              (upgcc*2 + vycc**2 + v2cc**2) )*psordis(ix,iy)
+     .              (upgcc**2 + vycc**2 + v2cc**2) )*psordis(ix,iy)
 
 
 c              Atom energy source from drift heating 
