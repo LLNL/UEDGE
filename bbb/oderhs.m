@@ -4603,7 +4603,7 @@ c to the friction force between neutrals and ions
                upgcc = 0.5*(up(ix,iy,iigsp)+up(ix1,iy,iigsp))
                vycc = cfnidhgy*0.25*(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
      .                              *(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
-               temp4 = cfnidhg2*0.25*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
+               v2cc = cfnidhg2*0.25*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
      .                              *(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
 
 c              Ion rate from CX
@@ -4611,13 +4611,13 @@ c              Ion rate from CX
 
 c              Ion energy source/sink from ioniz & recom
                seik(ix,iy) = cfneut * cfneutsor_ei * cfnidh * 
-     .              0.5*mi(1) * ( (up1cc-upgcc)*(up1cc-upgcc) + vycc + temp4 ) * 
+     .              0.5*mi(1) * ( (up1cc-upgcc)*(up1cc-upgcc) + vycc + v2cc ) * 
      .              (  psor(ix,iy,1) + cftiexclg*psorrg(ix,iy,1)
      .              + (1 + cftiexclg) * psicx(ix,iy) )
 
 c              Ion energy source from mol. diss
                seid(ix,iy) = cftiexclg * cfneut * cfneutsor_ei * cnsor
-     .              * (eion*ev + cfnidhdis*0.5*mg(1)*(upgcc*upgcc + vycc + temp4) )
+     .              * (eion*ev + cfnidhdis*0.5*mg(1)*(upgcc*upgcc + vycc + v2cc) )
      .              * psordis(ix,iy) 
 
 c              Ion energy source from drift heating 
@@ -4639,18 +4639,18 @@ c              Total Ion Energy residual
      .              + (1.0-cftiexclg)*seit(ix,iy)
 
 c              Atom kinetic energy source from recom & CX
-               seak(ix,iy) = 0.5*mg(1) * ( (up1cc-upgcc)*(up1cc-upgcc) + vycc + temp4 )
+               seak(ix,iy) = 0.5*mg(1) * ( (up1cc-upgcc)*(up1cc-upgcc) + vycc + v2cc )
      .              * (psorrg(ix,iy,1)+psicx(ix,iy))
 
 c              Atom kinetic energy source from diss
                sead(ix,iy) = ( eion*ev + cfnidh*cfnidhdis*0.5*mg(1)*
-     .              (upgcc*upgcc + vycc + temp4) )*psordis(ix,iy)
+     .              (upgcc*upgcc + vycc + v2cc) )*psordis(ix,iy)
 
 
 c              Atom energy source from drift heating 
                seadh(ix,iy) = cfnidh2* ( -mg(1) *up1cc*upgcc 
      .              * (psorrg(ix,iy,1)+psicx(ix,iy)) 
-     .              + 0.5*mg(1) * (upgcc*upgcc + vycc + temp4)
+     .              + 0.5*mg(1) * (upgcc*upgcc + vycc + v2cc)
      .              * (psor(ix,iy,1)+psorrg(ix,iy,1)+2*psicx(ix,iy)) )
 
                reseg(ix,iy,1) = reseg(ix,iy,1)
