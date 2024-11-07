@@ -13,6 +13,16 @@ try:
 except:
     pass
 
+setni = True
+setup = True
+setphi = True
+setphiofft = True
+setng = True
+setupg = True
+setti = True
+sette = True
+settg = True
+
 bbb.mhdgeo = 1 		#use MHD equilibrium
 bbb.gengrid=0		#read mesh from gridue file
 com.geometry = "snull"
@@ -33,6 +43,8 @@ bbb.ziin[1]=0
 bbb.travis[1] = 0.	#shouldn't be used for neutrals - but to be sure
 
 
+settg = False
+bbb.istgon = 0      # Reset Tg equation
 bbb.istgon[0] = 1   # Turn on D0 temperature equation
 bbb.cftiexclg = 0.  # Remove the Tg part in the Ti equation
 bbb.cfdiss = 1.0
@@ -47,6 +59,7 @@ bbb.cfnidhgy = 1.0
 bbb.cfnidhg2 = 1.0
 bbb.cfnidhdis = 1.0 #..consider drift heating for dissociation
 bbb.cfnidhmol = 1.0 #..ignore molecular v in dissociation drift heating
+
 
 # templates/D_only/inputs/boundary/core/density/default.py
 bbb.isnicore[0] = 1 	#use fixed-density BC on core
@@ -154,23 +167,34 @@ bbb.isutcore=2    # =1, set dut/dy=0 on iy=0 (if iphibcc=0)
 
 
 # templates/D_only/inputs/equations/default.py
-bbb.isnion = 1
-bbb.isupon = 1
-bbb.isteon = 1
-bbb.istion = 1
-bbb.isphion = 1
-bbb.isphiofft = 0
-bbb.istgon = 0
-bbb.isngon = 0
-bbb.isngon[0] = 0
-bbb.isupgon = 0
-bbb.isupgon[0] = 1
+
+if setni:
+    bbb.isnion = 1
+if setup:
+    bbb.isupon = 1
+if sette:
+    bbb.isteon = 1
+if setti:
+    bbb.istion = 1
+if setphi:
+    bbb.isphion = 1
+if setphiofft:
+    bbb.isphiofft = 0
+if settg:
+    bbb.istgon = 0
+if setng:
+    bbb.isngon = 0
+    bbb.isngon[0] = 0
+if setupg:
+    bbb.isupgon = 0
+    bbb.isupgon[0] = 1
 
 
 # Catch-all for turning off potential equaiton in slab geometry
 if bbb.mhdgeo == -1:
 	bbb.isphion = 0
 	bbb.isphiofft = 1
+
 
 # templates/D_only/inputs/fluxlimits/default.py
 bbb.flalfe = 0.21	#electron parallel thermal conduct. grd.coeff
