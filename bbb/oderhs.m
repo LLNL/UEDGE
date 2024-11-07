@@ -4611,7 +4611,7 @@ c              Ion rate from CX
 
 c              Ion energy source/sink from ioniz & recom
                seik(ix,iy) = cfneut * cfneutsor_ei * cfnidh * 
-     .              0.5*mi(1) * ( (up1cc-upgcc)*(up1cc-upgcc) + vycc + v2cc ) * 
+     .              0.5*mi(1) * ( (up1cc-upgcc)**2 + vycc + v2cc ) * 
      .              (  psor(ix,iy,1) + cftiexclg*psorrg(ix,iy,1)
      .              + (1 + cftiexclg) * psicx(ix,iy) )
 
