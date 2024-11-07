@@ -5,6 +5,8 @@ com.nhsp=2
 bbb.ziin[1]=0
 bbb.travis[1] = 0.	#shouldn't be used for neutrals - but to be sure
 
+settg = False
+bbb.istgon = 0      # Reset Tg equation
 bbb.istgon[0] = 1   # Turn on D0 temperature equation
 bbb.cftiexclg = 0.  # Remove the Tg part in the Ti equation
 bbb.cfdiss = 0.5
