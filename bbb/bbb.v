@@ -2236,6 +2236,11 @@ seidh(0:nx+1,0:ny+1)          _real +work   # Drift heating (ions)
 seit(0:nx+1,0:ny+1)           _real +work   # Internal energy source/sink
                                             # from ioniz and recom (ions)
 psicx(0:nx+1,0:ny+1)          _real +work   # CX rate (ions)
+seak(0:nx+1,0:ny+1)           _real +work   # Kinetic energy sink/source from 
+                                            # rec and CX (atoms)
+sead(0:nx+1,0:ny+1)           _real +work   # Kinetic energy source from 
+                                            # dissociation (atoms)
+seadh(0:nx+1,0:ny+1)          _real +work   # Drift heating (atoms)
 
 segc(0:nx+1,0:ny+1,1:ngsp)    _real [J/(sm**3)]#v_grad_P for neutral eng. eqn
 resco(0:nx+1,0:ny+1,1:nisp)   _real
