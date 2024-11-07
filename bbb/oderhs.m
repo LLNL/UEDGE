@@ -4620,7 +4620,7 @@ c              Ion energy source from mol. diss
 
 c              Ion energy source from drift heating 
                seidh(ix,iy) = cfnidh2* 
-     .              ( -mi(1)* up1cc*upgcc* (psor(ix,iy,1)+psicx(ix,iy))
+     .              ( -mi(1)* up1cc*up1cc* (psor(ix,iy,1)+psicx(ix,iy))
      .              + 0.5*mi(1)*up1cc**2
      .              * (psor(ix,iy,1)+psorrg(ix,iy,1)+2*psicx(ix,iy)) )
 
