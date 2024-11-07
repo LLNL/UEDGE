@@ -4637,7 +4637,7 @@ c              Total Ion Energy residual
      .              + (1.0-cftiexclg)*seit(ix,iy)
 
 c              Atom kinetic energy source from recom & CX
-               seak(ix,iy) = 0.5*mg(1) * ( (up1cc-upgcc)**2 + vycc**2 + v2cc**2 )
+               seak(ix,iy) = 0.5*mg(1) * ( (up1cc-up1cc)**2 + vycc**2 + v2cc**2 )
      .              * (psorrg(ix,iy,1)+psicx(ix,iy))
 
 c              Atom kinetic energy source from diss
