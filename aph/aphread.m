@@ -1180,11 +1180,11 @@ c     Considered by UEDGE, discard zeros
 c     convert to SI units:
       do jt=1,cmpe
          do jd=1,cmpd
-            crmselm(jt,jd)= crmselm(jt,jd)*ev
-            crmsiam(jt,jd)= crmsiam(jt,jd)*ev
-            crmspotm(jt,jd)= crmspotm(jt,jd)*ev
-            crmsrada(jt,jd)= crmsrada(jt,jd)*ev
-            crmsradm(jt,jd)= crmsradm(jt,jd)*ev
+            crmselm(jt,jd)= crmselm(jt,jd)*ev_aph
+            crmsiam(jt,jd)= crmsiam(jt,jd)*ev_aph
+            crmspotm(jt,jd)= crmspotm(jt,jd)*ev_aph
+            crmsrada(jt,jd)= crmsrada(jt,jd)*ev_aph
+            crmsradm(jt,jd)= crmsradm(jt,jd)*ev_aph
          enddo
       enddo
 
