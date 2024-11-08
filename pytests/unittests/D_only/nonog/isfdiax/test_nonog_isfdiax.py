@@ -162,7 +162,6 @@ class TestClass:
                             print('      - Failed variables: {}'.format(str(failed)[1:-1].replace("'",'')))
                         else:
                             print(f'   - {setupkey}')
-                            print('      - Failed variables: {}'.format(str(failed)[1:-1].replace("'",'')))
                 # Turn output back on
                 try:
                     com.iprint = 1
