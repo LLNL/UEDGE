@@ -7786,24 +7786,6 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
       endif         #if-test on isnonog
 
 
-
-*  ---------------------------------------------------------------------
-*  compute the molecular thermal equipartition with hydrogen ions and atoms
-*  ---------------------------------------------------------------------
-      if (nisp >= 2) then   # uses ni(,,2), so must have atoms
-       do igsp = 1, ngsp
-        do iy = j1, j6
-          do ix = i1, i6
-            eqpg(ix,iy,igsp) = cftgeqp*(
-     .          ng(ix,iy,igsp)*ni(ix,iy,1)*keligig(igsp)
-     .          + cftiexclg*ng(ix,iy,igsp)*ni(ix,iy,2)*keligig(igsp))
-          enddo
-        enddo
-       enddo
-      endif
-
-        write(*,*) j1, j2
-        write(*,*) j6, j5
 *  ---------------------------------------------------------------------
 *  compute the energy residuals.
 *  ---------------------------------------------------------------------
@@ -7816,6 +7798,12 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
         do iy = j2, j5
           iy1 = max(0,iy-1)
           do ix = i2, i5
+
+              if (nisp >= 2) then   # uses ni(,,2), so must have atoms
+                    eqpg(ix,iy,igsp) = cftgeqp*(
+     .                  ng(ix,iy,igsp)*ni(ix,iy,1)*keligig(igsp)
+     .                  + cftiexclg*ng(ix,iy,igsp)*ni(ix,iy,2)*keligig(igsp))
+
             ix1 = ixm1(ix,iy)
             reseg(ix,iy,igsp)= -( fegx(ix,iy,igsp)-fegx(ix1,iy,  igsp)+
      .                            fegy(ix,iy,igsp)-fegy(ix, iy1,igsp) )
