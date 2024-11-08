@@ -2350,25 +2350,21 @@ c ...  molecule-molecule collisions would enter viscosity, not nuix
      .                                        nuiz(ix,iy,2) * vol(ix,iy)
            psorgc(ix,iy,2) = - ng(ix,iy,2)*nuiz(ix,iy,2)*vol(ix,iy) +
      .                        psorbgg(ix,iy,2)
-           psorg(ix,iy,2) = psorgc(ix,iy,2)  # no mol sor averaging
-           psordis(ix,iy,1) = -2*psorgc(ix,iy,2)  # 2 atoms per molecule
-           if(isupgon(1) .eq. 1) then
-             psor(ix,iy,iigsp) = psor(ix,iy,iigsp) + psordis(ix,iy,1)
-           endif
-c                psorg(ix,iy,2) = psorgc(ix,iy,2)  # no mol sor averaging
-c                psordisg(ix,iy,2) = - ng(ix,iy,2)*nuiz(ix,iy,2)*vol(ix,iy)
-c                psordis(ix,iy,2) = ng(ix,iy,2)*vol(ix,iy)*( 2*(1-ismolcrm)*
-c     .                      ne(ix,iy)*(svdiss(te(ix,iy)) + sigvi_floor) + 
-c     .                      ismolcrm*cfcrma*sv_crumpet(te(ix,iy),ne(ix,iy),11))
-c                # 2 atoms per molecule in old model, rates from CRM for new
-c                psordisg(ix,iy,1)=psordis(ix,iy,2)
-c                psordis(ix,iy,1) = -cfcrmi*(2*psordisg(ix,iy,2)+
-c     .                              psordis(ix,iy,2))
-c                psor(ix,iy,1) = psor(ix,iy,1) + psordis(ix,iy,1)
-cc ... TODO: How to deal with diffusive atom model - is it maintained?
-c                if(isupgon(1) .eq. 1) then
-c                  psor(ix,iy,iigsp) = psor(ix,iy,iigsp) + psordis(ix,iy,2)
-c                endif
+c           endif
+                psorg(ix,iy,2) = psorgc(ix,iy,2)  # no mol sor averaging
+                psordisg(ix,iy,2) = - ng(ix,iy,2)*nuiz(ix,iy,2)*vol(ix,iy)
+                psordis(ix,iy,2) = ng(ix,iy,2)*vol(ix,iy)*( 2*(1-ismolcrm)*
+     .                      ne(ix,iy)*(svdiss(te(ix,iy)) + sigvi_floor) + 
+     .                      ismolcrm*cfcrma*sv_crumpet(te(ix,iy),ne(ix,iy),11))
+                # 2 atoms per molecule in old model, rates from CRM for new
+                psordisg(ix,iy,1)=psordis(ix,iy,2)
+                psordis(ix,iy,1) = -cfcrmi*(2*psordisg(ix,iy,2)+
+     .                              psordis(ix,iy,2))
+                psor(ix,iy,1) = psor(ix,iy,1) + psordis(ix,iy,1)
+c ... TODO: How to deal with diffusive atom model - is it maintained?
+                if(isupgon(1) .eq. 1) then
+                  psor(ix,iy,iigsp) = psor(ix,iy,iigsp) + psordis(ix,iy,2)
+                endif
          enddo
         enddo 
       endif  # end of loop for ishymol=1 (hydrogen molecules on)
