@@ -7809,46 +7809,51 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
             reseg(ix,iy,igsp)= -( fegx(ix,iy,igsp)-fegx(ix1,iy,  igsp)+
      .                            fegy(ix,iy,igsp)-fegy(ix, iy1,igsp) )
      .                                                + segc(ix,iy,igsp)
-            reseg(ix,iy,igsp)= reseg(ix,iy,igsp) + vol(ix,iy)* 
-     .                      eqpg(ix,iy,igsp)*(ti(ix,iy)-tg(ix,iy,igsp))#+
-#     .                   cftgdiss(igsp)*psorg(ix,iy,igsp)*tg(ix,iy,igsp)
+            reseg(ix,iy,igsp)= reseg(ix,iy,igsp) 
+     .              + vol(ix,iy)*eqpg(ix,iy,igsp)*(ti(ix,iy)-tg(ix,iy,igsp))
+
             if (igsp.eq.1) then  #..for D0, we should include D+ and D0 in Ti
-              seic(ix,iy) = seic(ix,iy)- vol(ix,iy)*(1.0-cftiexclg)*
-     .                                               eqpg(ix,iy,igsp)*
-     .                                      (ti(ix,iy)-tg(ix,iy,igsp))
+              seic(ix,iy) = seic(ix,iy)
+     .              - (1.0-cftiexclg)*vol(ix,iy)*eqpg(ix,iy,igsp)
+     .              * (ti(ix,iy)-tg(ix,iy,igsp))
+
             else
-              seic(ix,iy) = seic(ix,iy)- vol(ix,iy)*
-     .                                               eqpg(ix,iy,igsp)*
-     .                                      (ti(ix,iy)-tg(ix,iy,igsp))
+              seic(ix,iy) = seic(ix,iy)
+     .              - vol(ix,iy)*eqpg(ix,iy,igsp)*(ti(ix,iy)-tg(ix,iy,igsp))
+
               reseg(ix,iy,igsp) = reseg(ix,iy,igsp)
-     .                                 + cftgeqp*ng(ix,iy,igsp)*
-     .                           (1.0-cftiexclg)*ng(ix,iy,1)*kelighg(igsp)*
-     .                        (tg(ix,iy,1)-tg(ix,iy,igsp))*vol(ix,iy)
-              reseg(ix,iy,1) = reseg(ix,iy,1) - cftgeqp*ng(ix,iy,igsp)*
-     .                                           ng(ix,iy,1)*kelighg(igsp)*
-     .                        (tg(ix,iy,1)-tg(ix,iy,igsp))*vol(ix,iy)
+     .              + cftgeqp*(1.0-cftiexclg)*vol(ix,iy)*kelighg(igsp)
+     .              * (ng(ix,iy,igsp)*ng(ix,iy,1)*(tg(ix,iy,1)-tg(ix,iy,igsp)))
+
+              reseg(ix,iy,1) = reseg(ix,iy,1) 
+     .              - cftgeqp*vol(ix,iy)*kelighg(igsp)
+     .              * ng(ix,iy,igsp)*ng(ix,iy,1)*(tg(ix,iy,1)-tg(ix,iy,igsp))
+
               if (ishymol.eq.1 .and. igsp.eq.2) then  #..D2 dissociation
-                 reseg(ix,iy,igsp) =
-     .                             reseg(ix,iy,igsp)+psorg(ix,iy,igsp)
-     .                                               *1.5*tg(ix,iy,igsp)
+                 reseg(ix,iy,igsp) = reseg(ix,iy,igsp)
+     .                  + psorg(ix,iy,igsp)*1.5*tg(ix,iy,igsp)
+
                  t0 = cfnidhmol*0.25*(uuxg(ix,iy,igsp)+uuxg(ix1,iy,igsp))
      .                              *(uuxg(ix,iy,igsp)+uuxg(ix1,iy,igsp))
                  t1 = cfnidhmol*0.25*(vyg(ix,iy,igsp)+vyg(ix1,iy,igsp))
      .                              *(vyg(ix,iy,igsp)+vyg(ix1,iy,igsp))
                  t2 = 0. #.. molecule v in the tol direction, it seems to be assumed as 0 in neudifpg?
-                 reseg(ix,iy,1) = reseg(ix,iy,1) + cfnidhdis*
-     .                            0.5*mg(1)*(t0+t1+t2)*psordis(ix,iy)
-                 seic(ix,iy) = seic(ix,iy) + cftiexclg*cfnidhdis*
-     .                            0.5*mg(1)*(t0+t1+t2)*psordis(ix,iy)
+                 reseg(ix,iy,1) = reseg(ix,iy,1) 
+     .                  + cfnidhdis*0.5*mg(1)*(t0+t1+t2)*psordis(ix,iy)
+
+                 seic(ix,iy) = seic(ix,iy) 
+     .                  + cftiexclg*cfnidhdis*0.5*mg(1)*(t0+t1+t2)*psordis(ix,iy)
+
                  t0 = cfnidhmol*0.25*(uuxg(ix,iy,igsp)+uuxg(ix1,iy,igsp))
      .                              *(uuxg(ix,iy,1)+uuxg(ix1,iy,1))
                  t1 = cfnidhmol*0.25*(vyg(ix,iy,igsp)+vyg(ix1,iy,igsp))
      .                              *(vyg(ix,iy,1)+vyg(ix1,iy,1))
                  t2 = 0.
-                 reseg(ix,iy,1) = reseg(ix,iy,1) - cfnidhdis*
-     .                                mg(1)*(t0+t1+t2)*psordis(ix,iy)
-                 seic(ix,iy) = seic(ix,iy) - cftiexclg*cfnidhdis*
-     .                                mg(1)*(t0+t1+t2)*psordis(ix,iy)
+                 reseg(ix,iy,1) = reseg(ix,iy,1) 
+     .                  - cfnidhdis*mg(1)*(t0+t1+t2)*psordis(ix,iy)
+
+                 seic(ix,iy) = seic(ix,iy) 
+     .                  - cftiexclg*cfnidhdis*mg(1)*(t0+t1+t2)*psordis(ix,iy)
               endif
             endif
 	    #..zml place holder for neutral-neutral collision,
