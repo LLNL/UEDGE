@@ -2338,6 +2338,7 @@ c ... Set up nuiz & sources for hydrogen molecular gas
      .                        + sigvi_floor ) 
      .                        - ismolcrm*sv_crumpet( te(ix,iy), ne(ix,iy),10)
      .                )
+
            massfac = 16*mi(1)/(3*(mg(2)+mi(1)))
            nuix(ix,iy,2)= fnuizx*nuiz(ix,iy,2) + 
      .                           massfac*( kelighi(2)*ni(ix,iy,1)+
