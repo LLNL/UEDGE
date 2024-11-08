@@ -7830,22 +7830,8 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
 c        Special case for igsp = 1
 c        Check inertial neutral model
 
-          if (isupgon(1).eq.1) then
-            upgcc = 0.5*(up(ix,iy,iigsp)+up(ix1,iy,iigsp))
-            vycc = (cfnidhgy**0.5)*0.5*(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
-            v2cc = (cfnidhg2**0.5)*0.5*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
 
-c           Atom kinetic energy source from mol. drift heating
-            reseg(ix,iy,1) = reseg(ix,iy,1) 
-     .          + cfnidh*cfnidhdis*0.5*mg(1)* (upgcc**2 + vycc**2 + v2cc**2)
-     .          * psordis(ix,iy,2)
-
-c           Ion energy source from mol. drift heating
-            seic(ix,iy) = seic(ix,iy)
-     .          + cftiexclg * cfneut * cfneutsor_ei * cnsor * cfnidhdis
-     .          * 0.5*mg(1)*(upgcc**2 + vycc**2 + v2cc**2) * psordis(ix,iy,2) 
-          endif
-
+c        Special case for molecules
 
 *        ----------------------------------------------------
 *               COUPLE MOLECULES TO ATOMS AND IONS
@@ -7901,6 +7887,24 @@ c           Ion energy source from mol. drift heating
             reseg(ix,iy,igsp)= -( fegx(ix,iy,igsp)-fegx(ix1,iy,  igsp)+
      .                            fegy(ix,iy,igsp)-fegy(ix, iy1,igsp) )
      .                                                + segc(ix,iy,igsp)
+*           Thermal equipartition with ions -> gas
+*           ------------------------------------------------------------
+c           Should scale with cftiexclg to conserve energy when transitioning?
+
+
+            upgcc = 0.5*(up(ix,iy,iigsp)+up(ix1,iy,iigsp))
+            vycc = (cfnidhgy**0.5)*0.5*(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
+            v2cc = (cfnidhg2**0.5)*0.5*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
+
+c           Atom kinetic energy source from mol. drift heating
+            reseg(ix,iy,1) = reseg(ix,iy,1) 
+     .          + cfnidh*cfnidhdis*0.5*mg(1)* (upgcc**2 + vycc**2 + v2cc**2)
+     .          * psordis(ix,iy,2)
+
+c           Ion energy source from mol. drift heating
+            seic(ix,iy) = seic(ix,iy)
+     .          + cftiexclg * cfneut * cfneutsor_ei * cnsor * cfnidhdis
+     .          * 0.5*mg(1)*(upgcc**2 + vycc**2 + v2cc**2) * psordis(ix,iy,2) 
 
 
 *           ------------------------------------------------------------
@@ -7912,7 +7916,6 @@ c           Ion energy source from mol. drift heating
                 seic(ix,iy) = seic(ix,iy)
      .              - (1.0-cftiexclg)*vol(ix,iy)*eqpg(ix,iy,1)
      .              * (ti(ix,iy)-tg(ix,iy,1))
-c               Should scale with cftiexclg to conserve energy when transitioning?
                 reseg(ix,iy,1)= reseg(ix,iy,1) 
      .              + vol(ix,iy)*eqpg(ix,iy,1)*(ti(ix,iy)-tg(ix,iy,1))
             else
