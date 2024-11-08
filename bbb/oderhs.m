@@ -4604,6 +4604,7 @@ c ... Energy density change due to molecular dissociation
             endif
             emolia(ix,iy)=ismolcrm*ng(ix,iy,2)*vol(ix,iy)*
      .                      sv_crumpet(te(ix,iy), ne(ix,iy), 21) 
+
             if (isupgon(1).eq.1) then
 c These terms include electron-ion equipartition as well as terms due
 c to the friction force between neutrals and ions
@@ -4621,10 +4622,12 @@ c              Ion energy source/sink from ioniz & recom
      .              (  psor(ix,iy,1) + cftiexclg*psorrg(ix,iy,1)
      .              + (1 + cftiexclg) * psicx(ix,iy) )
 
-c              Ion energy source from mol. diss
-               seid(ix,iy) = cftiexclg * cfneut * cfneutsor_ei * cnsor
-     .              * (eion*ev + cfnidhdis*0.5*mg(1)*(upgcc**2 + vycc**2 + v2cc**2) )
-     .              * psordis(ix,iy,2) 
+c              Ion energy source from mol. diss ("Franck Condon")
+               seid(ix,iy) = cftiexclg * cfneut * cfneutsor_ei 
+     .              * cnsor*eion*ev*psordis(ix,iy,2) 
+c       # TODO: Add scaling for eiamoldiss and emolia
+c     .              * (cnsor* eiamoldiss(ix,iy) + cmesori*emolia(ix,iy) )
+
 
 c              Ion energy source from drift heating 
                seidh(ix,iy) = cfnidh2* 
@@ -4648,10 +4651,10 @@ c              Atom kinetic energy source from recom & CX
                seak(ix,iy) = 0.5*mg(1) * ( (up1cc-upgcc)**2 + vycc**2 + v2cc**2 )
      .              * (psorrg(ix,iy,1)+psicx(ix,iy))
 
-c              Atom kinetic energy source from diss
-               sead(ix,iy) = ( eion*ev + cfnidh*cfnidhdis*0.5*mg(1)*
-     .              (upgcc**2 + vycc**2 + v2cc**2) )*psordis(ix,iy,2)
-
+c              Atom kinetic energy source from mol. diss
+               sead(ix,iy) = eion*ev*psordis(ix,iy,2)
+c       # TODO: Add scaling for eiamoldiss and emolia
+c     .              * (cnsor* eiamoldiss(ix,iy) + cmesori*emolia(ix,iy) )
 
 c              Atom energy source from drift heating 
                seadh(ix,iy) = cfnidh2* ( -mg(1) *up1cc*upgcc 
@@ -7544,7 +7547,7 @@ c --------------------------------------------------------------------------
       #Former Aux module variables
       integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
       real t0,t1,t2,tv,a
-      real uuxgcc, vygcc, v2gcc
+      real uuxgcc, vygcc, v2gcc, upgcc, vycc, v2cc
       Use(Dim)      # nx,ny,nhsp,nisp,ngsp,nxpt
       Use(Xpoint_indices)      # ixlb,ixpt1,ixpt2,ixrb,iysptrx1
       Use(Share)    # geometry,nxc,isnonog,cutlo,islimon,ix_lim,iy_lims
@@ -7832,6 +7835,12 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
      .              ng(ix,iy,igsp)*ni(ix,iy,1)*keligig(igsp)
      .              + cftiexclg*ng(ix,iy,igsp)*ni(ix,iy,2)*keligig(igsp))
             endif
+
+*           ------------------------------------------------------------
+*                                GAS-ION/ATOM TERMS
+*           ------------------------------------------------------------
+            
+
 *           Divergence of gaseous flows & v-grad-P heating
 *           ------------------------------------------------------------
             reseg(ix,iy,igsp)= -( fegx(ix,iy,igsp)-fegx(ix1,iy,  igsp)+
@@ -7840,6 +7849,20 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
 *           Thermal equipartition with ions -> gas
 *           ------------------------------------------------------------
 c           Should scale with cftiexclg to conserve energy when transitioning?
+
+
+            upgcc = 0.5*(up(ix,iy,iigsp)+up(ix1,iy,iigsp))
+            vycc = (cfnidhgy**0.5)*0.5*(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
+            v2cc = (cfnidhg2**0.5)*0.5*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
+
+c           Atom kinetic energy source from mol. drift heating
+           sead(ix,iy) = cfnidh*cfnidhdis*0.5*mg(1)* (upgcc**2 + vycc**2 + v2cc**2)
+     .          * psordis(ix,iy,2)
+
+c           Ion energy source from mol. drift heating
+            seid(ix,iy) = cftiexclg * cfneut * cfneutsor_ei * cnsor * cfnidhdis
+     .          * 0.5*mg(1)*(upgcc**2 + vycc**2 + v2cc**2) * psordis(ix,iy,2) 
+
 
             if (igsp.eq.1) then  #..for D0, we should include D+ and D0 in Ti
 *               Thermal equipartition coupling of atoms and ions
@@ -7896,6 +7919,7 @@ c                   # Are these cross-terms actually what is intended? AH
 
                     seic(ix,iy) = seic(ix,iy) 
      .                  - cftiexclg*cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordis(ix,iy,2)
+
               endif
             endif
 	    #..zml place holder for neutral-neutral collision,
