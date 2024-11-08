@@ -7799,10 +7799,11 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
           iy1 = max(0,iy-1)
           do ix = i2, i5
 
-              if (nisp >= 2) then   # uses ni(,,2), so must have atoms
-                    eqpg(ix,iy,igsp) = cftgeqp*(
-     .                  ng(ix,iy,igsp)*ni(ix,iy,1)*keligig(igsp)
-     .                  + cftiexclg*ng(ix,iy,igsp)*ni(ix,iy,2)*keligig(igsp))
+            if (nisp >= 2) then   # uses ni(,,2), so must have atoms
+                eqpg(ix,iy,igsp) = cftgeqp*(
+     .              ng(ix,iy,igsp)*ni(ix,iy,1)*keligig(igsp)
+     .              + cftiexclg*ng(ix,iy,igsp)*ni(ix,iy,2)*keligig(igsp))
+            endif
 
             ix1 = ixm1(ix,iy)
             reseg(ix,iy,igsp)= -( fegx(ix,iy,igsp)-fegx(ix1,iy,  igsp)+
