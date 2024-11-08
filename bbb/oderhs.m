@@ -7833,17 +7833,16 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
                  reseg(ix,iy,igsp) = reseg(ix,iy,igsp)
      .                  + psorg(ix,iy,igsp)*1.5*tg(ix,iy,igsp)
 
-                 t0 = cfnidhmol*0.25*(uuxg(ix,iy,igsp)+uuxg(ix1,iy,igsp))
-     .                              *(uuxg(ix,iy,igsp)+uuxg(ix1,iy,igsp))
-                 t1 = cfnidhmol*0.25*(vyg(ix,iy,igsp)+vyg(ix1,iy,igsp))
-     .                              *(vyg(ix,iy,igsp)+vyg(ix1,iy,igsp))
+                 t0 = (cfnidhmol**0.5)*0.5*(uuxg(ix,iy,igsp)+uuxg(ix1,iy,igsp))**2
+                 t1 = (cfnidhmol**0.5)*0.5*(vyg(ix,iy,igsp)+vyg(ix1,iy,igsp))**2
                  t2 = 0. #.. molecule v in the tol direction, it seems to be assumed as 0 in neudifpg?
                  reseg(ix,iy,1) = reseg(ix,iy,1) 
-     .                  + cfnidhdis*0.5*mg(1)*(t0+t1+t2)*psordis(ix,iy)
+     .                  + cfnidhdis*0.5*mg(1)*(t0**2 + t1**2 + t2**2 )*psordis(ix,iy)
 
                  seic(ix,iy) = seic(ix,iy) 
-     .                  + cftiexclg*cfnidhdis*0.5*mg(1)*(t0+t1+t2)*psordis(ix,iy)
+     .                  + cftiexclg*cfnidhdis*0.5*mg(1)*(t0**2 + t1**2 + t2**2 )*psordis(ix,iy)
 
+c               # Are these cross-terms actually what is intended? AH
                  t0 = cfnidhmol*0.25*(uuxg(ix,iy,igsp)+uuxg(ix1,iy,igsp))
      .                              *(uuxg(ix,iy,1)+uuxg(ix1,iy,1))
                  t1 = cfnidhmol*0.25*(vyg(ix,iy,igsp)+vyg(ix1,iy,igsp))
