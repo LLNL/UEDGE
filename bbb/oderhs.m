@@ -3164,21 +3164,6 @@ c..   Now radial direction
        enddo
       endif
 
-c ... Gas molecule thermal equipartition with hydrogen ions and atoms
-*****************************************************************
-      if (nisp >= 2) then   # uses ni(,,2), so must have atoms
-       do igsp = 1, ngsp
-        do iy = j1, j6
-          do ix = i1, i6
-	    nhi_nha = ni(ix,iy,1)+ni(ix,iy,2)
-#            eqpg(ix,iy,igsp) = cftgeqp*ng(ix,iy,igsp)*nhi_nha*
-#     .                                            keligig(igsp)
-            eqpg(ix,iy,igsp) = cftgeqp*ng(ix,iy,igsp)*
-     .                   (ni(ix,iy,1)+cftiexclg*ni(ix,iy,2))*keligig(igsp)
-          enddo
-        enddo
-       enddo
-      endif
 
 c ... Call routine to evaluate gas energy fluxes
 ****************************************************************
@@ -4670,19 +4655,6 @@ c              Atom energy source from drift heating
   151    continue
   152 continue
 
-
-c ... If molecules are present as gas species 2, add ion/atom cooling
-      # energy transfer between ions and molecueles due to 
-      # ion/molecule elastic collisions have been moved in
-      # engbalg subroutine, so comment the following lines...
-#      if(ishymol == 1) then
-#        do iy = j2, j5
-#          do ix = i2, i5
-#            resei(ix,iy) = resei(ix,iy) - vol(ix,iy)*eqpg(ix,iy,2)*
-#     .                                     (ti(ix,iy)-tg(ix,iy,2))
-#          enddo
-#        enddo
-#      endif
 
 *  -- Energy transfer to impurity neutrals at tg(,,igsp)
       if (ngsp >= 2) then   # for now, specialized to igsp=2 only
@@ -7591,6 +7563,7 @@ c  -- This v_grad_Pg term first added by MZhao
         enddo
       enddo
 
+
       do igsp = 1, ngsp
         if(istgon(igsp) == 1) then 
           do iy = j2, j5
@@ -7812,11 +7785,32 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
         enddo       #loop over igsp
       endif         #if-test on isnonog
 
+
+
+*  ---------------------------------------------------------------------
+*  compute the molecular thermal equipartition with hydrogen ions and atoms
+*  ---------------------------------------------------------------------
+      if (nisp >= 2) then   # uses ni(,,2), so must have atoms
+       do igsp = 1, ngsp
+        do iy = j1, j6
+          do ix = i1, i6
+            eqpg(ix,iy,igsp) = cftgeqp*(
+     .          ng(ix,iy,igsp)*ni(ix,iy,1)*keligig(igsp)
+     .          + cftiexclg*ng(ix,iy,igsp)*ni(ix,iy,2)*keligig(igsp))
+          enddo
+        enddo
+       enddo
+      endif
+
+        write(*,*) j1, j2
+        write(*,*) j6, j5
 *  ---------------------------------------------------------------------
 *  compute the energy residuals.
 *  ---------------------------------------------------------------------
 
 *  -- total energy residual and equipartition --
+
+
 
       do igsp = 1, ngsp
         do iy = j2, j5
