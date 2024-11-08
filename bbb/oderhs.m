@@ -1974,8 +1974,7 @@ c     Ionization of neutral hydrogen by electrons and recombination--
                psorgc(ix,iy,igsp) = -ng(ix,iy,igsp)*nuiz(ix,iy,igsp)*vol(ix,iy) +
      .                              psorbgg(ix,iy,igsp)
                psorc(ix,iy,ifld) = - psorgc(ix,iy,igsp)
-               psordis(ix,iy,2) = psorc(ix,iy,1)  # changed below if ishymol=1
-               psordis(ix,iy) = cfdiss*psorc(ix,iy,1)  # overwritten below if ishymol=1
+               psordis(ix,iy,2) = cfdiss*psorc(ix,iy,1)  # changed below if ishymol=1
                psorxrc(ix,iy,ifld) = -ni(ix,iy,ifld)*nurc(ix,iy,igsp)*vol(ix,iy)
                psorrgc(ix,iy,igsp) = -psorxrc(ix,iy,ifld)
                msor(ix,iy,ifld) = 0.
@@ -4624,7 +4623,7 @@ c              Ion energy source/sink from ioniz & recom
 c              Ion energy source from mol. diss
                seid(ix,iy) = cftiexclg * cfneut * cfneutsor_ei * cnsor
      .              * (eion*ev + cfnidhdis*0.5*mg(1)*(upgcc**2 + vycc**2 + v2cc**2) )
-     .              * psordis(ix,iy) 
+     .              * psordis(ix,iy,1) 
 
 c              Ion energy source from drift heating 
                seidh(ix,iy) = cfnidh2* 
@@ -4650,7 +4649,7 @@ c              Atom kinetic energy source from recom & CX
 
 c              Atom kinetic energy source from diss
                sead(ix,iy) = ( eion*ev + cfnidh*cfnidhdis*0.5*mg(1)*
-     .              (upgcc**2 + vycc**2 + v2cc**2) )*psordis(ix,iy)
+     .              (upgcc**2 + vycc**2 + v2cc**2) )*psordisg(ix,iy,1)
 
 
 c              Atom energy source from drift heating 
@@ -7878,10 +7877,10 @@ c           Should scale with cftiexclg to conserve energy when transitioning?
                     vygcc = (cfnidhmol**0.5)*0.5*(vyg(ix,iy,igsp)+vyg(ix1,iy,igsp))**2
                     v2gcc = 0. #.. molecule v in the tol direction, it seems to be assumed as 0 in neudifpg?
                     reseg(ix,iy,1) = reseg(ix,iy,1) 
-     .                  + cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )*psordis(ix,iy)
+     .                  + cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )*psordisg(ix,iy,1)
 
                     seic(ix,iy) = seic(ix,iy) 
-     .                  + cftiexclg*cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )*psordis(ix,iy)
+     .                  + cftiexclg*cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )*psordisg(ix,iy,1)
 
 *                   Drift heating energy source for molecules
 *                   ----------------------------------------------------
@@ -7892,10 +7891,10 @@ c                   # Are these cross-terms actually what is intended? AH
      .                              *(vyg(ix,iy,1)+vyg(ix1,iy,1))
                     v2gcc = 0.
                     reseg(ix,iy,1) = reseg(ix,iy,1) 
-     .                  - cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordis(ix,iy)
+     .                  - cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordisg(ix,iy,1)
 
                     seic(ix,iy) = seic(ix,iy) 
-     .                  - cftiexclg*cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordis(ix,iy)
+     .                  - cftiexclg*cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordis(ix,iy,1)
               endif
             endif
 	    #..zml place holder for neutral-neutral collision,
