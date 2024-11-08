@@ -7798,39 +7798,54 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
         do iy = j2, j5
           iy1 = max(0,iy-1)
           do ix = i2, i5
+            ix1 = ixm1(ix,iy)
 
+*           Compute thermal equipartition rate with ion-atom fluid
+*           ------------------------------------------------------------
             if (nisp >= 2) then   # uses ni(,,2), so must have atoms
                 eqpg(ix,iy,igsp) = cftgeqp*(
      .              ng(ix,iy,igsp)*ni(ix,iy,1)*keligig(igsp)
      .              + cftiexclg*ng(ix,iy,igsp)*ni(ix,iy,2)*keligig(igsp))
             endif
-
-            ix1 = ixm1(ix,iy)
+*           Divergence of gaseous flows & ?
+*           ------------------------------------------------------------
             reseg(ix,iy,igsp)= -( fegx(ix,iy,igsp)-fegx(ix1,iy,  igsp)+
      .                            fegy(ix,iy,igsp)-fegy(ix, iy1,igsp) )
      .                                                + segc(ix,iy,igsp)
+*           Thermal equipartition with ions -> gas
+*           ------------------------------------------------------------
+c           Should scale with cftiexclg to conserve energy when transitioning?
             reseg(ix,iy,igsp)= reseg(ix,iy,igsp) 
      .              + vol(ix,iy)*eqpg(ix,iy,igsp)*(ti(ix,iy)-tg(ix,iy,igsp))
 
             if (igsp.eq.1) then  #..for D0, we should include D+ and D0 in Ti
-              seic(ix,iy) = seic(ix,iy)
-     .              - (1.0-cftiexclg)*vol(ix,iy)*eqpg(ix,iy,igsp)
-     .              * (ti(ix,iy)-tg(ix,iy,igsp))
-
+*               Thermal equipartition of atoms -> ions
+*               --------------------------------------------------------
+                seic(ix,iy) = seic(ix,iy)
+     .              - (1.0-cftiexclg)*vol(ix,iy)*eqpg(ix,iy,1)
+     .              * (ti(ix,iy)-tg(ix,iy,1))
             else
-              seic(ix,iy) = seic(ix,iy)
+*               Thermal equipartition of ions -> gas
+*               --------------------------------------------------------
+                seic(ix,iy) = seic(ix,iy)
      .              - vol(ix,iy)*eqpg(ix,iy,igsp)*(ti(ix,iy)-tg(ix,iy,igsp))
 
-              reseg(ix,iy,igsp) = reseg(ix,iy,igsp)
+*               Thermal equipartition of gas -> atoms
+*               --------------------------------------------------------
+                reseg(ix,iy,igsp) = reseg(ix,iy,igsp)
      .              + cftgeqp*(1.0-cftiexclg)*vol(ix,iy)*kelighg(igsp)
      .              * (ng(ix,iy,igsp)*ng(ix,iy,1)*(tg(ix,iy,1)-tg(ix,iy,igsp)))
 
-              reseg(ix,iy,1) = reseg(ix,iy,1) 
+*               Thermal equipartition of atoms -> gas
+*               --------------------------------------------------------
+                reseg(ix,iy,1) = reseg(ix,iy,1) 
      .              - cftgeqp*vol(ix,iy)*kelighg(igsp)
      .              * ng(ix,iy,igsp)*ng(ix,iy,1)*(tg(ix,iy,1)-tg(ix,iy,igsp))
 
-              if (ishymol.eq.1 .and. igsp.eq.2) then  #..D2 dissociation
-                 reseg(ix,iy,igsp) = reseg(ix,iy,igsp)
+                if (ishymol.eq.1 .and. igsp.eq.2) then  #..D2 dissociation
+*                   ??
+*                   ----------------------------------------------------
+                    reseg(ix,iy,igsp) = reseg(ix,iy,igsp)
      .                  + psorg(ix,iy,igsp)*1.5*tg(ix,iy,igsp)
 
                  t0 = (cfnidhmol**0.5)*0.5*(uuxg(ix,iy,igsp)+uuxg(ix1,iy,igsp))**2
