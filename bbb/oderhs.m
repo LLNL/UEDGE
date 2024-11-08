@@ -7856,11 +7856,13 @@ c           Should scale with cftiexclg to conserve energy when transitioning?
             v2cc = (cfnidhg2**0.5)*0.5*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
 
 c           Atom kinetic energy source from mol. drift heating
-           sead(ix,iy) = cfnidh*cfnidhdis*0.5*mg(1)* (upgcc**2 + vycc**2 + v2cc**2)
+           seic(ix,iy) = seic(ix,iy)
+     .          + cfnidh*cfnidhdis*0.5*mg(1)* (upgcc**2 + vycc**2 + v2cc**2)
      .          * psordis(ix,iy,2)
 
 c           Ion energy source from mol. drift heating
-            seid(ix,iy) = cftiexclg * cfneut * cfneutsor_ei * cnsor * cfnidhdis
+            reseg(ix,iy) = reseg(ix,iy) 
+     .          + cftiexclg * cfneut * cfneutsor_ei * cnsor * cfnidhdis
      .          * 0.5*mg(1)*(upgcc**2 + vycc**2 + v2cc**2) * psordis(ix,iy,2) 
 
 
