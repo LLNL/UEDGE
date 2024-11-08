@@ -4650,8 +4650,7 @@ c              Atom kinetic energy source from recom & CX
 
 c              Atom kinetic energy source from diss
                sead(ix,iy) = ( eion*ev + cfnidh*cfnidhdis*0.5*mg(1)*
-     .              (upgcc**2 + vycc**2 + v2cc**2) )*psordis(ix,iy,1)
-c     .              (upgcc**2 + vycc**2 + v2cc**2) )*psordis(ix,iy,2)
+     .              (upgcc**2 + vycc**2 + v2cc**2) )*psordis(ix,iy,2)
 
 
 c              Atom energy source from drift heating 
@@ -7884,7 +7883,6 @@ c           Should scale with cftiexclg to conserve energy when transitioning?
 
                     seic(ix,iy) = seic(ix,iy) 
      .                  + cftiexclg*cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )*psordis(ix,iy,2)
-c     .                  + cftiexclg*cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )*psordis(ix,iy,2)
 
 *                   Drift heating energy source for molecules
 *                   ----------------------------------------------------
@@ -7896,7 +7894,6 @@ c                   # Are these cross-terms actually what is intended? AH
                     v2gcc = 0.
                     reseg(ix,iy,1) = reseg(ix,iy,1) 
      .                  - cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordis(ix,iy,2)
-c     .                  - cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordis(ix,iy,2)
 
                     seic(ix,iy) = seic(ix,iy) 
      .                  - cftiexclg*cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordis(ix,iy,2)
