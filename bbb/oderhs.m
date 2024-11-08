@@ -7520,6 +7520,7 @@ c --------------------------------------------------------------------------
       #Former Aux module variables
       integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
       real t0,t1,t2,tv,a
+      real uuxgcc, vygcc, v2gcc
       Use(Dim)      # nx,ny,nhsp,nisp,ngsp,nxpt
       Use(Xpoint_indices)      # ixlb,ixpt1,ixpt2,ixrb,iysptrx1
       Use(Share)    # geometry,nxc,isnonog,cutlo,islimon,ix_lim,iy_lims
@@ -7849,28 +7850,28 @@ c           Should scale with cftiexclg to conserve energy when transitioning?
 
 *                   Drift heating energy source for molecules
 *                   ----------------------------------------------------
-                 t0 = (cfnidhmol**0.5)*0.5*(uuxg(ix,iy,igsp)+uuxg(ix1,iy,igsp))**2
-                 t1 = (cfnidhmol**0.5)*0.5*(vyg(ix,iy,igsp)+vyg(ix1,iy,igsp))**2
-                 t2 = 0. #.. molecule v in the tol direction, it seems to be assumed as 0 in neudifpg?
-                 reseg(ix,iy,1) = reseg(ix,iy,1) 
-     .                  + cfnidhdis*0.5*mg(1)*(t0**2 + t1**2 + t2**2 )*psordis(ix,iy)
+                    uuxgcc = (cfnidhmol**0.5)*0.5*(uuxg(ix,iy,igsp)+uuxg(ix1,iy,igsp))**2
+                    vygcc = (cfnidhmol**0.5)*0.5*(vyg(ix,iy,igsp)+vyg(ix1,iy,igsp))**2
+                    v2gcc = 0. #.. molecule v in the tol direction, it seems to be assumed as 0 in neudifpg?
+                    reseg(ix,iy,1) = reseg(ix,iy,1) 
+     .                  + cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )*psordis(ix,iy)
 
-                 seic(ix,iy) = seic(ix,iy) 
-     .                  + cftiexclg*cfnidhdis*0.5*mg(1)*(t0**2 + t1**2 + t2**2 )*psordis(ix,iy)
+                    seic(ix,iy) = seic(ix,iy) 
+     .                  + cftiexclg*cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )*psordis(ix,iy)
 
 *                   Drift heating energy source for molecules
 *                   ----------------------------------------------------
-c               # Are these cross-terms actually what is intended? AH
-                 t0 = cfnidhmol*0.25*(uuxg(ix,iy,igsp)+uuxg(ix1,iy,igsp))
+c                   # Are these cross-terms actually what is intended? AH
+                    uuxgcc = cfnidhmol*0.25*(uuxg(ix,iy,igsp)+uuxg(ix1,iy,igsp))
      .                              *(uuxg(ix,iy,1)+uuxg(ix1,iy,1))
-                 t1 = cfnidhmol*0.25*(vyg(ix,iy,igsp)+vyg(ix1,iy,igsp))
+                    vygcc = cfnidhmol*0.25*(vyg(ix,iy,igsp)+vyg(ix1,iy,igsp))
      .                              *(vyg(ix,iy,1)+vyg(ix1,iy,1))
-                 t2 = 0.
-                 reseg(ix,iy,1) = reseg(ix,iy,1) 
-     .                  - cfnidhdis*mg(1)*(t0+t1+t2)*psordis(ix,iy)
+                    v2gcc = 0.
+                    reseg(ix,iy,1) = reseg(ix,iy,1) 
+     .                  - cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordis(ix,iy)
 
-                 seic(ix,iy) = seic(ix,iy) 
-     .                  - cftiexclg*cfnidhdis*mg(1)*(t0+t1+t2)*psordis(ix,iy)
+                    seic(ix,iy) = seic(ix,iy) 
+     .                  - cftiexclg*cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordis(ix,iy)
               endif
             endif
 	    #..zml place holder for neutral-neutral collision,
