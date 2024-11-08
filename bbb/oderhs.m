@@ -2345,10 +2345,10 @@ c ... Set up nuiz & sources for hydrogen molecular gas
      .                           massfac*( kelighi(2)*ni(ix,iy,1)+
      .                                     kelighg(2)*ng(ix,iy,1) )
 c ...  molecule-molecule collisions would enter viscosity, not nuix
-                psorbgg(ix,iy,2) = ngbackg(2)* 
+           psorbgg(ix,iy,2) = ngbackg(2)* 
      .                     (0.9+0.1*(ngbackg(2)/ng(ix,iy,2))**ingb ) * 
      .                                        nuiz(ix,iy,2) * vol(ix,iy)
-                psorgc(ix,iy,2) = - ng(ix,iy,2)*nuiz(ix,iy,2)*vol(ix,iy) +
+           psorgc(ix,iy,2) = - ng(ix,iy,2)*nuiz(ix,iy,2)*vol(ix,iy) +
      .                        psorbgg(ix,iy,2)
            psorg(ix,iy,2) = psorgc(ix,iy,2)  # no mol sor averaging
            psordis(ix,iy,1) = -2*psorgc(ix,iy,2)  # 2 atoms per molecule
