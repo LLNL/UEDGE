@@ -1379,7 +1379,7 @@ c     Logarithmic interpolation as in Stotler-95
             sv_crumpet=0
       else
 c     compute abscissae --
-         zloge=log(te/ev)
+         zloge=log(te/ev_aph)
          rle=max(crlemin, min(zloge,crlemax))
          zlogd=log10(ne)
          rld=max(crldmin, min(zlogd,crldmax))
@@ -1461,7 +1461,7 @@ c ... Zero-crossing – linear interpolation
                 jd=jd-1
                 je=je-1
                 fjd=((ne/1e6)-(10**(10+0.5*jd)))/ (10**(10+0.5*jd)*(10**0.5 - 1) )
-                fje=(te/ev - (10**(-1.2+0.1*je)))/( (10**(-1.2+0.1*je))*(10**0.1-1))
+                fje=(te/ev_aph - (10**(-1.2+0.1*je)))/( (10**(-1.2+0.1*je))*(10**0.1-1))
 
                 svd_crm1=svd_crm11+fjd*(svd_crm12-svd_crm11)
                 svd_crm2=svd_crm21+fjd*(svd_crm22-svd_crm21)
