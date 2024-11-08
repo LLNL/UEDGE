@@ -4669,9 +4669,8 @@ c              Atom energy source from drift heating
      .             + cfneut * cfneutsor_ei * ctsor*1.25e-1*mi(1)*
      .                    (upi(ix,iy,1)+upi(ix1,iy,1))**2*
      .                    fac2sp*psor(ix,iy,1)
-     .             + cfneut * cfneutsor_ei * ceisor*cnsor* eion*ev*psordis(ix,iy,2)
-c     .             + cfneut * cfneutsor_ei * ceisor*(cnsor* eiamoldiss(ix,iy) +
-c     .                                               cmesori*emolia(ix,iy) )
+     .             + cfneut * cfneutsor_ei * ceisor*(cnsor* eiamoldiss(ix,iy) +
+     .                                               cmesori*emolia(ix,iy) )
      .             - cfneut * cfneutsor_ei * ccoldsor*ng(ix,iy,1)*nucx(ix,iy,1)*
      .                    (  1.5*ti(ix,iy)
      .                     - 0.125*mi(1)*(upi(ix,iy,1)+upi(ix1,iy,1))**2
