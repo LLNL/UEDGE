@@ -6645,6 +6645,10 @@ c_mpi         call MPI_BARRIER(uedgeComm, ierr)
            icall = 1
          endif
 
+
+
+c TODO: Add check for inertial neutral model when Tg for atoms is on
+
 c   Check model switches for UEDGE updates/bugs
       if (isoldalbarea .ne. 0) then
             write(*,*) "           **** WARNING ****"
