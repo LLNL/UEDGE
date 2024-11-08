@@ -2351,7 +2351,7 @@ c ...  molecule-molecule collisions would enter viscosity, not nuix
                 psorgc(ix,iy,2) = - ng(ix,iy,2)*nuiz(ix,iy,2)*vol(ix,iy) +
      .                        psorbgg(ix,iy,2)
            psorg(ix,iy,2) = psorgc(ix,iy,2)  # no mol sor averaging
-           psordis(ix,iy) = -2*psorgc(ix,iy,2)  # 2 atoms per molecule
+           psordis(ix,iy,1) = -2*psorgc(ix,iy,2)  # 2 atoms per molecule
            if(isupgon(1) .eq. 1) then
              psor(ix,iy,iigsp) = psor(ix,iy,iigsp) + psordis(ix,iy,1)
            endif
@@ -4677,7 +4677,7 @@ c              Atom energy source from drift heating
      .             + cfneut * cfneutsor_ei * ctsor*1.25e-1*mi(1)*
      .                    (upi(ix,iy,1)+upi(ix1,iy,1))**2*
      .                    fac2sp*psor(ix,iy,1)
-     .             + cfneut * cfneutsor_ei * ceisor*cnsor* eion*ev*psordis(ix,iy)
+     .             + cfneut * cfneutsor_ei * ceisor*cnsor* eion*ev*psordis(ix,iy,1)
 c     .             + cfneut * cfneutsor_ei * ceisor*(cnsor* eiamoldiss(ix,iy) +
 c     .                                               cmesori*emolia(ix,iy) )
      .             - cfneut * cfneutsor_ei * ccoldsor*ng(ix,iy,1)*nucx(ix,iy,1)*
