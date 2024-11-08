@@ -7807,7 +7807,7 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
      .              ng(ix,iy,igsp)*ni(ix,iy,1)*keligig(igsp)
      .              + cftiexclg*ng(ix,iy,igsp)*ni(ix,iy,2)*keligig(igsp))
             endif
-*           Divergence of gaseous flows & ?
+*           Divergence of gaseous flows & v-grad-P heating
 *           ------------------------------------------------------------
             reseg(ix,iy,igsp)= -( fegx(ix,iy,igsp)-fegx(ix1,iy,  igsp)+
      .                            fegy(ix,iy,igsp)-fegy(ix, iy1,igsp) )
@@ -7815,39 +7815,40 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
 *           Thermal equipartition with ions -> gas
 *           ------------------------------------------------------------
 c           Should scale with cftiexclg to conserve energy when transitioning?
-            reseg(ix,iy,igsp)= reseg(ix,iy,igsp) 
-     .              + vol(ix,iy)*eqpg(ix,iy,igsp)*(ti(ix,iy)-tg(ix,iy,igsp))
 
             if (igsp.eq.1) then  #..for D0, we should include D+ and D0 in Ti
-*               Thermal equipartition of atoms -> ions
+*               Thermal equipartition coupling of atoms and ions
 *               --------------------------------------------------------
                 seic(ix,iy) = seic(ix,iy)
      .              - (1.0-cftiexclg)*vol(ix,iy)*eqpg(ix,iy,1)
      .              * (ti(ix,iy)-tg(ix,iy,1))
+                reseg(ix,iy,1)= reseg(ix,iy,1) 
+     .              + vol(ix,iy)*eqpg(ix,iy,1)*(ti(ix,iy)-tg(ix,iy,1))
             else
-*               Thermal equipartition of ions -> gas
+*               Thermal equipartition coupling of ions and gas
 *               --------------------------------------------------------
                 seic(ix,iy) = seic(ix,iy)
      .              - vol(ix,iy)*eqpg(ix,iy,igsp)*(ti(ix,iy)-tg(ix,iy,igsp))
+                reseg(ix,iy,igsp)= reseg(ix,iy,igsp) 
+     .              + vol(ix,iy)*eqpg(ix,iy,igsp)*(ti(ix,iy)-tg(ix,iy,igsp))
 
-*               Thermal equipartition of gas -> atoms
+*               Thermal equipartition coupling of atoms and gas
 *               --------------------------------------------------------
                 reseg(ix,iy,igsp) = reseg(ix,iy,igsp)
      .              + cftgeqp*(1.0-cftiexclg)*vol(ix,iy)*kelighg(igsp)
      .              * (ng(ix,iy,igsp)*ng(ix,iy,1)*(tg(ix,iy,1)-tg(ix,iy,igsp)))
-
-*               Thermal equipartition of atoms -> gas
-*               --------------------------------------------------------
                 reseg(ix,iy,1) = reseg(ix,iy,1) 
      .              - cftgeqp*vol(ix,iy)*kelighg(igsp)
      .              * ng(ix,iy,igsp)*ng(ix,iy,1)*(tg(ix,iy,1)-tg(ix,iy,igsp))
 
                 if (ishymol.eq.1 .and. igsp.eq.2) then  #..D2 dissociation
-*                   ??
+*                   Thermal energy source of molecules
 *                   ----------------------------------------------------
                     reseg(ix,iy,igsp) = reseg(ix,iy,igsp)
      .                  + psorg(ix,iy,igsp)*1.5*tg(ix,iy,igsp)
 
+*                   Drift heating energy source for molecules
+*                   ----------------------------------------------------
                  t0 = (cfnidhmol**0.5)*0.5*(uuxg(ix,iy,igsp)+uuxg(ix1,iy,igsp))**2
                  t1 = (cfnidhmol**0.5)*0.5*(vyg(ix,iy,igsp)+vyg(ix1,iy,igsp))**2
                  t2 = 0. #.. molecule v in the tol direction, it seems to be assumed as 0 in neudifpg?
@@ -7857,6 +7858,8 @@ c           Should scale with cftiexclg to conserve energy when transitioning?
                  seic(ix,iy) = seic(ix,iy) 
      .                  + cftiexclg*cfnidhdis*0.5*mg(1)*(t0**2 + t1**2 + t2**2 )*psordis(ix,iy)
 
+*                   Drift heating energy source for molecules
+*                   ----------------------------------------------------
 c               # Are these cross-terms actually what is intended? AH
                  t0 = cfnidhmol*0.25*(uuxg(ix,iy,igsp)+uuxg(ix1,iy,igsp))
      .                              *(uuxg(ix,iy,1)+uuxg(ix1,iy,1))
