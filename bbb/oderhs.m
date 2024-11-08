@@ -7826,8 +7826,49 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
         iy1 = max(0,iy-1)
         do ix = i2, i5
           ix1 = ixm1(ix,iy)
-          do igsp = 1, ngsp
 
+c        Special case for igsp = 1
+c        Check inertial neutral model
+
+
+c        Special case for molecules
+
+*        ----------------------------------------------------
+*               COUPLE MOLECULES TO ATOMS AND IONS
+*        ----------------------------------------------------
+         if (ishymol.eq.1) then  #..D2 included
+*           Thermal energy source of molecules
+*           ----------------------------------------------------
+            reseg(ix,iy,2) = reseg(ix,iy,2)
+     .          + psorg(ix,iy,2)*1.5*tg(ix,iy,2)
+
+*           Drift heating energy source for molecules
+*           ----------------------------------------------------
+            uuxgcc = (cfnidhmol**0.5)*0.5*(uuxg(ix,iy,2)+uuxg(ix1,iy,2))**2
+            vygcc = (cfnidhmol**0.5)*0.5*(vyg(ix,iy,2)+vyg(ix1,iy,2))**2
+            v2gcc = 0. #.. molecule v in the tol direction, it seems to be assumed as 0 in neudifpg?
+            reseg(ix,iy,1) = reseg(ix,iy,1) 
+     .          + cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )*psordis(ix,iy,2)
+
+            seic(ix,iy) = seic(ix,iy) 
+     .          + cftiexclg*cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )*psordis(ix,iy,2)
+
+*           Drift heating energy source for molecules
+*           ----------------------------------------------------
+            uuxgcc = cfnidhmol*0.25*(uuxg(ix,iy,2)+uuxg(ix1,iy,2))
+     .                      *(uuxg(ix,iy,1)+uuxg(ix1,iy,1))
+            vygcc = cfnidhmol*0.25*(vyg(ix,iy,2)+vyg(ix1,iy,2))
+     .                      *(vyg(ix,iy,1)+vyg(ix1,iy,1))
+            v2gcc = 0.
+            reseg(ix,iy,1) = reseg(ix,iy,1) 
+     .          - cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordis(ix,iy,2)
+
+            seic(ix,iy) = seic(ix,iy) 
+     .          - cftiexclg*cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordis(ix,iy,2)
+
+          endif
+
+          do igsp = 1, ngsp
 *           Compute thermal equipartition rate with ion-atom fluid
 *           ------------------------------------------------------------
             if (nisp >= 2) then   # uses ni(,,2), so must have atoms
@@ -7893,39 +7934,6 @@ c           Ion energy source from mol. drift heating
                 reseg(ix,iy,1) = reseg(ix,iy,1) 
      .              - cftgeqp*vol(ix,iy)*kelighg(igsp)
      .              * ng(ix,iy,igsp)*ng(ix,iy,1)*(tg(ix,iy,1)-tg(ix,iy,igsp))
-
-                if (ishymol.eq.1 .and. igsp.eq.2) then  #..D2 dissociation
-*                   Thermal energy source of molecules
-*                   ----------------------------------------------------
-                    reseg(ix,iy,igsp) = reseg(ix,iy,igsp)
-     .                  + psorg(ix,iy,igsp)*1.5*tg(ix,iy,igsp)
-
-*                   Drift heating energy source for molecules
-*                   ----------------------------------------------------
-                    uuxgcc = (cfnidhmol**0.5)*0.5*(uuxg(ix,iy,igsp)+uuxg(ix1,iy,igsp))**2
-                    vygcc = (cfnidhmol**0.5)*0.5*(vyg(ix,iy,igsp)+vyg(ix1,iy,igsp))**2
-                    v2gcc = 0. #.. molecule v in the tol direction, it seems to be assumed as 0 in neudifpg?
-                    reseg(ix,iy,1) = reseg(ix,iy,1) 
-     .                  + cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )*psordis(ix,iy,2)
-
-                    seic(ix,iy) = seic(ix,iy) 
-     .                  + cftiexclg*cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )*psordis(ix,iy,2)
-
-*                   Drift heating energy source for molecules
-*                   ----------------------------------------------------
-c                   # Are these cross-terms actually what is intended? AH
-                    uuxgcc = cfnidhmol*0.25*(uuxg(ix,iy,igsp)+uuxg(ix1,iy,igsp))
-     .                              *(uuxg(ix,iy,1)+uuxg(ix1,iy,1))
-                    vygcc = cfnidhmol*0.25*(vyg(ix,iy,igsp)+vyg(ix1,iy,igsp))
-     .                              *(vyg(ix,iy,1)+vyg(ix1,iy,1))
-                    v2gcc = 0.
-                    reseg(ix,iy,1) = reseg(ix,iy,1) 
-     .                  - cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordis(ix,iy,2)
-
-                    seic(ix,iy) = seic(ix,iy) 
-     .                  - cftiexclg*cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordis(ix,iy,2)
-
-              endif
             endif
 	    #..zml place holder for neutral-neutral collision,
 	    #..    not included above?
