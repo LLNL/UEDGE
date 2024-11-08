@@ -7822,11 +7822,11 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
 
 
 
-      do igsp = 1, ngsp
-        do iy = j2, j5
-          iy1 = max(0,iy-1)
-          do ix = i2, i5
-            ix1 = ixm1(ix,iy)
+      do iy = j2, j5
+        iy1 = max(0,iy-1)
+        do ix = i2, i5
+          ix1 = ixm1(ix,iy)
+          do igsp = 1, ngsp
 
 *           Compute thermal equipartition rate with ion-atom fluid
 *           ------------------------------------------------------------
@@ -7856,12 +7856,12 @@ c           Should scale with cftiexclg to conserve energy when transitioning?
             v2cc = (cfnidhg2**0.5)*0.5*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
 
 c           Atom kinetic energy source from mol. drift heating
-            seic(ix,iy) = seic(ix,iy)
+            reseg(ix,iy,1) = reseg(ix,iy,1) 
      .          + cfnidh*cfnidhdis*0.5*mg(1)* (upgcc**2 + vycc**2 + v2cc**2)
      .          * psordis(ix,iy,2)
 
 c           Ion energy source from mol. drift heating
-            reseg(ix,iy,1) = reseg(ix,iy,1) 
+            seic(ix,iy) = seic(ix,iy)
      .          + cftiexclg * cfneut * cfneutsor_ei * cnsor * cfnidhdis
      .          * 0.5*mg(1)*(upgcc**2 + vycc**2 + v2cc**2) * psordis(ix,iy,2) 
 
