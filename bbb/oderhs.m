@@ -4668,19 +4668,20 @@ c              Atom energy source from drift heating
      .                  + sead(ix,iy)
      .                  + seadh(ix,iy)
 
-            upgcc = 0.5*(up(ix,iy,iigsp)+up(ix1,iy,iigsp))
-            vycc = (cfnidhgy**0.5)*0.5*(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
-            v2cc = (cfnidhg2**0.5)*0.5*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
 
-c           Atom kinetic energy source from mol. drift heating
-            reseg(ix,iy,1) = reseg(ix,iy,1) 
-     .          + cfnidh*cfnidhdis*0.5*mg(1)* (upgcc**2 + vycc**2 + v2cc**2)
-     .          * psordis(ix,iy,2)
+                if (ishymol .eq. 0) then
+c                   Atom kinetic energy source from mol. drift heating
+                    reseg(ix,iy,1) = reseg(ix,iy,1) 
+     .                  + cfnidh*cfnidhdis*0.5*mg(1)
+     .                  * (upgcc**2 + vycc**2 + v2cc**2)
+     .                  * psordis(ix,iy,2)
 
-c           Ion energy source from mol. drift heating
-            resei(ix,iy) = resei(ix,iy)
-     .          + cftiexclg * cfneut * cfneutsor_ei * cnsor * cfnidhdis
-     .          * 0.5*mg(1)*(upgcc**2 + vycc**2 + v2cc**2) * psordis(ix,iy,2) 
+c                   Ion energy source from mol. drift heating
+                    resei(ix,iy) = resei(ix,iy)
+     .                  + cftiexclg * cfneut * cfneutsor_ei * cnsor 
+     .                  * cfnidhdis * 0.5*mg(1)
+     .                  * (upgcc**2 + vycc**2 + v2cc**2) * psordis(ix,iy,2) 
+                endif
 
 
             else
@@ -7852,11 +7853,27 @@ c        Special case for molecules
 *        ----------------------------------------------------
 *               COUPLE MOLECULES TO ATOMS AND IONS
 *        ----------------------------------------------------
-         if (ishymol.eq.1) then  #..D2 included
+         if (ishymol .neq. 0) then  #..D2 included
 *           Thermal energy source of molecules
 *           ----------------------------------------------------
             reseg(ix,iy,2) = reseg(ix,iy,2)
      .          + psorg(ix,iy,2)*1.5*tg(ix,iy,2)
+
+
+            upgcc = 0.5*(up(ix,iy,iigsp)+up(ix1,iy,iigsp))
+            vycc = (cfnidhgy**0.5)*0.5*(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
+            v2cc = (cfnidhg2**0.5)*0.5*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
+
+c           Atom kinetic energy source from mol. drift heating
+            reseg(ix,iy,1) = reseg(ix,iy,1) 
+     .          + cfnidh*cfnidhdis*0.5*mg(1)* (upgcc**2 + vycc**2 + v2cc**2)
+     .          * psordis(ix,iy,2)
+
+c           Ion energy source from mol. drift heating
+            seic(ix,iy) = seic(ix,iy)
+     .          + cftiexclg * cfneut * cfneutsor_ei * cnsor * cfnidhdis
+     .          * 0.5*mg(1)*(upgcc**2 + vycc**2 + v2cc**2) * psordis(ix,iy,2) 
+
 
 *           Drift heating energy source for molecules
 *           ----------------------------------------------------
