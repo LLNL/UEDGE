@@ -4668,6 +4668,21 @@ c              Atom energy source from drift heating
      .                  + sead(ix,iy)
      .                  + seadh(ix,iy)
 
+            upgcc = 0.5*(up(ix,iy,iigsp)+up(ix1,iy,iigsp))
+            vycc = (cfnidhgy**0.5)*0.5*(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
+            v2cc = (cfnidhg2**0.5)*0.5*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
+
+c           Atom kinetic energy source from mol. drift heating
+            reseg(ix,iy,1) = reseg(ix,iy,1) 
+     .          + cfnidh*cfnidhdis*0.5*mg(1)* (upgcc**2 + vycc**2 + v2cc**2)
+     .          * psordis(ix,iy,2)
+
+c           Ion energy source from mol. drift heating
+            resei(ix,iy) = resei(ix,iy)
+     .          + cftiexclg * cfneut * cfneutsor_ei * cnsor * cfnidhdis
+     .          * 0.5*mg(1)*(upgcc**2 + vycc**2 + v2cc**2) * psordis(ix,iy,2) 
+
+
             else
                resei(ix,iy) = resei(ix,iy) + w0(ix,iy)
      .             + cfneut * cfneutsor_ei * ctsor*1.25e-1*mi(1)*
@@ -7830,21 +7845,6 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
 
 c        Special case for igsp = 1
 c        Check inertial neutral model
-
-            upgcc = 0.5*(up(ix,iy,iigsp)+up(ix1,iy,iigsp))
-            vycc = (cfnidhgy**0.5)*0.5*(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
-            v2cc = (cfnidhg2**0.5)*0.5*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
-
-c           Atom kinetic energy source from mol. drift heating
-            reseg(ix,iy,1) = reseg(ix,iy,1) 
-     .          + cfnidh*cfnidhdis*0.5*mg(1)* (upgcc**2 + vycc**2 + v2cc**2)
-     .          * psordis(ix,iy,2)
-
-c           Ion energy source from mol. drift heating
-            resei(ix,iy) = resei(ix,iy)
-     .          + cftiexclg * cfneut * cfneutsor_ei * cnsor * cfnidhdis
-     .          * 0.5*mg(1)*(upgcc**2 + vycc**2 + v2cc**2) * psordis(ix,iy,2) 
-
 
 
 c        Special case for molecules
