@@ -7861,7 +7861,7 @@ c           Add check for inertial atoms?
 
 *           Drift heating energy source for molecules
 *           ----------------------------------------------------
-c           The above is adapted from the original implementation,
+c           The below is adapted from the original implementation,
 c           where the first term assumes v_m = 0 when molecular 
 c           dissociation is implicitly assumed. The remaining terms
 c           are corrections for (v_m - v_a)**2. However, the original
@@ -7871,7 +7871,10 @@ c           square.
 
 c           The switches are mixed: cfnidhdis for v_a but cfnidhmol
 c           for the molecular terms: use cfnidhmol for all?
+
+c           Only apply drift heating for inertial atoms?
 *           ----------------------------------------------------
+            if (1 .eq. 0) then
             upgcc = 0.5*(up(ix,iy,iigsp)+up(ix1,iy,iigsp))
             vycc = (cfnidhgy**0.5)*0.5*(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
             v2cc = (cfnidhg2**0.5)*0.5*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
@@ -7903,6 +7906,29 @@ c           for the molecular terms: use cfnidhmol for all?
 
             seic(ix,iy) = seic(ix,iy) 
      .          - cftiexclg*cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordis(ix,iy,2)
+            endif # End old drift heating implementation
+
+*           Start new Molecular Drift heating implementation
+*           ----------------------------------------------------
+            if (1 .eq. 1) then
+            upgcc = 0.5*(up(ix,iy,iigsp)+up(ix1,iy,iigsp))
+            vycc = (cfnidhgy**0.5)*0.5*(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
+            v2cc = (cfnidhg2**0.5)*0.5*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
+
+            uuxgcc = (cfnidhmol**0.5)*0.5*(uuxg(ix,iy,2)+uuxg(ix1,iy,2))**2
+            vygcc = (cfnidhmol**0.5)*0.5*(vyg(ix,iy,2)+vyg(ix1,iy,2))**2
+            v2gcc = 0. #.. molecule v in the tol direction, it seems to be assumed as 0 in neudifpg?
+          
+            reseg(ix,iy,1) = reseg(ix,iy,1) 
+     .          + cfnidhdis*0.5*mg(1)
+     .          * ((uuxgcc-upgcc)**2 + (vygcc-vycc)**2 + (v2gcc-v2cc)**2 )
+     .          * psordis(ix,iy,2)
+
+            seic(ix,iy) = seic(ix,iy) 
+     .          + cftiexclg*cfnidhdis*0.5*mg(1)
+     .          * ((uuxgcc-upgcc)**2 + (vygcc-vycc)**2 + (v2gcc-v2cc)**2 )
+     .          * psordis(ix,iy,2)
+            endif # End new drift heating implementation
 
           endif
 
