@@ -7848,35 +7848,42 @@ c        Special case for igsp = 1
 c        Check inertial neutral model
 
 
-c        Special case for molecules
-
 *        ----------------------------------------------------
 *               COUPLE MOLECULES TO ATOMS AND IONS
 *        ----------------------------------------------------
-         if (ishymol .ne. 0) then  #..D2 included
+         if (ishymol .eq. 1) then
 *           Thermal energy source of molecules
 *           ----------------------------------------------------
+c           Add check for inertial atoms?
             reseg(ix,iy,2) = reseg(ix,iy,2)
      .          + psorg(ix,iy,2)*1.5*tg(ix,iy,2)
 
 
+*           Drift heating energy source for molecules
+*           ----------------------------------------------------
+c           The above is adapted from the original implementation,
+c           where the first term assumes v_m = 0 when molecular 
+c           dissociation is implicitly assumed. The remaining terms
+c           are corrections for (v_m - v_a)**2. However, the original
+c           implementation seems to mix the poloidal and parallel 
+c           velocities arbitrarily, not actually completing the 
+c           square.
+
+c           The switches are mixed: cfnidhdis for v_a but cfnidhmol
+c           for the molecular terms: use cfnidhmol for all?
+*           ----------------------------------------------------
             upgcc = 0.5*(up(ix,iy,iigsp)+up(ix1,iy,iigsp))
             vycc = (cfnidhgy**0.5)*0.5*(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
             v2cc = (cfnidhg2**0.5)*0.5*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
 
-c           Atom kinetic energy source from mol. drift heating
             reseg(ix,iy,1) = reseg(ix,iy,1) 
      .          + cfnidh*cfnidhdis*0.5*mg(1)* (upgcc**2 + vycc**2 + v2cc**2)
      .          * psordis(ix,iy,2)
 
-c           Ion energy source from mol. drift heating
             seic(ix,iy) = seic(ix,iy)
      .          + cftiexclg * cfneut * cfneutsor_ei * cnsor * cfnidhdis
      .          * 0.5*mg(1)*(upgcc**2 + vycc**2 + v2cc**2) * psordis(ix,iy,2) 
 
-
-*           Drift heating energy source for molecules
-*           ----------------------------------------------------
             uuxgcc = (cfnidhmol**0.5)*0.5*(uuxg(ix,iy,2)+uuxg(ix1,iy,2))**2
             vygcc = (cfnidhmol**0.5)*0.5*(vyg(ix,iy,2)+vyg(ix1,iy,2))**2
             v2gcc = 0. #.. molecule v in the tol direction, it seems to be assumed as 0 in neudifpg?
@@ -7886,8 +7893,6 @@ c           Ion energy source from mol. drift heating
             seic(ix,iy) = seic(ix,iy) 
      .          + cftiexclg*cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )*psordis(ix,iy,2)
 
-*           Drift heating energy source for molecules
-*           ----------------------------------------------------
             uuxgcc = cfnidhmol*0.25*(uuxg(ix,iy,2)+uuxg(ix1,iy,2))
      .                      *(uuxg(ix,iy,1)+uuxg(ix1,iy,1))
             vygcc = cfnidhmol*0.25*(vyg(ix,iy,2)+vyg(ix1,iy,2))
@@ -7920,9 +7925,6 @@ c           Ion energy source from mol. drift heating
             reseg(ix,iy,igsp)= -( fegx(ix,iy,igsp)-fegx(ix1,iy,  igsp)+
      .                            fegy(ix,iy,igsp)-fegy(ix, iy1,igsp) )
      .                                                + segc(ix,iy,igsp)
-*           Thermal equipartition with ions -> gas
-*           ------------------------------------------------------------
-c           Should scale with cftiexclg to conserve energy when transitioning?
 
 
 *           ------------------------------------------------------------
@@ -7931,6 +7933,8 @@ c           Should scale with cftiexclg to conserve energy when transitioning?
             if (igsp.eq.1) then  #..for D0, we should include D+ and D0 in Ti
 *               Thermal equipartition coupling of atoms and ions
 *               --------------------------------------------------------
+c               Should scale with cftiexclg to conserve energy when 
+c               transitioning with 0<cftiexclg<1
                 seic(ix,iy) = seic(ix,iy)
      .              - (1.0-cftiexclg)*vol(ix,iy)*eqpg(ix,iy,1)
      .              * (ti(ix,iy)-tg(ix,iy,1))
