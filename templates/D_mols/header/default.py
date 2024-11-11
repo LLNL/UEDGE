@@ -13,3 +13,13 @@ try:
 except:
     pass
 
+setni = True
+setup = True
+setphi = True
+setphiofft = True
+setng = True
+setupg = True
+setti = True
+sette = True
+settg = True
+
