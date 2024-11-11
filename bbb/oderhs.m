@@ -7880,32 +7880,32 @@ c           Only apply drift heating for inertial atoms?
                 v2cc = (cfnidhg2**0.5)*0.5*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
 
                 reseg(ix,iy,1) = reseg(ix,iy,1) 
-         .          + cfnidh*cfnidhdis*0.5*mg(1)* (upgcc**2 + vycc**2 + v2cc**2)
-         .          * psordis(ix,iy,2)
+     .              + cfnidh*cfnidhdis*0.5*mg(1)* (upgcc**2 + vycc**2 + v2cc**2)
+     .              * psordis(ix,iy,2)
 
                 seic(ix,iy) = seic(ix,iy)
-         .          + cftiexclg * cfneut * cfneutsor_ei * cnsor * cfnidhdis
-         .          * 0.5*mg(1)*(upgcc**2 + vycc**2 + v2cc**2) * psordis(ix,iy,2) 
+     .              + cftiexclg * cfneut * cfneutsor_ei * cnsor * cfnidhdis
+     .              * 0.5*mg(1)*(upgcc**2 + vycc**2 + v2cc**2) * psordis(ix,iy,2) 
 
                 uuxgcc = (cfnidhmol**0.5)*0.5*(uuxg(ix,iy,2)+uuxg(ix1,iy,2))**2
                 vygcc = (cfnidhmol**0.5)*0.5*(vyg(ix,iy,2)+vyg(ix1,iy,2))**2
                 v2gcc = 0. #.. molecule v in the tol direction, it seems to be assumed as 0 in neudifpg?
                 reseg(ix,iy,1) = reseg(ix,iy,1) 
-         .          + cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )*psordis(ix,iy,2)
+     .              + cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )*psordis(ix,iy,2)
 
                 seic(ix,iy) = seic(ix,iy) 
-         .          + cftiexclg*cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )*psordis(ix,iy,2)
+     .              + cftiexclg*cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )*psordis(ix,iy,2)
 
                 uuxgcc = cfnidhmol*0.25*(uuxg(ix,iy,2)+uuxg(ix1,iy,2))
-         .                      *(uuxg(ix,iy,1)+uuxg(ix1,iy,1))
+     .                      *(uuxg(ix,iy,1)+uuxg(ix1,iy,1))
                 vygcc = cfnidhmol*0.25*(vyg(ix,iy,2)+vyg(ix1,iy,2))
-         .                      *(vyg(ix,iy,1)+vyg(ix1,iy,1))
+     .                      *(vyg(ix,iy,1)+vyg(ix1,iy,1))
                 v2gcc = 0.
                 reseg(ix,iy,1) = reseg(ix,iy,1) 
-         .          - cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordis(ix,iy,2)
+     .              - cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordis(ix,iy,2)
 
                 seic(ix,iy) = seic(ix,iy) 
-         .          - cftiexclg*cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordis(ix,iy,2)
+     .              - cftiexclg*cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordis(ix,iy,2)
 *           Start new Molecular Drift heating implementation
 *           ----------------------------------------------------
             else
@@ -7918,14 +7918,14 @@ c           Only apply drift heating for inertial atoms?
                 v2gcc = 0. #.. molecule v in the tol direction, it seems to be assumed as 0 in neudifpg?
               
                 reseg(ix,iy,1) = reseg(ix,iy,1) 
-         .          + cfnidhdis*0.5*mg(1)
-         .          * ((uuxgcc-upgcc)**2 + (vygcc-vycc)**2 + (v2gcc-v2cc)**2 )
-         .          * psordis(ix,iy,2)
+     .              + cfnidhdis*0.5*mg(1)
+     .              * ((uuxgcc-upgcc)**2 + (vygcc-vycc)**2 + (v2gcc-v2cc)**2 )
+     .              * psordis(ix,iy,2)
 
                 seic(ix,iy) = seic(ix,iy) 
-         .          + cftiexclg*cfnidhdis*0.5*mg(1)
-         .          * ((uuxgcc-upgcc)**2 + (vygcc-vycc)**2 + (v2gcc-v2cc)**2 )
-         .          * psordis(ix,iy,2)
+     .              + cftiexclg*cfnidhdis*0.5*mg(1)
+     .              * ((uuxgcc-upgcc)**2 + (vygcc-vycc)**2 + (v2gcc-v2cc)**2 )
+     .              * psordis(ix,iy,2)
             endif # End new drift heating implementation
 
           endif
