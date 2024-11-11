@@ -7853,7 +7853,7 @@ c        Special case for molecules
 *        ----------------------------------------------------
 *               COUPLE MOLECULES TO ATOMS AND IONS
 *        ----------------------------------------------------
-         if (ishymol .neq. 0) then  #..D2 included
+         if (ishymol .ne. 0) then  #..D2 included
 *           Thermal energy source of molecules
 *           ----------------------------------------------------
             reseg(ix,iy,2) = reseg(ix,iy,2)
