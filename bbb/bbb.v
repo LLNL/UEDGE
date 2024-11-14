@@ -2223,8 +2223,8 @@ psorbgg(0:nx+1,0:ny+1,1:ngsp) _real  [part/s]  # diag artific neut backg source
 psorbgz(0:nx+1,0:ny+1)        _real  [part/s]  # diag artific impur backg source
 erliz(0:nx+1,0:ny+1)          _real  [J/s]     # H rad'n loss for ioniz'n
 edisse(0:nx+1,0:ny+1)         _real  [J/s]     # Elec E loss due to mol interactions
-emolia(0:nx+1,0:ny+1)         _real  [J/s]     # i/a E change due to mol interactions
-eiamoldiss(0:nx+1,0:ny+1)     _real  [J/s]     # i/a enegy density incr, mol diss
+emolia(0:nx+1,0:ny+1,1:nisp)  _real  [J/s]     # i/a E change due to mol interactions
+eiamoldiss(0:nx+1,0:ny+1,1:nisp)    _real  [J/s]     # i/a enegy density incr, mol diss
 erlrc(0:nx+1,0:ny+1)          _real  [J/s]     # H rad'n loss for recom'n
 vsoreec(0:nx+1,0:ny+1)	      _real  [J/s]     # cell ctr tot elec vol eng source
 vsoree(0:nx+1,0:ny+1)	      _real  [J/s]     # cell ave tot elec vol eng source

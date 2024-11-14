@@ -1116,6 +1116,7 @@ c ... Initialize Multicharge rate table dimensions
       rtnsd=0
 c ... Set up tables for hydrogenic atomic-physics processes.
       if (newaph == 1) call aphread
+      call crumpetread
 c ... Set up tables for impurity atomic-physics processes.
       if (isimpon .eq. 1) then		# obsolete option
          call xerrab ('ueinit -- option isimpon=1 is obsolete; use 2')
@@ -6644,6 +6645,10 @@ c_mpi         call MPI_BARRIER(uedgeComm, ierr)
 	   write(*,*) 'UEDGE version ',uedge_ver
            icall = 1
          endif
+
+
+
+c TODO: Add check for inertial neutral model when Tg for atoms is on
 
 c   Check model switches for UEDGE updates/bugs
       if (isoldalbarea .ne. 0) then

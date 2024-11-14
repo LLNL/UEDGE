@@ -18,7 +18,7 @@ c-----------------------------------------------------------------------
       Use(Phyvar)
       Use(UEpar)    # isnewpot,r0slab,cslim,dcslim,csfaclb,csfacrb,csfacti,
                     # isnion,isupon,isteon,istion,isngon,isnionxy,isuponxy,
-                    # isteonxy,istionxy,isngonxy,isphionxy
+                    # isteonxy,istionxy,isngonxy,isphionxy, ismolcrm
       Use(Aux)      # ixmp
       Use(Coefeq)   # fac2sp,cf2ef,exjbdry
       Use(Bcond)    # iflux,ncore,tcoree,tcorei,tbmin,nbmin,ngbmin,
@@ -1731,7 +1731,7 @@ c...  now do the gas and temperatures
                   if (ishymol.eq.1 .and. igsp.eq.2) then
                     ta0 = engbsr * max(tg(1,iy,1),temin*ev)
                     vxa = 0.25 * sqrt( 8*ta0/(pi*mg(1)) )
-                    flxa = 0*(1-alblb(iy,1,1))*ng(1,iy,1)*vxa*sx(0,iy)
+                    flxa = ismolcrm*(1-alblb(iy,1,1))*ng(1,iy,1)*vxa*sx(0,iy)
 
                     if (isupgon(1) .eq. 1) then  # two atoms per molecule
                       flux_inc = 0.5*( fnix(0,iy,1) + fnix(0,iy,2) + flxa)
@@ -2086,7 +2086,7 @@ c       Do hydrogenic gas equations --
                if (ishymol.eq.1 .and. igsp.eq.2) then
                  ta0 = max(tg(ixt1,iy,1), temin*ev)
                  vxa = 0.25 * sqrt( 8*ta0/(pi*mg(1)) )
-                 flxa = 0*(1-alblb(iy,1,jx))*ng(ixt1,iy,1)*vxa*sx(ixt,iy)
+                 flxa = ismolcrm*(1-alblb(iy,1,jx))*ng(ixt1,iy,1)*vxa*sx(ixt,iy)
 
                  if (isupgon(1) .eq. 1) then  # two atoms for one molecule
                    flux_inc = 0.5*( fnix(ixt,iy,1) + fnix(ixt,iy,2) +flxa) 
@@ -2405,7 +2405,7 @@ c...  now do the gas and temperatures
                   if (ishymol.eq.1 .and. igsp.eq.2) then
                     ta0 = engbsr * max(tg(nx,iy,1),temin*ev)
                     vxa = 0.25 * sqrt( 8*ta0/(pi*mg(1)) )
-                    flxa= 0*(1-albrb(iy,1,nxpt))*ng(nx,iy,1)*vxa*sx(nx,iy)
+                    flxa= ismolcrm*(1-albrb(iy,1,nxpt))*ng(nx,iy,1)*vxa*sx(nx,iy)
                     if (isupgon(1) .eq. 1) then  # two atoms for one molecule
                       flux_inc = 0.5*( fnix(nx,iy,1) + fnix(nx,iy,2) -flxa) 
                     else
@@ -2777,7 +2777,7 @@ c       Next, the hydrogenic gas equations --
                if (ishymol.eq.1 .and. igsp.eq.2) then
                 ta0 = max(tg(ixt1,iy,1), temin*ev)
                 vxa = 0.25 * sqrt( 8*ta0/(pi*mg(1)) )
-                flxa= 0*(1-albrb(iy,1,jx))*ng(ixt1,iy,1)*vxa*sx(ixt1,iy)
+                flxa= ismolcrm*(1-albrb(iy,1,jx))*ng(ixt1,iy,1)*vxa*sx(ixt1,iy)
 
                  if (isupgon(1) .eq. 1) then  # two atoms for one molecule
                    flux_inc = 0.5*( fnix(ixt1,iy,1) +fnix(ixt1,iy,2)-flxa) 
