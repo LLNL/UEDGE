@@ -7921,8 +7921,8 @@ c           Only apply drift heating for inertial atoms?
      .              - cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )*psordis(ix,iy,2)
 
                 seic(ix,iy) = seic(ix,iy) 
-     .              + cftiexclg*cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )
-     .              - ( (1-ismolcrm)*psordis(ix,iy,2) + ismolcrm*psordis(ix,iy,1) )
+     .              - cftiexclg*cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )
+     .              * ( (1-ismolcrm)*psordis(ix,iy,2) + ismolcrm*psordis(ix,iy,1) )
 
                 uuxgcc = cfnidhmol*0.25*(uuxg(ix,iy,2)+uuxg(ix1,iy,2))
      .                      *(uuxg(ix,iy,1)+uuxg(ix1,iy,1))
@@ -7933,7 +7933,7 @@ c           Only apply drift heating for inertial atoms?
      .              + cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordis(ix,iy,2)
 
                 seic(ix,iy) = seic(ix,iy) 
-     .              + cftiexclg*cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)
+     .              - cftiexclg*cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)
      .              * ( (1-ismolcrm)*psordis(ix,iy,2) + ismolcrm*psordis(ix,iy,1) )
 *           Start new Molecular Drift heating implementation
 *           ----------------------------------------------------
