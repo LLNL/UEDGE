@@ -4530,7 +4530,7 @@ c...  Electron radiation loss -- ionization and recombination
      .          + cfneut*cfneutsor_ee*cnsor*13.6*ev*fac2sp*psorrgc(ix,iy,1)
      .          - cfneut*cfneutsor_ee*cnsor*erliz(ix,iy)
      .          - cfneut*cfneutsor_ee*cnsor*erlrc(ix,iy)
-     .          + cfneut*cfneutsor_ee*cnsor*cmesore*edisse(ix,iy)
+     .          - cfneut*cfneutsor_ee*cnsor*cmesore*edisse(ix,iy)
         enddo
       enddo
 
@@ -4610,53 +4610,56 @@ c ... Energy density change due to molecular dissociation ("Franck-Condon")
 
 
             if (isupgon(1).eq.1) then
-c These terms include electron-ion equipartition as well as terms due
-c to the friction force between neutrals and ions
-               up1cc = 0.5*(up(ix,iy,1)+up(ix1,iy,1))
-               upgcc = 0.5*(up(ix,iy,iigsp)+up(ix1,iy,iigsp))
-               vycc = (cfnidhgy**0.5)*0.5*(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
-               v2cc = (cfnidhg2**0.5)*0.5*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
+c             Set up helper arrays for velocities
+              up1cc = 0.5*(up(ix,iy,1)+up(ix1,iy,1))
+              upgcc = 0.5*(up(ix,iy,iigsp)+up(ix1,iy,iigsp))
+              vycc = (cfnidhgy**0.5)*0.5*(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
+              v2cc = (cfnidhg2**0.5)*0.5*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
 
-c              Ion rate from CX
-               psicx(ix,iy) = cfticx*nucx(ix,iy,1)*ng(ix,iy,1)*vol(ix,iy)
+c             IONS
+c             -------------------------------------------------------------
+c             Ion rate from CX
+              psicx(ix,iy) = cfticx*nucx(ix,iy,1)*ng(ix,iy,1)*vol(ix,iy)
 
-c              Ion energy source/sink from ioniz & recom
-               seik(ix,iy) = cfneut * cfneutsor_ei * cfnidh * 
+c             Ion internal energy sink/source from ioniz & recom
+              seit(ix,iy) = 1.5*( 
+     .                tg(ix,iy,1) * (psor(ix,iy,1) + psicx(ix,iy))
+     .              - ti(ix,iy) * (psorrg(ix,iy,1) +psicx(ix,iy))
+     .        )
+
+c             Ion energy source/sink from ioniz & recom
+              seik(ix,iy) = cfneut * cfneutsor_ei * cfnidh * 
      .              0.5*mi(1) * ( (up1cc-upgcc)**2 + vycc**2 + v2cc**2 ) * 
      .              (  psor(ix,iy,1) + cftiexclg*psorrg(ix,iy,1)
      .              + (1 + cftiexclg) * psicx(ix,iy) )
 
-c              Ion energy source from mol. diss ("Franck Condon")
-               seid(ix,iy) = - cftiexclg * cfneut * cfneutsor_ei 
+c             Ion energy source from mol. diss ("Franck Condon")
+              seid(ix,iy) = - cftiexclg * cfneut * cfneutsor_ei 
      .              * cnsor*eion*(1-ismolcrm)*ev*psordis(ix,iy,2) 
      .              + emolia(ix,iy,1) + cftiexclg*emolia(ix,iy,2) # CRM FC
 
-c              Ion energy source from drift heating 
-               seidh(ix,iy) = cfnidh2* 
+c             Ion energy source from drift heating 
+              seidh(ix,iy) = cfnidh2* 
      .              ( -mi(1)*up1cc*upgcc*(psor(ix,iy,1)+psicx(ix,iy))
      .              + 0.5*mi(1)*up1cc**2
      .              * (psor(ix,iy,1)+psorrg(ix,iy,1)+2*psicx(ix,iy)) )
 
-c             Ion internal energy sink/source from ioniz & recom
-              seit(ix,iy) = 1.5*( tg(ix,iy,1)*psor(ix,iy,1) - ti(ix,iy)*psorrg(ix,iy,1))
+              resei(ix,iy) = resei(ix,iy) + w0(ix,iy)
+     .              + seik(ix,iy) 
+     .              + (1.0-cftiexclg) * seit(ix,iy)
+     .              + seid(ix,iy)
+     .              + seidh(ix,iy)
 
-c              Total Ion Energy residual
-               resei(ix,iy) = resei(ix,iy) 
-     .              + w0(ix,iy)
-     .              + seik(ix, iy) 
-     .              + seid(ix, iy) 
-     .              + seidh(ix,iy) 
-     .              + (1.0-cftiexclg)*seit(ix,iy)
-
-c              Atom kinetic energy source from recom & CX
-               seak(ix,iy) = 0.5*mg(1) * ( (up1cc-upgcc)**2 + vycc**2 + v2cc**2 )
+c             ATOMS
+c             -------------------------------------------------------------
+c             Atom kinetic energy source from recom & CX
+              seak(ix,iy) = 0.5*mg(1) * ( (up1cc-upgcc)**2 + vycc**2 + v2cc**2 )
      .              * (psorrg(ix,iy,1)+psicx(ix,iy))
 
 c              Atom kinetic energy source from mol. diss
                sead(ix,iy) = (1-ismolcrm)*(
-     .              - eion*ev*psordis(ix,iy,2) 
-     .           )
-     .           + emolia(ix,iy,2) 
+     .              eion*ev*psordis(ix,iy,2) 
+     .          ) + emolia(ix,iy,2) 
 
 c              Atom energy source from drift heating 
                seadh(ix,iy) = cfnidh2* ( -mg(1) *up1cc*upgcc 
@@ -4664,17 +4667,19 @@ c              Atom energy source from drift heating
      .              + 0.5*mg(1) * (upgcc**2 + vycc**2 + v2cc**2)
      .              * (psor(ix,iy,1)+psorrg(ix,iy,1)+2*psicx(ix,iy)) )
 
+
                reseg(ix,iy,1) = reseg(ix,iy,1)
-     .                  - seit(ix,iy) 
+     .                  - seit(ix,iy)
      .                  + seak(ix,iy)
      .                  + sead(ix,iy)
      .                  + seadh(ix,iy)
-
-
+c     .                            + ( cfnidh*cfnidhdis*
+c     .                   0.5*mg(1)*(t2*t2+temp3+temp4) )*psordis(ix,iy,2)
+ 
                 if (ishymol .eq. 0) then
 c                   Atom kinetic energy source from mol. drift heating
                     reseg(ix,iy,1) = reseg(ix,iy,1) 
-     .                  - cfnidh*cfnidhdis*0.5*mg(1)
+     .                  + cfnidh*cfnidhdis*0.5*mg(1)
      .                  * (upgcc**2 + vycc**2 + v2cc**2)
      .                  * psordis(ix,iy,2)
 
@@ -4688,8 +4693,7 @@ c                   Ion energy source from mol. drift heating
      .                  +   ismolcrm * psordis(ix,iy,1)
      .                  )
                 endif
-
-
+    
             else
                resei(ix,iy) = resei(ix,iy) + w0(ix,iy)
      .             + cfneut * cfneutsor_ei * ctsor*1.25e-1*mi(1)*
