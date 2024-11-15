@@ -4530,7 +4530,7 @@ c...  Electron radiation loss -- ionization and recombination
      .          + cfneut*cfneutsor_ee*cnsor*13.6*ev*fac2sp*psorrgc(ix,iy,1)
      .          - cfneut*cfneutsor_ee*cnsor*erliz(ix,iy)
      .          - cfneut*cfneutsor_ee*cnsor*erlrc(ix,iy)
-     .          - cfneut*cfneutsor_ee*cnsor*cmesore*edisse(ix,iy)
+     .          - 2*(0.5-ishymol) * cfneut*cfneutsor_ee*cnsor*cmesore*edisse(ix,iy)
         enddo
       enddo
 
@@ -4634,7 +4634,8 @@ c             Ion energy source/sink from ioniz & recom
      .              + (1 + cftiexclg) * psicx(ix,iy) )
 
 c             Ion energy source from mol. diss ("Franck Condon")
-              seid(ix,iy) = - cftiexclg * cfneut * cfneutsor_ei 
+              seid(ix,iy) = cftiexclg * cfneut * cfneutsor_ei 
+     .              * 2*(0.5 - ishymol) 
      .              * cnsor*eion*(1-ismolcrm)*ev*psordis(ix,iy,2) 
      .              + emolia(ix,iy,1) + cftiexclg*emolia(ix,iy,2) # CRM FC
 
@@ -4673,8 +4674,6 @@ c              Atom energy source from drift heating
      .                  + seak(ix,iy)
      .                  + sead(ix,iy)
      .                  + seadh(ix,iy)
-c     .                            + ( cfnidh*cfnidhdis*
-c     .                   0.5*mg(1)*(t2*t2+temp3+temp4) )*psordis(ix,iy,2)
  
                 if (ishymol .eq. 0) then
 c                   Atom kinetic energy source from mol. drift heating
