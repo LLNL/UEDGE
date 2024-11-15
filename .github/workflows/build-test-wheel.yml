@@ -35,7 +35,7 @@ jobs:
     - name: Test with pytest
       run: |
         # Create a clean UEDGE instance for every test
-        pytest --isolate --tb=native pytests/${{ matrix.tests }}
+        pytest --isolate --tb=native -s pytests/${{ matrix.tests }}
 
 
   build_wheels:
