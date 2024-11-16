@@ -4658,7 +4658,7 @@ c             Atom kinetic energy source from recom & CX
      .              * (psorrg(ix,iy,1)+psicx(ix,iy))
 
 c              Atom kinetic energy source from mol. diss
-               sead(ix,iy) = (1-ismolcrm)*(
+               sead(ix,iy) = (1-ismolcrm)*2*(0.5-ishymol)*(
      .              eion*ev*psordis(ix,iy,2) 
      .          ) + emolia(ix,iy,2) 
 
@@ -7848,12 +7848,12 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
 
 *  -- total energy residual and equipartition --
 
-      do iy = j2, j5
-        iy1 = max(0,iy-1)
-        do ix = i2, i5
-          ix1 = ixm1(ix,iy)
+      do igsp = 1, ngsp
+        do iy = j2, j5
+          iy1 = max(0,iy-1)
+          do ix = i2, i5
+            ix1 = ixm1(ix,iy)
 
-          do igsp = 1, ngsp
 *           Compute thermal equipartition rate with ion-atom fluid
 *           ------------------------------------------------------------
             if (nisp >= 2) then   # uses ni(,,2), so must have atoms
@@ -7866,12 +7866,13 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
 *                                GAS-ION/ATOM TERMS
 *           ------------------------------------------------------------
             
-
 *           Divergence of gaseous flows & v-grad-P heating
 *           ------------------------------------------------------------
             reseg(ix,iy,igsp)= -( fegx(ix,iy,igsp)-fegx(ix1,iy,  igsp)+
      .                            fegy(ix,iy,igsp)-fegy(ix, iy1,igsp) )
      .                                                + segc(ix,iy,igsp)
+
+
 
 *           ------------------------------------------------------------
 *                                GAS-GAS TERMS
@@ -7902,14 +7903,9 @@ c               transitioning with 0<cftiexclg<1
                 reseg(ix,iy,1) = reseg(ix,iy,1) 
      .              - cftgeqp*vol(ix,iy)*kelighg(igsp)
      .              * ng(ix,iy,igsp)*ng(ix,iy,1)*(tg(ix,iy,1)-tg(ix,iy,igsp))
-            endif
 
 
-*           ----------------------------------------------------
-*                   COUPLE MOLECULES TO ATOMS AND IONS
-*           ----------------------------------------------------
-            if (ishymol .eq. 1 .and. igsp .eq. 2) then
-c               Add check for inertial atoms?
+              if (ishymol.eq.1 .and. igsp.eq.2) then  #..D2 dissociation
 
 *               Internal ion/atom energy source due to dissociation
 *               ----------------------------------------------------
@@ -7948,7 +7944,8 @@ c               for the molecular terms: use cfnidhmol for all?
 
 c               Only apply drift heating for inertial atoms?
 *               ----------------------------------------------------
-                if (1 .eq. 1) then
+                if (1.eq.1) then
+
                     upgcc = 0.5*(up(ix,iy,iigsp)+up(ix1,iy,iigsp))
                     vycc = (cfnidhgy**0.5)*0.5*(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
                     v2cc = (cfnidhg2**0.5)*0.5*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
@@ -7956,18 +7953,17 @@ c               Only apply drift heating for inertial atoms?
                     reseg(ix,iy,1) = reseg(ix,iy,1) 
      .                  - cfnidh*cfnidhdis*0.5*mg(1)* (upgcc**2 + vycc**2 + v2cc**2)
      .                  * psordis(ix,iy,2)
-
                     seic(ix,iy) = seic(ix,iy)
      .                  - cftiexclg * cfneut * cfneutsor_ei * cnsor * cfnidhdis
      .                  * 0.5*mg(1)*(upgcc**2 + vycc**2 + v2cc**2) 
      .                  * ( (1-ismolcrm)*psordis(ix,iy,2) + ismolcrm*psordis(ix,iy,1) )
 
-                    uuxgcc = (cfnidhmol**0.5)*0.5*(uuxg(ix,iy,2)+uuxg(ix1,iy,2))**2
-                    vygcc = (cfnidhmol**0.5)*0.5*(vyg(ix,iy,2)+vyg(ix1,iy,2))**2
+                    uuxgcc = (cfnidhmol**0.5)*0.5*(uuxg(ix,iy,2)+uuxg(ix1,iy,2))
+                    vygcc = (cfnidhmol**0.5)*0.5*(vyg(ix,iy,2)+vyg(ix1,iy,2))
                     v2gcc = 0. #.. molecule v in the tol direction, it seems to be assumed as 0 in neudifpg?
+
                     reseg(ix,iy,1) = reseg(ix,iy,1) 
      .                  - cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )*psordis(ix,iy,2)
-
                     seic(ix,iy) = seic(ix,iy) 
      .                  - cftiexclg*cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )
      .                  * ( (1-ismolcrm)*psordis(ix,iy,2) + ismolcrm*psordis(ix,iy,1) )
@@ -7977,21 +7973,20 @@ c               Only apply drift heating for inertial atoms?
                     vygcc = cfnidhmol*0.25*(vyg(ix,iy,2)+vyg(ix1,iy,2))
      .                      *(vyg(ix,iy,1)+vyg(ix1,iy,1))
                     v2gcc = 0.
-                    reseg(ix,iy,1) = reseg(ix,iy,1) 
-     .                  - cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordis(ix,iy,2)
 
+                    reseg(ix,iy,1) = reseg(ix,iy,1) 
+     .                  + cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordis(ix,iy,2)
                     seic(ix,iy) = seic(ix,iy) 
-     .                  - cftiexclg*cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)
+     .                  + cftiexclg*cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)
      .                  * ( (1-ismolcrm)*psordis(ix,iy,2) + ismolcrm*psordis(ix,iy,1) )
-*               Start new Molecular Drift heating implementation
-*               ----------------------------------------------------
+
                 else
                     upgcc = 0.5*(up(ix,iy,iigsp)+up(ix1,iy,iigsp))
                     vycc = (cfnidhgy**0.5)*0.5*(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
                     v2cc = (cfnidhg2**0.5)*0.5*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
 
-                    uuxgcc = (cfnidhmol**0.5)*0.5*(uuxg(ix,iy,2)+uuxg(ix1,iy,2))**2
-                    vygcc = (cfnidhmol**0.5)*0.5*(vyg(ix,iy,2)+vyg(ix1,iy,2))**2
+                    uuxgcc = (cfnidhmol**0.5)*0.5*(uuxg(ix,iy,2)+uuxg(ix1,iy,2))
+                    vygcc = (cfnidhmol**0.5)*0.5*(vyg(ix,iy,2)+vyg(ix1,iy,2))
                     v2gcc = 0. #.. molecule v in the tol direction, it seems to be assumed as 0 in neudifpg?
                   
                     reseg(ix,iy,1) = reseg(ix,iy,1) 
@@ -8003,15 +7998,18 @@ c               Only apply drift heating for inertial atoms?
      .                  - cftiexclg*cfnidhdis*0.5*mg(1)
      .                  * ((uuxgcc-upgcc)**2 + (vygcc-vycc)**2 + (v2gcc-v2cc)**2 )
      .                  * ( (1-ismolcrm)*psordis(ix,iy,2) + ismolcrm*psordis(ix,iy,1) )
-                endif # End new drift heating implementation
-          endif
+                endif
 
 
+              endif
+            endif
 	    #..zml place holder for neutral-neutral collision,
 	    #..    not included above?
           enddo
         enddo
       enddo
+
+
 
       if((isudsym==1.or.geometry.eq.'dnXtarget') .and. nxc > 1) then
         do igsp = 1, ngsp
