@@ -1120,7 +1120,7 @@ c ... Set up tables for impurity atomic-physics processes.
       if (isimpon .eq. 1) then		# obsolete option
          call xerrab ('ueinit -- option isimpon=1 is obsolete; use 2')
       elseif (isimpon .eq. 2) then	# data supplied by D. Post 1993
-         call readpost(coronalimpfname)
+         call readpost
          call splinem
          call remark('*** For isimpon=2, set afracs, not afrac ***')
       elseif ((isimpon .eq. 3) .and. (nzspt .gt. 0)) then    # avg-ion
@@ -1140,7 +1140,7 @@ c ... Set up tables for impurity atomic-physics processes.
          endif
       elseif (isimpon .eq. 7) then      # read both Post and Braams tables
 c.....First the Post table(s):
-         call readpost(coronalimpfname)
+         call readpost
          call splinem
          call remark('*** For isimpon=7, set afracs, not afrac ***')
 c.....Then the Braams table(s):
