@@ -3448,7 +3448,40 @@ c                   if (ix .eq. 1 .and. iy .eq. 1) write(*,*) 'sng_ue', ifld, jf
            endif
  301     continue
  302   continue
-       enddo       # end of ifld loop
+
+c ... If isneteconst=1, replace resco(,,1) with d(ne*te)/dx=0 eqn
+         if (isneteconst==1 .and. ifld==1) then
+           do iy = j2, j5
+             do ix = i2, i5
+               ix1 = ixm1(ix,iy)  
+               ix2 = ixp1(ix,iy) 
+
+               if ( (ix<=ixpt1(1) .or. ix>ixpt2(1)) .and.
+     .                         iy <= iysptrx ) then #in snull PF region
+                 if (ix < ixfixpfprof) then # loc fixed PF profs
+                   resco(ix,iy,1) = ( ni(ix2,iy,1)-ni(ix,iy,1)*
+     .                                  (te(ix,iy)/te(ix2,iy)) )
+                 else
+                   resco(ix,iy,1) = -( ni(ix,iy,1)-ni(ix1,iy,1)*
+     .                                   (te(ix1,iy)/te(ix,iy)) )
+                 endif
+               endif
+               if ( (ix > ixpt1(1) .and. ix<=ixpt2(1)) .or.
+     .                         iy > iysptrx ) then #in core or SOL
+                 if (ix < ixfixcsolprof) then  # loc fixed ne&Te core/SOL 
+                   resco(ix,iy,1) = ( ni(ix2,iy,1)-ni(ix,iy,1)*
+     .                                  (te(ix,iy)/te(ix2,iy)) )
+                 else
+                   resco(ix,iy,1) = -( ni(ix,iy,1)-ni(ix1,iy,1)*
+     .                                   (te(ix1,iy)/te(ix,iy)) )
+                 endif
+               endif
+
+             enddo
+           enddo
+         endif
+ 
+      enddo       # end of ifld loop
 
 *********************************************************************
 c  Here we do the neutral gas diffusion model
@@ -4952,6 +4985,9 @@ c******************************************************************
                   iv = idxn(ix,iy,ifld)
                   yldot(iv) = (1-iseqalg(iv)) *
      .                        resco(ix,iy,ifld)/(vol(ix,iy)*n0(ifld))
+                  if(isneteconst==1 .and. ifld==1) then  #see end of resco eval in pandf
+                    yldot(iv) = resco(ix,iy,1)/(vol(ix,iy)*n0(ifld))
+                  endif
                endif
  254        continue
             do 255 ifld = 1, nusp

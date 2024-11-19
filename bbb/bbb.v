@@ -258,6 +258,9 @@ isnupdot1sd               integer /0/   +input
 isphicore0		  integer /0/  +input #=1 sets phi=phi_mp in core if isphion=1
 is_z0_imp_const           integer /0/  +input #=0 use hydr Keilhacker;=1 z0_imp_const
 z0_imp_const              real    /1./ +input #z0 in therm force if is_z0_imp_const=1
+isneteconst               real /0./    +input #=1 changes ni eqn to d(ni*Te)/dx=0
+ixfixpfprof               integer /1/  +input #ix for fixed PF profs if isneteconst=1
+ixfixcsolprof             integer /1/  +input #ix for fixed core/sol profs if isneteconst=1
 					
 ***** Model_choice restart:
 #Flags for choosing one or another calculation of a part of the model
