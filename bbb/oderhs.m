@@ -2350,8 +2350,7 @@ c ...  molecule-molecule collisions would enter viscosity, not nuix
            psorgc(ix,iy,2) = - ng(ix,iy,2)*nuiz(ix,iy,2)*vol(ix,iy) +
      .                        psorbgg(ix,iy,2)
                 psorg(ix,iy,2) = psorgc(ix,iy,2)  # no mol sor averaging
-                psordisg(ix,iy,2) = ng(ix,iy,2)*nuiz(ix,iy,2)*vol(ix,iy)
-     .                  - psorbgg(ix,iy,2)
+                psordisg(ix,iy,2) = -ng(ix,iy,2)*nuiz(ix,iy,2)*vol(ix,iy)
                 psordis(ix,iy,2) = 
      .                  - (1-ismolcrm)*2*psordisg(ix,iy,2) 
      .                  + ismolcrm*cfcrma*ng(ix,iy,2)*vol(ix,iy)
@@ -2363,7 +2362,7 @@ c ...  molecule-molecule collisions would enter viscosity, not nuix
                 psor(ix,iy,1) = psor(ix,iy,1) + psordis(ix,iy,1)
 c ... TODO: How to deal with diffusive atom model - is it maintained?
                 if(isupgon(1) .eq. 1) then
-                  psor(ix,iy,iigsp) = psor(ix,iy,iigsp) - psordis(ix,iy,iigsp)
+                  psor(ix,iy,iigsp) = psor(ix,iy,iigsp) + psordis(ix,iy,iigsp)
                 endif
          enddo
         enddo 
@@ -6053,7 +6052,8 @@ c.... Calculate the residual for the gas equation for diffusive neutral case
      .             - fluxfacy*(fngy(ix,iy,igsp) - fngy(ix ,iy-1,igsp))
      .                       + psgov_use(ix,iy,igsp)*vol(ix,iy)
                if (igsp.eq.1 .and. ishymol.eq.1) resng(ix,iy,igsp) =
-     .                              resng(ix,iy,igsp)-psordis(ix,iy,2)
+     .                  resng(ix,iy,igsp)+psordis(ix,iy,2)
+
  891        continue
  892     continue
       endif
@@ -6646,7 +6646,7 @@ c ... is it correct to use ng instead of ni??? i.e. will ng enter jacobian?
      .             + volpsorg(ix,iy,igsp)
      .             + psgov_use(ix,iy,igsp)*vol(ix,iy)
             if (igsp.eq.1 .and. ishymol.eq.1)
-     .          resng(ix,iy,igsp) = resng(ix,iy,igsp)-psordis(ix,iy,2)
+     .          resng(ix,iy,igsp) = resng(ix,iy,igsp)+psordis(ix,iy,2)
             resng(ix,iy,igsp) = resng(ix,iy,igsp) - cfneutdiv*
      .          cfneutdiv_fng*((fngx(ix,iy,igsp) - fngx(ix1,iy, igsp)) +
      .          fluxfacy*(fngy(ix,iy,igsp) - fngy(ix,iy-1,igsp)) )
@@ -7065,7 +7065,7 @@ c.... Calculate the residual for the gas equation for diffusive neutral case
      .                       + psgov_use(ix,iy,igsp)*vol(ix,iy)
 
                if (igsp.eq.1 .and. ishymol.eq.1)  
-     .              resng(ix,iy,igsp) = resng(ix,iy,igsp)-psordis(ix,iy,2)
+     .              resng(ix,iy,igsp) = resng(ix,iy,igsp)+psordis(ix,iy,2)
  891        continue
  892     continue
       endif
