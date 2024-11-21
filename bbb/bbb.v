@@ -3783,12 +3783,13 @@ wallflux					subroutine
 
 plateflux					subroutine
 	# diagnostic calc particle/heat flux to plates; alt. to balancee
-outflux_atom(ifli:real,ifla:real,thfla:real,frecyc:real,alba:real,ofla:real) subroutine
+test_outflux_atom(ifli:real,ifla:real,thfla:real,frecyc:real,alba:real,ofla:real) subroutine
     # routine for calculating reflected flux for atom-only cases
-outflux_mol(ifli:real,ifla:real,tha:real,thm:real,frecyc:real,alba:real,albm:real,fmfl:real,fmth:real,ofla:real,oflm:real) subroutine
+test_outflux_mol(ifli:real,ifla:real,tha:real,thm:real,frecyc:real,alba:real,albm:real,fmfl:real,fmth:real,ofla:real,oflm:real) subroutine
     # routine for calculating reflected flux for atom-molecule cases
-onesided_maxwellian(T:real,n:real,m:real,A:real,T_min:real) real function
+test_onesided_maxwellian(T:real,n:real,m:real,A:real,T_min:real) real function
     # Calculates the one-sided maxwellian surface flux
+test_harmave(x1:real,x2:real) real function
 
 ***** Imprad:
 # variables associated with impurity radiation

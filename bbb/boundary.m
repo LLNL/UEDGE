@@ -1,6 +1,87 @@
 c!include "../mppl.h"
 c!include "../sptodp.h"
 c-----------------------------------------------------------------------
+
+      MODULE atom_recyc
+      IMPLICIT NONE
+      CONTAINS
+        SUBROUTINE outflux_atom(
+     .      iflx_i, iflx_a, thflx_a, frecyc, alba, 
+     .      oflx_a
+     .  )
+        IMPLICIT NONE
+            REAL, INTENT(IN) :: iflx_i, iflx_a, thflx_a, frecyc, alba
+            REAL, INTENT(OUT) :: oflx_a
+            oflx_a = frecyc*iflx_i - (1-alba)*thflx_a
+
+
+        END SUBROUTINE outflux_atom
+
+      END MODULE atom_recyc
+
+      MODULE mol_recyc
+      IMPLICIT NONE
+      CONTAINS
+        SUBROUTINE outflux_mol(
+     .          iflx_i, iflx_a, thflx_a, thflx_m, frecyc, alba, albm, 
+     .          fmolflx, fmolth,
+     .
+     .          oflx_a, oflx_m
+     .  )
+c ...   Calculates the outgoing atomic and molecular fluxes based on
+c ...   the incident fluxes, recycling fraction, pump rate, and 
+c ...   atom/molecular recycling fractions. All fluxes given as magnitudes
+        IMPLICIT NONE
+            REAL, INTENT(IN) :: iflx_i, iflx_a, thflx_a, thflx_m,
+     .                          frecyc, alba, albm, fmolflx, fmolth
+            REAL, INTENT(OUT) :: oflx_a, oflx_m
+            REAL flx_refl, flxth_refla, flxth_reflm
+c ...       Calculate the total reflected nuclear flux based on the
+c ...       incident flux and specified recycling fraction
+            flx_refl = (iflx_i + iflx_a) * frecyc
+c ...       Calculate the returned atomic and molecular fluxes based
+c ...       on the specified albedos (account for 2 nuclei per atom)
+            flxth_refla = (1-fmolth) * alba * thflx_a 
+            flxth_reflm = 0.5*(fmolth * thflx_a) + albm * thflx_m
+c ...       Distribute the reflected fluxes between the outgoing atomic
+c ...       and molecular fluxes
+            oflx_a = (1-fmolflx)*flx_refl - (1-alba)*flxth_refla
+            oflx_m = 0.5 * fmolflx*flx_refl - (1-albm)*flxth_reflm
+
+        RETURN
+        END SUBROUTINE outflux_mol
+      END MODULE  mol_recyc
+
+      MODULE utilities
+      IMPLICIT NONE
+      CONTAINS
+        FUNCTION onesided_maxwellian(
+     .      T, n, m, A, T_min
+     .  ) RESULT(flux)
+c ...   Calculates the one-sided maxwellian flux onto a surface
+c ...   for a gas of given density and temperature
+        REAL, INTENT(IN) :: T, n, m, A, T_min
+        REAL :: flux
+        REAL, PARAMETER :: pi = 3.14159265358979323
+
+        flux = 0.25*SQRT( (8*MAX(T, T_min)) / (pi*m) )*n*A
+
+        END FUNCTION onesided_maxwellian
+
+        FUNCTION harmave(x1, x2) RESULT(res)
+c ...   Returns the harmonic average of x1 and x1
+        REAL, INTENT(IN) :: x1, x2
+        REAL :: res
+
+        res = 2 * (x1*x2) / (x1 + x2)
+        
+        END FUNCTION harmave
+
+      END MODULE utilities  
+
+
+c-----------------------------------------------------------------------
+
       subroutine bouncon(neq, yl, yldot)
 
 *   Bouncon provides the evaluation of the equations for the boundaries.
@@ -63,6 +144,7 @@ c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
 
       Use(MCN_dim)
       Use(MCN_sources) # edisspl, edisspr, cmntgpl, cmntgpl
+      Use(Utilities)
 
 c...  local scalars
       real totfeix, totfeex, kfeix, vyn, cosphi,
@@ -86,7 +168,6 @@ c...  local scalars
 
 *  -- external procedures --
       real sdot, yld96, kappa
-      real harmave, onesided_maxwellian
       external sdot
 
 *  -- procedures --
@@ -4961,79 +5042,33 @@ c   Compute fluxes along inner wall (need to change sign; some segms are core)
 c----------------------------------------------------------------------c
 
 
-c      MODULE atom_recyc
-c      IMPLICIT NONE
-c      CONTAINS
-        SUBROUTINE outflux_atom(
-     .      iflx_i, iflx_a, thflx_a, frecyc, alba, 
-     .      oflx_a
-     .  )
-        IMPLICIT NONE
-            REAL, INTENT(IN) :: iflx_i, iflx_a, thflx_a, frecyc, alba
-            REAL, INTENT(OUT) :: oflx_a
-            oflx_a = frecyc*iflx_i - (1-alba)*thflx_a
 
+      SUBROUTINE test_outflux_mol(x1,x2,x3,x4,x5,x6,x7,x8,x9,y1,y2)
+      IMPLICIT NONE
+      REAL, INTENT(IN) :: x1,x2,x3,x4,x5,x6,x7,x8,x9
+      REAL, INTENT(OUT) :: y1, y2
+        Use(Mol_Recyc)
+        call outflux_mol(x1,x2,x3,x4,x5,x6,x7,x8,x9,y1,y2)
+      END SUBROUTINE test_outflux_mol
 
-        END SUBROUTINE outflux_atom
+      SUBROUTINE test_outflux_atom(x1,x2,x3,x4,x5,x6,y1)
+      IMPLICIT NONE
+      REAL, INTENT(IN) :: x1,x2,x3,x4,x5,x6
+      REAL, INTENT(OUT) :: y1
+        Use(Atom_Recyc)
+        call outflux_mol(x1,x2,x3,x4,x5,x6,y1)
+      END SUBROUTINE test_outflux_atom
 
-c      END MODULE atom_recyc
-
-c      MODULE mol_recyc
-c      IMPLICIT NONE
-c      CONTAINS
-        SUBROUTINE outflux_mol(
-     .          iflx_i, iflx_a, thflx_a, thflx_m, frecyc, alba, albm, 
-     .          fmolflx, fmolth,
-     .
-     .          oflx_a, oflx_m
-     .  )
-c ...   Calculates the outgoing atomic and molecular fluxes based on
-c ...   the incident fluxes, recycling fraction, pump rate, and 
-c ...   atom/molecular recycling fractions. All fluxes given as magnitudes
-        IMPLICIT NONE
-            REAL, INTENT(IN) :: iflx_i, iflx_a, thflx_a, thflx_m,
-     .                          frecyc, alba, albm, fmolflx, fmolth
-            REAL, INTENT(OUT) :: oflx_a, oflx_m
-            REAL flx_refl, flxth_refla, flxth_reflm
-c ...       Calculate the total reflected nuclear flux based on the
-c ...       incident flux and specified recycling fraction
-            flx_refl = (iflx_i + iflx_a) * frecyc
-c ...       Calculate the returned atomic and molecular fluxes based
-c ...       on the specified albedos (account for 2 nuclei per atom)
-            flxth_refla = (1-fmolth) * alba * thflx_a 
-            flxth_reflm = 0.5*(fmolth * thflx_a) + albm * thflx_m
-c ...       Distribute the reflected fluxes between the outgoing atomic
-c ...       and molecular fluxes
-            oflx_a = (1-fmolflx)*flx_refl - (1-alba)*flxth_refla
-            oflx_m = 0.5 * fmolflx*flx_refl - (1-albm)*flxth_reflm
-
-        RETURN
-        END SUBROUTINE outflux_mol
-c      END MODULE  mol_recyc
-
-c      MODULE utilities
-c      IMPLICIT NONE
-c      CONTAINS
-        FUNCTION onesided_maxwellian(
-     .      T, n, m, A, T_min
-     .  ) RESULT(flux)
-c ...   Calculates the one-sided maxwellian flux onto a surface
-c ...   for a gas of given density and temperature
-        REAL, INTENT(IN) :: T, n, m, A, T_min
-        REAL :: flux
-        REAL, PARAMETER :: pi = 3.14159265358979323
-
-        flux = 0.25*SQRT( (8*MAX(T, T_min)) / (pi*m) )*n*A
-
-        END FUNCTION onesided_maxwellian
-
-        FUNCTION harmave(x1, x2) RESULT(res)
-c ...   Returns the harmonic average of x1 and x1
-        REAL, INTENT(IN) :: x1, x2
-        REAL :: res
-
-        res = 2 * (x1*x2) / (x1 + x2)
-        
-        END FUNCTION harmave
-
-c      END MODULE utilities  
+      FUNCTION test_harmave(x1,x2) RESULT(res)
+      REAL, INTENT(IN) :: x1, x2
+      REAL :: res
+        Use(Utilities)
+        res = harmave(x1,x2)
+      END FUNCTION test_harmave
+      
+      FUNCTION test_onesided_maxwellian(x1,x2,x3,x4,x5) RESULT(res)
+      REAL, INTENT(IN) :: x1,x2,x3,x4,x5
+      REAL :: res
+        Use(Utilities)
+        res = onesided_maxwellian(x1,x2,x3,x4,x5)
+      END FUNCTION test_onesided_maxwellian
