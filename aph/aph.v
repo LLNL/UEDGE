@@ -13,6 +13,8 @@ sgvcxc   real [m^2/s] /2.e-14/# const. value of sigv_cx for issgvcxc=1;
 isaphdir integer       /1/    #=1 uses aphdir; =0 uses explicit rate file names
 crmnfname character*120 /"crumpet_nrates.dat"/ # Name of CRM rate data file
 crmefname character*120 /"crumpet_Erates.dat"/ # Name of CRM E-sink data file
+crmdir character*120 /"."/  # Path to folder containing CRM data files: data files
+                            # specified by crmnfname and crmename
 aphdir	character*120 # name of directory containing data files
 data_directory	character*120 # another dirname containing data files. This is to be be passed in
 

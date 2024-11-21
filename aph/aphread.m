@@ -136,7 +136,9 @@ c-----------------------------------------------------------------------
       subroutine crumpetread
 
 c ... Set up tables for hydrogenic molecular processes using a CRUMPET
-c ... CRM file
+c ... CRM file. Looks for files crmnfname and crmefname in the directory
+c ... specified by crmdir. If not found, looks for the file in aphdir,
+c ... and finally in the CWD
 
       implicit none
 
@@ -144,7 +146,7 @@ c ... Common blocks:
       Use(Dim)
       Use(UEpar)        # ismolcrm
       Use(Share)        # nhdf, hdfilename
-      Use(Data_input)   # aphdir, data_directory, crmefname, crmnfname
+      Use(Data_input)   # aphdir, data_directory, crmdir, crmefname, crmnfname
       Use(Rtcrumpet)      # cmpd, cmpe
 
 c ... Function:
@@ -187,10 +189,11 @@ c...  Set-up tables for particle and energy sinks due to molecules
          enddo
 
                 if (ismolcrm .ne. 0) then
-
-                     call findFile(crmnfname, aphdirx, dataDir, adname, isaphdir)
+c                     call findFile(crmnfname, aphdirx, aphdirx, adname, isaphdir)
+                     call findFile(crmnfname, crmdir, aphdirx, adname, isaphdir)
                      call readcrumpetn(TRIM(adname))
-                     call findFile(crmefname, aphdirx, dataDir, adname, isaphdir)
+                     call findFile(crmefname, aphdirx, aphdirx, adname, isaphdir)
+c                     call findFile(crmefname, crmdir, aphdirx, adname, isaphdir)
                      call readcrumpete(TRIM(adname))
 
 
@@ -969,6 +972,7 @@ Use(Rtcrumpet)  # Variable arrays
 c     local variables --
       integer ios, nget, jd, jt
       character*80 zdummy
+      character(len=500) :: io_emsg
       real crmdummy(cmpe,cmpd)
 
 c     procedures --
@@ -979,12 +983,11 @@ c     Read CRM rate data from file
 c----------------------------------------------------------------------c
 
       call freeus(nget)
-      open (nget, file=fname, form='formatted', iostat=ios,
-     .     status='old')
-      if (ios .ne. 0) then
-      write(*,*) fname
-         call xerrab('**** CRM rate file not found; set aphdir
-     . path')
+      open (nget, file=TRIM(fname), form='formatted', iostat=ios,
+     .     status='old',iomsg=io_emsg)
+      if (ios .ne. 0) then 
+         print *, trim(io_emsg)
+         call xerrab("")
       endif
 
 c     Atom depletion rate in CRM (cm**3/sec):
@@ -1053,6 +1056,7 @@ Use(Physical_constants)   # ev
 c     local variables --
       integer ios, nget, jd, jt
       character*80 zdummy
+      character(len=500) :: io_emsg
       real crmdummy(cmpe,cmpd)
 
 c     procedures --
@@ -1064,10 +1068,10 @@ c----------------------------------------------------------------------c
 
       call freeus(nget)
       open (nget, file=fname, form='formatted', iostat=ios,
-     .     status='old')
+     .     status='old',iomsg=io_emsg)
       if (ios .ne. 0) then
-         call xerrab('**** CRM rate file not found; set aphdir
-     . path')
+         print *, trim(io_emsg)
+         call xerrab("")
       endif
 
 c     Electron energy change due to atoms (W cm**3):
