@@ -66,12 +66,12 @@ c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
 
 c...  local scalars
       real totfeix, totfeex, kfeix, vyn, cosphi,
-     .     ueb, nbound, tbound, vxn, ut0, sumb, feeytotc, feiytotc,
+     .     ueb, nbound, tbound, ut0, sumb, feeytotc, feiytotc,
      .     r_major, fniytotc, fng_chem, vbound, eng_sput, flx_incid,
      .     yld_chm, t0p, zflux_chm, fqytotc, flux_inc,
      .     totfnex, totfnix, fqpsate, qpfac, aq, expkmx, arglgphi, faceel,
      .     faceel2, csfac, lambdae, uztotc, uztotc1, uztotc2,
-     .     fngytotc, fmiytotc, sytotc, f_cgpld, vparn, sfeeytotc, sfeiytotc,
+     .     fngytotc, fmiytotc, sytotc, f_cgpld, sfeeytotc, sfeiytotc,
      .     vxa, ta0, flxa
       integer ii,isphion2, nzsp_rt, jz
       real hflux, zflux
@@ -1881,13 +1881,12 @@ c       Next, the momentum equations --
                 yldot(iv2) = nurlxu*(up(ixt1,iy,ifld) -
      .                                          up(ixt,iy,ifld))/vpnorm
 	      else  # neutral thermal flux to wall if recycm < -10.1
-                t0 = max(tg(ixt1,iy,1),tgmin*ev)
-                vxn = cgmompl*0.25*sqrt( 8*t0/(pi*mi(ifld)) ) 
-		vparn = up(ixt,iy,ifld)
-                yldot(iv2) = -nurlxu*( fmix(ixt1,iy,ifld) + vparn*vxn*
-     .                        0.5*(nm(ixt1,iy,ifld)+nm(ixt,iy,ifld))*
-     .                                                 sx(ixt,iy) ) /
-     .                               (vpnorm*fnorm(ifld)*sx(ixt,iy))
+                yldot(iv2) = -nurlxu*( fmix(ixt1,iy,ifld) 
+     .              + up(ixt,iy,ifld)*cgmompl
+     .              * onesided_maxwellian( tg(ixt1,iy,1), 
+     .              0.5*(nm(ixt1,iy,ifld)+nm(ixt,iy,ifld)),
+     .              mi(ifld), sx(ixt,iy), tgmin*ev))
+     .              / (vpnorm*fnorm(ifld)*sx(ixt,iy))
               endif
             else                                         ## ions
               ueb = cfueb*( cf2ef*v2ce(ixt,iy,ifld)*rbfbt(ixt,iy) -
@@ -1991,8 +1990,6 @@ cc              endif
                                 # temperatures (ETM 7 Jan 2014)
         if(t0 < temin) f_cgpld = 0.
         if(t0 > 0.3) f_cgpld = 1.
-        t0 = max(tg(ixt1,iy,1),tgmin*ev)
-        vxn = f_cgpld * 0.25 * sqrt(8*t0/(pi*mg(1)))
 
 c   Do the electron temp Eqn -----------------------------------
         if (isteonxy(ixt,iy) == 1) then
@@ -2011,8 +2008,10 @@ c   Do the electron temp Eqn -----------------------------------
      .                                     )/(sx(ixt,iy)*vpnorm*ennorm)
             else
               yldot(iv1) =-nurlxe*(totfeexl(iy,jx) 
-     .                        -totfnex*te(ixt,iy)*bcel(iy,jx)
-     .                        +cgpld*sx(ixt,iy)*0.5*ng(ixt1,iy,1)*vxn*ediss*ev
+     .                  -totfnex*te(ixt,iy)*bcel(iy,jx)
+     .                  +cgpld*f_cgpld*onesided_maxwellian(
+     .                      tg(ixt1,iy,1), ng(ixt1,iy,1), mg(1), 
+     .                      sx(ixt,iy), tgmin*ev)*0.5*ediss*ev
      .                        -cmneut*fnix(ixt,iy,1)*recycp(1)*eedisspl*ev
      .                                     )/(sx(ixt,iy)*vpnorm*ennorm)
             endif
@@ -2054,7 +2053,9 @@ cc               if (recyce .le. 0) bcen = 0.  # gets back to old case
      .                        -totfnix*ti(ixt,iy)*bcil(iy,jx)+ 
      .            cftiexclg*( -cfneut*fnix(ixt,iy,iigsp)*tg(ixt,iy,1)*bcen
      .                        +(cgengpl*2.*tg(ixt,iy,1) - cgpld*eion*ev)*
-     .                                ng(ixt1,iy,1)*vxn*sx(ixt,iy)
+     .                        f_cgpld*onesided_maxwellian(
+     .                        tg(ixt1,iy,1), ng(ixt1,iy,1),
+     .                        mg(1), sx(ixt,iy), tgmin*ev)    
      .                        -cmneut*fnix(ixt,iy,1)*recycp(1)*
      .                                cmntgpl*(ti(ixt,iy)-eidisspl*ev)
      .                                  ) )/(vpnorm*ennorm*sx(ixt,iy))
@@ -2220,20 +2221,20 @@ c ... Neutral temperature - test if tg eqn is on, then set BC
             elseif (istglb(igsp) == 2)  #placeholder for gradient BC
               call xerrab("**INPUT ERROR: istglb=2 grad opt not implemented")
             elseif (istglb(igsp) == 3)  #Maxwell thermal flux to wall
-              t0 = max(cdifg(igsp)*tg(ixt1,iy,igsp), tgmin*ev)
-              vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
-              yldot(iv) =  -nurlxg*( fegx(ixt,iy,igsp) + 2*cgengmpl*
-     .                            ng(ixt1,iy,igsp)*vxn*t0*sx(ixt,iy) )/
-     .                                     (sx(ixt,iy)*vpnorm*ennorm)
+              yldot(iv) =  -nurlxg*( fegx(ixt,iy,igsp) + 2*cgengmpl
+     .              * max(cdifg(igsp)*tg(ixt1,iy,igsp), tgmin*ev)
+     .              * onesided_maxwellian( cdifg(igsp)*tg(ixt1,iy,igsp),
+     .                  ng(ixt1,iy,igsp), mg(igsp), sx(ixt,iy), tgmin*ev)
+     .              ) / (sx(ixt,iy)*vpnorm*ennorm)
             elseif (istglb(igsp) == 4) 
 	      if (isupgon(igsp)==1) then
                 if (recylb(iy,igsp,jx) .gt. 0.) then
-                  t0 = max(tg(ixt1,iy,igsp),tgmin*ev)
-                  vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
-                  fng_alb=(1-alblb(iy,igsp,jx))*ng(ixt1,iy,igsp)
-     .                                         *vxn*sx(ixt,iy)
+                  fng_alb=(1-alblb(iy,igsp,jx))*onesided_maxwellian(
+     .              tg(ixt1,iy,igsp), ng(ixt1,iy,igsp), mg(igsp),
+     .              sx(ixt,iy), tgmin*ev)
                   yldot(iv) = -nurlxg*( fegx(ixt,iy,igsp)
-     .                                 +cfalbedo*fng_alb*t0
+     .                                 +cfalbedo*fng_alb
+     .                                 * max(tg(ixt1,iy,igsp),tgmin*ev)
      .                                 +recylb(iy,igsp,jx)*(1.-cfdiss)
      .                                 *fnix(ixt,iy,1)
      .                                 *recyce*cfalbedo
@@ -2561,16 +2562,12 @@ c       Next, the momentum equations --
                 yldot(iv2) = nurlxu*(up(ixt2,iy,ifld) -
      .                                          up(ixt1,iy,ifld))/vpnorm
               else  #neutral thermal flux to wall if recycm < -10.1
-                t0 = max(tg(ixt,iy,1),tgmin*ev)
-                vxn = cgmompl*0.25*sqrt( 8*t0/(pi*mi(ifld))) 
 c...              if up > 0, leave unchanged; if up<0, big reduction
-cc                vparn = up(ixt,iy,ifld)*( 1./(1. + 
-cc     .                             exp(-up(ixt,iy,ifld)/vgmomp)) )
-                vparn = up(ixt,iy,ifld)
-                yldot(iv2) = -nurlxu*( fmix(ixt1,iy,ifld) - vparn*vxn*
-     .                          0.5*(nm(ixt1,iy,ifld)+nm(ixt,iy,ifld))*
-     .                                              sx(ixt1,iy) ) /
-     .                               (vpnorm*fnorm(ifld)*sx(ixt1,iy))
+                yldot(iv2) = -nurlxu*( fmix(ixt1,iy,ifld) 
+     .              - up(ixt,iy,ifld)*cgmompl*onesided_maxwellian(
+     .                  tg(ixt,iy,1), 0.5*(nm(ixt1,iy,ifld)+nm(ixt,iy,ifld)),
+     .                  mi(ifld), sx(ixt1,iy), tgmin*ev)) 
+     .                  / (vpnorm*fnorm(ifld)*sx(ixt1,iy))
               endif
               yldot(iv) =nurlxu*(up(ixt1,iy,ifld)-up(ixt,iy,ifld))/vpnorm
             else                                         ## ions
@@ -2679,8 +2676,6 @@ cccTDR            if ((isnewpot==1) .and. ((iy==1) .or. (iy==ny))) then
                                 # temperatures (ETM 7 Jan 2014)
         if(t0 < temin) f_cgpld = 0.
         if(t0 > 0.3) f_cgpld = 1.
-        t0 = max(tg(ixt1,iy,1),tgmin*ev)
-        vxn = f_cgpld * 0.25 * sqrt(8*t0/(pi*mg(1)))
 
 c   Do the electron temp Eqn -----------------------------------
         if (isteonxy(ixt,iy) == 1) then
@@ -2704,10 +2699,12 @@ cc           endif
      .                                  )/(sx(ixt1,iy)*vpnorm*ennorm)
               else
                yldot(iv1) = nurlxe*(totfeexr(iy,jx)
-     .                        -totfnex*te(ixt,iy)*bcer(iy,jx)
-     .                        -cgpld*sx(ixt1,iy)*0.5*ng(ixt1,iy,1)*vxn*ediss*ev
-     .                        -cmneut*fnix(ixt1,iy,1)*recycp(1)*eedisspr*ev
-     .                                   )/(sx(ixt1,iy)*vpnorm*ennorm)
+     .              -totfnex*te(ixt,iy)*bcer(iy,jx)
+     .              -cgpld*f_cgpld*onesided_maxwellian(
+     .                  tg(ixt1,iy,1), ng(ixt1,iy,1), mg(1),
+     .                  sx(ixt1,iy), tgmin*ev)*0.5*ediss*ev
+     .                  -cmneut*fnix(ixt1,iy,1)*recycp(1)*eedisspr*ev
+     .                   )/(sx(ixt1,iy)*vpnorm*ennorm)
              endif
           elseif (ibctepr .eq. 0) then
              yldot(iv1) = nurlxe*(tepltr*ev-te(ixt,iy))
@@ -2748,8 +2745,9 @@ cc               if (recyce .le. 0) bcen = 0.  # gets back to old case
                  yldot(iv2) = nurlxi*(totfeixr(iy,jx)
      .                        -totfnix*bcir(iy,jx)*ti(ixt,iy)+
      .            cftiexclg*( -cfneut*fnix(ixt1,iy,iigsp)*bcen*tg(ixt,iy,1)
-     .                        -(cgengpl*2.*tg(ixt,iy,1) - cgpld*eion*ev)*
-     .                                 ng(ixt1,iy,1)*vxn*sx(ixt1,iy) 
+     .                  -(cgengpl*2.*tg(ixt,iy,1) - cgpld*eion*ev)*
+     .                  onesided_maxwellian( tg(ixt1,iy,1), ng(ixt1,iy,1),
+     .                      mg(1), sx(ixt1,iy), tgmin*ev)        
      .                        -cmneut*fnix(ixt1,iy,1)*recycp(1)*
      .                                 cmntgpr*(ti(ixt,iy)-eidisspr*ev)
      .                                  ) )/(vpnorm*ennorm*sx(ixt1,iy))
@@ -2795,11 +2793,11 @@ c       Next, the hydrogenic gas equations --
      .                  / (vpnorm*n0g(igsp)*sx(ixt1,iy))
              elseif (recyrb(iy,igsp,jx) <=  0. .and.
      .               recyrb(iy,igsp,jx) >= -1.) then  # recyrb is albedo
-               t0 = max(tg(ixt,iy,igsp), tgmin*ev)
-               vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
                yldot(iv) =  nurlxg*( fngx(ixt1,iy,igsp) -
-     .          (1+recyrb(iy,igsp,jx))*ng(ixt,iy,igsp)*vxn*sx(ixt1,iy) )
-     .                                     / (vxn*sx(ixt1,iy)*n0g(igsp))
+     .          (1+recyrb(iy,igsp,jx))*onesided_maxwellian(
+     .              tg(ixt,iy,igsp), ng(ixt,iy,igsp), mg(igsp), sx(ixt1,iy),
+     .              tgmin*ev)) / onesided_maxwellian( tg(ixt,iy,igsp), 
+     .              n0g(igsp), mg(igsp), sx(ixt1,iy), tgmin*ev)
              elseif (recyrb(iy,igsp,jx) < -1. .and.
      .               recyrb(iy,igsp,jx) > -2.)  then  #fix density ngrfix
                yldot(iv)=nurlxg*(ngrfix - ng(ixt,iy,igsp))/n0g(igsp)
@@ -2880,11 +2878,12 @@ c       sputtered impurities plus recycled impurities from all charge states.
                     yldot(iv) = nurlxg * (fngx(ixt1,iy,igsp) - zflux) /
      .                         (n0(igsp) * vpnorm * sx(ixt1,iy))
                  elseif (sputtrb(iy,igsp,jx).ge.-9.9) then # neg. sputtrb ==> albedo
-                    t0 = max(cdifg(igsp)*tg(ixt1,iy,igsp), tgmin*ev)
-                    vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
                     yldot(iv) =  nurlxg*( fngx(ixt1,iy,igsp) -
-     .                (1+sputtrb(iy,igsp,jx))*ng(ixt,iy,igsp)*vxn*sx(ixt1,iy) )
-     .                                       / (vxn*sx(ixt1,iy)*n0g(igsp))
+     .                (1+sputtrb(iy,igsp,jx))*onesided_maxwellian(
+     .                  cdifg(igsp)*tg(ixt1,iy,igsp), ng(ixt,iy,igsp), mg(igsp),
+     .                  sx(ixt1,iy),  tgmin*ev)) / onesided_maxwellian(
+     .                  cdifg(igsp)*tg(ixt1,iy,igsp), n0g(igsp), mg(igsp),
+     .                  sx(ixt1,iy),  tgmin*ev)
                  else                                # sputtrb < -9.9 ==> fix dens
                     yldot(iv) = -nurlxg*(ng(ixt,iy,igsp)-ngplatrb(igsp,jx))/
      .                                                        n0g(igsp)    
@@ -2908,11 +2907,10 @@ c ... Neutral temperature - test if tg eqn is on, then set BC
             elseif (istgrb(igsp) == 2)  #placeholder for gradient BC
               call xerrab("**INPUT ERROR: istgrb=2 grad opt not implemented")
             elseif (istgrb(igsp) == 3)  #Maxwell thermal flux to wall
-              t0 = max(cdifg(igsp)*tg(ixt1,iy,igsp), temin*ev)
-              vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
               yldot(iv) =  nurlxg*( fegx(ixt1,iy,igsp) - 2*cgengmpl*
-     .                            ng(ixt1,iy,igsp)*vxn*t0*sx(ixt1,iy) )/
-     .                                     (sx(ixt1,iy)*vpnorm*ennorm)
+     .          max(cdifg(igsp)*tg(ixt1,iy,igsp), temin*ev) *
+     .          onesided_maxwellian( cdifg(igsp)*tg(ixt1,iy,igsp), ng(ixt1,iy,igsp),
+     .          mg(igsp), sx(ixt1,iy), tgmin*ev)) / (sx(ixt1,iy)*vpnorm*ennorm)
             elseif (istgrb(igsp) == 4) 
 	      if (isupgon(igsp)==1) then
                 if (recyrb(iy,igsp,jx) .gt. 0.) then
@@ -3553,8 +3551,6 @@ c... Add chem sputtering from neutral H
                  endif   #test on islim_sput > 1
                  if (sputllim_use(iy,igsp) .ge. 0. .or. 
      .                           abs(sputflxllim(iy,igsp)).gt. 0.) then
-                    t0 = max(cdifg(igsp)*tg(ixtl1,iy,igsp), temin*ev)
-                    vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
                     zflux = - sputllim_use(iy,igsp) * hflux - 
      .                        sputflxllim(iy,igsp) -
      .                   recyllim(iy,igsp) * zflux -
@@ -3564,12 +3560,12 @@ c... Add chem sputtering from neutral H
      .                         (n0(igsp) * vpnorm * sx(ixtl1,iy))
                  elseif (sputllim_use(iy,igsp).lt.0. .and.
      .                   sputllim_use(iy,igsp).ge.-1.) then # sputllim_use; ==> -albedo
-                    t0 = max(cdifg(igsp)*tg(ixtl1,iy,igsp), temin*ev)
-                    vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
                     yldot(iv) = -nurlxg*( fngx(ixtl1,iy,igsp) -
-     .                                   (1+sputllim_use(iy,igsp))*
-     .                              ng(ixtl,iy,igsp)*vxn*sx(ixtl1,iy) )
-     .                                   / (vxn*sx(ixtl1,iy)*n0g(igsp))
+     .                      (1+sputllim_use(iy,igsp))*onesided_maxwellian(
+     .                          cdifg(igsp)*tg(ixtl1,iy,igsp), ng(ixtl,iy,igsp),
+     .                          mg(igsp), sx(ixtl1,iy), tgmin*ev)) / onesided_maxwellian(
+     .                          cdifg(igsp)*tg(ixtl1,iy,igsp), n0g(igsp),
+     .                          mg(igsp), sx(ixtl1,iy), tgmin*ev)
                  else                                # sputllim_use < -1 ==> fix dens
                     yldot(iv) = -nurlxg*(ng(ixtl,iy,igsp)-ngllim(igsp))/
      .                                                        n0g(igsp)
@@ -3637,7 +3633,6 @@ c...  where -uu gives flow onto the limiter as for the left-side plate
                  if (sputrlim_use(iy,igsp) .ge. 0. .or. 
      .                           abs(sputflxrlim(iy,igsp)).gt. 0.) then
                     t0 = max(cdifg(igsp)*tg(ixtr1,iy,igsp), temin*ev)
-                    vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
                     zflux = - sputrlim_use(iy,igsp) * hflux - 
      .                        sputflxrlim(iy,igsp) -
      .                   recyrlim(iy,igsp) * zflux -
@@ -3647,12 +3642,12 @@ c...  where -uu gives flow onto the limiter as for the left-side plate
      .                         (n0(igsp) * vpnorm * sx(ixtr,iy))
                  elseif (sputrlim_use(iy,igsp).lt.0. .and. 
      .                   sputrlim_use(iy,igsp).ge.-1) then # sputrlim_use; ==> -albedo
-                    t0 = max(cdifg(igsp)*tg(ixtr1,iy,igsp), temin*ev)
-                    vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
                     yldot(iv) = nurlxg*( fngx(ixtr,iy,igsp) -
-     .                                   (1+sputrlim_use(iy,igsp))*
-     .                               ng(ixtr1,iy,igsp)*vxn*sx(ixtr,iy) )
-     .                                     / (vxn*sx(ixtr,iy)*n0g(igsp))
+     .                      (1+sputrlim_use(iy,igsp))*onesided_maxwellian(
+     .                          cdifg(igsp)*tg(ixtr1,iy,igsp), ng(ixtr1,iy,igsp),
+     .                          mg(igsp), sx(ixtr,iy), tgmin*ev)) / onesided_maxwellian(
+     .                          cdifg(igsp)*tg(ixtr1,iy,igsp), n0g(igsp),
+     .                          mg(igsp), sx(ixtr,iy), tgmin*ev) 
                  else                                # sputrlim_use < -1 ==> fix dens
                     yldot(iv) = nurlxg*(ng(ixtr,iy,igsp)-ngrlim(igsp))/
      .                                                        n0g(igsp)
