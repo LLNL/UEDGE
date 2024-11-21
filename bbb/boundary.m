@@ -2877,21 +2877,26 @@ c       Next, the hydrogenic gas equations --
                    flux_inc = 0.5*( fnix(ixt1,iy,1) +fngx(ixt1,iy,1)-flxa) 
                  endif
                endif
-               yldot(iv) = nurlxg *  ( fngx(ixt1,iy,igsp) +
-     .                                          fngxrb_use(iy,igsp,jx) -
-     .               fngxsrb(iy,igsp,jx) + recyrb(iy,igsp,jx)*flux_inc -
-     .               (1-albrb(iy,igsp,jx))*onesided_maxwellian(
-     .                  tg(ixt1,iy,igsp), ng(ixt1,iy,igsp), mg(igsp),
-     .                  isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy),
-     .                  tgmin*ev))
-     .                  / (vpnorm*n0g(igsp)*sx(ixt1,iy))
-             elseif (recyrb(iy,igsp,jx) <=  0. .and.
-     .               recyrb(iy,igsp,jx) >= -1.) then  # recyrb is albedo
-               yldot(iv) =  nurlxg*( fngx(ixt1,iy,igsp) -
-     .          (1+recyrb(iy,igsp,jx))*onesided_maxwellian(
-     .              tg(ixt,iy,igsp), ng(ixt,iy,igsp), mg(igsp), sx(ixt1,iy),
-     .              tgmin*ev)) / onesided_maxwellian( tg(ixt,iy,igsp), 
-     .              n0g(igsp), mg(igsp), sx(ixt1,iy), tgmin*ev)
+               osmw = onesided_maxwellian(
+     .              tg(ixt1,iy,igsp), 1.0, mg(igsp),
+     .              isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy),
+     .              tgmin*ev
+     .         )
+               yldot(iv) = nurlxg *  ( fngx(ixt1,iy,igsp)
+     .                  + fngxrb_use(iy,igsp,jx)
+     .                  - fngxsrb(iy,igsp,jx) 
+     .                  + recyrb(iy,igsp,jx)*flux_inc
+     .                  - (1-albrb(iy,igsp,jx))*osmw*ng(ixt1,iy,igsp)
+     .              ) / (vpnorm*n0g(igsp)*sx(ixt1,iy))
+             elseif( (recyrb(iy,igsp,jx) <=  0.) 
+     .              .and. (recyrb(iy,igsp,jx) >= -1.) 
+     .       ) then  # recyrb is albedo
+                osmw = onesided_maxwellian(
+     .              tg(ixt,iy,igsp), 1.0, mg(igsp), sx(ixt1,iy), tgmin*ev
+     .          )
+                yldot(iv) =  nurlxg*( fngx(ixt1,iy,igsp)
+     .                  - (1+recyrb(iy,igsp,jx))*osmw*ng(ixt,iy,igsp)
+     .                  ) / (osmw*n0g(igsp))
              elseif (recyrb(iy,igsp,jx) < -1. .and.
      .               recyrb(iy,igsp,jx) > -2.)  then  #fix density ngrfix
                yldot(iv)=nurlxg*(ngrfix - ng(ixt,iy,igsp))/n0g(igsp)
@@ -2960,24 +2965,32 @@ c       sputtered impurities plus recycled impurities from all charge states.
                      enddo
                    endif    #test on isph_sput = 3
                  endif   #test on isph_sput > 1              
-                 if (sputtrb(iy,igsp,jx) .ge. 0. .or.
-     .                              abs(sputflxrb(iy,igsp,jx)).gt.0.) then
-                    zflux = - sputtrb(iy,igsp,jx) * hflux - 
-     .                        sputflxrb(iy,igsp,jx) -
-     .                   recyrb(iy,igsp,jx) * zflux +
-     .                (1-albrb(iy,igsp,jx))*onesided_maxwellian(
-     .                      cdifg(igsp)*tg(ixt1,iy,igsp), ng(ixt1,iy,igsp), mg(igsp),
-     .                      isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy),
-     .                      tgmin*ev) - zflux_chm + fngxsrb(iy,igsp,jx)-fngxrb_use(iy,igsp,jx)
+                 if (   (sputtrb(iy,igsp,jx) .ge. 0.)
+     .                   .or. (abs(sputflxrb(iy,igsp,jx)).gt.0.)
+     .            ) then
+                    osmw = onesided_maxwellian(
+     .                  cdifg(igsp)*tg(ixt1,iy,igsp), ng(ixt1,iy,igsp), mg(igsp),
+     .                  isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy),
+     .                  tgmin*ev
+     .              )
+                    zflux = - sputtrb(iy,igsp,jx) * hflux  
+     .                      - sputflxrb(iy,igsp,jx)
+     .                      - recyrb(iy,igsp,jx) * zflux
+     .                      + (1-albrb(iy,igsp,jx))*osmw
+     .                      - zflux_chm 
+     .                      + fngxsrb(iy,igsp,jx)
+     .                      - fngxrb_use(iy,igsp,jx)
                     yldot(iv) = nurlxg * (fngx(ixt1,iy,igsp) - zflux) /
      .                         (n0(igsp) * vpnorm * sx(ixt1,iy))
                  elseif (sputtrb(iy,igsp,jx).ge.-9.9) then # neg. sputtrb ==> albedo
+                    osmw = onesided_maxwellian(
+     .                  cdifg(igsp)*tg(ixt1,iy,igsp), 1.0, mg(igsp),
+     .                  isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy),
+     .                  tgmin*ev
+     .              )
                     yldot(iv) =  nurlxg*( fngx(ixt1,iy,igsp) -
-     .                (1+sputtrb(iy,igsp,jx))*onesided_maxwellian(
-     .                  cdifg(igsp)*tg(ixt1,iy,igsp), ng(ixt,iy,igsp), mg(igsp),
-     .                  sx(ixt1,iy),  tgmin*ev)) / onesided_maxwellian(
-     .                  cdifg(igsp)*tg(ixt1,iy,igsp), n0g(igsp), mg(igsp),
-     .                  sx(ixt1,iy),  tgmin*ev)
+     .                  (1+sputtrb(iy,igsp,jx))*osmw*ng(ixt1,iy,igsp)
+     .                  ) / (osmw*n0g(igsp))
                  else                                # sputtrb < -9.9 ==> fix dens
                     yldot(iv) = -nurlxg*(ng(ixt,iy,igsp)-ngplatrb(igsp,jx))/
      .                                                        n0g(igsp)    
