@@ -1810,14 +1810,13 @@ c     First, the density equations --
               iv1 = idxn(ixt,iy,ifld)
               if (isupgon(1)==1 .and. zi(ifld)==0.0) then   ## neutrals
                 if (recylb(iy,1,jx) .gt. 0.) then           # recycling
-                  t0 = max(tg(ixt1,iy,1),tgmin*ev) 
-                  vxn = 0.25 * sqrt( 8*t0/(pi*mi(ifld)) )
-                  areapl = isoldalbarea*sx(ixt,iy) + (1-isoldalbarea)*sxnp(ixt,iy)
                   yldot(iv1) = -nurlxg *
      .             (fnix(ixt,iy,ifld) + recylb(iy,1,jx)*fnix(ixt,iy,1) -
      .                                               fngxlb_use(iy,1,jx) +
-     .              (1-alblb(iy,1,jx))*ni(ixt1,iy,ifld)*vxn*areapl -
-     .                 fngxslb(iy,1,jx) ) / (vpnorm*n0(ifld)*sx(ixt,iy))
+     .              (1-alblb(iy,1,jx))*onesided_maxwellian(
+     .                  tg(ixt1,iy,1), ni(ixt1,iy,ifld), mi(ifld),
+     .                  isoldalbarea*sx(ixt,iy) + (1-isoldalbarea)*sxnp(ixt,iy),
+     .                  tgmin*ev) - fngxslb(iy,1,jx) ) / (vpnorm*n0(ifld)*sx(ixt,iy))
                 elseif (recylb(iy,1,jx) <=  0. .and. 
      .                  recylb(iy,1,jx) >= -1.) then  # recylb is albedo
                   t0 = max(tg(ixt,iy,1),tgmin*ev) 
@@ -2093,21 +2092,23 @@ c       Do hydrogenic gas equations --
                    flux_inc = 0.5*( fnix(ixt,iy,1) + fngx(ixt,iy,1) +flxa) 
                  endif
                endif
-               t0 = max(tg(ixt1,iy,igsp), tgmin*ev)
-               vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
-               areapl = isoldalbarea*sx(ixt,iy) + (1-isoldalbarea)*sxnp(ixt,iy)
                yldot(iv) = -nurlxg * ( fngx(ixt,iy,igsp) - 
      .                                           fngxlb_use(iy,igsp,jx) -
      .               fngxslb(iy,igsp,jx) + recylb(iy,igsp,jx)*flux_inc +
-     .               (1-alblb(iy,igsp,jx))*ng(ixt1,iy,igsp)*vxn*areapl )
-     .                                   / (vpnorm*n0g(igsp)*sx(ixt,iy))
+     .               (1-alblb(iy,igsp,jx))*onesided_maxwellian(
+     .                  tg(ixt1,iy,igsp), ng(ixt1,iy,igsp), mg(igsp),
+     .                  isoldalbarea*sx(ixt,iy) + (1-isoldalbarea)*sxnp(ixt,iy),
+     .                  tgmin*ev))
+     .                  / (vpnorm*n0g(igsp)*sx(ixt,iy))
              elseif (recylb(iy,igsp,jx) <=  0. .and.
      .               recylb(iy,igsp,jx) >= -1.) then # recylb is albedo
-               t0 = max(tg(ixt,iy,igsp), tgmin*ev)
-               vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
                yldot(iv) = -nurlxg*( fngx(ixt,iy,igsp) +
-     .           (1+recylb(iy,igsp,jx))*ng(ixt,iy,igsp)*vxn*sx(ixt,iy) )
-     .                                      / (vxn*sx(ixt,iy)*n0g(igsp))
+     .           (1+recylb(iy,igsp,jx))*onesided_maxwellian(
+     .              tg(ixt,iy,igsp), ng(ixt,iy,igsp), mg(igsp),
+     .              sx(ixt,iy), tgmin*ev))
+     .              / onesided_maxwellian(
+     .                  tg(ixt,iy,igsp), n0g(igsp), mg(igsp),
+     .                  sx(ixt,iy), tgmin*ev)
              elseif (recylb(iy,igsp,jx) < -1. .and.
      .               recylb(iy,igsp,jx) > -2.) then  #fix density nglfix
                yldot(iv)=nurlxg*(nglfix - ng(ixt,iy,igsp))/n0g(igsp)
@@ -2180,22 +2181,22 @@ c       sputtered impurities plus recycled impurities from all charge states.
                  endif
                  if (sputtlb(iy,igsp,jx) .ge. 0. .or. 
      .                              abs(sputflxlb(iy,igsp,jx)).gt. 0.) then
-                    t0 = max(cdifg(igsp)*tg(ixt1,iy,igsp), tgmin*ev)
-                    vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
-                    areapl = isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy)
                     zflux = - sputtlb(iy,igsp,jx) * hflux - 
      .                        sputflxlb(iy,igsp,jx) -
      .                   recylb(iy,igsp,jx) * zflux -
-     .                (1-alblb(iy,igsp,jx))*ng(ixt1,iy,igsp)*vxn*areapl-
-     .                   zflux_chm + fngxslb(iy,igsp,jx)+fngxlb_use(iy,igsp,jx)
+     .                (1-alblb(iy,igsp,jx))*onesided_maxwellian(
+     .                  cdifg(igsp)*tg(ixt1,iy,igsp), ng(ixt1,iy,igsp), mg(igsp),
+     .                  isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy),
+     .                  tgmin*ev) - zflux_chm + fngxslb(iy,igsp,jx)+fngxlb_use(iy,igsp,jx)
                     yldot(iv) = -nurlxg * (fngx(ixt,iy,igsp) - zflux) /
      .                         (n0(igsp) * vpnorm * sx(ixt,iy))
                  elseif (sputtlb(iy,igsp,jx).ge.-9.9) then # neg. sputtlb ==> albedo
-                    t0 = max(cdifg(igsp)*tg(ixt1,iy,igsp), tgmin*ev)
-                    vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
                     yldot(iv) = -nurlxg*( fngx(ixt,iy,igsp) -
-     .                (1+sputtlb(iy,igsp,jx))*ng(ixt,iy,igsp)*vxn*sx(ixt,iy) )
-     .                                       / (vxn*sx(ixt,iy)*n0g(igsp))
+     .                (1+sputtlb(iy,igsp,jx))*onesided_maxwellian(
+     .                  cdifg(igsp)*tg(ixt1,iy,igsp), ng(ixt,iy,igsp), mg(igsp),
+     .                  sx(ixt,iy), tgmin*ev))
+     .                  / onesided_maxwellian(
+     .                  cdifg(igsp)*tg(ixt1,iy,igsp), n0g(igsp), mg(igsp),sx(ixt,iy), tgmin*ev)
                  else                                # sputtlb < -9.9 ==> fix dens
                     yldot(iv) = -nurlxg*(ng(ixt,iy,igsp)-ngplatlb(igsp,jx))/
      .                                                        n0g(igsp)
