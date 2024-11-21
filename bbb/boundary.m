@@ -173,6 +173,7 @@ c...  local scalars
       integer ixtl, ixtl1, ixtr,ixtr1
       #Former Aux module variables
       integer ix,iy,igsp,iv,iv1,iv2,iv3,iv4,ix1,ix2,ix3,ix4
+      real osmw
       real t0
 
 *  -- external procedures --
@@ -219,11 +220,11 @@ c ---  Below, isupon(1) & ngbackg(1) used, so implies hydrogen
              if (isupgon(1) .eq. 1 .and. zi(ifld) .eq. 0.0) then
                if (isixcore(ix)==1) then   # ix is part of the core boundary:
                  if (isngcore(1) .eq. 0) then
-                   yldot(iv1) = -nurlxg*(fniy(ix,0,ifld) + (1-albedoc(1))
-     .                  * onesided_maxwellian(tg(ix,0,1), 
-     .                      harmave(ni(ix,0,ifld),ni(ix,1,ifld)), 
-     .                      mi(ifld), sx(ix,0), tgmin*ev))
-     .                      / (vpnorm*sy(ix,0)*n0(ifld))
+                   osmw = onesided_maxwellian(
+     .                  tg(ix,0,1), harmave(ni(ix,0,ifld),ni(ix,1,ifld)), 
+     .                  mi(ifld), sx(ix,0), tgmin*ev)
+                   yldot(iv1) = -nurlxg*(fniy(ix,0,ifld) 
+     .                  + (1-albedoc(1))*osmw) / (vpnorm*sy(ix,0)*n0(ifld))
                  elseif (isngcore(1) .eq. 1) then
                    yldot(iv1) = nurlxn*(ngcore(1)-ni(ix,0,ifld))/
      .                                                     n0(ifld)
@@ -249,44 +250,46 @@ c ---  Below, isupon(1) & ngbackg(1) used, so implies hydrogen
                else   # ix is not part of the core boundary
                   if (iscpli(ix) .eq. 1) call wsmodi(1)
                   fng_chem = 0.
-          do ii = 1, ngsp  #chem sputt of hydrogen - strange = 0
+                  do ii = 1, ngsp  #chem sputt of hydrogen - strange = 0
                      fng_chem= fng_chem + chemsputi(1,ii)*onesided_maxwellian(
      .                      tg(ix,0,1), ng(ix,1,ii), mi(1), sy(ix,0), tgmin*ev)
                   enddo
-                  yldot(iv1) = -nurlxg*( fniy(ix,0,ifld) + (1-albedoi(ix,1))*
-     .                  onesided_maxwellian(
-     .                      tg(ix,0,1), harmave(ni(ix,0,1), ni(ix,1,ifld)), 
-     .                      mi(1), sy(ix,0), tgmin*ev) -fng_chem ) 
-     .                      / onesided_maxwellian( tg(ix,0,1), n0(ifld),
-     .                          mi(1), sy(ix,0), tgmin*ev)
+                  osmw = onesided_maxwellian(
+     .                      tg(ix,0,1), 1.0, mi(1), sy(ix,0), tgmin*ev
+     .            )
+                  yldot(iv1) = -nurlxg*( fniy(ix,0,ifld) 
+     .                      + (1-albedoi(ix,1))*osmw
+     .                      * harmave(ni(ix,0,1), ni(ix,1,ifld)) -fng_chem
+     .                  )/ (osmw*n0(ifld))
 c...   Caution: the wall source models assume gas species 1 only is inertial
                   if(matwalli(ix) .gt. 0) then
                     if (recycwit(ix,1,1) .gt. 0.) then  
                       fniy_recy = recycwit(ix,1,1)*fac2sp*fniy(ix,0,1)
                       if (isrefluxclip==1) fniy_recy=min(fniy_recy,0.)
-                      yldot(iv1)=-nurlxg*( fniy(ix,0,ifld) + fniy_recy -
-     .                      fngyi_use(ix,1) - fngysi(ix,1) + (1-albedoi(ix,1))
-     .                      * onesided_maxwellian(
-     .                          tg(ix,0,1), harmave(ni(ix,0,ifld), ni(ix,1,ifld)),
-     .                          mi(1), sy(ix,0), tgmin*ev) - fng_chem ) 
-     .                          / onesided_maxwellian( tg(ix,0,1), n0(ifld),
-     .                              mi(1), sy(ix,0), tgmin*ev)
+                        osmw = onesided_maxwellian(
+     .                          tg(ix,0,1), 1.0, mi(1), sy(ix,0), tgmin*ev
+     .                  )
+                        yldot(iv1)=-nurlxg*( fniy(ix,0,ifld) + fniy_recy -
+     .                      fngyi_use(ix,1) - fngysi(ix,1) 
+     .                      + (1-albedoi(ix,1)) * osmw 
+     .                      * harmave(ni(ix,0,ifld), ni(ix,1,ifld)) - fng_chem  
+     .                      ) / (osmw*n0(ifld))
                     elseif (recycwit(ix,1,1) < -1) then
                       yldot(iv1)=nurlxg*(ngbackg(1)-ni(ix,0,ifld))/n0(ifld)
                     elseif (recycwit(ix,1,1) .le. 0.) then  # treat recycwit as albedo
+                      osmw = onesided_maxwellian( 
+     .                          tg(ix,0,1), 1.0, mi(1), sy(ix,0), tgmin*ev
+     .                )
                       yldot(iv1) = -nurlxg*( fniy(ix,0,ifld) +
-     .                   (1+recycwit(ix,1,1))*onesided_maxwellian(
-     .                      tg(ix,0,1), harmave(ni(ix,0,ifld), ni(ix,1,ifld)),
-     .                      mi(1), sy(ix,0), tgmin*ev))
-     .                      / onesided_maxwellian( tg(ix,0,1), n0(ifld), mi(1),
-     .                          sy(ix,0), tgmin*ev)
+     .                   (1+recycwit(ix,1,1))*osmw
+     .                   *harmave(ni(ix,0,ifld), ni(ix,1,ifld)) 
+     .                   ) / (osmw * n0(ifld))
                     endif                  
                   endif
                   if(fngysi(ix,1)+fngyi_use(ix,1) .ne. 0. 
      .                                           .and. matwalli(ix)==0.)
      .               yldot(iv1)= -nurlxg*(fniy(ix,0,ifld) - fngysi(ix,1) -
-     .                            fngyi_use(ix,1) ) / onesided_maxwellian(
-     .                              tg(ix,0,1), n0(ifld), mi(1), sy(ix,0), tgmin*ev)
+     .                            fngyi_use(ix,1) ) / (osmw * n0(ifld))
                endif   # end if-test for core and p.f. boundaries
              else  # ifld is NOT inertial neutrals but still hydrogen ion
 c
@@ -734,12 +737,14 @@ c ... prepare impurity ion flux for possible recycling
 c ... Set core BC
             if (isixcore(ix)==1) then   # ix is part of the core boundary:
                if (isngcore(igsp) .eq. 0) then
-                 yldot(iv) = -nurlxg*(fngy(ix,0,igsp) + (1-albedoc(igsp))*
-     .              onesided_maxwellian( cdifg(igsp)*tg(ix,0,igsp),
-     .                  harmave(ng(ix,0,igsp), ng(ix,1,igsp)), mg(igsp), 
-     .                  sy(ix,0), tgmin*ev))
-     .                  / onesided_maxwellian( cdifg(igsp)*tg(ix,0,igsp),
-     .                      n0g(igsp), mg(igsp), sy(ix,0), tgmin*ev)
+                 osmw = onesided_maxwellian( 
+     .                  cdifg(igsp)*tg(ix,0,igsp), 1.0, mg(igsp), 
+     .                  sy(ix,0), tgmin*ev
+     .           )
+                 yldot(iv) = -nurlxg*(fngy(ix,0,igsp) 
+     .              + (1-albedoc(igsp))*osmw
+     .              * harmave(ng(ix,0,igsp), ng(ix,1,igsp))
+     .              ) / (osmw*n0g(igsp))
                elseif (isngcore(igsp).eq.1) then
                  yldot(iv) = nurlxg*(ngcore(igsp)-ng(ix,0,igsp)) /
      .                                                       n0g(igsp)
@@ -802,12 +807,14 @@ c ... Include gas BC from sputtering by ions
                     enddo
                   endif
                endif
-               yldot(iv) = -nurlxg*( fngy(ix,0,igsp) + (1-albedoi(ix,igsp))
-     .              * onesided_maxwellian( cdifg(igsp)*tg(ix,0,igsp),
-     .                  harmave(ng(ix,0,igsp), ng(ix,1,igsp)), mg(igsp), 
-     .                  sy(ix,0), tgmin*ev) -fng_chem + sputflxpf(ix,igsp) ) 
-     .                  / onesided_maxwellian( cdifg(igsp)*tg(ix,0,igsp),
-     .                      n0g(igsp), mg(igsp), sy(ix,0), tgmin*ev) 
+               osmw = onesided_maxwellian( 
+     .                  cdifg(igsp)*tg(ix,0,igsp), 1.0, mg(igsp), 
+     .                  sy(ix,0), tgmin*ev
+     .         )
+               yldot(iv) = -nurlxg*( fngy(ix,0,igsp) 
+     .              + (1-albedoi(ix,igsp))*osmw
+     .              * harmave(ng(ix,0,igsp), ng(ix,1,igsp))
+     .              - fng_chem + sputflxpf(ix,igsp) ) / (osmw*n0g(igsp)) 
                if(matwalli(ix) .gt. 0) then
                  if (recycwit(ix,igsp,1) .gt. 0.) then
                    fniy_recy = fac2sp*fniy(ix,0,1)
