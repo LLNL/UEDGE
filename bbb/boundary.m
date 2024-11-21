@@ -244,30 +244,29 @@ c ---  Below, isupon(1) & ngbackg(1) used, so implies hydrogen
                  endif
                else   # ix is not part of the core boundary
                   if (iscpli(ix) .eq. 1) call wsmodi(1)
-		  t0 = max(tg(ix,0,1),tgmin*ev)
-                  vyn = sqrt( 0.5*t0/(pi*mi(1)) )
                   fng_chem = 0.
-		  do ii = 1, ngsp  #chem sputt of hydrogen - strange = 0
-                     flx_incid = ng(ix,1,ii)*0.25*sqrt(8*t0/(pi*mg(ii)))
-                     fng_chem= fng_chem + chemsputi(1,ii)*flx_incid*
-     .                                                        sy(ix,0)
+          do ii = 1, ngsp  #chem sputt of hydrogen - strange = 0
+                     fng_chem= fng_chem + chemsputi(1,ii)*onesided_maxwellian(
+     .                      tg(ix,0,1), ng(ix,1,ii), mi(1), sy(ix,0), tgmin*ev)
                   enddo
-                  nharmave = 2.*(ni(ix,0,ifld)*ni(ix,1,ifld)) /
-     .                          (ni(ix,0,ifld)+ni(ix,1,ifld))
-                  fng_alb = (1-albedoi(ix,1))*nharmave*vyn*sy(ix,0)
-                  yldot(iv1) = -nurlxg*( fniy(ix,0,ifld) + fng_alb -
-     .                                   fng_chem ) / 
-     .                                        (vyn*sy(ix,0)* n0(ifld))
-cc                  if (fng_chem .ne. 0.) yldot(iv1) = -nurlxg*(
-cc     .               fniy(ix,0,ifld) - fng_chem )/(vyn*sy(ix,0)*n0(ifld))
+                  yldot(iv1) = -nurlxg*( fniy(ix,0,ifld) + (1-albedoi(ix,1))*
+     .                  onesided_maxwellian(
+     .                      tg(ix,0,1), harmave(ni(ix,0,1), ni(ix,1,ifld)), 
+     .                      mi(1), sy(ix,0), tgmin*ev) -fng_chem ) 
+     .                      / onesided_maxwellian( tg(ix,0,1), n0(ifld),
+     .                          mi(1), sy(ix,0), tgmin*ev)
 c...   Caution: the wall source models assume gas species 1 only is inertial
                   if(matwalli(ix) .gt. 0) then
                     if (recycwit(ix,1,1) .gt. 0.) then  
                       fniy_recy = recycwit(ix,1,1)*fac2sp*fniy(ix,0,1)
                       if (isrefluxclip==1) fniy_recy=min(fniy_recy,0.)
                       yldot(iv1)=-nurlxg*( fniy(ix,0,ifld) + fniy_recy -
-     .                            fngyi_use(ix,1) - fngysi(ix,1) + fng_alb - 
-     .                            fng_chem ) / (vyn*n0(ifld)*sy(ix,0))
+     .                      fngyi_use(ix,1) - fngysi(ix,1) + (1-albedoi(ix,1))
+     .                      * onesided_maxwellian(
+     .                          tg(ix,0,1), harmave(ni(ix,0,ifld), ni(ix,1,ifld)),
+     .                          mi(1), sy(ix,0), tgmin*ev) - fng_chem ) 
+     .                          / onesided_maxwellian( tg(ix,0,1), n0(ifld),
+     .                              mi(1), sy(ix,0), tgmin*ev)
                     elseif (recycwit(ix,1,1) < -1) then
                       yldot(iv1)=nurlxg*(ngbackg(1)-ni(ix,0,ifld))/n0(ifld)
                     elseif (recycwit(ix,1,1) .le. 0.) then  # treat recycwit as albedo
@@ -303,7 +302,7 @@ c
                         yldot(iv1) = nurlxn*(ncore(ifld)-ni(ix,0,ifld))/
      .                                                           n0(ifld)
                      endif                       
-		  elseif (isnicore(ifld) .eq. 3) then # const ni; flux set to
+           elseif (isnicore(ifld) .eq. 3) then # const ni; flux set to
                                                       # curcore-recycc*fngy
                      yldot(iv1) = -nurlxn*( ni(ix,0,ifld) -
      .                                ni(ixp1(ix,0),0,ifld) ) / n0(ifld)
@@ -318,7 +317,7 @@ c
                           fngytotc = fngytotc + fngy(ii,0,1) #generalize
                           if (ii==ix_fl_bc) break
                         enddo
-			if (ifld > 1) fngytotc = 0.  # crude fix for imp.
+            if (ifld > 1) fngytotc = 0.  # crude fix for imp.
                         yldot(iv1)= -nurlxn*(qe*fniytotc +
      .                                       qe*recycc(1)*fngytotc -
      .                               curcore(ifld))/(qe*vpnorm*n0(ifld))
@@ -335,7 +334,7 @@ c
      .                                     ncoremin(ifld) ) / n0(ifld)
                      endif
                   else
-		            call xerrab ('** isnicore value not valid option **')
+                    call xerrab ('** isnicore value not valid option **')
                   endif
                elseif (isnwconiix(ix,ifld) .eq. 0) then
                # ix not on core boundary; set zero gradient (or flux)
@@ -371,13 +370,13 @@ c...  Reset density at corners
          do jx = 1, nxpt
            if(isfixlb(jx).ne.2 .and. ixmnbcl*iymnbcl.eq.1 .and.
      .                       isnionxy(ixlb(jx),0,ifld)==1) then
-	     yldot(idxn(ixlb(jx),0,ifld)) = nurlxn * 
+         yldot(idxn(ixlb(jx),0,ifld)) = nurlxn * 
      .            ( ave(ni(ixlb(jx),1,ifld),ni(ixlb(jx)+1,0,ifld))
      .                        - ni(ixlb(jx),0,ifld) ) / n0(ifld)
            endif
            if (isfixrb(jx).ne.2 .and. ixmxbcl*iymnbcl.eq.1 .and.
      .                      isnionxy(ixrb(jx)+1,0,ifld)==1) then
-	      yldot(idxn(ixrb(jx)+1,0,ifld)) = nurlxn * 
+          yldot(idxn(ixrb(jx)+1,0,ifld)) = nurlxn * 
      .           ( ave(ni(ixrb(jx)+1,1,ifld),ni(ixrb(jx),0,ifld))
      .                       - ni(ixrb(jx)+1,0,ifld) ) / n0(ifld)
            endif
