@@ -86,6 +86,7 @@ c...  local scalars
 
 *  -- external procedures --
       real sdot, yld96, kappa
+      real harmave, onesided_maxwellian
       external sdot
 
 *  -- procedures --
@@ -132,12 +133,10 @@ c ---  Below, isupon(1) & ngbackg(1) used, so implies hydrogen
              if (isupgon(1) .eq. 1 .and. zi(ifld) .eq. 0.0) then
                if (isixcore(ix)==1) then   # ix is part of the core boundary:
                  if (isngcore(1) .eq. 0) then
-                   t0 = max(tg(ix,0,1),tgmin*ev)
-                   vyn = sqrt( 0.5*t0/(pi*mi(ifld)) )
-                   nharmave = 2.*(ni(ix,0,ifld)*ni(ix,1,ifld)) /
-     .                           (ni(ix,0,ifld)+ni(ix,1,ifld))
-                   fng_alb = (1-albedoc(1))*
-     .                                  nharmave*vyn*sy(ix,0)
+                   fng_alb = (1-albedoc(1))*onesided_maxwellian(
+     .                  tg(ix,0,1), harmave(ni(ix,0,ifld),ni(ix,1,ifld)), 
+     .                  mi(ifld), sx(ix,0), tgmin*ev
+     .              )
                    yldot(iv1) = -nurlxg*(fniy(ix,0,ifld) + fng_alb)/
      .                                     (vpnorm*sy(ix,0)*n0(ifld))
                  elseif (isngcore(1) .eq. 1) then
@@ -1725,8 +1724,6 @@ c...  now do the gas and temperatures
                if(isfixlb(1).eq.2) yldot(iv) = nurlxg * 
      .                        (ng(1,iy,igsp) - ng(0,iy,igsp))/n0g(igsp)
                if(isfixlb(1).eq.2 .and. yylb(iy,1).gt.rlimiter) then
-                  t1 = engbsr * max(tg(1,iy,igsp),tgmin*ev)
-                  vxn = 0.25 * sqrt( 8*t1/(pi*mg(igsp)) )
                   flux_inc = fac2sp*fnix(0,iy,1)
                   if (ishymol.eq.1 .and. igsp.eq.2) then
                     ta0 = engbsr * max(tg(1,iy,1),temin*ev)
@@ -1739,12 +1736,14 @@ c...  now do the gas and temperatures
                       flux_inc = 0.5*( fnix(0,iy,1) + fngx(0,iy,1) + flxa) 
                     endif
                   endif
-                  areapl = isoldalbarea*sx(0,iy) + (1-isoldalbarea)*sxnp(0,iy)
                   yldot(iv) = -nurlxg * ( fngx(0,iy,igsp) -
      .                                           fngxlb_use(iy,igsp,1) +
      .                 fngxslb(iy,igsp,1) + recylb(iy,igsp,1)*flux_inc +
-     .                  (1-alblb(iy,igsp,1))*ng(1,iy,igsp)*vxn*areapl )
-     .                                     / (vpnorm*n0g(igsp)*sx(0,iy))
+     .                  (1-alblb(iy,igsp,1))*onesided_maxwellian(
+     .                      tg(1,iy,igsp), ng(1,iy,igsp), mg(1), 
+     .                      isoldalbarea*sx(0,iy) + (1-isoldalbarea)*sxnp(0,iy),
+     .                      temin*ev))
+     .                      / (vpnorm*n0g(igsp)*sx(0,iy))
                endif
                if (is1D_gbx.eq.1) yldot(iv) = nurlxg*(ng(1,iy,igsp) -
      .                                    ng(0,iy,igsp))/n0g(igsp)
@@ -2398,14 +2397,13 @@ c...  now do the gas and temperatures
                if(isfixrb(1).eq.2) yldot(iv) = nurlxg * 
      .                     (ng(nx,iy,igsp) - ng(nx+1,iy,igsp))/n0g(igsp)
                if(isfixrb(1).eq.2 .and. yyrb(iy,1).gt.rlimiter) then
-                  t1 = engbsr * max(tg(nx,iy,1),tgmin*ev)
-                  vxn = 0.25 * sqrt( 8*t1/(pi*mg(igsp)) )
-                  areapl = isoldalbarea*sx(nx,iy) + (1-isoldalbarea)*sxnp(nx,iy)
                   flux_inc = fac2sp*fnix(nx,iy,1)
                   if (ishymol.eq.1 .and. igsp.eq.2) then
-                    ta0 = engbsr * max(tg(nx,iy,1),temin*ev)
-                    vxa = 0.25 * sqrt( 8*ta0/(pi*mg(1)) )
-                    flxa= ismolcrm*(1-albrb(iy,1,nxpt))*ng(nx,iy,1)*vxa*sx(nx,iy)
+                    flxa= ismolcrm*(1-albrb(iy,1,nxpt))
+     .                  * onesided_maxwellian(
+     .                      engbsr*tg(nx,iy,1), ng(nx,iy,1), mg(1), sx(nx, iy), 
+     .                      engbsr*tgmin*ev
+     .                  )
                     if (isupgon(1) .eq. 1) then  # two atoms for one molecule
                       flux_inc = 0.5*( fnix(nx,iy,1) + fnix(nx,iy,2) -flxa) 
                     else
@@ -2415,8 +2413,12 @@ c...  now do the gas and temperatures
                   yldot(iv) = -nurlxg * ( fngx(nx,iy,igsp) +
      .                                            fngxrb_use(iy,igsp,1) -
      .                      fngxsrb(iy,igsp,1) + recyrb(iy,igsp,1)*flux_inc -
-     .                  (1-albrb(iy,igsp,nxpt))*ng(nx,iy,igsp)*vxn*areapl ) 
-     .                                     / (vpnorm*n0g(igsp)*sx(nx,iy))
+     .                  (1-albrb(iy,igsp,nxpt))*onesided_maxwellian(
+     .                      engbsr*tg(nx,iy,1), ng(nx,iy,igsp), mg(igsp),
+     .                      isoldalbarea*sx(nx,iy) + (1-isoldalbarea)*sxnp(nx,iy),
+     .                      engbsr*tgmin*ev
+     .                  ))      
+     .                  / (vpnorm*n0g(igsp)*sx(nx,iy))
                endif
             endif
          enddo      # end of igsp loop over gas
@@ -2483,14 +2485,13 @@ c     First, the density equations --
               iv1 = idxn(ixt,iy,ifld)
               if (isupgon(1)==1 .and. zi(ifld)==0.0) then   ## neutrals
                 if (recyrb(iy,1,jx) .gt. 0.) then           # recycling
-                  t0 = max(tg(ixt1,iy,1),tgmin*ev) 
-                  vxn = 0.25 * sqrt( 8*t0/(pi*mi(ifld)) )
-                  areapl = isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy)
                   yldot(iv1) = nurlxg *
      .               (fnix(ixt1,iy,ifld) + recyrb(iy,1,jx)*fnix(ixt1,iy,1) +
      .                                            fngxrb_use(iy,1,jx) -
-     .                (1-albrb(iy,1,jx))*ni(ixt1,iy,ifld)*vxn*areapl
-     .                - fngxsrb(iy,1,jx) ) / (vpnorm*n0(ifld)*sx(ixt1,iy))
+     .                (1-albrb(iy,1,jx))*onesided_maxwellian(
+     .                  tg(ixt1,iy,1), ni(ixt1,iy,ifld), mi(ifld), 
+     .                  isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy),
+     .                  tgmin*ev) - fngxsrb(iy,1,jx) ) / (vpnorm*n0(ifld)*sx(ixt1,iy))
                 elseif (recyrb(iy,1,jx) <=  0. .and. 
      .                  recyrb(iy,1,jx) >= -1.) then   # recyrb is albedo
                   t0 = max(tg(ixt1,iy,1),tgmin*ev) 
@@ -2775,24 +2776,22 @@ c       Next, the hydrogenic gas equations --
              if (recyrb(iy,igsp,jx) .gt. 0.) then  # normal recycling
                flux_inc = fac2sp*fnix(ixt1,iy,1)
                if (ishymol.eq.1 .and. igsp.eq.2) then
-                ta0 = max(tg(ixt1,iy,1), temin*ev)
-                vxa = 0.25 * sqrt( 8*ta0/(pi*mg(1)) )
-                flxa= ismolcrm*(1-albrb(iy,1,jx))*ng(ixt1,iy,1)*vxa*sx(ixt1,iy)
-
+                flxa= ismolcrm*(1-albrb(iy,1,jx))*onesided_maxwellian(
+     .              tg(ixt1,iy,1), ng(ixt1,iy,1), mg(1), sx(ixt1,iy), tgmin*ev)
                  if (isupgon(1) .eq. 1) then  # two atoms for one molecule
                    flux_inc = 0.5*( fnix(ixt1,iy,1) +fnix(ixt1,iy,2)-flxa) 
                  else
                    flux_inc = 0.5*( fnix(ixt1,iy,1) +fngx(ixt1,iy,1)-flxa) 
                  endif
                endif
-               t0 = max(tg(ixt1,iy,igsp), tgmin*ev)
-               vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
-               areapl = isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy) 
                yldot(iv) = nurlxg *  ( fngx(ixt1,iy,igsp) +
      .                                          fngxrb_use(iy,igsp,jx) -
      .               fngxsrb(iy,igsp,jx) + recyrb(iy,igsp,jx)*flux_inc -
-     .               (1-albrb(iy,igsp,jx))*ng(ixt1,iy,igsp)*vxn*areapl )
-     .                                  / (vpnorm*n0g(igsp)*sx(ixt1,iy))
+     .               (1-albrb(iy,igsp,jx))*onesided_maxwellian(
+     .                  tg(ixt1,iy,igsp), ng(ixt1,iy,igsp), mg(igsp),
+     .                  isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy),
+     .                  tgmin*ev))
+     .                  / (vpnorm*n0g(igsp)*sx(ixt1,iy))
              elseif (recyrb(iy,igsp,jx) <=  0. .and.
      .               recyrb(iy,igsp,jx) >= -1.) then  # recyrb is albedo
                t0 = max(tg(ixt,iy,igsp), tgmin*ev)
@@ -2870,14 +2869,13 @@ c       sputtered impurities plus recycled impurities from all charge states.
                  endif   #test on isph_sput > 1              
                  if (sputtrb(iy,igsp,jx) .ge. 0. .or.
      .                              abs(sputflxrb(iy,igsp,jx)).gt.0.) then
-                    t0 = max(cdifg(igsp)*tg(ixt1,iy,igsp), tgmin*ev)
-                    vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
-                    areapl = isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy)
                     zflux = - sputtrb(iy,igsp,jx) * hflux - 
      .                        sputflxrb(iy,igsp,jx) -
      .                   recyrb(iy,igsp,jx) * zflux +
-     .                (1-albrb(iy,igsp,jx))*ng(ixt1,iy,igsp)*vxn*areapl-
-     .                   zflux_chm + fngxsrb(iy,igsp,jx)-fngxrb_use(iy,igsp,jx)
+     .                (1-albrb(iy,igsp,jx))*onesided_maxwellian(
+     .                      cdifg(igsp)*tg(ixt1,iy,igsp), ng(ixt1,iy,igsp), mg(igsp),
+     .                      isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy),
+     .                      tgmin*ev) - zflux_chm + fngxsrb(iy,igsp,jx)-fngxrb_use(iy,igsp,jx)
                     yldot(iv) = nurlxg * (fngx(ixt1,iy,igsp) - zflux) /
      .                         (n0(igsp) * vpnorm * sx(ixt1,iy))
                  elseif (sputtrb(iy,igsp,jx).ge.-9.9) then # neg. sputtrb ==> albedo
@@ -2917,10 +2915,9 @@ c ... Neutral temperature - test if tg eqn is on, then set BC
             elseif (istgrb(igsp) == 4) 
 	      if (isupgon(igsp)==1) then
                 if (recyrb(iy,igsp,jx) .gt. 0.) then
-                  t0 = max(tg(ixt1,iy,igsp),tgmin*ev)
-                  vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
-                  fng_alb = (1-albrb(iy,igsp,jx))*ng(ixt1,iy,igsp)
-     .                                           *vxn*sx(ixt1,iy)
+                  fng_alb = (1-albrb(iy,igsp,jx))*onesided_maxwellian(
+     .                  tg(ixt1,iy,igsp), ng(ixt1,iy,igsp), mg(igsp),
+     .                  sx(ixt1,iy), tgmin*ev)
                   yldot(iv) = nurlxg * ( fegx(ixt1,iy,igsp)
      .                                  -cfalbedo*fng_alb*t0
      .                                  +recyrb(iy,igsp,jx)*(1.-cfdiss)
@@ -4966,3 +4963,81 @@ c   Compute fluxes along inner wall (need to change sign; some segms are core)
 
 ***** End of subroutine outwallflux ***********
 c----------------------------------------------------------------------c
+
+
+c      MODULE atom_recyc
+c      IMPLICIT NONE
+c      CONTAINS
+        SUBROUTINE outflux_atom(
+     .      iflx_i, iflx_a, thflx_a, frecyc, alba, 
+     .      oflx_a
+     .  )
+        IMPLICIT NONE
+            REAL, INTENT(IN) :: iflx_i, iflx_a, thflx_a, frecyc, alba
+            REAL, INTENT(OUT) :: oflx_a
+            oflx_a = frecyc*iflx_i - (1-alba)*thflx_a
+
+
+        END SUBROUTINE outflux_atom
+
+c      END MODULE atom_recyc
+
+c      MODULE mol_recyc
+c      IMPLICIT NONE
+c      CONTAINS
+        SUBROUTINE outflux_mol(
+     .          iflx_i, iflx_a, thflx_a, thflx_m, frecyc, alba, albm, 
+     .          fmolflx, fmolth,
+     .
+     .          oflx_a, oflx_m
+     .  )
+c ...   Calculates the outgoing atomic and molecular fluxes based on
+c ...   the incident fluxes, recycling fraction, pump rate, and 
+c ...   atom/molecular recycling fractions. All fluxes given as magnitudes
+        IMPLICIT NONE
+            REAL, INTENT(IN) :: iflx_i, iflx_a, thflx_a, thflx_m,
+     .                          frecyc, alba, albm, fmolflx, fmolth
+            REAL, INTENT(OUT) :: oflx_a, oflx_m
+            REAL flx_refl, flxth_refla, flxth_reflm
+c ...       Calculate the total reflected nuclear flux based on the
+c ...       incident flux and specified recycling fraction
+            flx_refl = (iflx_i + iflx_a) * frecyc
+c ...       Calculate the returned atomic and molecular fluxes based
+c ...       on the specified albedos (account for 2 nuclei per atom)
+            flxth_refla = (1-fmolth) * alba * thflx_a 
+            flxth_reflm = 0.5*(fmolth * thflx_a) + albm * thflx_m
+c ...       Distribute the reflected fluxes between the outgoing atomic
+c ...       and molecular fluxes
+            oflx_a = (1-fmolflx)*flx_refl - (1-alba)*flxth_refla
+            oflx_m = 0.5 * fmolflx*flx_refl - (1-albm)*flxth_reflm
+
+        RETURN
+        END SUBROUTINE outflux_mol
+c      END MODULE  mol_recyc
+
+c      MODULE utilities
+c      IMPLICIT NONE
+c      CONTAINS
+        FUNCTION onesided_maxwellian(
+     .      T, n, m, A, T_min
+     .  ) RESULT(flux)
+c ...   Calculates the one-sided maxwellian flux onto a surface
+c ...   for a gas of given density and temperature
+        REAL, INTENT(IN) :: T, n, m, A, T_min
+        REAL :: flux
+        REAL, PARAMETER :: pi = 3.14159265358979323
+
+        flux = 0.25*SQRT( (8*MAX(T, T_min)) / (pi*m) )*n*A
+
+        END FUNCTION onesided_maxwellian
+
+        FUNCTION harmave(x1, x2) RESULT(res)
+c ...   Returns the harmonic average of x1 and x1
+        REAL, INTENT(IN) :: x1, x2
+        REAL :: res
+
+        res = 2 * (x1*x2) / (x1 + x2)
+        
+        END FUNCTION harmave
+
+c      END MODULE utilities  
