@@ -1240,41 +1240,49 @@ c ---  Different boundary conditions if neutral momentum equation use;
 c ---  typically hydrogen only, so DIVIMP chem sputt not used here
             if (isupgon(1) .eq. 1 .and. zi(ifld) .eq. 0.0) then
                 if (iscplo(ix) .eq. 1) call wsmodo(1)
-                t0 = max(tg(ix,ny+1,1),tgmin*ev)
-                vyn = sqrt( 0.5*t0/(pi*mi(ifld)) )
                 fng_chem = 0.
                 do ii = 1, ngsp
-                   flx_incid =ng(ix,ny+1,ii)*0.25*sqrt(8*t0/(pi*mg(ii)))
-                   fng_chem = fng_chem + chemsputo(1,ii)*flx_incid*
-     .                                                        sy(ix,ny)
+                   fng_chem = fng_chem + chemsputo(1,ii)*onesided_maxwellian(
+     .                  tg(ix,ny+1,1), ng(ix,ny+1,ii), mg(ii), sy(ix,ny), tgmin*ev
+     .             )
                 enddo
-                nharmave = 2.*(ni(ix,ny,ifld)*ni(ix,ny+1,ifld)) /
-     ,                        (ni(ix,ny,ifld)+ni(ix,ny+1,ifld))
-                fng_alb = (1-albedoo(ix,1))*nharmave*vyn*sy(ix,ny)
-                yldot(iv1) = nurlxg*( fniy(ix,ny,ifld) - fng_alb + 
-     .                             fng_chem ) / (vyn*sy(ix,ny)* n0(ifld))
+                osmw = onesided_maxwellian(
+     .                  tg(ix,ny+1,1), 1.0, mi(ifld), sy(ix,ny), tgmin*ev
+     .          ) 
+                yldot(iv1) = nurlxg*( fniy(ix,ny,ifld) 
+     .                      - (1-albedoo(ix,1))*osmw
+     .                      * harmave(ni(ix,ny,ifld), ni(ix,ny+1,ifld))
+     .                      + fng_chem ) / (osmw * n0(ifld))
 
 c...   Caution: the wall source models assume gas species 1 only is inertial
                 if(matwallo(ix) .gt. 0) then
                   if (recycwot(ix,1) .gt. 0.) then
                     fniy_recy = recycwot(ix,1)*fac2sp*fniy(ix,ny,1)
-                    if(isrefluxclip==1) fniy_recy=max(fniy_recy,0.)
-                    yldot(iv1) = nurlxg*( fniy(ix,ny,ifld) + fniy_recy +
-     .                 fngyo_use(ix,1)+fngyso(ix,1)-fng_alb + fng_chem ) / 
-     .                                          (vyn*n0(ifld)*sy(ix,ny))
+                    if(isrefluxclip==1) 
+     .                  fniy_recy=max(fniy_recy,0.)
+                    yldot(iv1) = nurlxg*( fniy(ix,ny,ifld) 
+     .                      + fniy_recy
+     .                      + fngyo_use(ix,1)
+     .                      + fngyso(ix,1)
+     .                      - (1-albedoo(ix,1))*osmw
+     .                      * harmave(ni(ix,ny,ifld), ni(ix,ny+1,ifld))
+     .                      + fng_chem 
+     .                  ) / (osmw * n0(ifld))
                   elseif (recycwot(ix,1) < -1) then
-                    yldot(iv1)=nurlxg*(ngbackg(1)-ni(ix,ny+1,ifld))/
-     .                                                           n0(ifld)
+                    yldot(iv1) = nurlxg*(
+     .                      ngbackg(1) - ni(ix,ny+1,ifld)
+     .                  ) / n0(ifld)
                   elseif (recycwot(ix,1) .le. 0.) then  # treat recycwot as albedo
-                    yldot(iv1) = nurlxg*( fniy(ix,ny,ifld) -
-     .                     (1+recycwot(ix,1))*ni(ix,ny+1,ifld)*vyn*sy(ix,ny) )/
-     .                                            (vyn*n0(ifld)*sy(ix,ny))
+                    yldot(iv1) = nurlxg*( fniy(ix,ny,ifld) 
+     .                      - (1+recycwot(ix,1))*ni(ix,ny+1,ifld)*osmw
+     .                  ) / (osmw * n0(ifld))
                   endif 
                 endif
                 if(fngyso(ix,1)+fngyo_use(ix,1).ne.0. .and. matwallo(ix)==0.)
-     .                        yldot(iv1) = nurlxg*( fniy(ix,ny,ifld) + 
-     .                                    fngyo_use(ix,1) + fngyso(ix,1) ) 
-     .                                        / (vyn*sy(ix,ny)* n0(ifld))
+     .                        yldot(iv1) = nurlxg*( fniy(ix,ny,ifld) 
+     .                              + fngyo_use(ix,1) 
+     .                              + fngyso(ix,1)  
+     .                          ) / (osmw * n0(ifld))
             else
 
               if(isnwconoix(ix,ifld) .eq. 0) then
@@ -1467,32 +1475,32 @@ ccc  - - - - - - - - - - - - - -
         nzsp_rt = nhsp
         do igsp = 1, ngsp
           jz = max(igsp - nhgsp, 1)     #identify impurity index
-	  if (jz > 1) nzsp_rt = nzsp_rt + nzsp(jz-1) #prev index for fniy
+      if (jz > 1) nzsp_rt = nzsp_rt + nzsp(jz-1) #prev index for fniy
           if(isngonxy(ix,ny+1,igsp) .eq. 1) then #skip do-loop if isngon=0
             if (iscplo(ix) .eq. 1) call wsmodo(igsp)
             iv = idxg(ix,ny+1,igsp)
-	    t0 = max(cdifg(igsp)*tg(ix,ny+1,igsp), tgmin*ev)
+            t0 = max(cdifg(igsp)*tg(ix,ny+1,igsp), tgmin*ev)
             vyn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
             if (igsp .gt. nhgsp) then
               zflux = 0.
               do iimp = 1, nzsp(jz)
-		zflux = zflux + max(fniy(ix,ny,nzsp_rt+iimp), 0.)
+                    zflux = zflux + max(fniy(ix,ny,nzsp_rt+iimp), 0.)
               enddo
             endif
 c ... prepare chemical sputtering info
             fng_chem = 0.
             do igsp2 = 1, 1+ishymol  #include hydrogen neut sputt
-	      t0 = max(tg(ix,ny+1,igsp2), tgmin*ev)
-              flx_incid=ng(ix,ny+1,igsp2)*0.25*sqrt(8*t0/(pi*mg(igsp2)))
-	      if (isch_sput(igsp).ne.0) then
-                call sputchem (isch_sput(igsp), t0/ev, tvwallo(ix),
+                t0 = max(tg(ix,ny+1,igsp2), tgmin*ev)
+                flx_incid=ng(ix,ny+1,igsp2)*0.25*sqrt(8*t0/(pi*mg(igsp2)))
+                if (isch_sput(igsp).ne.0) then
+                    call sputchem (isch_sput(igsp), t0/ev, tvwallo(ix),
      .                                      flx_incid, yld_carbo(ix))
-                fng_chem = fng_chem + fchemygwo(igsp2)*yld_carbo(ix)*
+                    fng_chem = fng_chem + fchemygwo(igsp2)*yld_carbo(ix)*
      .                                            flx_incid*sy(ix,ny)
-              else
-                fng_chem = fng_chem + chemsputo(igsp,igsp2)*
+                else
+                    fng_chem = fng_chem + chemsputo(igsp,igsp2)*
      .                                            flx_incid*sy(ix,ny) 
-              endif
+                endif
             enddo
 c ... add ion sputtering to gas BC
 	    sputflxw(ix,igsp) = 0.
@@ -2522,26 +2530,27 @@ c...  now do the gas and temperatures
                if(isfixrb(1).eq.2 .and. yyrb(iy,1).gt.rlimiter) then
                   flux_inc = fac2sp*fnix(nx,iy,1)
                   if (ishymol.eq.1 .and. igsp.eq.2) then
-                    flxa= ismolcrm*(1-albrb(iy,1,nxpt))
-     .                  * onesided_maxwellian(
-     .                      engbsr*tg(nx,iy,1), ng(nx,iy,1), mg(1), sx(nx, iy), 
-     .                      engbsr*tgmin*ev
-     .                  )
+                    flxa= ismolcrm*(1-albrb(iy,1,nxpt))* onesided_maxwellian(
+     .                  engbsr*tg(nx,iy,1), ng(nx,iy,1), mg(1), 
+     .                  sx(nx, iy), engbsr*tgmin*ev
+     .              )
                     if (isupgon(1) .eq. 1) then  # two atoms for one molecule
                       flux_inc = 0.5*( fnix(nx,iy,1) + fnix(nx,iy,2) -flxa) 
                     else
                       flux_inc = 0.5*( fnix(nx,iy,1) + fngx(nx,iy,1) -flxa) 
                     endif
                   endif
-                  yldot(iv) = -nurlxg * ( fngx(nx,iy,igsp) +
-     .                                            fngxrb_use(iy,igsp,1) -
-     .                      fngxsrb(iy,igsp,1) + recyrb(iy,igsp,1)*flux_inc -
-     .                  (1-albrb(iy,igsp,nxpt))*onesided_maxwellian(
-     .                      engbsr*tg(nx,iy,1), ng(nx,iy,igsp), mg(igsp),
-     .                      isoldalbarea*sx(nx,iy) + (1-isoldalbarea)*sxnp(nx,iy),
-     .                      engbsr*tgmin*ev
-     .                  ))      
-     .                  / (vpnorm*n0g(igsp)*sx(nx,iy))
+                  osmw = onesided_maxwellian(
+     .                  engbsr*tg(nx,iy,1), ng(nx,iy,igsp), mg(igsp),
+     .                  isoldalbarea*sx(nx,iy) + (1-isoldalbarea)*sxnp(nx,iy),
+     .                  engbsr*tgmin*ev
+     .            )      
+                  yldot(iv) = -nurlxg * ( fngx(nx,iy,igsp)
+     .                      + fngxrb_use(iy,igsp,1)
+     .                      - fngxsrb(iy,igsp,1) 
+     .                      + recyrb(iy,igsp,1)*flux_inc
+     .                      - (1-albrb(iy,igsp,nxpt))*osmw
+     .                  ) / (vpnorm*n0g(igsp)*sx(nx,iy))
                endif
             endif
          enddo      # end of igsp loop over gas
@@ -2608,13 +2617,17 @@ c     First, the density equations --
               iv1 = idxn(ixt,iy,ifld)
               if (isupgon(1)==1 .and. zi(ifld)==0.0) then   ## neutrals
                 if (recyrb(iy,1,jx) .gt. 0.) then           # recycling
-                  yldot(iv1) = nurlxg *
-     .               (fnix(ixt1,iy,ifld) + recyrb(iy,1,jx)*fnix(ixt1,iy,1) +
-     .                                            fngxrb_use(iy,1,jx) -
-     .                (1-albrb(iy,1,jx))*onesided_maxwellian(
+                  osmw = onesided_maxwellian(
      .                  tg(ixt1,iy,1), ni(ixt1,iy,ifld), mi(ifld), 
      .                  isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy),
-     .                  tgmin*ev) - fngxsrb(iy,1,jx) ) / (vpnorm*n0(ifld)*sx(ixt1,iy))
+     .                  tgmin*ev
+     .            )
+                  yldot(iv1) = nurlxg * (fnix(ixt1,iy,ifld) 
+     .                  + recyrb(iy,1,jx)*fnix(ixt1,iy,1)
+     .                  + fngxrb_use(iy,1,jx)
+     .                  - (1-albrb(iy,1,jx))*osmw
+     .                  - fngxsrb(iy,1,jx) 
+     .              ) / (vpnorm*n0(ifld)*sx(ixt1,iy))
                 elseif (recyrb(iy,1,jx) <=  0. .and. 
      .                  recyrb(iy,1,jx) >= -1.) then   # recyrb is albedo
                   t0 = max(tg(ixt1,iy,1),tgmin*ev) 
@@ -2684,11 +2697,13 @@ c       Next, the momentum equations --
      .                                          up(ixt1,iy,ifld))/vpnorm
               else  #neutral thermal flux to wall if recycm < -10.1
 c...              if up > 0, leave unchanged; if up<0, big reduction
-                yldot(iv2) = -nurlxu*( fmix(ixt1,iy,ifld) 
-     .              - up(ixt,iy,ifld)*cgmompl*onesided_maxwellian(
+                osmw = onesided_maxwellian(
      .                  tg(ixt,iy,1), 0.5*(nm(ixt1,iy,ifld)+nm(ixt,iy,ifld)),
-     .                  mi(ifld), sx(ixt1,iy), tgmin*ev)) 
-     .                  / (vpnorm*fnorm(ifld)*sx(ixt1,iy))
+     .                  mi(ifld), sx(ixt1,iy), tgmin*ev
+     .          )
+                yldot(iv2) = -nurlxu*( fmix(ixt1,iy,ifld) 
+     .                  - up(ixt,iy,ifld)*cgmompl*osmw
+     .              ) / (vpnorm*fnorm(ifld)*sx(ixt1,iy))
               endif
               yldot(iv) =nurlxu*(up(ixt1,iy,ifld)-up(ixt,iy,ifld))/vpnorm
             else                                         ## ions
@@ -2819,13 +2834,15 @@ cc           endif
      .                       -cmneut*fnix(ixt1,iy,1)*recycp(1)*eedisspr*ev
      .                                  )/(sx(ixt1,iy)*vpnorm*ennorm)
               else
-               yldot(iv1) = nurlxe*(totfeexr(iy,jx)
-     .              -totfnex*te(ixt,iy)*bcer(iy,jx)
-     .              -cgpld*f_cgpld*onesided_maxwellian(
+                osmw = onesided_maxwellian(
      .                  tg(ixt1,iy,1), ng(ixt1,iy,1), mg(1),
-     .                  sx(ixt1,iy), tgmin*ev)*0.5*ediss*ev
-     .                  -cmneut*fnix(ixt1,iy,1)*recycp(1)*eedisspr*ev
-     .                   )/(sx(ixt1,iy)*vpnorm*ennorm)
+     .                  sx(ixt1,iy), tgmin*ev
+     .          )
+                yldot(iv1) = nurlxe*(totfeexr(iy,jx)
+     .                  - totfnex*te(ixt,iy)*bcer(iy,jx)
+     .                  - cgpld*f_cgpld*osmw*0.5*ediss*ev
+     .                  - cmneut*fnix(ixt1,iy,1)*recycp(1)*eedisspr*ev
+     .              ) / (sx(ixt1,iy)*vpnorm*ennorm)
              endif
           elseif (ibctepr .eq. 0) then
              yldot(iv1) = nurlxe*(tepltr*ev-te(ixt,iy))
@@ -2854,24 +2871,20 @@ c            totfeix is thermal + kinetic + viscous flux
                endif
             enddo
             if (isupgon(1)==1) then
-c              Different boundary conditions for neutral momentum equation
-cc               if (recyrb(iy,1,jx) .gt. 0.) then
-cc                  bcen = recyce*bcir(iy,jx) - 0.5*mi(1)*(up(ixt1,iy,2)**2 -
-cc     .              recyce*upi(ixt1,iy,1)**2)/(recyrb(iy,1,jx)*ti(ixt,iy))
-cc               else
-cc                  bcen = 0.
-cc               endif
-cc               if (recyce .le. 0) bcen = 0.  # gets back to old case
-
-                 yldot(iv2) = nurlxi*(totfeixr(iy,jx)
-     .                        -totfnix*bcir(iy,jx)*ti(ixt,iy)+
-     .            cftiexclg*( -cfneut*fnix(ixt1,iy,iigsp)*bcen*tg(ixt,iy,1)
-     .                  -(cgengpl*2.*tg(ixt,iy,1) - cgpld*eion*ev)*
-     .                  onesided_maxwellian( tg(ixt1,iy,1), ng(ixt1,iy,1),
-     .                      mg(1), sx(ixt1,iy), tgmin*ev)        
-     .                        -cmneut*fnix(ixt1,iy,1)*recycp(1)*
-     .                                 cmntgpr*(ti(ixt,iy)-eidisspr*ev)
-     .                                  ) )/(vpnorm*ennorm*sx(ixt1,iy))
+c               Different boundary conditions for neutral momentum equation
+                osmw = onesided_maxwellian( 
+     .              tg(ixt1,iy,1), ng(ixt1,iy,1), mg(1), sx(ixt1,iy), tgmin*ev
+     .          ) 
+                yldot(iv2) = nurlxi*(totfeixr(iy,jx)
+     .                      - totfnix*bcir(iy,jx)*ti(ixt,iy)
+     .                      + cftiexclg*( 
+     .                          - cfneut*fnix(ixt1,iy,iigsp)*bcen*tg(ixt,iy,1)
+     .                          - (cgengpl*2.*tg(ixt,iy,1) 
+     .                          - cgpld*eion*ev)*osmw
+     .                          - cmneut*fnix(ixt1,iy,1)*recycp(1)
+     .                              * cmntgpr*(ti(ixt,iy)-eidisspr*ev)
+     .                      ) 
+     .              ) / (vpnorm*ennorm*sx(ixt1,iy))
             else
                  yldot(iv2) = nurlxi*(totfeixr(iy,jx) 
      .                        -totfnix*bcir(iy,jx)*ti(ixt,iy)+
@@ -3041,10 +3054,14 @@ c ... Neutral temperature - test if tg eqn is on, then set BC
             elseif (istgrb(igsp) == 2)  #placeholder for gradient BC
               call xerrab("**INPUT ERROR: istgrb=2 grad opt not implemented")
             elseif (istgrb(igsp) == 3)  #Maxwell thermal flux to wall
-              yldot(iv) =  nurlxg*( fegx(ixt1,iy,igsp) - 2*cgengmpl*
-     .          max(cdifg(igsp)*tg(ixt1,iy,igsp), temin*ev) *
-     .          onesided_maxwellian( cdifg(igsp)*tg(ixt1,iy,igsp), ng(ixt1,iy,igsp),
-     .          mg(igsp), sx(ixt1,iy), tgmin*ev)) / (sx(ixt1,iy)*vpnorm*ennorm)
+                osmw = onesided_maxwellian( 
+     .              cdifg(igsp)*tg(ixt1,iy,igsp), ng(ixt1,iy,igsp),
+     .              mg(igsp), sx(ixt1,iy), tgmin*ev
+     .          )
+                yldot(iv) =  nurlxg*( fegx(ixt1,iy,igsp) 
+     .                  - 2*cgengmpl*max(
+     .                      cdifg(igsp)*tg(ixt1,iy,igsp), temin*ev
+     .                  )*osmw) / (sx(ixt1,iy)*vpnorm*ennorm)
             elseif (istgrb(igsp) == 4) 
 	      if (isupgon(igsp)==1) then
                 if (recyrb(iy,igsp,jx) .gt. 0.) then
