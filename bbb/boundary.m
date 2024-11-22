@@ -156,7 +156,7 @@ c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
       Use(Utilities)
 
 c...  local scalars
-      real totfeix, totfeex, kfeix, vyn, cosphi,
+      real totfeix, totfeex, kfeix, cosphi,
      .     ueb, nbound, tbound, ut0, sumb, feeytotc, feiytotc,
      .     r_major, fniytotc, fng_chem, vbound, eng_sput, flx_incid,
      .     yld_chm, t0p, zflux_chm, fqytotc, flux_inc,
@@ -886,7 +886,7 @@ c... BC for neutral gas temperature/energy at iy=0
      .                  mg(igsp), sy(ix,0), tgmin*ev
      .            )
                   yldot(iv)=-nurlxg*(fegy(ix,0,igsp) 
-     .              + cfalbedo*t0*(1-albedoc(igsp))*osmw
+     .              + cfalbedo*max(tg(ix,0,igsp),tgmin*ev)*(1-albedoc(igsp))*osmw
      .              ) / (vpnorm*ennorm*sy(ix,0))
               else # all others, set to zero y-gradient
                 yldot(iv)=nurlxg*(tg(ix,1,igsp)-tg(ix,0,igsp))/
@@ -919,8 +919,8 @@ c... BC for neutral gas temperature/energy at iy=0
      .              mg(igsp), sy(ix,0), tgmin*ev
      .          )
                 yldot(iv)=-nurlxg*(fegy(ix,0,igsp) 
-     .              + cfalbedo*t0*(1-albedoi(ix,1))*osmw
-     .              - 2.*fng_chem*t0) / (vpnorm*ennorm*sy(ix,0))
+     .              + cfalbedo*max(tg(ix,0,igsp),tgmin*ev)*(1-albedoi(ix,1))*osmw
+     .              - 2.*fng_chem*max(tg(ix,0,igsp), tgmin*ev)) / (vpnorm*ennorm*sy(ix,0))
                 fniy_recy = 0.
                 if (matwalli(ix) .gt. 0) then
                   if (recycwit(ix,igsp,1) .gt. 0) then
@@ -932,8 +932,8 @@ c... BC for neutral gas temperature/energy at iy=0
      .                  mg(igsp), sy(ix,0), tgmin*ev
      .              )
                     yldot(iv)=-nurlxg*(fegy(ix,0,igsp) 
-     .                  + cfalbedo*t0*(1-albedoi(ix,1))*osmw
-     .                  - 2.*fng_chem*t0 
+     .                  + cfalbedo*max(tg(ix,0,igsp),tgmin*ev)*(1-albedoi(ix,1))*osmw
+     .                  - 2.*fng_chem*max(tg(ix,0,igsp),tgmin*ev)
      .                  + fniy_recy*(1.-cfdiss)*cfalbedo*recycwe*ti(ix,0)
      .                  ) / (vpnorm*ennorm*sy(ix,0))
                   endif
@@ -1610,7 +1610,7 @@ c... BC for neutral gas temperature/energy at iy=ny+1
      .              mg(igsp), sy(ix,ny), tgmin*ev
      .        )
               yldot(iv) =  nurlxg*( 
-     .              fegy(ix,ny,igsp) - 2*cgengmw*osmw*t0
+     .              fegy(ix,ny,igsp) - 2*cgengmw*osmw*max(tg(ix,ny,igsp),tgmin*ev)
      .          ) / (sy(ix,ny)*vpnorm*ennorm)
             elseif (istgwcix(ix,igsp) == 4) 
               fng_chem = 0.
@@ -1620,16 +1620,17 @@ c... BC for neutral gas temperature/energy at iy=ny+1
      .              mg(igsp), sy(ix,ny), tgmin*ev
      .        )
               yldot(iv) = nurlxg*(fegy(ix,ny,igsp) 
-     .                  - cfalbedo*t0*(1-albedoo(ix,1))*osmw
-     .                  + 2.*fng_chem*t0
+     .                  - cfalbedo*max(tg(ix,ny+1,igsp),tgmin*ev)*(1-albedoo(ix,1))*osmw
+     .                  + 2.*fng_chem*max(tg(ix,ny+1,igsp), tgmin*ev)
      .              ) / (vpnorm*ennorm*sy(ix,ny))
               fniy_recy = 0.
               if (matwallo(ix) .gt. 0) then
                 if (recycwot(ix,igsp) .gt. 0.) then
                   fniy_recy = recycwot(ix,igsp)*fac2sp*fniy(ix,ny,1)
                   if (isrefluxclip==1) fniy_recy=max(fniy_recy,0.)
-                  yldot(iv)=nurlxg*(fegy(ix,ny,igsp) - cfalbedo*fng_alb*t0
-     .                                             + 2.*fng_chem*t0
+                  yldot(iv)=nurlxg*(fegy(ix,ny,igsp) - cfalbedo*fng_alb
+     .                      *max(tg(ix,ny+1,igsp), tgmin*ev)
+     .                      + 2.*fng_chem*max(tg(ix,ny+1,igsp),tgmin*ev)
      .                                             + fniy_recy*(1.-cfdiss)
      .                                              *cfalbedo*recycwe
      .                                              *ti(ix,ny) )
@@ -2404,11 +2405,13 @@ c ... Neutral temperature - test if tg eqn is on, then set BC
      .                  mg(igsp), sx(ixt,iy), tgmin*ev
      .            )
                   yldot(iv) = -nurlxg*( fegx(ixt,iy,igsp)
-     .                      + cfalbedo*(1-recylb(iy,igsp,jx))*osmw*t0 
+     .                      + cfalbedo*(1-recylb(iy,igsp,jx))*osmw
+     .                      * max(tg(ixt1,iy,igsp),tgmin*ev) 
      .                  ) / (vpnorm*ennorm*sx(ixt,iy))
                 elseif (recylb(iy,igsp,jx) < -1.) then  #..half Maxwellian
                   yldot(iv) = -nurlxg*( 
-     .                  fegx(ixt,iy,igsp) + cfalbedo*fnix(ixt,iy,iigsp)*t0
+     .                  fegx(ixt,iy,igsp) + cfalbedo*fnix(ixt,iy,iigsp)
+     .                  * max(tg(ixt1,iy,igsp),tgmin*ev)
      .              ) / (vpnorm*ennorm*sx(ixt,iy))
                 endif
               endif
@@ -2638,7 +2641,7 @@ c     First, the density equations --
             ixt2 = ixm1(ixt1,iy)   # analog of ix=nx-1
             ixt3 = ixm1(ixt2,iy)   # analog of ix=nx-2
 
-	    if (isnionxy(ixt,iy,ifld)==1) then
+        if (isnionxy(ixt,iy,ifld)==1) then
               iv1 = idxn(ixt,iy,ifld)
               if (isupgon(1)==1 .and. zi(ifld)==0.0) then   ## neutrals
                 if (recyrb(iy,1,jx) .gt. 0.) then           # recycling
@@ -2655,11 +2658,13 @@ c     First, the density equations --
      .              ) / (vpnorm*n0(ifld)*sx(ixt1,iy))
                 elseif (recyrb(iy,1,jx) <=  0. .and. 
      .                  recyrb(iy,1,jx) >= -1.) then   # recyrb is albedo
-                  t0 = max(tg(ixt1,iy,1),tgmin*ev) 
-                  vyn = sqrt( 0.5*t0/(pi*mi(1)) )
-                  yldot(iv1) = nurlxg * ( fnix(ixt1,iy,ifld) -
-     .                 (1+recyrb(iy,1,jx))*ni(ixt,iy,ifld)*vyn*sx(ixt1,iy) )/
-     .                 (vpnorm*n0(ifld)*sx(ixt1,iy))
+                  osmw = onesided_maxwellian(
+     .                  tg(ixt1,iy,1), ni(ixt,iy,ifld), mi(1),
+     .                  sx(ixt1,iy), tgmin*ev
+     .            )
+                  yldot(iv1) = nurlxg * ( fnix(ixt1,iy,ifld) 
+     .                      - (1+recyrb(iy,1,jx))*osmw
+     .                 ) / (vpnorm*n0(ifld)*sx(ixt1,iy))
                 elseif (recyrb(iy,1,jx) < -1. .and.
      .                  recyrb(iy,1,jx) > -2.) then    #fix density ngrfix
                   yldot(iv1)=nurlxg*(ngrfix - ni(ixt,iy,ifld))/n0(ifld)
@@ -3094,7 +3099,7 @@ c ... Neutral temperature - test if tg eqn is on, then set BC
      .                  tg(ixt1,iy,igsp), ng(ixt1,iy,igsp), mg(igsp),
      .                  sx(ixt1,iy), tgmin*ev)
                   yldot(iv) = nurlxg * ( fegx(ixt1,iy,igsp)
-     .                                  -cfalbedo*fng_alb*t0
+     .                                  -cfalbedo*fng_alb*max(tg(ixt1,iy,igsp),tgmin*ev)
      .                                  +recyrb(iy,igsp,jx)*(1.-cfdiss)
      .                                  *fnix(ixt1,iy,1)
      .                                  *recyce*cfalbedo
@@ -3103,16 +3108,16 @@ c ... Neutral temperature - test if tg eqn is on, then set BC
      .                                  (vpnorm*ennorm*sx(ixt1,iy))
                 elseif (recyrb(iy,igsp,jx) <=  0. .and.
      .                  recyrb(iy,igsp,jx) >= -1.) then   # recyrb is albedo
-                  t0 = max(tg(ixt1,iy,igsp),tgmin*ev)
-                  vyn = sqrt( 0.5*t0/(pi*mg(igsp)) )
-                  fng_alb = (1+recyrb(iy,igsp,jx))*ng(ixt1,iy,igsp)
-     .                                            *vyn*sx(ixt1,iy)
+                  osmw = onesided_maxwellian(
+     .                  tg(ixt1,iy,igsp), ng(ixt1,iy,igsp),
+     .                  mg(igsp), sx(ixt1,iy), tgmin*ev
+     .            )
                   yldot(iv) = nurlxg * ( fegx(ixt1,iy,igsp)
-     .                                  -cfalbedo*fng_alb*t0 )/
-     .                                   (vpnorm*ennorm*sx(ixt1,iy))
+     .                      - cfalbedo*(1+recyrb(iy,igsp,jx))*osmw
+     .                      * max(tg(ixt1,iy,igsp),tgmin*ev)
+     .                  ) / (vpnorm*ennorm*sx(ixt1,iy))
                 elseif (recyrb(iy,igsp,jx) < -1.) then  #..half Maxwellian
                   t0 = max(tg(ixt1,iy,igsp),tgmin*ev)
-                  vyn = sqrt( 0.5*t0/(pi*mg(igsp)) )
                   yldot(iv) = nurlxg * ( fegx(ixt1,iy,igsp)
      .                                  -cfalbedo*fnix(ixt1,iy,iigsp)*t0 )/
      .                                   (vpnorm*ennorm*sx(ixt1,iy))
@@ -4436,10 +4441,10 @@ c-----------------------------------------------------------------------
       Use(Comflo)   # fngy
       Use(Bcond)    # ncpli,iwalli,issori,iesori,cplsori,fngysi
       Use(Parallv)  # nxg,nyg
+      Use(Utilities)
 
 *  -- local scalars --
       integer isor, jsor, ixt
-      real t0, vyn
 
       do isor = 1, nwsor
        if (igspsori(isor)==ig) then
@@ -4452,30 +4457,26 @@ c...  calculate the current out at source isor
         if (jsor > 0) then
           do ixt = issori(isor), iesori(isor)
             if(ixt <= ixpt1(1) .or. ixt > ixpt2(1)) then
-	      t0 = max(tg(ixt,0,ig),tgmin*ev)
-              vyn = 0.25 * sqrt( 8*t0/(pi*mg(ig)) ) # mass only for scaling here
-              iwalli(isor) = iwalli(isor) + qe*(1 - albedoi(ixt,ig))*
-     .                                  ng(ixt,1,ig)*vyn*sy(ixt,0)
+              iwalli(isor) = iwalli(isor) + qe*(1 - albedoi(ixt,ig))
+     .              * onesided_maxwellian(
+     .                  tg(ixt,0,ig), ng(ixt,1,ig), mg(ig), sy(ixt,0), tgmin*ev
+     .              )
             endif
           enddo
-	elseif (jsor < 0) then # signal for outer bdry;now change to jsor > 0
+        elseif (jsor < 0) then # signal for outer bdry;now change to jsor > 0
           jsor = -jsor
           do ixt = issoro(isor), iesoro(isor)
-	    t0 = max(tg(ixt,ny+1,ig),tgmin*ev)
-            vyn = 0.25 * sqrt( 8*t0/(pi*mg(ig)) ) # mass only for scaling here
-            iwalli(isor) = iwalli(isor) + qe*(1 - albedoo(ixt,ig))*
-     .                              ng(ixt,ny,ig)*vyn*sy(ixt,ny)
+            iwalli(isor) = iwalli(isor) + qe*(1 - albedoo(ixt,ig))
+     .              * onesided_maxwellian( 
+     .                  tg(ixt,ny+1,ig), ng(ixt,ny,ig), mg(ig), sy(ixt,ny), tgmin*ev
+     .              )
           enddo
         endif
 c...  reinject current at coupled source jsor
         if (abs(jsor) > 0) then
           do ixt = issori(jsor), iesori(jsor)
             if(ixt <= ixpt1(1) .or. ixt > ixpt2(1)) then
-	      t0 = max(tg(ixt,0,ig),tgmin*ev)
-              vyn = 0.25 * sqrt( 8*t0/(pi*mg(ig)) ) # mass only for scaling here
               fngysi(ixt,ig)= iwalli(isor)*cplsori(jsor)*fwsori(ixt,jsor)
-ccc     .                                   - (1 - albedoi(ixt,ig))*
-ccc     .                                     ng(ixt,1,ig)*vyn*sy(ixt,0)
             endif
           enddo
         endif
@@ -4508,11 +4509,10 @@ c-----------------------------------------------------------------------
       Use(Comflo)   # fngy
       Use(Bcond)    # ncplio,iwallio,issoro,iesoro,cplsoro,fwsoro
       Use(Parallv)  # nxg,nyg
-
+      Use(Utilities)
 
 *  -- local scalars --
       integer isor, jsor, ixt
-      real t0, vyn
 
       do isor = 1, nwsor
        if (igspsoro(isor)==ig) then
@@ -4524,28 +4524,24 @@ c...  calculate the current out at source isor
         iwallo(isor) = 0.
         if (jsor > 0) then
           do ixt = issoro(isor), iesoro(isor)
-	    t0 = max(tg(ixt,ny+1,ig),tgmin*ev)
-            vyn = 0.25 * sqrt( 8*t0/(pi*mg(ig)) ) # mass only for scaling here
-            iwallo(isor) = iwallo(isor) + qe*(1 - albedoo(ixt,ig))*
-     .                               ng(ixt,ny,ig)*vyn*sy(ixt,ny)
+            iwallo(isor) = iwallo(isor) + qe*(1 - albedoo(ixt,ig))
+     .              * onesided_maxwellian(
+     .                  tg(ixt,ny+1,ig), ng(ixt,ny,ig), mg(ig), sy(ixt,ny), tgmin*ev
+     .              )
           enddo
-	elseif (jsor < 0) then # signal for inner bdry;now change to jsor > 0 
+        elseif (jsor < 0) then # signal for inner bdry;now change to jsor > 0 
           jsor = -jsor
           do ixt = issori(isor), iesori(isor)
-	    t0 = max(tg(ixt,0,ig),tgmin*ev)
-            vyn = 0.25 * sqrt( 8*t0/(pi*mg(ig)) ) # mass only for scaling here
-            iwallo(isor) = iwallo(isor) + qe*(1 - albedoi(ixt,ig))*
-     .                                    ng(ixt,1,ig)*vyn*sy(ixt,0)
+            iwallo(isor) = iwallo(isor) + qe*(1 - albedoi(ixt,ig))
+     .              * onesided_maxwellian(
+     .                  tg(ixt,0,ig), ng(ixt,1,ig), mg(ig), sy(ixt,0), tgmin*ev
+     .              )
           enddo
         endif
 c...  reinject current at coupled source jsor
         if (abs(jsor) > 0) then
           do ixt = issoro(jsor), iesoro(jsor)
-	    t0 = max(tg(ixt,ny+1,ig),tgmin*ev)
-            vyn = 0.25 * sqrt( 8*t0/(pi*mg(ig)) ) # mass only for scaling here
             fngyso(ixt,ig)=iwallo(isor)*cplsoro(jsor)*fwsoro(ixt,jsor)
-ccc     .                                 - (1 - albedoo(ixt,ig))*
-ccc     .                                  ng(ixt,ny,ig)*vyn*sy(ixt,ny)  
           enddo
         endif
 
