@@ -1574,15 +1574,19 @@ ccc
                 nharmave = 2.*(ng(ix,ny,igsp)*ng(ix,ny+1,igsp)) /
      .                        (ng(ix,ny,igsp)+ng(ix,ny+1,igsp))              
                 yldot(iv) = nurlxg*( fngy(ix,ny,igsp) -
-     .                  (1+recycwot(ix,igsp))*nharmave*vyn*sy(ix,ny) )/
-     .                                    (vyn*n0g(igsp)*sy(ix,ny))
+     .                  - (1+recycwot(ix,igsp))*osmw
+     .                      * harmave(ng(ix,ny,igsp), ng(ix,ny+1,igsp))
+     .              ) / (osmw * n0g(igsp))
               endif 
             endif
-            if(fngyso(ix,igsp)+fngyo_use(ix,igsp).ne.0. 
-     .                                          .and. matwallo(ix).eq.0) 
-     .                   yldot(iv) = nurlxg*(fngy(ix,ny,igsp) +
-     .                         fngyo_use(ix,igsp) + fngyso(ix,igsp) ) 
-     .                                      /(vyn*sy(ix,ny)* n0g(igsp))
+            if( (fngyso(ix,igsp)+fngyo_use(ix,igsp).ne.0.)
+     .          .and. (matwallo(ix).eq.0) 
+     .      ) then
+                    yldot(iv) = nurlxg*(fngy(ix,ny,igsp)
+     .                      + fngyo_use(ix,igsp) 
+     .                      + fngyso(ix,igsp) 
+     .                  ) / (osmw * n0g(igsp))
+            endif
           endif     # end if-test on isngonxy
  
 c... BC for neutral gas temperature/energy at iy=ny+1
@@ -1601,21 +1605,24 @@ c... BC for neutral gas temperature/energy at iy=ny+1
      .                         0.5*(tg(ix,ny,igsp) + tg(ix,ny+1,igsp))/
      .                         (gyf(ix,ny)*lytg(2,igsp)) )/(temp0*ev)
             elseif (istgwcix(ix,igsp) == 3)  #Maxwell thermal flux to wall
-              t0 = max(cdifg(igsp)*tg(ix,ny,igsp), temin*ev)
-              vyn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
-              yldot(iv) =  nurlxg*( fegy(ix,ny,igsp) - 2*cgengmw*
-     .                              ng(ix,ny,igsp)*vyn*t0*sy(ix,ny) )/
-     .                                      (sy(ix,ny)*vpnorm*ennorm)
+              osmw = onesided_maxwellian(
+     .              cdifg(igsp)*tg(ix,ny,igsp), ng(ix,ny,igsp),
+     .              mg(igsp), sy(ix,ny), tgmin*ev
+     .        )
+              yldot(iv) =  nurlxg*( 
+     .              fegy(ix,ny,igsp) - 2*cgengmw*osmw*t0
+     .          ) / (sy(ix,ny)*vpnorm*ennorm)
             elseif (istgwcix(ix,igsp) == 4) 
-	      t0 = max(tg(ix,ny+1,igsp),tgmin*ev)
-              vyn = sqrt( 0.5*t0/(pi*mg(igsp)) )
-              nharmave = 2.*(ng(ix,ny,igsp)*ng(ix,ny+1,igsp)) /
-     ,                      (ng(ix,ny,igsp)+ng(ix,ny+1,igsp))
-              fng_alb = (1-albedoo(ix,1))*nharmave*vyn*sy(ix,ny)
               fng_chem = 0.
-              yldot(iv) = nurlxg*(fegy(ix,ny,igsp) - cfalbedo*fng_alb*t0
-     .                                             + 2.*fng_chem*t0)
-     .                                    /(vpnorm*ennorm*sy(ix,ny))
+              osmw = onesided_maxwellian(
+     .              tg(ix,ny+1,igsp), 
+     .              harmave(ng(ix,ny,igsp),ng(ix,ny+1,igsp)),
+     .              mg(igsp), sy(ix,ny), tgmin*ev
+     .        )
+              yldot(iv) = nurlxg*(fegy(ix,ny,igsp) 
+     .                  - cfalbedo*t0*(1-albedoo(ix,1))*osmw
+     .                  + 2.*fng_chem*t0
+     .              ) / (vpnorm*ennorm*sy(ix,ny))
               fniy_recy = 0.
               if (matwallo(ix) .gt. 0) then
                 if (recycwot(ix,igsp) .gt. 0.) then
@@ -1629,7 +1636,7 @@ c... BC for neutral gas temperature/energy at iy=ny+1
      .                                     /(vpnorm*ennorm*sy(ix,ny))
                 endif
               endif
-	          elseif (istgwc(igsp) == 5) then    # set tg=ti*cftgtiwc
+              elseif (istgwc(igsp) == 5) then    # set tg=ti*cftgtiwc
               yldot(iv) = nurlxg*(ti(ix,ny+1)*cftgtiwc(igsp) -
      .                                   tg(ix,ny+1,igsp))/(temp0*ev)
             elseif (istgwcix(ix,igsp) > 5)
@@ -1947,13 +1954,16 @@ c     First, the density equations --
      .                      + (1-alblb(iy,1,jx))*osmw
      .                      - fngxslb(iy,1,jx) 
      .                  ) / (vpnorm*n0(ifld)*sx(ixt,iy))
-                elseif (recylb(iy,1,jx) <=  0. .and. 
-     .                  recylb(iy,1,jx) >= -1.) then  # recylb is albedo
-                  t0 = max(tg(ixt,iy,1),tgmin*ev) 
-                  vyn = sqrt( 0.5*t0/(pi*mi(1)) )
-                  yldot(iv1) = -nurlxg * ( fnix(ixt,iy,ifld) +
-     .             (1+recylb(iy,1,jx))*ni(ixt,iy,ifld)*vyn*sx(ixt,iy) )/
-     .               (vpnorm*n0(ifld)*sx(ixt,iy))
+                elseif( (recylb(iy,1,jx) <=  0.)
+     .              .and. (recylb(iy,1,jx) >= -1.) 
+     .          ) then  # recylb is albedo
+                  osmw = onesided_maxwellian(
+     .                  tg(ixt,iy,1), ni(ixt,iy,ifld), mi(1), 
+     .                  sx(ixt,iy), tgmin*ev
+     .            )
+                  yldot(iv1) = -nurlxg * ( fnix(ixt,iy,ifld) 
+     .                  + (1+recylb(iy,1,jx))*osmw
+     .              ) / (vpnorm*n0(ifld)*sx(ixt,iy))
                 elseif (recylb(iy,1,jx) < -1. .and.
      .                 recylb(iy,1,jx) > -2. ) then  #fix density nglfix
                   yldot(iv1)=nurlxg*(nglfix - ni(ixt,iy,ifld))/n0(ifld)
@@ -2386,21 +2396,20 @@ c ... Neutral temperature - test if tg eqn is on, then set BC
      .                                 *( kappal(iy,jx)*zi(1)*te(ixt,iy)
      .                                   +ti(ixt,iy) ) )/
      .                                 (vpnorm*ennorm*sx(ixt,iy))
-                elseif (recylb(iy,igsp,jx) <=  0. .and.
-     .                  recylb(iy,igsp,jx) >= -1.) then  # recylb is albedo
-                  t0 = max(tg(ixt1,iy,igsp),tgmin*ev)
-                  vyn = sqrt( 0.5*t0/(pi*mg(igsp)) )
-                  fng_alb = (1+recylb(iy,igsp,jx))*ng(ixt1,iy,igsp)
-     .                                            *vyn*sx(ixt,iy)
+                elseif( (recylb(iy,igsp,jx) <=  0.)
+     .              .and. (recylb(iy,igsp,jx) >= -1.) 
+     .          ) then  # recylb is albedo
+                  osmw = onesided_maxwellian(
+     .                  tg(ixt1,iy,igsp), ng(ixt1,iy,igsp), 
+     .                  mg(igsp), sx(ixt,iy), tgmin*ev
+     .            )
                   yldot(iv) = -nurlxg*( fegx(ixt,iy,igsp)
-     .                                 +cfalbedo*fng_alb*t0 )/
-     .                                 (vpnorm*ennorm*sx(ixt,iy))
+     .                      + cfalbedo*(1-recylb(iy,igsp,jx))*osmw*t0 
+     .                  ) / (vpnorm*ennorm*sx(ixt,iy))
                 elseif (recylb(iy,igsp,jx) < -1.) then  #..half Maxwellian
-                  t0 = max(tg(ixt1,iy,igsp),tgmin*ev)
-                  vyn = sqrt( 0.5*t0/(pi*mg(igsp)) )
-                  yldot(iv) = -nurlxg*( fegx(ixt,iy,igsp)
-     .                                 +cfalbedo*fnix(ixt,iy,iigsp)*t0 )/
-     .                                 (vpnorm*ennorm*sx(ixt,iy))
+                  yldot(iv) = -nurlxg*( 
+     .                  fegx(ixt,iy,igsp) + cfalbedo*fnix(ixt,iy,iigsp)*t0
+     .              ) / (vpnorm*ennorm*sx(ixt,iy))
                 endif
               endif
             elseif (istglb(igsp) == 5) then  #set tg=ti*cftgtipltl
