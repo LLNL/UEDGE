@@ -1479,8 +1479,6 @@ ccc  - - - - - - - - - - - - - -
           if(isngonxy(ix,ny+1,igsp) .eq. 1) then #skip do-loop if isngon=0
             if (iscplo(ix) .eq. 1) call wsmodo(igsp)
             iv = idxg(ix,ny+1,igsp)
-            t0 = max(cdifg(igsp)*tg(ix,ny+1,igsp), tgmin*ev)
-            vyn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
             if (igsp .gt. nhgsp) then
               zflux = 0.
               do iimp = 1, nzsp(jz)
@@ -1490,11 +1488,18 @@ ccc  - - - - - - - - - - - - - -
 c ... prepare chemical sputtering info
             fng_chem = 0.
             do igsp2 = 1, 1+ishymol  #include hydrogen neut sputt
-                t0 = max(tg(ix,ny+1,igsp2), tgmin*ev)
-                flx_incid=ng(ix,ny+1,igsp2)*0.25*sqrt(8*t0/(pi*mg(igsp2)))
+                flx_incid = onesided_maxwellian(
+     .                      tg(ix,ny+1,igsp2), ng(ix,ny+1,igsp2),
+     .                      mg(igsp2), 1.0, tgmin*ev
+     .          )
                 if (isch_sput(igsp).ne.0) then
-                    call sputchem (isch_sput(igsp), t0/ev, tvwallo(ix),
-     .                                      flx_incid, yld_carbo(ix))
+                    call sputchem(
+     .                      isch_sput(igsp), 
+     .                      max(tg(ix,ny+1,igsp2)/ev, tgmin), 
+     .                      tvwallo(ix),
+     .                      flx_incid, 
+     .                      yld_carbo(ix)
+     .              )
                     fng_chem = fng_chem + fchemygwo(igsp2)*yld_carbo(ix)*
      .                                            flx_incid*sy(ix,ny)
                 else
@@ -1503,7 +1508,7 @@ c ... prepare chemical sputtering info
                 endif
             enddo
 c ... add ion sputtering to gas BC
-	    sputflxw(ix,igsp) = 0.
+            sputflxw(ix,igsp) = 0.
             if (isi_sputw(igsp).ge.1 .and. igsp>1) then  # incl phys sput from ions
               do ifld = ipsputt_s, ipsputt_e 
                 eng_sput = ( 2*ti(ix,ny+1) + zi(ifld)*
@@ -1516,7 +1521,7 @@ c ... add ion sputtering to gas BC
                 do ifld = 1,1  #(ipsputt_s, ipsputt_e) place holder for imp/imp sputt
                   eng_sput = ( 2*ti(ix,ny+1) + zi(ifld)*
      .                                           3*te(ix,ny+1) )/ev
-		  flx_incid = max(fniy(ix,ny,ifld)/sy(ix,ny), 0.)
+                  flx_incid = max(fniy(ix,ny,ifld)/sy(ix,ny), 0.)
                   call sputchem (isch_sput(igsp), eng_sput, tvwallo(ix),
      .                           flx_incid, yld_chm)
                   sputflxw(ix,igsp) = sputflxw(ix,igsp) + fchemyiwo(igsp)*
@@ -1524,12 +1529,16 @@ c ... add ion sputtering to gas BC
                 enddo
               endif
             endif
+            t0 = max(cdifg(igsp)*tg(ix,ny+1,igsp), tgmin*ev)
+            vyn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
             nharmave = 2.*(ng(ix,ny,igsp)*ng(ix,ny+1,igsp)) /
      .                    (ng(ix,ny,igsp)+ng(ix,ny+1,igsp))
             fng_alb = (1-albedoo(ix,igsp))*nharmave*vyn*sy(ix,ny)
-            yldot(iv) = nurlxg*( fngy(ix,ny,igsp) - fng_alb + fng_chem +
-     .                                             sputflxw(ix,igsp) )
-     .                                      /(vyn*sy(ix,ny)*n0g(igsp))
+            yldot(iv) = nurlxg*( fngy(ix,ny,igsp) 
+     .                  - fng_alb 
+     .                  + fng_chem
+     .                  + sputflxw(ix,igsp) 
+     .              ) /(vyn*sy(ix,ny)*n0g(igsp))
             if(matwallo(ix) .gt. 0) then
               if (recycwot(ix,igsp) .gt. 0.) then
 ccc
