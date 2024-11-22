@@ -101,6 +101,7 @@ except:
     pass
 
 
+'''
 try:
 
    class MyPrompt(Prompts):
@@ -115,7 +116,7 @@ except:
 else:
    ip = get_ipython()
    ip.prompts = MyPrompt(ip)
-
+'''
 
 ##############################################################################
 ######  Don't put anything below this line!!! ################################

@@ -2100,27 +2100,29 @@ cc              endif
 
 c   Do the electron temp Eqn -----------------------------------
         if (isteonxy(ixt,iy) == 1) then
-	  iv1 = idxte(ixt,iy)
+      iv1 = idxte(ixt,iy)
           if (ibctepl == 1) then
             faceel =  bcel(iy,jx)*(fqpsate/qe)*exp(-kappal(iy,jx))
             faceel2 = bcel(iy,jx)*(fqpsate/qe)*exp(-kappamx+2)
             totfeexl(iy,jx) = feex(ixt,iy) + cfeexdbo*( 
      .             2.5*fdiaxlb(iy,jx) + floxebgt(ixt,iy) )*te(ixt,iy)
-	    totfnex = ne(ixt,iy)*vex(ixt,iy)*sx(ixt,iy)
+        totfnex = ne(ixt,iy)*vex(ixt,iy)*sx(ixt,iy)
             if (isphion+isphiofft==1) then
-              yldot(iv1) =-nurlxe*(totfeexl(iy,jx)
-     .                        +faceel*te(ixt,iy)
-     .                        +faceel2*(te(ixt,iy)-te(ixt1,iy))
-     .                        -cmneut*fnix(ixt,iy,1)*recycp(1)*eedisspl*ev
-     .                                     )/(sx(ixt,iy)*vpnorm*ennorm)
+              yldot(iv1) = -nurlxe*(totfeexl(iy,jx)
+     .                  +faceel*te(ixt,iy)
+     .                  +faceel2*(te(ixt,iy)-te(ixt1,iy))
+     .                  -cmneut*fnix(ixt,iy,1)*recycp(1)*eedisspl*ev
+     .              ) / (sx(ixt,iy)*vpnorm*ennorm)
             else
-              yldot(iv1) =-nurlxe*(totfeexl(iy,jx) 
-     .                  -totfnex*te(ixt,iy)*bcel(iy,jx)
-     .                  +cgpld*f_cgpld*onesided_maxwellian(
-     .                      tg(ixt1,iy,1), ng(ixt1,iy,1), mg(1), 
-     .                      sx(ixt,iy), tgmin*ev)*0.5*ediss*ev
-     .                        -cmneut*fnix(ixt,iy,1)*recycp(1)*eedisspl*ev
-     .                                     )/(sx(ixt,iy)*vpnorm*ennorm)
+              osmw = onesided_maxwellian(
+     .              tg(ixt1,iy,1), ng(ixt1,iy,1), mg(1), 
+     .              sx(ixt,iy), tgmin*ev
+     .        )
+              yldot(iv1) = -nurlxe*(totfeexl(iy,jx) 
+     .                  - totfnex*te(ixt,iy)*bcel(iy,jx)
+     .                  + cgpld*f_cgpld*osmw*0.5*ediss*ev
+     .                  - cmneut*fnix(ixt,iy,1)*recycp(1)*eedisspl*ev
+     .              ) / (sx(ixt,iy)*vpnorm*ennorm)
             endif
           elseif (ibctepl .eq. 0) then
              yldot(iv1) = nurlxe*(tepltl*ev-te(ixt,iy))
@@ -2155,17 +2157,19 @@ cc                  bcen = recyce*bcil(iy,jx) - 0.5*mi(1)*(up(ixt,iy,2)**2 -
 cc     .               recyce*upi(ixt,iy,1)**2)/(recylb(iy,1,jx)*ti(ixt,iy))
 cc               endif
 cc               if (recyce .le. 0) bcen = 0.  # gets back to old case
-
-                 yldot(iv2) = -nurlxi*(totfeixl(iy,jx)
-     .                        -totfnix*ti(ixt,iy)*bcil(iy,jx)+ 
-     .            cftiexclg*( -cfneut*fnix(ixt,iy,iigsp)*tg(ixt,iy,1)*bcen
-     .                        +(cgengpl*2.*tg(ixt,iy,1) - cgpld*eion*ev)*
-     .                        f_cgpld*onesided_maxwellian(
-     .                        tg(ixt1,iy,1), ng(ixt1,iy,1),
-     .                        mg(1), sx(ixt,iy), tgmin*ev)    
-     .                        -cmneut*fnix(ixt,iy,1)*recycp(1)*
-     .                                cmntgpl*(ti(ixt,iy)-eidisspl*ev)
-     .                                  ) )/(vpnorm*ennorm*sx(ixt,iy))
+                osmw = onesided_maxwellian(
+     .                  tg(ixt1,iy,1), ng(ixt1,iy,1), mg(1), sx(ixt,iy), tgmin*ev
+     .          )
+                yldot(iv2) = -nurlxi*(totfeixl(iy,jx)
+     .                      - totfnix*ti(ixt,iy)*bcil(iy,jx)
+     .                      + cftiexclg*( 
+     .                        - cfneut*fnix(ixt,iy,iigsp)*tg(ixt,iy,1)*bcen
+     .                        + (cgengpl*2.*tg(ixt,iy,1) 
+     .                        - cgpld*eion*ev)*f_cgpld*osmw
+     .                        - cmneut*fnix(ixt,iy,1)*recycp(1)
+     .                          *cmntgpl*(ti(ixt,iy)-eidisspl*ev)
+     .                      ) 
+     .              ) / (vpnorm*ennorm*sx(ixt,iy))
             else
                  yldot(iv2) = -nurlxi*(totfeixl(iy,jx) 
      .                         -totfnix*bcil(iy,jx)*ti(ixt,iy)+
@@ -2200,14 +2204,17 @@ c       Do hydrogenic gas equations --
                    flux_inc = 0.5*( fnix(ixt,iy,1) + fngx(ixt,iy,1) +flxa) 
                  endif
                endif
-               yldot(iv) = -nurlxg * ( fngx(ixt,iy,igsp) - 
-     .                                           fngxlb_use(iy,igsp,jx) -
-     .               fngxslb(iy,igsp,jx) + recylb(iy,igsp,jx)*flux_inc +
-     .               (1-alblb(iy,igsp,jx))*onesided_maxwellian(
+               osmw = onesided_maxwellian(
      .                  tg(ixt1,iy,igsp), ng(ixt1,iy,igsp), mg(igsp),
      .                  isoldalbarea*sx(ixt,iy) + (1-isoldalbarea)*sxnp(ixt,iy),
-     .                  tgmin*ev))
-     .                  / (vpnorm*n0g(igsp)*sx(ixt,iy))
+     .                  tgmin*ev
+     .         )
+               yldot(iv) = -nurlxg * ( fngx(ixt,iy,igsp)  
+     .                  - fngxlb_use(iy,igsp,jx)
+     .                  - fngxslb(iy,igsp,jx) 
+     .                  + recylb(iy,igsp,jx)*flux_inc
+     .                  + (1-alblb(iy,igsp,jx))*osmw
+     .              ) / (vpnorm*n0g(igsp)*sx(ixt,iy))
              elseif ( (recylb(iy,igsp,jx) <=  0.)
      .           .and. (recylb(iy,igsp,jx) >= -1.) 
      .      ) then # recylb is albedo
@@ -2331,17 +2338,21 @@ c ... Neutral temperature - test if tg eqn is on, then set BC
             elseif (istglb(igsp) == 2)  #placeholder for gradient BC
               call xerrab("**INPUT ERROR: istglb=2 grad opt not implemented")
             elseif (istglb(igsp) == 3)  #Maxwell thermal flux to wall
-              yldot(iv) =  -nurlxg*( fegx(ixt,iy,igsp) + 2*cgengmpl
-     .              * max(cdifg(igsp)*tg(ixt1,iy,igsp), tgmin*ev)
-     .              * onesided_maxwellian( cdifg(igsp)*tg(ixt1,iy,igsp),
-     .                  ng(ixt1,iy,igsp), mg(igsp), sx(ixt,iy), tgmin*ev)
-     .              ) / (sx(ixt,iy)*vpnorm*ennorm)
+              osmw =  onesided_maxwellian( 
+     .              cdifg(igsp)*tg(ixt1,iy,igsp), ng(ixt1,iy,igsp), 
+     .              mg(igsp), sx(ixt,iy), tgmin*ev
+     .        )
+              yldot(iv) =  -nurlxg*( fegx(ixt,iy,igsp) 
+     .                  + 2*cgengmpl*max(
+     .                      cdifg(igsp)*tg(ixt1,iy,igsp), tgmin*ev
+     .                  )*osmw ) / (sx(ixt,iy)*vpnorm*ennorm)
             elseif (istglb(igsp) == 4) 
 	      if (isupgon(igsp)==1) then
                 if (recylb(iy,igsp,jx) .gt. 0.) then
                   fng_alb=(1-alblb(iy,igsp,jx))*onesided_maxwellian(
-     .              tg(ixt1,iy,igsp), ng(ixt1,iy,igsp), mg(igsp),
-     .              sx(ixt,iy), tgmin*ev)
+     .                      tg(ixt1,iy,igsp), ng(ixt1,iy,igsp), 
+     .                      mg(igsp), sx(ixt,iy), tgmin*ev
+     .            )
                   yldot(iv) = -nurlxg*( fegx(ixt,iy,igsp)
      .                                 +cfalbedo*fng_alb
      .                                 * max(tg(ixt1,iy,igsp),tgmin*ev)
