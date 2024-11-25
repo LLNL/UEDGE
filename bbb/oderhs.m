@@ -5063,6 +5063,17 @@ c  the perturbed variables are reset below to get Jacobian correct
       if (isphion.eq.1) call poteneq (neq, yl, yldot)
 
       call bouncon (neq, yl, yldot)
+ 
+      if (igas .eq. 1) then
+         do iy = j1+1-iymnbcl, j6-1+iymxbcl
+           do ix = i1+1-ixmnbcl, i6-1+ixmxbcl
+             if(isngonxy(ix,iy,1)==1) then
+               iv = idxg(ix,iy,1)
+               yldot(iv) = nurlxg * (nginit(ix,iy) - ng(ix,iy,1))/n0g(1)
+             endif
+           enddo
+         enddo
+       endif
 
 c...  Finally, reset some source terms if this is a Jacobian evaluation
          if (xc .ge. 0 .and. yc .ge. 0) then
