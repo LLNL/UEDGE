@@ -2741,128 +2741,6 @@ c...  local scalars
           real yld96, kappa
 
 
-
-        RETURN
-        END SUBROUTINE right_boundary
-
-
-      END MODULE poloidal_boundaries
-
-
-c-----------------------------------------------------------------------
-
-      subroutine bouncon(neq, yl, yldot)
-
-*   Bouncon provides the evaluation of the equations for the boundaries.
-
-      implicit none
-
-      integer neq
-      real yl(neq), yldot(neq)
-
-      Use(Dim)      # nx,ny,nhsp,nzspt,nzsp,nisp,ngsp,nusp,nxpt
-      Use(Share)    # nxpt,nxc,geometry,cutlo,islimon,ix_lim,iy_lims
-                    # isudsym
-      Use(Xpoint_indices) # ixlb,ixpt1,ixpt2,ixrb,iysptrx1,iysptrx2
-      Use(Math_problem_size)   # neqmx 
-      Use(Phyvar)
-      Use(UEpar)    # isnewpot,r0slab,cslim,dcslim,csfaclb,csfacrb,csfacti,
-                    # isnion,isupon,isteon,istion,isngon,isnionxy,isuponxy,
-                    # isteonxy,istionxy,isngonxy,isphionxy, ismolcrm
-      Use(Aux)      # ixmp
-      Use(Coefeq)   # fac2sp,cf2ef,exjbdry
-      Use(Bcond)    # iflux,ncore,tcoree,tcorei,tbmin,nbmin,ngbmin,
-                    # tepltl,tipltl,tepltr,tipltr,
-                    # istewc,istiwc,istepfc,istipfc,
-                    # tewalli,tiwalli,tewallo,tiwallo,isextrnp,
-                    # isextrnpf,isextrtpf,isextrngc,isextrnw,isextrtw,
-                    # iflcore,pcoree,pcorei,ifluxni,ckinfl,isupss,
-                    # isnwconiix,isnwconoix,nwalli,nwallo,iscpli,iscplo,
-                    # fngysi,fngyso,albedoo,albedoi,matwallo,matwalli,
-                    # sinphi,isfixlb,nib,teb,tib,nibprof,tebprof,tibprof,
-                    # engbsr,epsbs,rlimiter,ngcore,isngcore,isutcore,
-                    # ixfixnc,incixc,isupcore,isfixrb,chemsputi,chemsputo
-                    # islbcn,islbcu,islbce,islbci,islbcg,isexunif
-                    # fchemygwi,fchemylb,fphysylb,fchemygwo,fchemyrb,fphysyrb
-                    # xcnearlb,xcnearrb,openbox,fqpsatlb,fqpsatrb
-                    # cfueb,ikapmod,cfvytanbc
-      Use(Parallv)  # nxg,nyg
-      Use(Selec)    # i1,i2,i3,i4,i5,i6,i7,j1,j2,j3,j4,j5,j6,j7,xlinc
-      Use(Comgeo)   # gx,gy,gyf,sx,sy,xcwi,xcwo,yylb,rrv,sygytotc,isixcore
-      Use(Compla)   # mi, mg
-      Use(Comflo)   # fqx,fqy,fnix,fniy,feex,feey,feix,feiy,fngx,fngy
-                    # fdiaxlb, fdiaxrb
-      Use(Conduc)   # visx
-      Use(Indexes)
-      Use(Ynorm)    # temp0,nnorm,ennorm
-      Use(Poten)    # newbcl,newbcr,bcee,bcei,rsigpl,bcel,bcer,bcil,bcir,
-                    # kappal,kappar,bctype,phi0l,phi0r,isfdiax
-      Use(Rccoef)   # recylb,recyrb,alblb,albrb,recycw,sputtr,
-                    # recycm,recyce,recycmlb,recycmrb,recyllim,recyrlim
-      Use(Bfield)   # rbfbt,btot
-      Use(Imprad)   # isimpon
-      Use(Impurity_source_flux)   # fnzysi,fnzyso
-      Use(Gradients)  # ey
-      Use(RZ_grid_info)      # rm
-      Use(Indices_domain_dcl)   #ixmxbcl,ixmnbcl,iymxbcl,iymnbcl,ispwrbcl
-      Use(Interp)
-      Use(Jacaux)   # yldot_diag
-      Use(Npes_mpi) # npes
-      Use(Indices_domain_dcg) # ndomain,ispwrbc
-c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
-
-      Use(MCN_dim)
-      Use(MCN_sources) # edisspl, edisspr, cmntgpl, cmntgpl
-      Use(Utilities)
-      Use(Radial_Boundaries)
-      Use(Poloidal_Boundaries)
-
-c...  local scalars
-      real totfeix, totfeex, kfeix, cosphi,
-     .     ueb, nbound, tbound, ut0, sumb, feeytotc, feiytotc,
-     .     r_major, fniytotc, fng_chem, vbound, eng_sput, flx_incid,
-     .     yld_chm, t0p, zflux_chm, fqytotc, flux_inc,
-     .     totfnex, totfnix, fqpsate, qpfac, aq, arglgphi, faceel,
-     .     faceel2, csfac, lambdae, uztotc, uztotc1, uztotc2,
-     .     fngytotc, fmiytotc, sytotc, f_cgpld, sfeeytotc, sfeiytotc,
-     .     vxa, ta0, flxa
-      integer ii,isphion2, nzsp_rt, jz
-      real hflux, zflux
-      integer ifld, ihyd, iimp, ix_fl_bc, ixc1, igsp2
-      real dif_imp_flux, fng_alb, fngyw, nharmave
-      real upbdry, upbdry1, upbdry2, uugoal, fniy_recy, lengg, xtotc
-      integer ixt, ixt1, ixt2, ixt3, jx, ixc, ierr
-      integer ixtl, ixtl1, ixtr,ixtr1
-      #Former Aux module variables
-      integer ix,iy,igsp,iv,iv1,iv2,iv3,iv4,ix1,ix2,ix3,ix4
-      real osmw
-      real t0
-
-*  -- external procedures --
-      real sdot, yld96, kappa
-      external sdot
-
-*****************************************************************
-*  --  Here we write the equations for the boundaries.
-*****************************************************************
-c...  now we reset the boundary conditions around the edge
-
-c...  Initialization for constant
-
-
-      if (iymnbcl .ne. 0) call south_boundary(neq, yl, yldot)
-      if (iymxbcl .eq. 0) call north_boundary(neq, yl, yldot)
-      if (ixmnbcl .eq. 0) call left_boundary(neq, yl, yldot) 
-        
-
-
-
-c ====================================================================
-c ======================== The ix=nx+1 boundary ======================
-c ====================================================================
-
-      if (ixmxbcl .eq. 0) goto 1400   #skip setting Eqn because interior bdry
-
 c********************************************************************
 c...  First, check if isfixrb=2 for using symmetry BC at ix = nx+1
 c*******************************************************************
@@ -3517,6 +3395,261 @@ c ...   Make electric field at plate uniform over last 2 cells --
            enddo
         endif
 
+      endif # end if-test on i6 and isfixrb
+
+      endif # end if-test on xcnearrb and openbox
+      enddo # end do-loop over nxpt mesh regions
+c************************************************************************
+c     end standard divertor plate conditions for right boundaries
+c************************************************************************
+
+c ... Special case for no divertor leg (ixpt2(1)=nx, iy.le.iysptrx2(1)), just
+c ... use continuation boundary conditions for the guard cell (ix=nx+1)
+ccc      if (ixpt2(1).eq.nx .and. isfixrb(1).eq.0) then  # should test i6.ge.nx+1
+ccc
+ccc      do iy = j2, min(j5, iysptrx2(1))
+ccc        do ifld = 1, nisp
+ccc          if (isnion(ifld) .eq. 1) then
+ccc            iv = idxn(nx+1,iy,ifld)
+ccc            yldot(iv) = -nurlxn*(ni(nx+1,iy,ifld)-ni(nx,iy,ifld))/n0(ifld)
+ccc          endif
+ccc        enddo
+ccc        do ifld = 1, nusp
+ccc          if (isupon(ifld) .eq. 1) then
+ccc            iv = idxu(nx+1,iy,ifld)
+ccc            yldot(iv) = -nurlxu*(up(nx+1,iy,ifld)-up(nx,iy,ifld))/vpnorm
+ccc          endif
+ccc        enddo
+ccc        if (isteon .eq. 1) then
+ccc          iv = idxte(nx+1,iy)
+ccc          yldot(iv) = -nurlxe*(te(nx+1,iy)-te(nx,iy))*ne(nx+1,iy)/ennorm
+ccc        endif
+ccc        if (istion .eq. 1) then
+ccc          iv = idxti(nx+1,iy)
+ccc          yldot(iv) = -nurlxi*(ti(nx+1,iy)-ti(nx,iy))*ne(nx+1,iy)/ennorm
+ccc        endif
+ccc        do igsp = 1, ngsp
+ccc          if (isngon(igsp) .eq. 1) then
+ccc            iv = idxg(nx+1,iy,ifld)
+ccc            yldot(iv) = -nurlxg*(ng(nx+1,iy,igsp)-ng(nx,iy,igsp))/n0g(igsp)
+ccc          endif
+ccc        enddo
+ccc        if (isphion+isphiofft .eq. 1) then
+ccc          iv = idxphi(nx+1,iy)
+ccc          yldot(iv) = -nurlxp*(phi(nx+1,iy)-phi(nx,iy))/temp0
+ccc        endif
+ccc      enddo   # large loop over iy
+ccc
+ccc      endif
+c ... End special coding for no divertor leg at ix = nx
+
+
+
+        RETURN
+        END SUBROUTINE right_boundary
+
+
+      END MODULE poloidal_boundaries
+
+
+c-----------------------------------------------------------------------
+
+      subroutine bouncon(neq, yl, yldot)
+
+*   Bouncon provides the evaluation of the equations for the boundaries.
+
+      implicit none
+
+      integer neq
+      real yl(neq), yldot(neq)
+
+      Use(Dim)      # nx,ny,nhsp,nzspt,nzsp,nisp,ngsp,nusp,nxpt
+      Use(Share)    # nxpt,nxc,geometry,cutlo,islimon,ix_lim,iy_lims
+                    # isudsym
+      Use(Xpoint_indices) # ixlb,ixpt1,ixpt2,ixrb,iysptrx1,iysptrx2
+      Use(Math_problem_size)   # neqmx 
+      Use(Phyvar)
+      Use(UEpar)    # isnewpot,r0slab,cslim,dcslim,csfaclb,csfacrb,csfacti,
+                    # isnion,isupon,isteon,istion,isngon,isnionxy,isuponxy,
+                    # isteonxy,istionxy,isngonxy,isphionxy, ismolcrm
+      Use(Aux)      # ixmp
+      Use(Coefeq)   # fac2sp,cf2ef,exjbdry
+      Use(Bcond)    # iflux,ncore,tcoree,tcorei,tbmin,nbmin,ngbmin,
+                    # tepltl,tipltl,tepltr,tipltr,
+                    # istewc,istiwc,istepfc,istipfc,
+                    # tewalli,tiwalli,tewallo,tiwallo,isextrnp,
+                    # isextrnpf,isextrtpf,isextrngc,isextrnw,isextrtw,
+                    # iflcore,pcoree,pcorei,ifluxni,ckinfl,isupss,
+                    # isnwconiix,isnwconoix,nwalli,nwallo,iscpli,iscplo,
+                    # fngysi,fngyso,albedoo,albedoi,matwallo,matwalli,
+                    # sinphi,isfixlb,nib,teb,tib,nibprof,tebprof,tibprof,
+                    # engbsr,epsbs,rlimiter,ngcore,isngcore,isutcore,
+                    # ixfixnc,incixc,isupcore,isfixrb,chemsputi,chemsputo
+                    # islbcn,islbcu,islbce,islbci,islbcg,isexunif
+                    # fchemygwi,fchemylb,fphysylb,fchemygwo,fchemyrb,fphysyrb
+                    # xcnearlb,xcnearrb,openbox,fqpsatlb,fqpsatrb
+                    # cfueb,ikapmod,cfvytanbc
+      Use(Parallv)  # nxg,nyg
+      Use(Selec)    # i1,i2,i3,i4,i5,i6,i7,j1,j2,j3,j4,j5,j6,j7,xlinc
+      Use(Comgeo)   # gx,gy,gyf,sx,sy,xcwi,xcwo,yylb,rrv,sygytotc,isixcore
+      Use(Compla)   # mi, mg
+      Use(Comflo)   # fqx,fqy,fnix,fniy,feex,feey,feix,feiy,fngx,fngy
+                    # fdiaxlb, fdiaxrb
+      Use(Conduc)   # visx
+      Use(Indexes)
+      Use(Ynorm)    # temp0,nnorm,ennorm
+      Use(Poten)    # newbcl,newbcr,bcee,bcei,rsigpl,bcel,bcer,bcil,bcir,
+                    # kappal,kappar,bctype,phi0l,phi0r,isfdiax
+      Use(Rccoef)   # recylb,recyrb,alblb,albrb,recycw,sputtr,
+                    # recycm,recyce,recycmlb,recycmrb,recyllim,recyrlim
+      Use(Bfield)   # rbfbt,btot
+      Use(Imprad)   # isimpon
+      Use(Impurity_source_flux)   # fnzysi,fnzyso
+      Use(Gradients)  # ey
+      Use(RZ_grid_info)      # rm
+      Use(Indices_domain_dcl)   #ixmxbcl,ixmnbcl,iymxbcl,iymnbcl,ispwrbcl
+      Use(Interp)
+      Use(Jacaux)   # yldot_diag
+      Use(Npes_mpi) # npes
+      Use(Indices_domain_dcg) # ndomain,ispwrbc
+c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
+
+      Use(MCN_dim)
+      Use(MCN_sources) # edisspl, edisspr, cmntgpl, cmntgpl
+      Use(Utilities)
+      Use(Radial_Boundaries)
+      Use(Poloidal_Boundaries)
+
+c...  local scalars
+      real totfeix, totfeex, kfeix, cosphi,
+     .     ueb, nbound, tbound, ut0, sumb, feeytotc, feiytotc,
+     .     r_major, fniytotc, fng_chem, vbound, eng_sput, flx_incid,
+     .     yld_chm, t0p, zflux_chm, fqytotc, flux_inc,
+     .     totfnex, totfnix, fqpsate, qpfac, aq, arglgphi, faceel,
+     .     faceel2, csfac, lambdae, uztotc, uztotc1, uztotc2,
+     .     fngytotc, fmiytotc, sytotc, f_cgpld, sfeeytotc, sfeiytotc,
+     .     vxa, ta0, flxa
+      integer ii,isphion2, nzsp_rt, jz
+      real hflux, zflux
+      integer ifld, ihyd, iimp, ix_fl_bc, ixc1, igsp2
+      real dif_imp_flux, fng_alb, fngyw, nharmave
+      real upbdry, upbdry1, upbdry2, uugoal, fniy_recy, lengg, xtotc
+      integer ixt, ixt1, ixt2, ixt3, jx, ixc, ierr
+      integer ixtl, ixtl1, ixtr,ixtr1
+      #Former Aux module variables
+      integer ix,iy,igsp,iv,iv1,iv2,iv3,iv4,ix1,ix2,ix3,ix4
+      real osmw
+      real t0
+
+*  -- external procedures --
+      real yld96, kappa
+
+*****************************************************************
+*  --  Here we write the equations for the boundaries.
+*****************************************************************
+c...  now we reset the boundary conditions around the edge
+
+c...  Initialization for constant
+
+
+      if (iymnbcl .ne. 0) call south_boundary(neq, yl, yldot)
+      if (iymxbcl .eq. 0) call north_boundary(neq, yl, yldot)
+      if (ixmnbcl .eq. 0) call left_boundary(neq, yl, yldot) 
+      if (ixmxbcl .eq. 0) call right_boundary(neq, yl, yldot)
+        
+
+
+
+c ====================================================================
+c ======================== The ix=nx+1 boundary ======================
+c ====================================================================
+
+      if (ixmxbcl .eq. 0) goto 1400   #skip setting Eqn because interior bdry
+c************************************************************************
+c     begin standard divertor plate conditions for right boundaries
+c************************************************************************
+      do jx = 1, nxpt # loop over nxpt mesh regions
+      if (xcnearrb .or. openbox) then
+
+c     Now do the parallel velocity and other variables --
+      if ( (i6 .ge. (ixrb(jx)+1)) .and. isfixrb(jx)==0 ) then
+      do iy = j2, j5 # begin big do-loop on iy
+
+        ixt  = ixrb(jx) + 1    # analog of ix=nx+1
+        ixt1 = ixm1(ixt,iy)    # analog of ix=nx
+        ixt2 = ixm1(ixt1,iy)   # analog of ix=nx-1
+        ixt3 = ixm1(ixt2,iy)   # analog of ix=nx-2
+
+        sumb = 0.
+        do ifld = 1, nfsp  # set up generalized Bohm condition
+          upi(ixt,iy,ifld) = upi(ixt1,iy,ifld) # not set before; upi not var
+          upi(ixt,iy,1   ) =  up(ixt ,iy,1   ) # need to keep up(,,1) as var
+          ueb = cfueb*( cf2ef*v2ce(ixt1,iy,ifld)*rbfbt(ixt,iy) -
+     .            vytan(ixt1,iy,ifld) ) / rrv(ixt1,iy) 
+          sumb = sumb + ni(ixt,iy,ifld)*zi(ifld)**2*te(ixt,iy) /
+     .                (mi(ifld)*(upi(ixt,iy,ifld)+ueb)**2 - ti(ixt,iy))
+        enddo # end do-loop on ifld for Bohm condition
+        sumb = sqrt(abs(sumb/ne(ixt,iy)))
+
+c       Next, the momentum equations --
+        do ifld = 1, nusp
+          if (isuponxy(ixt,iy,ifld)==1) then
+            iv2 = idxu(ixt1,iy,ifld)  #ixt1 ~ nx
+            iv = idxu(ixt,iy,ifld)    #ixt ~ nx+1
+            cs = csfacrb(ifld,jx)*sqrt( (te(ixt,iy)+
+     .                                  csfacti*ti(ixt,iy))/mi(ifld) )
+            if (isupgon(1)==1 .and. zi(ifld)==0.0) then  ## neutrals
+              if (recycmrb(iy,1,jx) > -9.9) then  # backscatter with recycm
+                yldot(iv2) = -nurlxu*(recycmrb(iy,1,jx)*up(ixt1,iy,1) + 
+     .                                       up(ixt1,iy,ifld))/vpnorm
+              elseif (recycmrb(iy,1,jx) <= -9.9 .and. 
+     .                      recycmrb(iy,1,jx) > -10.1) then # zero x-gradient
+                yldot(iv2) = nurlxu*(up(ixt2,iy,ifld) -
+     .                                          up(ixt1,iy,ifld))/vpnorm
+              else  #neutral thermal flux to wall if recycm < -10.1
+c...              if up > 0, leave unchanged; if up<0, big reduction
+                osmw = onesided_maxwellian(
+     .                  tg(ixt,iy,1), 0.5*(nm(ixt1,iy,ifld)+nm(ixt,iy,ifld)),
+     .                  mi(ifld), sx(ixt1,iy), tgmin*ev
+     .          )
+                yldot(iv2) = -nurlxu*( fmix(ixt1,iy,ifld) 
+     .                  - up(ixt,iy,ifld)*cgmompl*osmw
+     .              ) / (vpnorm*fnorm(ifld)*sx(ixt1,iy))
+              endif
+              yldot(iv) =nurlxu*(up(ixt1,iy,ifld)-up(ixt,iy,ifld))/vpnorm
+            else                                         ## ions
+              ueb = cfueb*( cf2ef*v2ce(ixt1,iy,ifld)*rbfbt(ixt,iy) -
+     .                vytan(ixt1,iy,ifld) ) / rrv(ixt1,iy) 
+              yldot(iv2) = -nurlxu*(sumb - 1.)  # multispecies Bohm
+              if (isbohmms==0) then          # simple Bohm condition
+                yldot(iv2) = nurlxu * (cs-ueb-up(ixt1,iy,ifld))/vpnorm
+              endif
+              if(isupss(ifld)==1 .and. up(ixt2,iy,ifld)+ueb .gt. cs)
+                                             # dup/dx=0 if supersonic
+     .          yldot(iv2) = nurlxu*(up(ixt2,iy,ifld)-up(ixt1,iy,ifld))/
+     .                                                           vpnorm
+              if (isupss(ifld)==-1) then     # slip boundary conditions
+                yldot(iv2) = nurlxu*(up(ixt2,iy,ifld)-up(ixt1,iy,ifld))/
+     .                                                           vpnorm
+              elseif (isupss(ifld)==-2) then # extrap. + no pos. uu
+                vbound = up(ixt2,iy,ifld) - gx(ixt2,iy)*
+     .                   (up(ixt3,iy,ifld)-up(ixt2,iy,ifld))/gx(ixt1,iy) 
+                vbound = max(vbound, -ueb)   # forces uu & fnix >= 0
+                yldot(iv2) = nurlxu*(vbound - up(ixt1,iy,ifld))/vpnorm
+              elseif (isupss(ifld)==-3) then # modified Bohm condition
+                vbound = -ueb +2*cs*uu(ixt2,iy,ifld)/
+     .                             (uu(ixt2,iy,ifld)+rrv(ixt,iy)*cs)
+                vbound = max(vbound, -ueb)   # forces uu & fnix >= 0
+                yldot(iv2) = nurlxu * (vbound-up(ixt1,iy,ifld))/vpnorm
+              endif # end if-test on isupss
+
+c Finally set unused up(ixt,,) = up(ixt1,,); note ixt~nx+1
+              yldot(iv) =nurlxu*(up(ixt1,iy,ifld)-up(ixt,iy,ifld))/vpnorm
+            endif # end if-test on isupgon
+          endif # end if-test on isupon
+
+        enddo # end do-loop on ifld
+      enddo # end big do-loop on iy
       endif # end if-test on i6 and isfixrb
 
       endif # end if-test on xcnearrb and openbox
