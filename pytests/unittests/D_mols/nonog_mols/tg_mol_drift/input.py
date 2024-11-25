@@ -13,6 +13,16 @@ try:
 except:
     pass
 
+setni = True
+setup = True
+setphi = True
+setphiofft = True
+setng = True
+setupg = True
+setti = True
+sette = True
+settg = True
+
 bbb.mhdgeo = 1 		#use MHD equilibrium
 bbb.gengrid=0		#read mesh from gridue file
 com.geometry = "snull"
@@ -153,23 +163,33 @@ bbb.isutcore=2    # =1, set dut/dy=0 on iy=0 (if iphibcc=0)
 
 
 # templates/D_mols/inputs/equations/default.py
-bbb.isnion = 1
-bbb.isupon = 1
-bbb.isteon = 1
-bbb.istion = 1
-bbb.isphion = 1
-bbb.isphiofft = 0
-bbb.istgon = 0
-bbb.isngon = 0
-bbb.isngon[0] = 0
-bbb.isupgon = 0
-bbb.isupgon[0] = 1
+if setni:
+    bbb.isnion = 1
+if setup:
+    bbb.isupon = 1
+if sette:
+    bbb.isteon = 1
+if setti:
+    bbb.istion = 1
+if setphi:
+    bbb.isphion = 1
+if setphiofft:
+    bbb.isphiofft = 0
+if settg:
+    bbb.istgon = 0
+if setng:
+    bbb.isngon = 0
+    bbb.isngon[0] = 0
+if setupg:
+    bbb.isupgon = 0
+    bbb.isupgon[0] = 1
 
 
 # Catch-all for turning off potential equaiton in slab geometry
 if bbb.mhdgeo == -1:
 	bbb.isphion = 0
 	bbb.isphiofft = 1
+
 
 # templates/D_mols/inputs/fluxlimits/default.py
 bbb.flalfe = 0.21	#electron parallel thermal conduct. grd.coeff
@@ -186,6 +206,7 @@ bbb.flalftgy = 1.	#neut. particle radial heat diffusion
 bbb.ishymol = 1
 com.ngsp = 2
 com.nhgsp = 2
+setng=False
 bbb.isngon[1] = 1
 bbb.istgcon[1] = -1
 bbb.istgcore[1] = 2
@@ -194,6 +215,7 @@ bbb.istgwc[1] = 0
 bbb.istglb[1] = 0
 bbb.istgrb[1] = 0
 bbb.tgwall[1] = 0.2
+
 
 # templates/D_mols/inputs/radialtransport/default.py
 bbb.difni[1] = 1.	#D for radial hydrogen diffusion

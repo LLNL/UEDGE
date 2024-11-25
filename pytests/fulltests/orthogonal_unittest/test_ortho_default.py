@@ -162,6 +162,7 @@ class TestClass:
         from uedge import bbb
         from uedge.hdf5 import hdf5_restore
         from copy import deepcopy
+        from numpy import ndarray
         # Helper function accessing UEDGE data using variable
         def getdata(var):
             from Forthon import package, packageobject

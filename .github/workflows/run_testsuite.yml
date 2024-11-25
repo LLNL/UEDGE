@@ -26,7 +26,7 @@ jobs:
     - name: Checkout develop branch
       uses: actions/checkout@v4
       with:
-        ref: develop
+        ref: tg_rewrite_H2CRM-compatible_boundary_modularization
         repository: LLNL/UEDGE 
     - name: Build UEDGE
       run: |
