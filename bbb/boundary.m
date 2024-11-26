@@ -1870,6 +1870,86 @@ CCC   isnewpot*isphion=1000, so one can generally ignore this if section)
       IMPLICIT NONE
       CONTAINS
 
+        SUBROUTINE set_poloidal_boundaries(neq, yl, yldot)
+        IMPLICIT NONE
+        INTEGER, INTENT(IN) :: neq
+        REAL, INTENT(OUT) :: yl(neq), yldot(neq)        
+          Use(Dim)      # nx,ny,nhsp,nzspt,nzsp,nisp,ngsp,nusp,nxpt
+          Use(Share)    # nxpt,nxc,geometry,cutlo,islimon,ix_lim,iy_lims
+                        # isudsym
+          Use(Xpoint_indices) # ixlb,ixpt1,ixpt2,ixrb,iysptrx1,iysptrx2
+          Use(Math_problem_size)   # neqmx 
+          Use(Phyvar)
+          Use(UEpar)    # isnewpot,r0slab,cslim,dcslim,csfaclb,csfacrb,csfacti,
+                        # isnion,isupon,isteon,istion,isngon,isnionxy,isuponxy,
+                        # isteonxy,istionxy,isngonxy,isphionxy, ismolcrm
+          Use(Aux)      # ixmp
+          Use(Coefeq)   # fac2sp,cf2ef,exjbdry
+          Use(Bcond)    # iflux,ncore,tcoree,tcorei,tbmin,nbmin,ngbmin,
+                        # tepltl,tipltl,tepltr,tipltr,
+                        # istewc,istiwc,istepfc,istipfc,
+                        # tewalli,tiwalli,tewallo,tiwallo,isextrnp,
+                        # isextrnpf,isextrtpf,isextrngc,isextrnw,isextrtw,
+                        # iflcore,pcoree,pcorei,ifluxni,ckinfl,isupss,
+                        # isnwconiix,isnwconoix,nwalli,nwallo,iscpli,iscplo,
+                        # fngysi,fngyso,albedoo,albedoi,matwallo,matwalli,
+                        # sinphi,isfixlb,nib,teb,tib,nibprof,tebprof,tibprof,
+                        # engbsr,epsbs,rlimiter,ngcore,isngcore,isutcore,
+                        # ixfixnc,incixc,isupcore,isfixrb,chemsputi,chemsputo
+                        # islbcn,islbcu,islbce,islbci,islbcg,isexunif
+                        # fchemygwi,fchemylb,fphysylb,fchemygwo,fchemyrb,fphysyrb
+                        # xcnearlb,xcnearrb,openbox,fqpsatlb,fqpsatrb
+                        # cfueb,ikapmod,cfvytanbc
+          Use(Parallv)  # nxg,nyg
+          Use(Selec)    # i1,i2,i3,i4,i5,i6,i7,j1,j2,j3,j4,j5,j6,j7,xlinc
+          Use(Comgeo)   # gx,gy,gyf,sx,sy,xcwi,xcwo,yylb,rrv,sygytotc,isixcore
+          Use(Compla)   # mi, mg
+          Use(Comflo)   # fqx,fqy,fnix,fniy,feex,feey,feix,feiy,fngx,fngy
+                        # fdiaxlb, fdiaxrb
+          Use(Conduc)   # visx
+          Use(Indexes)
+          Use(Ynorm)    # temp0,nnorm,ennorm
+          Use(Poten)    # newbcl,newbcr,bcee,bcei,rsigpl,bcel,bcer,bcil,bcir,
+                        # kappal,kappar,bctype,phi0l,phi0r,isfdiax
+          Use(Rccoef)   # recylb,recyrb,alblb,albrb,recycw,sputtr,
+                        # recycm,recyce,recycmlb,recycmrb,recyllim,recyrlim
+          Use(Bfield)   # rbfbt,btot
+          Use(Imprad)   # isimpon
+          Use(Impurity_source_flux)   # fnzysi,fnzyso
+          Use(Gradients)  # ey
+          Use(RZ_grid_info)      # rm
+          Use(Indices_domain_dcl)   #ixmxbcl,ixmnbcl,iymxbcl,iymnbcl,ispwrbcl
+          Use(Interp)
+          Use(Jacaux)   # yldot_diag
+          Use(Npes_mpi) # npes
+          Use(Indices_domain_dcg) # ndomain,ispwrbc
+c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
+
+          Use(MCN_dim)
+          Use(MCN_sources) # edisspl, edisspr, cmntgpl, cmntgpl
+          Use(Utilities)
+
+
+        IF (ixmnbcl .ne. 0) THEN
+            call left_boundary(neq, yl, yldot) 
+        END IF
+
+        IF (ixmxbcl .ne. 0) THEN
+            call right_boundary(neq, yl, yldot)
+        END IF
+    
+        IF (
+     .      ( (isudsym==1) .or. (geometry .eq. "dnXtarget"))
+     .      .and.
+     .      (isfixlb(1).eq.0)
+     .  )   
+     .      call dnull_boundary(neq, yl, yldot)
+
+        RETURN
+        END SUBROUTINE set_poloidal_boundaries
+        
+        
+
         SUBROUTINE left_boundary(neq, yl, yldot)
         IMPLICIT NONE
         INTEGER, INTENT(IN) :: neq
@@ -4253,119 +4333,26 @@ cc ######################### End of limiter BCs #######################
 
 c-----------------------------------------------------------------------
 
-      subroutine bouncon(neq, yl, yldot)
+      SUBROUTINE bouncon(neq, yl, yldot)
 
 *   Bouncon provides the evaluation of the equations for the boundaries.
-
-      implicit none
-
-      integer neq
-      real yl(neq), yldot(neq)
-
-      Use(Dim)      # nx,ny,nhsp,nzspt,nzsp,nisp,ngsp,nusp,nxpt
-      Use(Share)    # nxpt,nxc,geometry,cutlo,islimon,ix_lim,iy_lims
-                    # isudsym
-      Use(Xpoint_indices) # ixlb,ixpt1,ixpt2,ixrb,iysptrx1,iysptrx2
-      Use(Math_problem_size)   # neqmx 
-      Use(Phyvar)
-      Use(UEpar)    # isnewpot,r0slab,cslim,dcslim,csfaclb,csfacrb,csfacti,
-                    # isnion,isupon,isteon,istion,isngon,isnionxy,isuponxy,
-                    # isteonxy,istionxy,isngonxy,isphionxy, ismolcrm
-      Use(Aux)      # ixmp
-      Use(Coefeq)   # fac2sp,cf2ef,exjbdry
-      Use(Bcond)    # iflux,ncore,tcoree,tcorei,tbmin,nbmin,ngbmin,
-                    # tepltl,tipltl,tepltr,tipltr,
-                    # istewc,istiwc,istepfc,istipfc,
-                    # tewalli,tiwalli,tewallo,tiwallo,isextrnp,
-                    # isextrnpf,isextrtpf,isextrngc,isextrnw,isextrtw,
-                    # iflcore,pcoree,pcorei,ifluxni,ckinfl,isupss,
-                    # isnwconiix,isnwconoix,nwalli,nwallo,iscpli,iscplo,
-                    # fngysi,fngyso,albedoo,albedoi,matwallo,matwalli,
-                    # sinphi,isfixlb,nib,teb,tib,nibprof,tebprof,tibprof,
-                    # engbsr,epsbs,rlimiter,ngcore,isngcore,isutcore,
-                    # ixfixnc,incixc,isupcore,isfixrb,chemsputi,chemsputo
-                    # islbcn,islbcu,islbce,islbci,islbcg,isexunif
-                    # fchemygwi,fchemylb,fphysylb,fchemygwo,fchemyrb,fphysyrb
-                    # xcnearlb,xcnearrb,openbox,fqpsatlb,fqpsatrb
-                    # cfueb,ikapmod,cfvytanbc
-      Use(Parallv)  # nxg,nyg
-      Use(Selec)    # i1,i2,i3,i4,i5,i6,i7,j1,j2,j3,j4,j5,j6,j7,xlinc
-      Use(Comgeo)   # gx,gy,gyf,sx,sy,xcwi,xcwo,yylb,rrv,sygytotc,isixcore
-      Use(Compla)   # mi, mg
-      Use(Comflo)   # fqx,fqy,fnix,fniy,feex,feey,feix,feiy,fngx,fngy
-                    # fdiaxlb, fdiaxrb
-      Use(Conduc)   # visx
-      Use(Indexes)
-      Use(Ynorm)    # temp0,nnorm,ennorm
-      Use(Poten)    # newbcl,newbcr,bcee,bcei,rsigpl,bcel,bcer,bcil,bcir,
-                    # kappal,kappar,bctype,phi0l,phi0r,isfdiax
-      Use(Rccoef)   # recylb,recyrb,alblb,albrb,recycw,sputtr,
-                    # recycm,recyce,recycmlb,recycmrb,recyllim,recyrlim
-      Use(Bfield)   # rbfbt,btot
-      Use(Imprad)   # isimpon
-      Use(Impurity_source_flux)   # fnzysi,fnzyso
-      Use(Gradients)  # ey
-      Use(RZ_grid_info)      # rm
-      Use(Indices_domain_dcl)   #ixmxbcl,ixmnbcl,iymxbcl,iymnbcl,ispwrbcl
-      Use(Interp)
-      Use(Jacaux)   # yldot_diag
-      Use(Npes_mpi) # npes
-      Use(Indices_domain_dcg) # ndomain,ispwrbc
-c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
-
-      Use(MCN_dim)
-      Use(MCN_sources) # edisspl, edisspr, cmntgpl, cmntgpl
-      Use(Utilities)
+      IMPLICIT NONE
+      INTEGER, INTENT(IN) ::  neq
+      REAL, INTENT(OUT) :: yl(neq), yldot(neq)
+      Use(Indices_Domain_DCL)
+      Use(Share)
       Use(Radial_Boundaries)
       Use(Poloidal_Boundaries)
 
-c...  local scalars
-      real totfeix, totfeex, kfeix, cosphi,
-     .     ueb, nbound, tbound, ut0, sumb, feeytotc, feiytotc,
-     .     r_major, fniytotc, fng_chem, vbound, eng_sput, flx_incid,
-     .     yld_chm, t0p, zflux_chm, fqytotc, flux_inc,
-     .     totfnex, totfnix, fqpsate, qpfac, aq, arglgphi, faceel,
-     .     faceel2, csfac, lambdae, uztotc, uztotc1, uztotc2,
-     .     fngytotc, fmiytotc, sytotc, f_cgpld, sfeeytotc, sfeiytotc,
-     .     vxa, ta0, flxa
-      integer ii,isphion2, nzsp_rt, jz
-      real hflux, zflux
-      integer ifld, ihyd, iimp, ix_fl_bc, ixc1, igsp2
-      real dif_imp_flux, fng_alb, fngyw, nharmave
-      real upbdry, upbdry1, upbdry2, uugoal, fniy_recy, lengg, xtotc
-      integer ixt, ixt1, ixt2, ixt3, jx, ixc, ierr
-      integer ixtl, ixtl1, ixtr,ixtr1
-      #Former Aux module variables
-      integer ix,iy,igsp,iv,iv1,iv2,iv3,iv4,ix1,ix2,ix3,ix4
-      real osmw
-      real t0
-
-*  -- external procedures --
-      real yld96, kappa
-
-*****************************************************************
-*  --  Here we write the equations for the boundaries.
-*****************************************************************
-c...  now we reset the boundary conditions around the edge
-
-c...  Initialization for constant
-
-
         if (iymnbcl .ne. 0) call south_boundary(neq, yl, yldot)
         if (iymxbcl .ne. 0) call north_boundary(neq, yl, yldot)
-        if (ixmnbcl .ne. 0) call left_boundary(neq, yl, yldot) 
-        if (ixmxbcl .ne. 0) call right_boundary(neq, yl, yldot)
-        if(
-     .      ( (isudsym==1) .or. (geometry .eq. "dnXtarget"))
-     .      .and.
-     .      (isfixlb(1).eq.0)
-     .  )                   call dnull_boundary(neq, yl, yldot)
+        call set_poloidal_boundaries(neq, yl, yldot)
         if (islimon .ne. 0) call limiter_boundary(neq, yl, yldot)
 
 
-      return
-      end
-c***** end of subroutine bouncon *****
+      RETURN
+      END SUBROUTINE bouncon
+
 c-----------------------------------------------------------------------
       subroutine idalg
 

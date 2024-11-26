@@ -61,22 +61,21 @@ c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
 
 c...  local scalars
           real totfeix, totfeex, kfeix, cosphi,
-     .     ueb, nbound, tbound, ut0, sumb, feeytotc, feiytotc,
-     .     r_major, fniytotc, fng_chem, vbound, eng_sput, flx_incid,
+     .     ueb, nbound, tbound, ut0, sumb,
+     .     fng_chem, vbound, eng_sput, flx_incid,
      .     yld_chm, t0p, zflux_chm, fqytotc, flux_inc,
-     .     totfnex, totfnix, fqpsate, qpfac, aq, arglgphi, faceel,
-     .     faceel2, csfac, lambdae, uztotc, uztotc1, uztotc2,
-     .     fngytotc, fmiytotc, sytotc, f_cgpld, sfeeytotc, sfeiytotc,
+     .     totfnex, totfnix, fqpsate, qpfac, arglgphi, faceel,
+     .     faceel2, csfac, lambdae, 
+     .     f_cgpld, 
      .     vxa, ta0, flxa
           integer ii,isphion2, nzsp_rt, jz
           real hflux, zflux
           integer ifld, ihyd, iimp, ix_fl_bc, ixc1, igsp2
-          real dif_imp_flux, fng_alb, fngyw, nharmave
-          real upbdry, upbdry1, upbdry2, uugoal, fniy_recy, lengg, xtotc
+          real fng_alb
           integer ixt, ixt1, ixt2, ixt3, jx, ixc, ierr
           integer ixtl, ixtl1, ixtr,ixtr1
           #Former Aux module variables
-          integer ix,iy,igsp,iv,iv1,iv2,iv3,iv4,ix1,ix2,ix3,ix4
+          integer ix,iy,igsp,iv,iv1,iv2,iv3,iv4,ix1,ix2,ix3,ix4,ixd
           real osmw
           real t0
 
@@ -149,60 +148,60 @@ c...  now do the gas and temperatures
             endif
          endif
          do igsp = 1, ngsp
-            if(isngonxy(0,iy,igsp) .eq. 1) then
-               iv = idxg(0,iy,igsp)
+            if(isngonxy(ix,iy,igsp) .eq. 1) then
+               iv = idxg(ix,iy,igsp)
                yldot(iv) = nurlxg * (ngbackg(igsp) - 
-     .                                         ng(0,iy,igsp))/n0g(igsp)
+     .                                         ng(ix,iy,igsp))/n0g(igsp)
                if(isfixlb(1).eq.2) yldot(iv) = nurlxg * 
-     .                        (ng(1,iy,igsp) - ng(0,iy,igsp))/n0g(igsp)
+     .                        (ng(ixd,iy,igsp) - ng(ix,iy,igsp))/n0g(igsp)
                if(isfixlb(1).eq.2 .and. yylb(iy,1).gt.rlimiter) then
-                  flux_inc = fac2sp*fnix(0,iy,1)
+                  flux_inc = fac2sp*fnix(ix,iy,1)
                   if (ishymol.eq.1 .and. igsp.eq.2) then
-                    ta0 = engbsr * max(tg(1,iy,1),temin*ev)
+                    ta0 = engbsr * max(tg(ixd,iy,1),temin*ev)
                     vxa = 0.25 * sqrt( 8*ta0/(pi*mg(1)) )
-                    flxa = ismolcrm*(1-alblb(iy,1,1))*ng(1,iy,1)*vxa*sx(0,iy)
+                    flxa = ismolcrm*(1-alblb(iy,1,1))*ng(ixd,iy,1)*vxa*sx(ix,iy)
 
                     if (isupgon(1) .eq. 1) then  # two atoms per molecule
-                      flux_inc = 0.5*( fnix(0,iy,1) + fnix(0,iy,2) + flxa)
+                      flux_inc = 0.5*( fnix(ix,iy,1) + fnix(ix,iy,2) + flxa)
                     else
-                      flux_inc = 0.5*( fnix(0,iy,1) + fngx(0,iy,1) + flxa) 
+                      flux_inc = 0.5*( fnix(ix,iy,1) + fngx(ix,iy,1) + flxa) 
                     endif
                   endif
                   osmw = onesided_maxwellian(
-     .                  tg(1,iy,igsp), ng(1,iy,igsp), mg(1), 
-     .                  isoldalbarea*sx(0,iy) + (1-isoldalbarea)*sxnp(0,iy),
+     .                  tg(ixd,iy,igsp), ng(ixd,iy,igsp), mg(1), 
+     .                  isoldalbarea*sx(ix,iy) + (1-isoldalbarea)*sxnp(ix,iy),
      .                  temin*ev
      .            )
-                  yldot(iv) = -nurlxg * ( fngx(0,iy,igsp)
+                  yldot(iv) = -nurlxg * ( fngx(ix,iy,igsp)
      .                      - fngxlb_use(iy,igsp,1)
      .                      + fngxslb(iy,igsp,1) 
      .                      + recylb(iy,igsp,1)*flux_inc
      .                      + (1-alblb(iy,igsp,1))*osmw
-     .                  ) / (vpnorm*n0g(igsp)*sx(0,iy))
+     .                  ) / (vpnorm*n0g(igsp)*sx(ix,iy))
                endif
-               if (is1D_gbx.eq.1) yldot(iv) = nurlxg*(ng(1,iy,igsp) -
-     .                                    ng(0,iy,igsp))/n0g(igsp)
+               if (is1D_gbx.eq.1) yldot(iv) = nurlxg*(ng(ixd,iy,igsp) -
+     .                                    ng(ix,iy,igsp))/n0g(igsp)
             endif
          enddo
 c ... Neutral temperature - test if tg eqn is on, then set BC
         do igsp = 1, ngsp
-           if (istgonxy(0,iy,igsp) == 1) then
-             iv = idxtg(0,iy,igsp)
+           if (istgonxy(ix,iy,igsp) == 1) then
+             iv = idxtg(ix,iy,igsp)
              yldot(iv) = nurlxg*(tgwall(igsp)*ev -
-     .                                    tg(0,iy,igsp))/(temp0*ev)
+     .                                    tg(ix,iy,igsp))/(temp0*ev)
              if(isfixlb(1)==2) then #just above applies if isfixlb=1
-               yldot(iv)=nurlxg*(tg(1,iy,igsp)-tg(0,iy,igsp))/(temp0*ev)
+               yldot(iv)=nurlxg*(tg(ixd,iy,igsp)-tg(ix,iy,igsp))/(temp0*ev)
              endif
              if(isfixlb(1)==2 .and. yylb(iy,1) > rlimiter) then
                yldot(iv) = nurlxg*(tgwall(igsp)*ev -
-     .                                    tg(0,iy,igsp))/(temp0*ev)
+     .                                    tg(ix,iy,igsp))/(temp0*ev)
              endif
            endif
          enddo
 
-         if (isphionxy(0,iy) .eq. 1) then
-            iv = idxphi(0,iy)
-            yldot(iv) = nurlxp*(phi(1,iy) - phi(0,iy))/temp0
+         if (isphionxy(ix,iy) .eq. 1) then
+            iv = idxphi(ix,iy)
+            yldot(iv) = nurlxp*(phi(ixd,iy) - phi(ix,iy))/temp0
          endif
 
       enddo
@@ -240,7 +239,7 @@ c     First, the density equations --
             ixt  = ixlb(jx)        # analog of ix=0
             ixt1 = ixp1(ixt,iy)    # analog of ix=1
             ixt2 = ixp1(ixt1,iy)   # analog of ix=2
-
+            ixt3 = ixp1(ixt1,iy)   # analog of ix=2
 
             if(isnionxy(ixt,iy,ifld)==1) then
               iv1 = idxn(ixt,iy,ifld)

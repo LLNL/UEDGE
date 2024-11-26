@@ -61,18 +61,17 @@ c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
 
 c...  local scalars
           real totfeix, totfeex, kfeix, cosphi,
-     .     ueb, nbound, tbound, ut0, sumb, feeytotc, feiytotc,
-     .     r_major, fniytotc, fng_chem, vbound, eng_sput, flx_incid,
+     .     ueb, nbound, tbound, ut0, sumb, 
+     .     fng_chem, vbound, eng_sput, flx_incid,
      .     yld_chm, t0p, zflux_chm, fqytotc, flux_inc,
-     .     totfnex, totfnix, fqpsate, qpfac, aq, arglgphi, faceel,
-     .     faceel2, csfac, lambdae, uztotc, uztotc1, uztotc2,
-     .     fngytotc, fmiytotc, sytotc, f_cgpld, sfeeytotc, sfeiytotc,
-     .     vxa, ta0, flxa
+     .     totfnex, totfnix, fqpsate, qpfac, arglgphi, faceel,
+     .     faceel2, csfac, lambdae,
+     .     f_cgpld, 
+     .     flxa
           integer ii,isphion2, nzsp_rt, jz
           real hflux, zflux
           integer ifld, ihyd, iimp, ix_fl_bc, ixc1, igsp2
-          real dif_imp_flux, fng_alb, fngyw, nharmave
-          real upbdry, upbdry1, upbdry2, uugoal, fniy_recy, lengg, xtotc
+          real fng_alb
           integer ixt, ixt1, ixt2, ixt3, jx, ixc, ierr
           integer ixtl, ixtl1, ixtr,ixtr1
           #Former Aux module variables
