@@ -88,34 +88,35 @@ c ====================================================================
 c ======================== The ix = 0 boundary =======================
 c ====================================================================
 
-
+            ix = 0
+            ixd = 1
 c********************************************************************
 c...  First check if ix=0 has fixed boundary values, no potential
 c...  isfixlb=1 sets all profiles; isfixlb=2 sets reflection boundary 
 c...  conditions
 c********************************************************************
       if (i3 .le. 0 .and. isfixlb(1) .ne. 0) then
-      do 176 iy = j2, j5
-         do 174 ifld = 1 , nisp
-            if(isnionxy(0,iy,ifld) .eq. 1) then
-               iv1 = idxn(0,iy,ifld)
+      do iy = j2, j5
+         do ifld = 1 , nisp
+            if(isnionxy(ix,iy,ifld) .eq. 1) then
+               iv1 = idxn(ix,iy,ifld)
                yldot(iv1) = nurlxn *
-     .                (nib(ifld)*nibprof(iy)-ni(0,iy,ifld))/n0(ifld)
+     .                (nib(ifld)*nibprof(iy)-ni(ix,iy,ifld))/n0(ifld)
                if(isfixlb(1).eq.2) yldot(iv1) = nurlxn * (1/n0(ifld)) *
-     .                               (ni(1,iy,ifld) - ni(0,iy,ifld))
+     .                               (ni(1,iy,ifld) - ni(ix,iy,ifld))
             endif
- 174     continue
+         enddo
          do ifld = 1, nusp
-            if(isuponxy(0,iy,ifld) .eq. 1) then
-               iv2 = idxu(0,iy,ifld)
+            if(isuponxy(ix,iy,ifld) .eq. 1) then
+               iv2 = idxu(ix,iy,ifld)
                yldot(iv2) = nurlxu *
-     .           (upb(ifld)*upbprof(iy) - up(0,iy,ifld))/vpnorm
+     .           (upb(ifld)*upbprof(iy) - up(ix,iy,ifld))/vpnorm
                if(isfixlb(1).eq.2) yldot(iv2) = nurlxu *
-     .                           (0. - up(0,iy,ifld))/vpnorm
+     .                           (0. - up(ix,iy,ifld))/vpnorm
                if(isfixlb(1).eq.2 .and. yylb(iy,1).gt.rlimiter) then
-                  cs = sqrt( (te(0,iy)+ti(0,iy))/mi(ifld) )
+                  cs = sqrt( (te(ix,iy)+ti(ix,iy))/mi(ifld) )
                   yldot(iv2) = nurlxu*
-     .                          (-cs -up(0,iy,ifld))/vpnorm
+     .                          (-cs -up(ix,iy,ifld))/vpnorm
 
                endif
             endif
@@ -123,28 +124,28 @@ c********************************************************************
 
 
 c...  now do the gas and temperatures
-         if(isteonxy(0,iy) .eq. 1) then
-           iv1 = idxte(0,iy)
-           yldot(iv1) = nurlxe * ne(0,iy) *
-     .                     (teb*ev*tebprof(iy) - te(0,iy))/ennorm
-           if(isfixlb(1).eq.2) yldot(iv1) = nurlxe * ne(0,iy) *
-     .                               (te(1,iy) - te(0,iy))/ennorm
+         if(isteonxy(ix,iy) .eq. 1) then
+           iv1 = idxte(ix,iy)
+           yldot(iv1) = nurlxe * ne(ix,iy) *
+     .                     (teb*ev*tebprof(iy) - te(ix,iy))/ennorm
+           if(isfixlb(1).eq.2) yldot(iv1) = nurlxe * ne(ix,iy) *
+     .                               (te(ixd,iy) - te(ix,iy))/ennorm
            if(isfixlb(1).eq.2 .and. yylb(iy,1).gt.rlimiter) then
-              yldot(iv1) = - nurlxe*(feex(0,iy)/sx(0,iy) - bcee*
-     .                               ne(0,iy)*vex(0,iy)*te(0,iy))/
+              yldot(iv1) = - nurlxe*(feex(ix,iy)/sx(ix,iy) - bcee*
+     .                               ne(ix,iy)*vex(ix,iy)*te(ix,iy))/
      .                                 (vpnorm*ennorm)
            endif
          endif
-         if(istionxy(0,iy) .eq. 1) then
-           iv2 = idxti(0,iy)
-            yldot(iv2) = nurlxi * ne(0,iy) *
-     .                     (tib*ev*tibprof(iy) - ti(0,iy))/ennorm
-            if(isfixlb(1).eq.2) yldot(iv2) = nurlxi * ne(0,iy) *
-     .                               (ti(1,iy) - ti(0,iy))/ennorm
+         if(istionxy(ix,iy) .eq. 1) then
+           iv2 = idxti(ix,iy)
+            yldot(iv2) = nurlxi * ne(ix,iy) *
+     .                     (tib*ev*tibprof(iy) - ti(ix,iy))/ennorm
+            if(isfixlb(1).eq.2) yldot(iv2) = nurlxi * ne(ix,iy) *
+     .                               (ti(ixd,iy) - ti(ix,iy))/ennorm
             if(isfixlb(1).eq.2 .and. yylb(iy,1).gt.rlimiter) then
                yldot(iv2) = -nurlxi*
-     .          ( feix(0,iy) - bcei*ti(0,iy)*fac2sp*fnix(0,iy,1) ) / 
-     .                                       (vpnorm*ennorm*sx(0,iy))
+     .          ( feix(ix,iy) - bcei*ti(ix,iy)*fac2sp*fnix(ix,iy,1) ) / 
+     .                                       (vpnorm*ennorm*sx(ix,iy))
             endif
          endif
          do igsp = 1, ngsp
@@ -204,7 +205,7 @@ c ... Neutral temperature - test if tg eqn is on, then set BC
             yldot(iv) = nurlxp*(phi(1,iy) - phi(0,iy))/temp0
          endif
 
- 176  continue
+      enddo
 
       endif         # end of ix = 0, isfixlb.ne.0 boundary conditions
 
@@ -212,14 +213,14 @@ c...  If isfixlb=2, check if i2,i5 range for yldot loop in pandf includes ixpt2(
 c...  Then overwrite pandf value is up(ixpt2(1)) --> 0 eqn.
       if (isfixlb(1) .eq. 2) then
          if (i2.le.ixpt2(1) .and. i5.ge.ixpt2(1) .and. j2.le.iysptrx2(1)) then  
-            do 179 ifld = 1, nusp
-               do 178 iy = 0+1-iymnbcl, iysptrx2(1)
+            do ifld = 1, nusp
+               do iy = 0+1-iymnbcl, iysptrx2(1)
                  if(isuponxy(ixpt2(1),iy,ifld)==1) then
                      iv = idxu(ixpt2(1),iy,ifld)
                      yldot(iv) = nurlxu*(0.-up(ixpt2(1),iy,ifld))/vpnorm
                  endif
- 178           continue
- 179        continue
+               enddo
+            enddo
          endif 
       endif            # end of isfixlb=2, check for ix=ixpt2
 c***********************************************************************

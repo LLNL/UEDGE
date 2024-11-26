@@ -76,13 +76,14 @@ c...  local scalars
           integer ixt, ixt1, ixt2, ixt3, jx, ixc, ierr
           integer ixtl, ixtl1, ixtr,ixtr1
           #Former Aux module variables
-          integer ix,iy,igsp,iv,iv1,iv2,iv3,iv4,ix1,ix2,ix3,ix4
+          integer ix,iy,igsp,iv,iv1,iv2,iv3,iv4,ix1,ix2,ix3,ix4,ixd
           real osmw
           real t0
 
           real yld96, kappa
 
-
+            ix = ny + 1
+            ixd = ny
 
 
 
@@ -98,86 +99,86 @@ c*******************************************************************
        do iy = j2, j5
 c...  First do the ion density
          do ifld = 1, nisp
-            if(isnionxy(nx+1,iy,ifld) .eq. 1) then
-               iv1 = idxn(nx+1,iy,ifld)
+            if(isnionxy(ix,iy,ifld) .eq. 1) then
+               iv1 = idxn(ix,iy,ifld)
                yldot(iv1) = nurlxn *
-     .              (nib(ifld)*nibprof(iy)-ni(nx+1,iy,ifld))/n0(ifld)
+     .              (nib(ifld)*nibprof(iy)-ni(ix,iy,ifld))/n0(ifld)
                if(isfixrb(1).eq.2) yldot(iv1) = nurlxn * (1/n0(ifld)) *
-     .              (ni(nx,iy,ifld) - ni(nx+1,iy,ifld))
+     .              (ni(ixd,iy,ifld) - ni(ix,iy,ifld))
             endif
          enddo
 
 c...  Now do the parallel velocity
          do ifld = 1, nusp
-            if(isuponxy(nx+1,iy,ifld) .eq. 1) then
-               iv2 = idxu(nx+1,iy,ifld)
-               yldot(iv2) = nurlxu*(up(nx,iy,ifld) - up(nx+1,iy,ifld))/
+            if(isuponxy(ix,iy,ifld) .eq. 1) then
+               iv2 = idxu(ix,iy,ifld)
+               yldot(iv2) = nurlxu*(up(ixd,iy,ifld) - up(ix,iy,ifld))/
      .                                                         vpnorm
                if(isfixrb(1).eq.2) yldot(iv2) = nurlxu*
-     .                            (0. - up(nx+1,iy,ifld))/vpnorm
+     .                            (0. - up(ix,iy,ifld))/vpnorm
                if(isfixrb(1).eq.2 .and. yyrb(iy,1).gt.rlimiter) then
-                  cs = sqrt( (te(nx+1,iy)+ti(nx+1,iy))/mi(ifld) )
-                  yldot(iv2) = nurlxu*(cs -up(nx+1,iy,ifld))/vpnorm
+                  cs = sqrt( (te(ix,iy)+ti(ix,iy))/mi(ifld) )
+                  yldot(iv2) = nurlxu*(cs -up(ix,iy,ifld))/vpnorm
                endif
             endif
          enddo
 
 c...  now do the gas and temperatures
-         if(isteonxy(nx+1,iy) .eq. 1) then
-           iv1 = idxte(nx+1,iy)
-           yldot(iv1) = nurlxe * ne(nx+1,iy) *
-     .                     (teb*ev*tebprof(iy) - te(nx+1,iy))/ennorm
-           if(isfixrb(1).eq.2) yldot(iv1) = nurlxe * ne(nx+1,iy) *
-     .                               (te(nx,iy) - te(nx+1,iy))/ennorm
+         if(isteonxy(ix,iy) .eq. 1) then
+           iv1 = idxte(ix,iy)
+           yldot(iv1) = nurlxe * ne(ix,iy) *
+     .                     (teb*ev*tebprof(iy) - te(ix,iy))/ennorm
+           if(isfixrb(1).eq.2) yldot(iv1) = nurlxe * ne(ix,iy) *
+     .                               (te(ixd,iy) - te(ix,iy))/ennorm
            if(isfixrb(1).eq.2 .and. yyrb(iy,1).gt.rlimiter) then
-              yldot(iv1) = - nurlxe*(feex(nx,iy)/sx(nx,iy) - bcee*
-     .                           ne(nx+1,iy)*vex(nx,iy)*te(nx+1,iy))/
+              yldot(iv1) = - nurlxe*(feex(ixd,iy)/sx(ixd,iy) - bcee*
+     .                           ne(ix,iy)*vex(ixd,iy)*te(ix,iy))/
      .                                 (vpnorm*ennorm)
            endif
          endif
-         if(istionxy(nx+1,iy) .eq. 1) then
-            iv2 = idxti(nx+1,iy)
-            yldot(iv2) = nurlxi * ne(nx+1,iy) *
-     .                     (tib*ev*tibprof(iy) - ti(nx+1,iy))/ennorm
-            if(isfixrb(1).eq.2) yldot(iv2) = nurlxi * ne(nx+1,iy) *
-     .                               (ti(nx,iy) - ti(nx+1,iy))/ennorm
+         if(istionxy(ix,iy) .eq. 1) then
+            iv2 = idxti(ix,iy)
+            yldot(iv2) = nurlxi * ne(ix,iy) *
+     .                     (tib*ev*tibprof(iy) - ti(ix,iy))/ennorm
+            if(isfixrb(1).eq.2) yldot(iv2) = nurlxi * ne(ix,iy) *
+     .                               (ti(ixd,iy) - ti(ix,iy))/ennorm
             if(isfixrb(1).eq.2 .and. yyrb(iy,1).gt.rlimiter) then
                yldot(iv2) = -nurlxi*
-     .          ( feix(nx,iy) - bcei*ti(nx+1,iy)*fac2sp*fnix(nx,iy,1) ) /
-     .                                         (vpnorm*ennorm*sx(nx,iy))
+     .          ( feix(ixd,iy) - bcei*ti(ix,iy)*fac2sp*fnix(ixd,iy,1) ) /
+     .                                         (vpnorm*ennorm*sx(ixd,iy))
             endif
          endif
          do igsp = 1, nhgsp # not valid for ngsp > nhgsp; only on hydrog. gas
-            if (isngonxy(nx+1,iy,igsp) .eq. 1) then
-               iv = idxg(nx+1,iy,igsp)
+            if (isngonxy(ix,iy,igsp) .eq. 1) then
+               iv = idxg(ix,iy,igsp)
                yldot(iv) = nurlxg * (ngbackg(igsp) - 
-     .                                     ng(nx+1,iy,igsp)) / n0g(igsp)
+     .                                     ng(ix,iy,igsp)) / n0g(igsp)
                if(isfixrb(1).eq.2) yldot(iv) = nurlxg * 
-     .                     (ng(nx,iy,igsp) - ng(nx+1,iy,igsp))/n0g(igsp)
+     .                     (ng(ixd,iy,igsp) - ng(ix,iy,igsp))/n0g(igsp)
                if(isfixrb(1).eq.2 .and. yyrb(iy,1).gt.rlimiter) then
-                  flux_inc = fac2sp*fnix(nx,iy,1)
+                  flux_inc = fac2sp*fnix(ixd,iy,1)
                   if (ishymol.eq.1 .and. igsp.eq.2) then
                     flxa= ismolcrm*(1-albrb(iy,1,nxpt))* onesided_maxwellian(
-     .                  engbsr*tg(nx,iy,1), ng(nx,iy,1), mg(1), 
-     .                  sx(nx, iy), engbsr*tgmin*ev
+     .                  engbsr*tg(ixd,iy,1), ng(ixd,iy,1), mg(1), 
+     .                  sx(ixd, iy), engbsr*tgmin*ev
      .              )
                     if (isupgon(1) .eq. 1) then  # two atoms for one molecule
-                      flux_inc = 0.5*( fnix(nx,iy,1) + fnix(nx,iy,2) -flxa) 
+                      flux_inc = 0.5*( fnix(ixd,iy,1) + fnix(ixd,iy,2) -flxa) 
                     else
-                      flux_inc = 0.5*( fnix(nx,iy,1) + fngx(nx,iy,1) -flxa) 
+                      flux_inc = 0.5*( fnix(ixd,iy,1) + fngx(ixd,iy,1) -flxa) 
                     endif
                   endif
                   osmw = onesided_maxwellian(
-     .                  engbsr*tg(nx,iy,1), ng(nx,iy,igsp), mg(igsp),
-     .                  isoldalbarea*sx(nx,iy) + (1-isoldalbarea)*sxnp(nx,iy),
+     .                  engbsr*tg(ixd,iy,1), ng(ixd,iy,igsp), mg(igsp),
+     .                  isoldalbarea*sx(ixd,iy) + (1-isoldalbarea)*sxnp(ixd,iy),
      .                  engbsr*tgmin*ev
      .            )      
-                  yldot(iv) = -nurlxg * ( fngx(nx,iy,igsp)
+                  yldot(iv) = -nurlxg * ( fngx(ixd,iy,igsp)
      .                      + fngxrb_use(iy,igsp,1)
      .                      - fngxsrb(iy,igsp,1) 
      .                      + recyrb(iy,igsp,1)*flux_inc
      .                      - (1-albrb(iy,igsp,nxpt))*osmw
-     .                  ) / (vpnorm*n0g(igsp)*sx(nx,iy))
+     .                  ) / (vpnorm*n0g(igsp)*sx(ixd,iy))
                endif
             endif
          enddo      # end of igsp loop over gas
@@ -185,24 +186,24 @@ c...  now do the gas and temperatures
 
 c ... Neutral temperature - test if tg eqn is on, then set BC
 	 do igsp = 1, ngsp
-           if (istgonxy(nx+1,iy,igsp) == 1) then
-             iv = idxtg(nx+1,iy,igsp)
+           if (istgonxy(ix,iy,igsp) == 1) then
+             iv = idxtg(ix,iy,igsp)
              yldot(iv) = nurlxg*(tgwall(igsp)*ev -
-     .                                    tg(nx+1,iy,igsp))/(temp0*ev)
+     .                                    tg(ix,iy,igsp))/(temp0*ev)
              if(isfixrb(1)==2) then #just above applies if isfixrb=1
-               yldot(iv)=nurlxg*(tg(nx,iy,igsp)-tg(nx+1,iy,igsp))/
+               yldot(iv)=nurlxg*(tg(ixd,iy,igsp)-tg(ix,iy,igsp))/
      .                                                      (temp0*ev)
              endif
              if(isfixrb(1)==2 .and. yyrb(iy,1) > rlimiter) then
                yldot(iv) = nurlxg*(tgwall(igsp)*ev -
-     .                                    tg(nx+1,iy,igsp))/(temp0*ev)
+     .                                    tg(ix,iy,igsp))/(temp0*ev)
              endif
            endif
          enddo
 
-         if (isphionxy(nx+1,iy) .eq. 1) then
-            iv = idxphi(nx+1,iy)
-            yldot(iv) = nurlxp*(phi(nx,iy) - phi(nx+1,iy))/temp0
+         if (isphionxy(ix,iy) .eq. 1) then
+            iv = idxphi(ix,iy)
+            yldot(iv) = nurlxp*(phi(ixd,iy) - phi(ix,iy))/temp0
          endif
 
        enddo         # end of main loop starting with iy = j2, j5
