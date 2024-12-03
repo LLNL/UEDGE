@@ -2,102 +2,56 @@ c!include "../mppl.h"
 c!include "../sptodp.h"
 c-----------------------------------------------------------------------
 
-      MODULE atom_recyc
+      SUBROUTINE set_radial_boundaries(neq, yl, yldot)
       IMPLICIT NONE
-      CONTAINS
-        SUBROUTINE outflux_atom(
-     .      iflx_i, iflx_a, thflx_a, frecyc, alba, 
-     .      oflx_a
-     .  )
-        IMPLICIT NONE
-            REAL, INTENT(IN) :: iflx_i, iflx_a, thflx_a, frecyc, alba
-            REAL, INTENT(OUT) :: oflx_a
-            oflx_a = frecyc*iflx_i - (1-alba)*thflx_a
-
-
-        END SUBROUTINE outflux_atom
-
-      END MODULE atom_recyc
-
-      MODULE mol_recyc
-      IMPLICIT NONE
-      CONTAINS
-        SUBROUTINE outflux_mol(
-     .          iflx_i, iflx_a, thflx_a, thflx_m, frecyc, alba, albm, 
-     .          fmolflx, fmolth,
-     .
-     .          oflx_a, oflx_m
-     .  )
-c ...   Calculates the outgoing atomic and molecular fluxes based on
-c ...   the incident fluxes, recycling fraction, pump rate, and 
-c ...   atom/molecular recycling fractions. All fluxes given as magnitudes
-        IMPLICIT NONE
-            REAL, INTENT(IN) :: iflx_i, iflx_a, thflx_a, thflx_m,
-     .                          frecyc, alba, albm, fmolflx, fmolth
-            REAL, INTENT(OUT) :: oflx_a, oflx_m
-            REAL flx_refl, flxth_refla, flxth_reflm
-c ...       Calculate the total reflected nuclear flux based on the
-c ...       incident flux and specified recycling fraction
-            flx_refl = (iflx_i + iflx_a) * frecyc
-c ...       Calculate the returned atomic and molecular fluxes based
-c ...       on the specified albedos (account for 2 nuclei per atom)
-            flxth_refla = (1-fmolth) * alba * thflx_a 
-            flxth_reflm = 0.5*(fmolth * thflx_a) + albm * thflx_m
-c ...       Distribute the reflected fluxes between the outgoing atomic
-c ...       and molecular fluxes
-            oflx_a = (1-fmolflx)*flx_refl - (1-alba)*flxth_refla
-            oflx_m = 0.5 * fmolflx*flx_refl - (1-albm)*flxth_reflm
-
-        RETURN
-        END SUBROUTINE outflux_mol
-      END MODULE  mol_recyc
-
-      MODULE utilities
-      IMPLICIT NONE
-      CONTAINS
-        FUNCTION onesided_maxwellian(
-     .      T, n, m, A, T_min
-     .  ) RESULT(flux)
-c ...   Calculates the one-sided maxwellian current onto a surface
-c ...   for a gas of given density and temperature
-c ...   INPUTS:
-c ...       T - gas temperature [J]
-c ...       n - gas density [m**-3]
-c ...       m - gas species mass [kg]
-c ...       A - area of gas impingement [m**2]
-c ...       T_min - minimum gas temperature to be considered [J]
-c ...   OUTPUT:
-c ...       flux - thermal one-sided Maxwellian particle current
-c ...           to the surface [part/s]
-        REAL, INTENT(IN) :: T, n, m, A, T_min
-        REAL :: flux
-        REAL, PARAMETER :: pi = 3.14159265358979323
-
-        flux = 0.25*SQRT( (8*MAX(T, T_min)) / (pi*m) )*n*A
-
-        END FUNCTION onesided_maxwellian
-
-        FUNCTION harmave(x1, x2) RESULT(res)
-c ...   Returns the harmonic average of x1 and x1
-        REAL, INTENT(IN) :: x1, x2
-        REAL :: res
-
-        res = 2 * (x1*x2) / (x1 + x2 + 1.e-300)
-        
-        END FUNCTION harmave
-
-      END MODULE utilities  
-
-
-
-      MODULE radial_boundaries
-      IMPLICIT NONE
-      CONTAINS
-
-        SUBROUTINE south_boundary(neq, yl, yldot)
-        IMPLICIT NONE
         INTEGER, INTENT(IN) :: neq
         REAL, INTENT(OUT) :: yl(neq), yldot(neq)        
+          Use(Indices_domain_dcg)
+          Use(Indices_domain_dcl)
+          Use(Bcond)
+          Use(Share)
+
+        IF (ixmnbcl .ne. 0)
+     .     call south_boundary(neq, yl, yldot) 
+
+        IF (ixmxbcl .ne. 0)
+     .      call north_boundary(neq, yl, yldot)
+    
+      RETURN
+      END SUBROUTINE set_radial_boundaries
+        
+
+
+      SUBROUTINE set_poloidal_boundaries(neq, yl, yldot)
+      IMPLICIT NONE
+        INTEGER, INTENT(IN) :: neq
+        REAL, INTENT(OUT) :: yl(neq), yldot(neq)        
+          Use(Indices_domain_dcg)
+          Use(Indices_domain_dcl)
+          Use(Bcond)
+          Use(Share)
+
+        IF (ixmnbcl .ne. 0)
+     .      call left_boundary(neq, yl, yldot) 
+
+        IF (ixmxbcl .ne. 0)
+     .      call right_boundary(neq, yl, yldot)
+    
+        IF (
+     .      ( (isudsym==1) .or. (geometry .eq. "dnXtarget"))
+     .      .and.
+     .      (isfixlb(1).eq.0)
+     .  )   
+     .      call dnull_boundary(neq, yl, yldot)
+
+      RETURN
+      END SUBROUTINE set_poloidal_boundaries
+        
+
+      SUBROUTINE south_boundary(neq, yl, yldot)
+      IMPLICIT NONE
+      INTEGER, INTENT(IN) :: neq
+      REAL, INTENT(OUT) :: yl(neq), yldot(neq)        
 
           Use(Dim)      # nx,ny,nhsp,nzspt,nzsp,nisp,ngsp,nusp,nxpt
           Use(Share)    # nxpt,nxc,geometry,cutlo,islimon,ix_lim,iy_lims
@@ -152,7 +106,6 @@ c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
 
           Use(MCN_dim)
           Use(MCN_sources) # edisspl, edisspr, cmntgpl, cmntgpl
-          Use(Utilities)
 
 
 c...  local scalars
@@ -176,6 +129,7 @@ c...  local scalars
           real osmw
           real t0
 
+          real harmave, onesided_maxwellian
           real yld96
 
 c ====================================================================
@@ -1216,8 +1170,8 @@ c  ###################################################################
 
         SUBROUTINE north_boundary(neq, yl, yldot)
         IMPLICIT NONE
-        INTEGER, INTENT(IN) :: neq
-        REAL, INTENT(OUT) :: yl(neq), yldot(neq)        
+          INTEGER, INTENT(IN) :: neq
+          REAL, INTENT(OUT) :: yl(neq), yldot(neq)        
 
           Use(Dim)      # nx,ny,nhsp,nzspt,nzsp,nisp,ngsp,nusp,nxpt
           Use(Share)    # nxpt,nxc,geometry,cutlo,islimon,ix_lim,iy_lims
@@ -1272,7 +1226,6 @@ c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
 
           Use(MCN_dim)
           Use(MCN_sources) # edisspl, edisspr, cmntgpl, cmntgpl
-          Use(Utilities)
 
 
 c...  local scalars
@@ -1296,6 +1249,7 @@ c...  local scalars
           real osmw
           real t0
 
+          real harmave, onesided_maxwellian
           real yld96, kappa
 
 
@@ -1860,98 +1814,12 @@ CCC   isnewpot*isphion=1000, so one can generally ignore this if section)
 
         
 
-        RETURN
-        END SUBROUTINE north_boundary
+      RETURN
+      END SUBROUTINE north_boundary
+       
 
-      END MODULE radial_boundaries
-
-
-      MODULE poloidal_boundaries
+      SUBROUTINE left_boundary(neq, yl, yldot)
       IMPLICIT NONE
-      CONTAINS
-
-        SUBROUTINE set_poloidal_boundaries(neq, yl, yldot)
-        IMPLICIT NONE
-        INTEGER, INTENT(IN) :: neq
-        REAL, INTENT(OUT) :: yl(neq), yldot(neq)        
-          Use(Dim)      # nx,ny,nhsp,nzspt,nzsp,nisp,ngsp,nusp,nxpt
-          Use(Share)    # nxpt,nxc,geometry,cutlo,islimon,ix_lim,iy_lims
-                        # isudsym
-          Use(Xpoint_indices) # ixlb,ixpt1,ixpt2,ixrb,iysptrx1,iysptrx2
-          Use(Math_problem_size)   # neqmx 
-          Use(Phyvar)
-          Use(UEpar)    # isnewpot,r0slab,cslim,dcslim,csfaclb,csfacrb,csfacti,
-                        # isnion,isupon,isteon,istion,isngon,isnionxy,isuponxy,
-                        # isteonxy,istionxy,isngonxy,isphionxy, ismolcrm
-          Use(Aux)      # ixmp
-          Use(Coefeq)   # fac2sp,cf2ef,exjbdry
-          Use(Bcond)    # iflux,ncore,tcoree,tcorei,tbmin,nbmin,ngbmin,
-                        # tepltl,tipltl,tepltr,tipltr,
-                        # istewc,istiwc,istepfc,istipfc,
-                        # tewalli,tiwalli,tewallo,tiwallo,isextrnp,
-                        # isextrnpf,isextrtpf,isextrngc,isextrnw,isextrtw,
-                        # iflcore,pcoree,pcorei,ifluxni,ckinfl,isupss,
-                        # isnwconiix,isnwconoix,nwalli,nwallo,iscpli,iscplo,
-                        # fngysi,fngyso,albedoo,albedoi,matwallo,matwalli,
-                        # sinphi,isfixlb,nib,teb,tib,nibprof,tebprof,tibprof,
-                        # engbsr,epsbs,rlimiter,ngcore,isngcore,isutcore,
-                        # ixfixnc,incixc,isupcore,isfixrb,chemsputi,chemsputo
-                        # islbcn,islbcu,islbce,islbci,islbcg,isexunif
-                        # fchemygwi,fchemylb,fphysylb,fchemygwo,fchemyrb,fphysyrb
-                        # xcnearlb,xcnearrb,openbox,fqpsatlb,fqpsatrb
-                        # cfueb,ikapmod,cfvytanbc
-          Use(Parallv)  # nxg,nyg
-          Use(Selec)    # i1,i2,i3,i4,i5,i6,i7,j1,j2,j3,j4,j5,j6,j7,xlinc
-          Use(Comgeo)   # gx,gy,gyf,sx,sy,xcwi,xcwo,yylb,rrv,sygytotc,isixcore
-          Use(Compla)   # mi, mg
-          Use(Comflo)   # fqx,fqy,fnix,fniy,feex,feey,feix,feiy,fngx,fngy
-                        # fdiaxlb, fdiaxrb
-          Use(Conduc)   # visx
-          Use(Indexes)
-          Use(Ynorm)    # temp0,nnorm,ennorm
-          Use(Poten)    # newbcl,newbcr,bcee,bcei,rsigpl,bcel,bcer,bcil,bcir,
-                        # kappal,kappar,bctype,phi0l,phi0r,isfdiax
-          Use(Rccoef)   # recylb,recyrb,alblb,albrb,recycw,sputtr,
-                        # recycm,recyce,recycmlb,recycmrb,recyllim,recyrlim
-          Use(Bfield)   # rbfbt,btot
-          Use(Imprad)   # isimpon
-          Use(Impurity_source_flux)   # fnzysi,fnzyso
-          Use(Gradients)  # ey
-          Use(RZ_grid_info)      # rm
-          Use(Indices_domain_dcl)   #ixmxbcl,ixmnbcl,iymxbcl,iymnbcl,ispwrbcl
-          Use(Interp)
-          Use(Jacaux)   # yldot_diag
-          Use(Npes_mpi) # npes
-          Use(Indices_domain_dcg) # ndomain,ispwrbc
-c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
-
-          Use(MCN_dim)
-          Use(MCN_sources) # edisspl, edisspr, cmntgpl, cmntgpl
-          Use(Utilities)
-
-
-        IF (ixmnbcl .ne. 0) THEN
-            call left_boundary(neq, yl, yldot) 
-        END IF
-
-        IF (ixmxbcl .ne. 0) THEN
-            call right_boundary(neq, yl, yldot)
-        END IF
-    
-        IF (
-     .      ( (isudsym==1) .or. (geometry .eq. "dnXtarget"))
-     .      .and.
-     .      (isfixlb(1).eq.0)
-     .  )   
-     .      call dnull_boundary(neq, yl, yldot)
-
-        RETURN
-        END SUBROUTINE set_poloidal_boundaries
-        
-        
-
-        SUBROUTINE left_boundary(neq, yl, yldot)
-        IMPLICIT NONE
         INTEGER, INTENT(IN) :: neq
         REAL, INTENT(OUT) :: yl(neq), yldot(neq)        
 
@@ -2008,7 +1876,6 @@ c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
 
           Use(MCN_dim)
           Use(MCN_sources) # edisspl, edisspr, cmntgpl, cmntgpl
-          Use(Utilities)
 
 
 c...  local scalars
@@ -2032,6 +1899,7 @@ c...  local scalars
           real osmw
           real t0
 
+          real harmave, onesided_maxwellian
           real yld96, kappa
 
 
@@ -2707,11 +2575,11 @@ c************************************************************************
 c     end standard divertor plate conditions for left boundaries
 c************************************************************************
 
-        RETURN
-        END SUBROUTINE left_boundary
+      RETURN
+      END SUBROUTINE left_boundary
 
-        SUBROUTINE right_boundary(neq, yl, yldot)
-        IMPLICIT NONE
+      SUBROUTINE right_boundary(neq, yl, yldot)
+      IMPLICIT NONE
         INTEGER, INTENT(IN) :: neq
         REAL, INTENT(OUT) :: yl(neq), yldot(neq)        
 
@@ -2768,7 +2636,6 @@ c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
 
           Use(MCN_dim)
           Use(MCN_sources) # edisspl, edisspr, cmntgpl, cmntgpl
-          Use(Utilities)
 
 
 c...  local scalars
@@ -2792,6 +2659,7 @@ c...  local scalars
           real osmw
           real t0
 
+          real harmave, onesided_maxwellian
           real yld96, kappa
 
             ix = ny + 1
@@ -3466,12 +3334,12 @@ c************************************************************************
 c     end standard divertor plate conditions for right boundaries
 c************************************************************************
 
-        RETURN
-        END SUBROUTINE right_boundary
+      RETURN
+      END SUBROUTINE right_boundary
 
 
-        SUBROUTINE dnull_boundary(neq, yl, yldot)
-        IMPLICIT NONE
+      SUBROUTINE dnull_boundary(neq, yl, yldot)
+      IMPLICIT NONE
         INTEGER, INTENT(IN) :: neq
         REAL, INTENT(OUT) :: yl(neq), yldot(neq)        
 
@@ -3528,7 +3396,6 @@ c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
 
           Use(MCN_dim)
           Use(MCN_sources) # edisspl, edisspr, cmntgpl, cmntgpl
-          Use(Utilities)
 
 
 c...  local scalars
@@ -3552,6 +3419,7 @@ c...  local scalars
           real osmw
           real t0
 
+          real harmave, onesided_maxwellian
           real yld96, kappa
 
 
@@ -3683,12 +3551,12 @@ c...  Do boundary condition for impurities along ix=nxc
          
 
 
-        RETURN
-        END SUBROUTINE dnull_boundary
+      RETURN
+      END SUBROUTINE dnull_boundary
 
 
-        SUBROUTINE limiter_boundary(neq, yl, yldot)
-        IMPLICIT NONE
+      SUBROUTINE limiter_boundary(neq, yl, yldot)
+      IMPLICIT NONE
         INTEGER, INTENT(IN) :: neq
         REAL, INTENT(OUT) :: yl(neq), yldot(neq)        
 
@@ -3745,7 +3613,6 @@ c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
 
           Use(MCN_dim)
           Use(MCN_sources) # edisspl, edisspr, cmntgpl, cmntgpl
-          Use(Utilities)
 
 
 c...  local scalars
@@ -3769,6 +3636,7 @@ c...  local scalars
           real osmw
           real t0
 
+          real harmave, onesided_maxwellian
           real yld96, kappa
 
 
@@ -4325,35 +4193,9 @@ cc ######################### End of limiter BCs #######################
 
 
 
-        RETURN 
-        END SUBROUTINE limiter_boundary
+      RETURN 
+      END SUBROUTINE limiter_boundary
 
-      END MODULE poloidal_boundaries
-
-
-c-----------------------------------------------------------------------
-
-      SUBROUTINE bouncon(neq, yl, yldot)
-
-*   Bouncon provides the evaluation of the equations for the boundaries.
-      IMPLICIT NONE
-      INTEGER, INTENT(IN) ::  neq
-      REAL, INTENT(OUT) :: yl(neq), yldot(neq)
-      Use(Indices_Domain_DCL)
-      Use(Share)
-      Use(Radial_Boundaries)
-      Use(Poloidal_Boundaries)
-
-        if (iymnbcl .ne. 0) call south_boundary(neq, yl, yldot)
-        if (iymxbcl .ne. 0) call north_boundary(neq, yl, yldot)
-        call set_poloidal_boundaries(neq, yl, yldot)
-        if (islimon .ne. 0) call limiter_boundary(neq, yl, yldot)
-
-
-      RETURN
-      END SUBROUTINE bouncon
-
-c-----------------------------------------------------------------------
       subroutine idalg
 
 c************************************************************************
@@ -4901,11 +4743,11 @@ c-----------------------------------------------------------------------
       Use(Comflo)   # fngy
       Use(Bcond)    # ncpli,iwalli,issori,iesori,cplsori,fngysi
       Use(Parallv)  # nxg,nyg
-      Use(Utilities)
 
 *  -- local scalars --
       integer isor, jsor, ixt
 
+      real harmave, onesided_maxwellian
       do isor = 1, nwsor
        if (igspsori(isor)==ig) then
 
@@ -4969,11 +4811,11 @@ c-----------------------------------------------------------------------
       Use(Comflo)   # fngy
       Use(Bcond)    # ncplio,iwallio,issoro,iesoro,cplsoro,fwsoro
       Use(Parallv)  # nxg,nyg
-      Use(Utilities)
 
 *  -- local scalars --
       integer isor, jsor, ixt
 
+      real harmave, onesided_maxwellian
       do isor = 1, nwsor
        if (igspsoro(isor)==ig) then
 
@@ -5596,35 +5438,79 @@ c   Compute fluxes along inner wall (need to change sign; some segms are core)
 
 ***** End of subroutine outwallflux ***********
 c----------------------------------------------------------------------c
+ 
 
-
-
-      SUBROUTINE test_outflux_mol(x1,x2,x3,x4,x5,x6,x7,x8,x9,y1,y2)
+      SUBROUTINE outflux_atom(
+     .      iflx_i, iflx_a, thflx_a, frecyc, alba, 
+     .      oflx_a
+     .  )
       IMPLICIT NONE
-      REAL, INTENT(IN) :: x1,x2,x3,x4,x5,x6,x7,x8,x9
-      REAL, INTENT(OUT) :: y1, y2
-        Use(Mol_Recyc)
-        call outflux_mol(x1,x2,x3,x4,x5,x6,x7,x8,x9,y1,y2)
-      END SUBROUTINE test_outflux_mol
+        REAL, INTENT(IN) :: iflx_i, iflx_a, thflx_a, frecyc, alba
+        REAL, INTENT(OUT) :: oflx_a
+            oflx_a = frecyc*iflx_i - (1-alba)*thflx_a
 
-      SUBROUTINE test_outflux_atom(x1,x2,x3,x4,x5,x6,y1)
+      RETURN
+      END SUBROUTINE outflux_atom
+
+      SUBROUTINE outflux_mol(
+     .          iflx_i, iflx_a, thflx_a, thflx_m, frecyc, alba, albm, 
+     .          fmolflx, fmolth,
+     .
+     .          oflx_a, oflx_m
+     .  )
+c ...   Calculates the outgoing atomic and molecular fluxes based on
+c ...   the incident fluxes, recycling fraction, pump rate, and 
+c ...   atom/molecular recycling fractions. All fluxes given as magnitudes
       IMPLICIT NONE
-      REAL, INTENT(IN) :: x1,x2,x3,x4,x5,x6
-      REAL, INTENT(OUT) :: y1
-        Use(Atom_Recyc)
-        call outflux_mol(x1,x2,x3,x4,x5,x6,y1)
-      END SUBROUTINE test_outflux_atom
+            REAL, INTENT(IN) :: iflx_i, iflx_a, thflx_a, thflx_m,
+     .                          frecyc, alba, albm, fmolflx, fmolth
+            REAL, INTENT(OUT) :: oflx_a, oflx_m
+            REAL flx_refl, flxth_refla, flxth_reflm
+c ...       Calculate the total reflected nuclear flux based on the
+c ...       incident flux and specified recycling fraction
+            flx_refl = (iflx_i + iflx_a) * frecyc
+c ...       Calculate the returned atomic and molecular fluxes based
+c ...       on the specified albedos (account for 2 nuclei per atom)
+            flxth_refla = (1-fmolth) * alba * thflx_a 
+            flxth_reflm = 0.5*(fmolth * thflx_a) + albm * thflx_m
+c ...       Distribute the reflected fluxes between the outgoing atomic
+c ...       and molecular fluxes
+            oflx_a = (1-fmolflx)*flx_refl - (1-alba)*flxth_refla
+            oflx_m = 0.5 * fmolflx*flx_refl - (1-albm)*flxth_reflm
 
-      FUNCTION test_harmave(x1,x2) RESULT(res)
-      REAL, INTENT(IN) :: x1, x2
-      REAL :: res
-        Use(Utilities)
-        res = harmave(x1,x2)
-      END FUNCTION test_harmave
-      
-      FUNCTION test_onesided_maxwellian(x1,x2,x3,x4,x5) RESULT(res)
-      REAL, INTENT(IN) :: x1,x2,x3,x4,x5
-      REAL :: res
-        Use(Utilities)
-        res = onesided_maxwellian(x1,x2,x3,x4,x5)
-      END FUNCTION test_onesided_maxwellian
+      RETURN
+      END SUBROUTINE outflux_mol
+
+      FUNCTION onesided_maxwellian(
+     .      T, n, m, A, T_min
+     .  ) RESULT(flux)
+c ...   Calculates the one-sided maxwellian current onto a surface
+c ...   for a gas of given density and temperature
+c ...   INPUTS:
+c ...       T - gas temperature [J]
+c ...       n - gas density [m**-3]
+c ...       m - gas species mass [kg]
+c ...       A - area of gas impingement [m**2]
+c ...       T_min - minimum gas temperature to be considered [J]
+c ...   OUTPUT:
+c ...       flux - thermal one-sided Maxwellian particle current
+c ...           to the surface [part/s]
+        REAL, INTENT(IN) :: T, n, m, A, T_min
+        REAL :: flux
+        REAL, PARAMETER :: pi = 3.14159265358979323
+
+        flux = 0.25*SQRT( (8*MAX(T, T_min)) / (pi*m) )*n*A
+
+      END FUNCTION onesided_maxwellian
+
+      FUNCTION harmave(x1, x2) RESULT(res)
+c ...   Returns the harmonic average of x1 and x1
+        REAL, INTENT(IN) :: x1, x2
+        REAL :: res
+
+        res = 2 * (x1*x2) / (x1 + x2 + 1.e-300)
+        
+      END FUNCTION harmave
+
+
+
