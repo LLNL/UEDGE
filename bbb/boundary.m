@@ -5467,17 +5467,15 @@ c   Compute fluxes along inner wall (need to change sign; some segms are core)
 c----------------------------------------------------------------------c
  
 
-      SUBROUTINE outflux_atom(
-     .      iflx_i, thflx_a, frecyc, alba, 
-     .      oflx_a
-     .  )
+      FUNCTION outflux_atom(
+     .      iflx_i, thflx_a, frecyc, alba 
+     .) RESULT(oflx_a)
       IMPLICIT NONE
         REAL, INTENT(IN) :: iflx_i, thflx_a, frecyc, alba
-        REAL, INTENT(OUT) :: oflx_a
+        REAL :: oflx_a
             oflx_a = frecyc*iflx_i - (1-alba)*thflx_a
 
-      RETURN
-      END SUBROUTINE outflux_atom
+      END FUNCTION outflux_atom
 
       SUBROUTINE outflux_mol(
      .          iflx_i, iflx_a, thflx_a, thflx_m, frecyc, alba, albm, 
