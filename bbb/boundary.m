@@ -2659,7 +2659,7 @@ c...  local scalars
           real osmw
           real t0
 
-          real harmave, onesided_maxwellian
+          real harmave, onesided_maxwellian, outflux_atom
           real yld96, kappa
 
             ix = ny + 1
@@ -3109,13 +3109,34 @@ c               Different boundary conditions for neutral momentum equation
           endif # end loop for bctipr
         endif  # end loop for istion=1
 
-c       Next, the hydrogenic gas equations --
-        do igsp = 1, nhgsp  # imp gas below
-           if (isngonxy(ixt,iy,igsp) .eq. 1) then
-             iv = idxg(ixt,iy,igsp)
-             if (recyrb(iy,igsp,jx) .gt. 0.) then  # normal recycling
+c       Next, the hydrogenic gas equations -- 
+        IF (ishymol .ne. 1) THEN
+            IF (isngonxy(ixt,iy,0) .eq. 1) THEN
+c       Atom-only, implicit molecules
+                iv = idxg(ixt,iy,igsp)
+                osmw = onesided_maxwellian(
+     .              tg(ixt1,iy,igsp), 1.0, mg(igsp),
+     .              isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy),
+     .              tgmin*ev
+     .         )
+            
+                yldot(iv) = nurlxg *  ( fngx(ixt1,iy,igsp)
+     .                  + fngxrb_use(iy,igsp,jx)
+     .                  - fngxsrb(iy,igsp,jx) 
+     .                  + outflux_atom(
+     .                      fac2sp*fnix(ixt1,iy,1),
+     .                      osmw,
+     .                      recyrb(iy,0,jx),
+     .                      albrb(iy,0,jx)
+     .                  )) / (vpnorm*n0g(igsp)*sx(ixt1,iy))
+            END IF
+        ELSE
+c       Explicit molecules included
+            do igsp = 1, nhgsp  # imp gas below
+              if (isngonxy(ixt,iy,igsp) .eq. 1) then
+               iv = idxg(ixt,iy,igsp)
                flux_inc = fac2sp*fnix(ixt1,iy,1)
-               if (ishymol.eq.1 .and. igsp.eq.2) then
+               if (igsp.eq.2) then
                 flxa= ismolcrm*(1-albrb(iy,1,jx))*onesided_maxwellian(
      .              tg(ixt1,iy,1), ng(ixt1,iy,1), mg(1), sx(ixt1,iy), tgmin*ev)
                  if (isupgon(1) .eq. 1) then  # two atoms for one molecule
@@ -3135,7 +3156,13 @@ c       Next, the hydrogenic gas equations --
      .                  + recyrb(iy,igsp,jx)*flux_inc
      .                  - (1-albrb(iy,igsp,jx))*osmw*ng(ixt1,iy,igsp)
      .              ) / (vpnorm*n0g(igsp)*sx(ixt1,iy))
-             elseif( (recyrb(iy,igsp,jx) <=  0.) 
+                END IF
+            END DO
+        END IF
+        do igsp = 1, nhgsp  # imp gas below
+           if (isngonxy(ixt,iy,igsp) .eq. 1) then
+             iv = idxg(ixt,iy,igsp)
+             if( (recyrb(iy,igsp,jx) <=  0.) 
      .              .and. (recyrb(iy,igsp,jx) >= -1.) 
      .       ) then  # recyrb is albedo
                 osmw = onesided_maxwellian(
@@ -5441,11 +5468,11 @@ c----------------------------------------------------------------------c
  
 
       SUBROUTINE outflux_atom(
-     .      iflx_i, iflx_a, thflx_a, frecyc, alba, 
+     .      iflx_i, thflx_a, frecyc, alba, 
      .      oflx_a
      .  )
       IMPLICIT NONE
-        REAL, INTENT(IN) :: iflx_i, iflx_a, thflx_a, frecyc, alba
+        REAL, INTENT(IN) :: iflx_i, thflx_a, frecyc, alba
         REAL, INTENT(OUT) :: oflx_a
             oflx_a = frecyc*iflx_i - (1-alba)*thflx_a
 
