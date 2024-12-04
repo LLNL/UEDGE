@@ -129,7 +129,7 @@ c...  local scalars
           real osmw
           real t0
 
-          real harmave, onesided_maxwellian
+          real harmave, onesided_maxwellian, outflux_atom
           real yld96
 
 c ====================================================================
@@ -759,30 +759,56 @@ c ... Include gas BC from sputtering by ions
      .              * harmave(ng(ix,0,igsp), ng(ix,1,igsp))
      .              - fng_chem + sputflxpf(ix,igsp) ) / (osmw*n0g(igsp)) 
                if(matwalli(ix) .gt. 0) then
-                 if (recycwit(ix,igsp,1) .gt. 0.) then
-                   fniy_recy = fac2sp*fniy(ix,0,1)
-                   if(isrefluxclip==1) fniy_recy=min(fniy_recy,0.)
-                   if (igsp .gt. nhgsp) fniy_recy = zflux
-                   if (ishymol.eq.1 .and. igsp.eq.2) then # 2 atoms per molecule
-                     if (isupgon(1) .eq. 1) then
-               fniy_recy = 0.5*( fniy(ix,0,1) + fniy(ix,0,2) )
-                     else
-                       fniy_recy = 0.5*( fniy(ix,0,1) + fngy(ix,0,1) )
-                     endif
-                     if(isrefluxclip==1) fniy_recy=min(fniy_recy,0.)
-                   endif
-                   osmw = onesided_maxwellian( 
-     .                  cdifg(igsp)*tg(ix,0,igsp), 1.0, mg(igsp), 
-     .                  sy(ix,0), tgmin*ev
-     .             ) 
-                   yldot(iv) = -nurlxg*( fngy(ix,0,igsp) 
-     .                  + fniy_recy*recycwit(ix,igsp,1) 
-     .                  - fngyi_use(ix,igsp) - fngysi(ix,igsp) 
-     .                  + (1-albedoi(ix,igsp))*osmw
-     .                  * harmave(ng(ix,0,igsp), ng(ix, 1, igsp))
-     .                  - fng_chem + sputflxpf(ix,igsp)
-     .                  ) / (osmw*n0g(igsp))
-                elseif (recycwit(ix,igsp,1) < -1) then
+                    fniy_recy = fac2sp*fniy(ix,0,1)
+                    if(isrefluxclip==1) 
+     .                      fniy_recy=min(fniy_recy,0.)
+                    if (igsp .gt. nhgsp) 
+     .                      fniy_recy = zflux
+                    IF (ishymol .ne. 1) THEN
+                        osmw = onesided_maxwellian( 
+     .                      cdifg(igsp)*tg(ix,0,igsp), 1.0, mg(igsp), 
+     .                      sy(ix,0), tgmin*ev
+     .                  ) 
+                        yldot(iv) = -nurlxg*( fngy(ix,0,igsp) 
+     .                      - fngyi_use(ix,igsp) 
+     .                      - fngysi(ix,igsp) 
+     .                      - outflux_atom(
+     .                              -fniy_recy,
+     .                              -harmave(ng(ix,0,igsp), ng(ix,1,igsp)),
+     .                              recycwit(ix,igsp,1),
+     .                              albedoi(ix,igsp) 
+     .                      ) - fng_chem 
+     .                      + sputflxpf(ix,igsp)
+     .                      ) / (osmw*n0g(igsp))
+
+                    ELSE
+                        IF (igsp .eq. 2) THEN
+                            if (isupgon(1) .eq. 1) then
+                                fniy_recy = 
+     .                              0.5*( fniy(ix,0,1) + fniy(ix,0,2) )
+                            else
+                                fniy_recy = 
+     .                              0.5*( fniy(ix,0,1) + fngy(ix,0,1) )
+                            endif
+                            if(isrefluxclip==1) 
+     .                              fniy_recy=min(fniy_recy,0.)
+                        ENDIF
+                        osmw = onesided_maxwellian( 
+     .                      cdifg(igsp)*tg(ix,0,igsp), 1.0, mg(igsp), 
+     .                      sy(ix,0), tgmin*ev
+     .                  ) 
+                        yldot(iv) = -nurlxg*( fngy(ix,0,igsp) 
+     .                      + fniy_recy*recycwit(ix,igsp,1) 
+     .                      - fngyi_use(ix,igsp) - fngysi(ix,igsp) 
+     .                      + (1-albedoi(ix,igsp))*osmw
+     .                      * harmave(ng(ix,0,igsp), ng(ix, 1, igsp))
+     .                      - fng_chem + sputflxpf(ix,igsp)
+     .                      ) / (osmw*n0g(igsp))
+                    ENDIF
+
+
+
+                if (recycwit(ix,igsp,1) < -1) then
                    yldot(iv)=nurlxg*(ngbackg(igsp)-ng(ix,0,igsp))/
      .                                                          n0g(igsp)
                  elseif (recycwit(ix,igsp,1) .le. 0.) then # treat recycwit as albedo
