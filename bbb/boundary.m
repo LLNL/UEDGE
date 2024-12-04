@@ -2024,8 +2024,24 @@ c...  now do the gas and temperatures
                if(isfixlb(1).eq.2) yldot(iv) = nurlxg * 
      .                        (ng(ixd,iy,igsp) - ng(ix,iy,igsp))/n0g(igsp)
                if(isfixlb(1).eq.2 .and. yylb(iy,1).gt.rlimiter) then
+                 IF (ishymol .ne. 1) THEN
+                    osmw = onesided_maxwellian(
+     .                  tg(ixd,iy,igsp), ng(ixd,iy,igsp), mg(1), 
+     .                  isoldalbarea*sx(ix,iy) + (1-isoldalbarea)*sxnp(ix,iy),
+     .                  temin*ev
+     .            )
+                    yldot(iv) = -nurlxg * ( fngx(ix,iy,igsp)
+     .                      - fngxlb_use(iy,igsp,1)
+     .                      + fngxslb(iy,igsp,1) 
+     .                      - outflux_atom(
+     .                              -fac2sp*fnix(ix,iy,1),
+     .                              -osmw,
+     .                              recylb(iy,igsp,1),
+     .                              alblb(iy,igsp,1)
+     .                      )) / (vpnorm*n0g(igsp)*sx(ix,iy))
+                 ELSE
                   flux_inc = fac2sp*fnix(ix,iy,1)
-                  if (ishymol.eq.1 .and. igsp.eq.2) then
+                  if (igsp.eq.2) then
                     ta0 = engbsr * max(tg(ixd,iy,1),temin*ev)
                     vxa = 0.25 * sqrt( 8*ta0/(pi*mg(1)) )
                     flxa = ismolcrm*(1-alblb(iy,1,1))*ng(ixd,iy,1)*vxa*sx(ix,iy)
@@ -2047,6 +2063,8 @@ c...  now do the gas and temperatures
      .                      + recylb(iy,igsp,1)*flux_inc
      .                      + (1-alblb(iy,igsp,1))*osmw
      .                  ) / (vpnorm*n0g(igsp)*sx(ix,iy))
+                 END IF
+
                endif
                if (is1D_gbx.eq.1) yldot(iv) = nurlxg*(ng(ixd,iy,igsp) -
      .                                    ng(ix,iy,igsp))/n0g(igsp)
@@ -2812,8 +2830,24 @@ c...  now do the gas and temperatures
                if(isfixrb(1).eq.2) yldot(iv) = nurlxg * 
      .                     (ng(ixd,iy,igsp) - ng(ix,iy,igsp))/n0g(igsp)
                if(isfixrb(1).eq.2 .and. yyrb(iy,1).gt.rlimiter) then
+                 IF (ishymol .ne. 1) THEN
+                    osmw = onesided_maxwellian(
+     .                  engbsr*tg(ixd,iy,1), ng(ixd,iy,igsp), mg(igsp),
+     .                  isoldalbarea*sx(ixd,iy) + (1-isoldalbarea)*sxnp(ixd,iy),
+     .                  engbsr*tgmin*ev
+     .              )
+                    yldot(iv) = -nurlxg * ( fngx(ixd,iy,igsp)
+     .                      + fngxrb_use(iy,igsp,1)
+     .                      - fngxsrb(iy,igsp,1) 
+     .                      + outflux_atom(
+     .                          fac2sp*fnix(ixd,iy,1),
+     .                          osmw,
+     .                          recyrb(iy,igsp,1),
+     .                          albrb(iy,igsp,nxpt)
+     .                      ) ) / (vpnorm*n0g(igsp)*sx(ixd,iy))
+                 ELSE
                   flux_inc = fac2sp*fnix(ixd,iy,1)
-                  if (ishymol.eq.1 .and. igsp.eq.2) then
+                  if (igsp.eq.2) then
                     flxa= ismolcrm*(1-albrb(iy,1,nxpt))* onesided_maxwellian(
      .                  engbsr*tg(ixd,iy,1), ng(ixd,iy,1), mg(1), 
      .                  sx(ixd, iy), engbsr*tgmin*ev
@@ -2835,6 +2869,8 @@ c...  now do the gas and temperatures
      .                      + recyrb(iy,igsp,1)*flux_inc
      .                      - (1-albrb(iy,igsp,nxpt))*osmw
      .                  ) / (vpnorm*n0g(igsp)*sx(ixd,iy))
+
+                 END IF
                endif
             endif
          enddo      # end of igsp loop over gas
