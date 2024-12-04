@@ -1275,7 +1275,7 @@ c...  local scalars
           real osmw
           real t0
 
-          real harmave, onesided_maxwellian
+          real harmave, onesided_maxwellian, outflux_atom
           real yld96, kappa
 
 
@@ -1596,7 +1596,6 @@ c ... add ion sputtering to gas BC
      .                  + sputflxw(ix,igsp) 
      .              ) / (osmw *n0g(igsp))
             if(matwallo(ix) .gt. 0) then
-              if (recycwot(ix,igsp) .gt. 0.) then
 ccc
 ccc   MER 01 Apr 2002: need to correct fniy below when drifts are included
 ccc
@@ -1605,16 +1604,36 @@ ccc
      .                  fniy_recy=max(fniy_recy,0.)
                 if (igsp .gt. nhgsp) 
      .                  fniy_recy = zflux
-                if (ishymol.eq.1 .and. igsp.eq.2) then # 2 atoms per molecule
-                  if (isupgon(1) .eq. 1) then
-                        fniy_recy = 0.5*( fniy(ix,ny,1) + fniy(ix,ny,2) )
-                  else
-                        fniy_recy = 0.5*( fniy(ix,ny,1) + fngy(ix,ny,1) )
-                  endif
-                  if(isrefluxclip==1)
-     .                   fniy_recy=max(fniy_recy,0.)
-                endif
-                yldot(iv) = nurlxg*( fngy(ix,ny,igsp) 
+                IF (ishymol .ne. 1) THEN
+                    osmw = onesided_maxwellian(
+     .                  cdifg(igsp)*tg(ix,ny+1,igsp), 1.0, mg(igsp),
+     .                  sy(ix,ny), tgmin*ev
+     .              )
+                    yldot(iv) = nurlxg*( fngy(ix,ny,igsp) 
+     .                  + fngyso(ix,igsp) 
+     .                  + fngyo_use(ix,igsp) 
+     .                  + outflux_atom(
+     .                      fniy_recy,
+     .                      osmw*harmave(ng(ix,ny,igsp), ng(ix,ny+1,igsp)),
+     .                      recycwot(ix,igsp),
+     .                      albedoo(ix,igsp)
+     .                  )
+     .                  + fng_chem 
+     .                  + sputflxw(ix,igsp)
+     .              ) / (osmw*n0g(igsp))
+                ELSE
+                    IF (igsp .eq. 2) THEN
+                        if (isupgon(1) .eq. 1) then
+                            fniy_recy = 
+     .                          0.5*( fniy(ix,ny,1) + fniy(ix,ny,2) )
+                        else
+                            fniy_recy = 
+     .                          0.5*( fniy(ix,ny,1) + fngy(ix,ny,1) )
+                        endif
+                        if(isrefluxclip==1)
+     .                      fniy_recy=max(fniy_recy,0.)
+                    END IF
+                    yldot(iv) = nurlxg*( fngy(ix,ny,igsp) 
      .                  + fniy_recy*recycwot(ix,igsp) 
      .                  + fngyso(ix,igsp) 
      .                  + fngyo_use(ix,igsp) 
@@ -1623,7 +1642,10 @@ ccc
      .                  + fng_chem 
      .                  + sputflxw(ix,igsp)
      .              ) / (osmw*n0g(igsp))
-              elseif (recycwot(ix,igsp) < -1) then
+
+                END IF
+
+              if (recycwot(ix,igsp) < -1) then
                 yldot(iv)=nurlxg*(ngbackg(igsp)-ng(ix,ny+1,igsp))/
      .                                                        n0g(igsp)
              elseif (recycwot(ix,igsp) .le. 0.) then # treat recycw as albedo
