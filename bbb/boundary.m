@@ -613,7 +613,6 @@ ccc     .             (vpnorm*ennorm*sy(ix,0))
                elseif (istipfcix(ix) .eq. 3) then      # specified gradient
                  yldot(iv2) = nurlxi*( (ti(ix,1) - ti(ix,0)) -
      .                           0.5*(ti(ix,1) + ti(ix,0))/
-
      .                             (gyf(ix,0)*lytiix(1,ix)) )/(temp0*ev)
                elseif (istipfcix(ix) .eq. 4) then      # sheath-like condition
                  t0 = max(tg(ix,0,1), temin*ev)
