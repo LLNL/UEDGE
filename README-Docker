@@ -1,11 +1,26 @@
 
-This README will address using a Docker container to build and run the Basis version of Uedge. The Basis Uedge version is deprecated and is provided for legacy applications only and provided/supported only for local Program developers use. New users should use the Python Uedge module. For the remainder of this readme the name Uedge will only refer to the Basis version.
+This README will address using a Docker container to build and run the Basis
+version of Uedge. The Basis Uedge version is deprecated and is provided for 
+legacy applications only and provided/supported only for local Program 
+developers use. New users should use the Python Uedge module. For the remainder
+ of this readme the name Uedge will only refer to the Basis version.
 
-Basis is a high-level programming language. It's similar to Python in that it allows user developed applications to be run interactively. It was developed at LLNL, and as was already indicated, is deprecated and no long supported. 
+Basis is a high-level programming language. It's similar to Python in that it 
+allows user developed applications to be run interactively. It was developed at
+LLNL, and as was already indicated, is deprecated and no long supported. 
 
-Docker is a virtualization platform for running applications inside containers. It doesn't require the user create a full virtual machine so is lighter weight. To get started you need to install Docker from https://www.docker.com. You may use the free install option to run the Docker container image we've created for Uedge. Once you have Docker installed you should verify that it works by running the hello-world container with "docker run -it --rm hello-world". 
+Docker is a virtualization platform for running applications inside containers.
+It doesn't require the user create a full virtual machine so is lighter weight.
+To get started you need to install Docker from https://www.docker.com. You may 
+use the free install option to run the Docker container image we've created for
+Uedge. Once you have Docker installed you should verify that it works by running
+the hello-world container with "docker run -it --rm hello-world". 
 
-The Uedge container contains the full build environment required to build and run some simple tests. The Uedge container is fusionbillm/basisuedge. There are many ways it may be run and you should refer to the Docker documentation for anything not covered here. What follows is the expected uses of this container with runstrings and actions described:
+The Uedge container contains the full build environment required to build and 
+run some simple tests. The Uedge container is fusionbillm/basisuedge. There are
+many ways it may be run and you should refer to the Docker documentation for any
+thing not covered here. What follows is the expected uses of this container with
+runstrings and actions described:
 
 docker run -it --rm fusionbillm/basisuedge
       This will pull the latest master branch of Uedge, build, and run the
@@ -27,7 +42,11 @@ docker run -it --rm --entrypoint /bin/bash fusionbillm/basisuedge
 Graphics
 ========
 
-Uedge is compiled to use the X11 protocol to produce graphics from the NCAR graphics library. Since Docker is not a full VM, or running a Desktop, the graphics are output to the host display. The protocol is X11 regardless of the host, the trick is to tunnel the protocol and authenticate with the display X11 server. The command syntax is depends on the host type. 
+Uedge is compiled to use the X11 protocol to produce graphics from the NCAR 
+graphics library. Since Docker is not a full VM, or running a Desktop, the 
+graphics are output to the host display. The protocol is X11 regardless of the 
+host, the trick is to tunnel the protocol and authenticate with the display X11
+server. The command syntax is depends on the host type. 
 
 Mac:
 docker run -it --rm -e DISPLAY=host.docker.internal:0 --entrypoint /bin/bash fusionbillm/basisuedge
@@ -36,6 +55,7 @@ Linux:
 docker run -it --rm -e DISPLAY=$DISPLAY --volume="$HOME/.Xauthority:/home/user/.Xauthority:rw" -v /tmp/.X11-unix:/tmp/.X11-unix --network=host --entrypoint /bin/bash fusionbillm/basisuedge
 
 Windows:
-This needs to be determined. It's assumed that an X11 environment would need to be run in the Windows host.
+This needs to be determined. It's assumed that an X11 environment would need to
+be run in the Windows host.
 
 
