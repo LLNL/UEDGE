@@ -1,8 +1,0 @@
-echo = no
-function testltab
-baslit=true
-baslit=false
-endf
-call testltab
-
-end

@@ -44,7 +44,7 @@ f_config() { $BASIS_ROOT/bin/mio -a $*; }
 # Run test suite.
 f_test() {
   for n in 1 2 3; do
-    [ -x ../test/level_$n/do-test ] && (cd ../test/level_$n && ./do-test)
+    [ -x ./test/level_$n/do-test ] && (cd ./test/level_$n && ./do-test)
   done
 }
 
@@ -64,7 +64,7 @@ case "$1" in
             b=`basename $i`
             if [ "$b" = pck -o -f "../$b/pre-Make" ]; then
               xop $RM -rf $b
-              $RM -rf ../dev/$b ../test/level_?/$b debuggable.$b optimized.$b
+              $RM -rf ../dev/$b ./test/level_?/$b debuggable.$b optimized.$b
               echo "$b deleted"
             elif [ "$b" = "*" ]; then # ../dev is empty: Do nothing.
               :
