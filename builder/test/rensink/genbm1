@@ -1,0 +1,36 @@
+# Generate bm1 test case from flat profiles with premeth="banded".
+# Output produced:
+#    timing info (to TERMINAL)
+#    converged solution (to file pfbm1)
+#    converged+1 solution (to file varbm1)
+#    residuals (to file resbm1)
+# Read parameters
+echo=no
+debug=yes
+restart=0
+read inbm1
+echo=yes
+timer off; timer on
+# Invoke vodpk solver to get close to solution
+restart=0; svrpkg="vodpk"; exmain
+timer off; timer on
+# Invoke Newton solver to refine solution
+gengrid=0; restart=1; svrpkg="newton"; exmain
+timer off; timer on
+# Save plasma variables
+create pfbm1
+write nis,ups,ngs,tes,tis,phis
+close
+timer off; timer on
+# Iterate solution one more time
+exmain
+timer off; timer on
+# Save plasma variables and residuals
+create varbm1
+write nis,ups,ngs,tes,tis,phis
+close
+create resbm1
+write resco,resmo,resng,resee,resei,resphi
+close
+#
+end

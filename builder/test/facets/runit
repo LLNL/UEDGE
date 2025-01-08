@@ -1,0 +1,14 @@
+from uefacets import *
+ue=Uedge()
+nivar=array(2.e22);upvar=array(1.e25);ngvar=array(1.e22)
+tevar=0.6e25;tivar=0.6e25
+ue.ReadParams("testin.py")
+ue.SetData(nivar,upvar,ngvar,tevar,tivar)
+print "ready to execute"
+ni,ng,up,ti,te = ue.Advance(1.0)
+print "After 1 sec, at interface:"
+print "ni = ",ni
+print "ng = ", ng
+print "upar = ",up
+print "Ti = ",ti
+print "Te = ",te

@@ -44,7 +44,7 @@ f_config() { $BASIS_ROOT/bin/mio -a $*; }
 # Run test suite.
 f_test() {
   for n in 1 2 3; do
-    [ -x ./test/level_$n/do-test ] && (cd ./test/level_$n && ./do-test)
+    [ -x ./test/level_$n/do-test ] && (cd ./test/level_$n && ./do-test $*)
   done
 }
 

@@ -1,0 +1,58 @@
+This gives a very short description of how to run UEDGE examples.  More detail
+is available in the UEDGE manual, uedge/doc/ue_man.tex, which should be
+included in your version of the uedge directories.  For the most current
+verion, go to the website http://www.mfescience.org/mfe and then select
+Theory/Uedge from the left menu.
+
+To run a couple of DIII-D cases, type
+uedge
+
+You will then get prompted with 
+
+UEDGE> 
+
+In response, type what is in lower case
+
+UEDGE> read rdd3d_ex1.8x4
+UEDGE> exmain
+
+This will run a time-dependent case on a very coarse 8x4 grid; the code has
+finished when it comes back with the UEDGE> prompt. Before it finishes, you
+can type s, followed by a return, to check the status of the time integration;
+you will get three lines giving diagnostic information, including the present
+time and time step in seconds. After it finishes, you can then double the grid
+by typing
+
+UEDGE> restart=1; read double
+UEDGE> svrpkg="nksol"; exmain
+
+Here the file double is resets variables needed to double the mesh each
+direction.  The solver is switched to a Newton-Krylov iteration by setting
+svrpkg. The initial state for the doubled mesh is an interpolation of the
+solution from the coarse mesh. As described in the manual
+(uedge/doc/ue_man.tex), you can also just double poloidally by reading the
+file doublep or radially by read the file doubler.  Thus, you can continue to
+a finer mesh if you wish.
+
+Note that using svrpkg="vodpk" for the time-dependent runs is not presently
+the most efficient time-dependent method.  Instead, you can use the option
+described in the uedge user manual under the heading "Controlling NKSOL
+time-dependence with scripts."
+
+The plasma and neutral variables are stored in the arrays ni, up, te, ti, ng,
+and phi; again, see uedge/doc/ue_man.tex.
+
+*****************************************************************************
+
+Instead of starting from some generic profiles as with the input file
+rdd3d_ex1.8x4 and running time-dependently to steady-state, you can restart
+from a previous solution saved in a pfb file.  An example of this is given by
+input file rdd3d_ex2.8x4, which is the same as rdd3d_ex2.8x4 except that
+restart=1 is set, and the pfb file pfd3d_ex.8x4 is read from disk.  Thus, to
+run this case, type  
+
+UEDGE> read rdd3d_ex2.8x4
+UEDGE> exmain
+
+Note that here the svrpkg="nksol" has already been set, so the Newton-Krylov
+solver is used from the start.

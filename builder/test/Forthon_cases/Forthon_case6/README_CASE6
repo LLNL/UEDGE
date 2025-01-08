@@ -1,0 +1,28 @@
+Also see file ../README-FORTHON-tests to see short description of other cases.
+
+
+Forthon_case6:
+   Same DIII-D setup as case 2, but two examples of running time-dependently.
+To run these cases, must have a link to the files uedge/pyscripts/rdinitdt.py
+and uedge/pyscripts/rdcontdt.py.  Here rdinitdt.py sets various parameters for
+controlling the time-dependent run, and rdcontdt.py advances the solution
+through a series calls to bbb.exmain() while attempting to advance the
+timestep (bbb.dtreal); each successful solution (time-step) results in an
+updated solution that is take as the initial condition for the next step and
+the total time is accumulated.  
+   Note rdcontdt.py has an inner loop over ii2 that controls taking ii2max 
+steps at the present time-step, and an outer loop over ii1 that either 
+increases the time-step by a factor of mult_dt if loop ii2 is successful, or 
+decreases bbb.dtreal by 3 if loop ii2 has a step with a failed convergence.
+   The two cases are rdtimedpd_1.py, which is just the same as Forthon_case2,
+except that it solves for steady-state by starting at a time-step of 
+bbb.dtreal=1e-4, and successively increases the time-step until steady-state
+is reached by using scripts rdinitdt.py and rdcontdt.py.  The second case
+rdtimedpd_2.py, is the same as _1.py, except the core density boundary 
+condition is raised to ncore[0]=1e20 (from 2e19), and the initial time-step
+is bbb.dtreal=1e-2.  Because of the large change in the boundary condition and
+larger initial time-step, the initial time-step does not converge 
+(bbb.iterm != 1); this case then illustrates how the script rdcontdt.py 
+reduces the time-step until convergence is obtain, and then moves the time-step
+forward to eventually find steady-state.
+

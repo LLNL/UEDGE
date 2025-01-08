@@ -1,0 +1,127 @@
+#Coarse mesh (nx=8, ny=4) for DIII-D MHD equilibrium
+#Uses diffusive neutrals, so five variables (ni,upi,Te,Ti,ng)
+#
+errortrp("off")
+package flx;package grd;package bbb
+# Set the geometry
+	mhdgeo = 1 		#use MHD equilibrium
+!rm -f aeqdsk neqdsk		#change names of MHD eqil. files 
+!cp ../data/aeqdskd3d aeqdsk	# (Cannot tab or indent these 3 lines)
+!cp ../data/neqdskd3d neqdsk
+	psi0min1 = 0.98		#normalized flux on core bndry
+	psi0min2 = 0.98		#normalized flux on pf bndry
+	psi0sep = 1.00001	#normalized flux at separatrix
+	psi0max = 1.07		#normalized flux on outer wall bndry
+	ngrid = 1		#number of meshes (always set to 1)
+	nxleg(1,1) = 2		#pol. mesh pts from inner plate to x-point
+	nxcore(1,1) = 2		#pol. mesh pts from x-point to top on inside
+	nxcore(1,2) = 2		#pol. mesh pts from top to x-point on outside
+	nxleg(1,2) = 2		#pol. mesh pts from x-point to outer plate
+	nysol(1) = 3		#rad. mesh pts in SOL
+	nycore(1) =1		#rad. mesh pts in core
+
+# Finite-difference algorithms (upwind, central diff, etc.)
+	methn = 33		#ion continuty eqn
+	methu = 33		#ion parallel momentum eqn
+	methe = 33		#electron energy eqn
+	methi = 33		#ion energy eqn
+	methg = 33		#neutral gas continuity eqn
+
+# Boundary conditions
+	ncore(1) = 2.e19	#hydrogen ion density on core
+	iflcore = 0		#flag; =0, fixed Te,i; =1, fixed power on core
+	tcoree = 100.		#core Te 
+	tcorei = 100.		#core Ti
+	tedge = 2.		#fixed wall,pf Te,i if istewcon=1, etc
+	istepfc = 3		#=3 sets scale length lyte
+	lyte = 0.03		#radial scale-length for Te on PF boundary
+	recycp(1) = 0.9		#hydrogen recycling coeff at plates
+	recycw(1) = 0.9		#wall recycling if matwso,i=1
+	matwso(1) = 1		#recycle on main-chamber wall
+        isnwcono = 1		#if=1, set ni(,,ny+1)=nwallo
+	isnwconi = 1		#if=1, set PF wall ni=nwalli
+	allocate		#allocate space of nwallo,i
+	nwallo = 1.e18
+	nwalli = 1.e18
+
+# Transport coefficients
+	difni(1) = 1.		#D for radial hydrogen diffusion
+	kye = 1.		#chi_e for radial elec energy diffusion
+	kyi = 1.		#chi_i for radial ion energy diffusion
+	travis(1) = 1.		#eta_a for radial ion momentum diffusion
+
+# Flux limits
+	flalfe = 0.21		#electron parallel thermal conduct. coeff
+	flalfi = 0.21		#ion parallel thermal conduct. coeff
+	flalfv = 1.		#ion parallel viscosity coeff
+	flalfgx = 1.		#neut. density poloidal diffusion
+	flalfgy = 1.		#neut. density radial diffusion
+	flalfvgx = 1.		#neut. momentum poloidal viscosity
+	flalfvgy = 1.		#neut. momentum radial viscosity
+	flalftgx = 1.		#neut. particle poloidal heat diffusion 
+	flalftgy = 1.		#neut. particle radial heat diffusion
+
+# Solver package
+	svrpkg = "nksol"	#Newton solver using Krylov method
+	premeth = "ilut"	#Solution method for precond. Jacobian matrix
+	mfnksol = 3
+
+# Parallel neutral momentum equation
+        ineudif = 2
+        isupgon(1)=1
+        if (isupgon(1) .eq. 1) then
+                isngon(1)=0
+                ngsp=1
+                nhsp=2
+                ziin(nhsp)=0
+		travis(2) = 0.	#shouldn't be used for neutrals - to be sure
+# The following are probably default, set them anyway to be sure
+		cngmom=0
+		cmwall=0
+		cngtgx=0
+		cngtgy=0
+		kxn=0
+		kyn=0
+        endif
+##	ingb = 0
+
+# Currents and potenial parameters
+	isphion = 1
+	b0 = 1.			# =1 for normal direction of B-field
+	rsigpl=1.e-8		#anomalous cross-field conductivity
+	cfjhf=1.		#turn-on heat flow from current (fqp)
+	cfjve = 1.		#makes vex = vix - cfjve*fqx
+	jhswitch=1		#Joule Heating switch
+	cfjpy = 0.		#diamag. cur. in y-direction
+	cfjp2 = 0.		#diamag. cur. in 2-direction
+
+	newbcl=1; newbcr=1	#Sheath BC (bee,i) from current equation
+	isfdiax =1.		#Factor to turn on diamag. contrib. to sheath
+
+	cfyef = 1.0		#ExB drift in y-dir.
+	cf2ef = 1.0		#ExB drift in 2-dir.
+	cfydd = 0.		#Diamag. drift in y-dir. (always=0)
+	cf2dd = 0.		#Diamag. drift in 2-dir. (always=0)
+	cfrd = 0.		#Resistive drift in y and 2 dirs.
+	cfbgt = 0.		#Diamag. energy drift (always=0)
+	cfybf = 1.              #turns on vycb - radial grad_B drift
+	cf2bf = 1.              #turns on v2cb - perp grad_B drift (nearly pol)
+	cfqybf = 1.             #turns on vycb contrib to radial current
+	cfq2bf = 1.             #turns on v2cb contrib to perp("2") current
+	isnewpot = 1
+	rnewpot = 1.		
+	iphibcc = 3		#set phi(,1) uniform poloidally	& ey=eycore
+# Restart from a pfb savefile
+	restart = 1		#Begin from savefile, not estimated profiles
+##	allocate		#allocate space for savevariables
+	restore pfd3d_cfdupg    #read in the solution from pfb file
+
+        exmain
+        if (iterm == 1) then    #successfully converged run
+          create rdd3d_cfdupg.8x4.pdb # Save important stuff in pdb file.
+          write nis,ups,tes,tis,ngs,tgs,phis
+          close
+        endif
+        echo = no
+        verbose = no
+        quit
