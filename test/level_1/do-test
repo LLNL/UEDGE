@@ -130,11 +130,17 @@ foreach i ($Tests)
       echo ""
       echo "xuedge $Opts read ../$SRC -> $RES"
    endif
-   $Code $Opts read ../$SRC >& $RES
-   set tstatus = $status
+   if ( -f ../$SRC )  then
+      $Code $Opts read ../$SRC >& $RES
+      set tstatus = $status
+   else
+      set tstatus = 254
+   endif
 
    if ($tstatus == 255) then
       echo "	(OMITTED)"
+   else if ($tstatus == 254) then
+      echo "	(NO FILE)"
 
    else if ($tstatus != 0) then
       set Failed = ( $Failed $i )
