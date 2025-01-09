@@ -38,9 +38,47 @@ the background UEDGE plasma and provides impurity sources to UEDGE.  For an exam
 et al., Phys. Plasmas 22 (2015) 012506.
 
 ## Getting started 
-The easiest way to try out UEDGE is to download a static executable that should run on any Linux system; see
-the link to the executable [see uedge_executable file].  The second method is to download the UEDGE source files, and then build a Python
-version or a Basis version [see uedge_source directory].
+### Installing UEDGE using PIP
+The Python version of UEDGE can be installed using pip:
+
+    pip install uedge
+
+To install a specific UEDGE version using pip:
+
+    pip install uedge==X.X.X
+
+where X.X.X is the version number. For a list of the available UEDGE versions:
+
+    pip install uedge==
+
+### Installing UEDGE from the source
+PIP is also used to install UEDGE from the source files:
+
+    pip install [-v] /path/to/uedge
+
+where the optional -v makes the build verbose.
+
+Building UEDGE from the source requires fopenmp to be available to the
+compiler, unless a serial build is specified. To ensure the right compiler 
+is linked, set the CC environment variable:
+
+    export CC=path/to/clang
+
+For most OSX builds, the llvm clang installation is recommended. 
+
+There are a number of build options available for building the code:
+
+  serial - builds the code without OMP parallel capabilities
+  noclean - does not clean the build directory between builds
+  checkbounds - turns on boundary checks for non-debug builds 
+  debug - turns on compiler debugging flags
+
+The options are passed to the build using the following syntax
+
+    pip install -v . -C "--build-option=--arg1 --arg2"
+
+where arg1 and/or arg2 are one of the options from the above list.
+
 
 ## How to get involved and contribute
 Sent email to one of the developers listed below expressing your interest in modifying or developing packages 
