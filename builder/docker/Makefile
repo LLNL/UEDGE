@@ -13,3 +13,5 @@ clean:
 	docker system prune
 realclean:
 	docker system prune -a
+	podman system reset
+	

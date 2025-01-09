@@ -63,4 +63,7 @@ Windows:
 This needs to be determined. It's assumed that an X11 environment would need to
 be run in the Windows host.
 
+Docker Container
+================
 
+The files required to build the Docker container used here are located in builder/docker. For normal users, and developers interested in specific physics modules, the utility of building the container is limited.
