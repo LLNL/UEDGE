@@ -11,37 +11,40 @@ subroutine InitParallel
     implicit none
 
 
-    if ((OMPParallelJac==1 .or. OMPParallelPandf1.gt.0) .and. MPIParallelJac==0) then
-    if (ParallelWARNING.gt.0) then
-    write(*,*) "<<< WARNING >>> : You are using openmp routines to evaluate the Jacobian or/and pandf1."
-    write(*,*) "<<< WARNING >>> : Read first the documentation about how to use these options."
-    write(*,*) "<<< WARNING >>> : If this is your first run with this configuration, you should verify whether&
-    the parallel evaluation of pandf1 and jacobian are correct by setting ppp.CheckJac=1 and ppp.OMPCheckPandf1=1.&
-     If not error is thrown, turn these settings off (=0)."
-    write(*,*) "<<< WARNING >>> : You can turn off this warning by setting ppp.ParallelWarning=0."
+    if (OMPParallelJac==1 .and. MPIParallelJac==0) then
+        if (ParallelWARNING.gt.0) then
+            write(*,*) "<<< WARNING >>> : You are using openmp routines to evaluate the Jacobian or/and pandf1."
+            write(*,*) "<<< WARNING >>> : Read first the documentation about how to use these options."
+            write(*,*) "<<< WARNING >>> : If this is your first run with this configuration, you should verify whether&
+            the parallel evaluation of pandf1 and jacobian are correct by setting ppp.CheckJac=1 and ppp.OMPCheckPandf1=1.&
+             If not error is thrown, turn these settings off (=0)."
+            write(*,*) "<<< WARNING >>> : You can turn off this warning by setting ppp.ParallelWarning=0."
 
-    endif
-        call InitOMP
-        if (OMPParallelJac.gt.0) ParallelJac=1
-        if (OMPParallelPandf1.gt.0) ParallelPandf1=1
-        if (OMPParallelJac==0 .and. OMPParallelPandf1.gt.0) then
-        call xerrab('Cannot run omp parallel evaluation of pandf1 without running jacobian omp evaluation.')
         endif
-    elseif (OMPParallelJac==0 .and. MPIParallelJac==1) then
-        write(*,'(a)') 'Parallelization of Jacobian evaluation with MPI not available yet'
-        call InitMPI
-        ParallelJac=1
-    elseif (OMPParallelJac==1 .and. MPIParallelJac==1) then
-        write(*,'(a)') 'Parallelization of Jacobian evaluation with MPI not available yet'
-        HybridOMPMPI=1
-        call InitMPI() ! MPI first to setup nnzmxperproc used by InitOMP
-        call InitOMP()
-        ParallelJac=1
+
+        if (OMPParallelJac.gt.0) then
+            call InitOMPJac
+            ParallelJac=1
+        else
+            ParallelJac=0
+        endif
     else
         write(*,'(a)') '*OMPJac* Jacobian calculation: OMP not enabled'
-        write(*,'(a)') '*MPIJac* Jacobian calculation: MPI not enabled'
+        !write(*,'(a)') '*MPIJac* Jacobian calculation: MPI not enabled'
         ParallelJac=0
+
     endif
+
+!    if (OMPParallelPandf1.gt.0) then
+!        if (OMPParallelJac==0) then
+!            call xerrab('Cannot run omp parallel evaluation of pandf1 without running jacobian omp evaluation.')
+!        endif
+!        call InitOMPPandf1()
+!        ParallelPandf1=1
+!    else
+!        ParallelPandf1=0
+!    endif
+
 
 end subroutine InitParallel
 !-------------------------------------------------------------------------------------------------
@@ -49,7 +52,8 @@ subroutine jac_calc_parallel(neq, t, yl, yldot00, ml, mu, wk,nnzmx, jac, ja, ia)
 
 
     Use ParallelSettings,only:OMPParallelJac,MPIParallelJac
-    Use OMPJacSettings,only:iidebugprint,ivdebugprint,DebugJac,ForceSerialCheck,CheckJac,DumpFullJac, DumpJac
+    Use ParallelSettings,only:CheckJac
+    Use ParallelDebug,only: iidebugprint,ivdebugprint,DebugJac,ForceSerialCheck,DumpFullJac,DumpJac
     Use Cdv,only:exmain_aborted
     implicit none
     ! ... Input arguments:
@@ -173,8 +177,8 @@ subroutine jac_calc_parallel(neq, t, yl, yldot00, ml, mu, wk,nnzmx, jac, ja, ia)
 
 end subroutine jac_calc_parallel
 !-------------------------------------------------------------------------------------------------
-    subroutine LocalJacBuilder(ivmin,ivmax,neq, t, yl,yldot00, ml, mu, wk,iJacCol,rJacElem,iJacRow,ith,nnz,nnzmxperthread,nthreads&
-,TimeJacRow)
+subroutine LocalJacBuilder(ivmin,ivmax,neq, t, yl, yldot00,ml, mu,iJacCol,rJacElem,iJacRow,ichunk,nnz,&
+                            nnzmxperchunk,TimeJacRow)
 
     ! ... Calculate Jacobian matrix (derivatives with respect to each
     ! ... Calculate Jacobian matrix (derivatives with respect to each
@@ -195,27 +199,27 @@ end subroutine jac_calc_parallel
     use Model_choice,only:iondenseqn
     use Bcond,only:isextrnpf,isextrtpf,isextrngc,isextrnw,isextrtw
     use Time_dep_nwt,only:nufak,dtreal,ylodt,dtuse,dtphi
-    use OMPJacSettings,only:iidebugprint,ivdebugprint,OMPTimingJacRow
-    use Jacobian_csc,only:yldot_pert
+    use OMPJacSettings,only:OMPTimingJacRow
+    use ParallelDebug, only: iidebugprint,ivdebugprint
+    !use Jacobian_csc,only:yldot_pert
     use Jacaux,only:ExtendedJacPhi
     use omp_lib
 
     implicit none
-    integer,intent(in):: ith,nnzmxperthread,nthreads,ivmin,ivmax,neq
+    integer,intent(in):: ichunk,nnzmxperchunk,ivmin,ivmax,neq
     integer,intent(inout)::nnz
     real,intent(in):: t           ! physical time
     real,intent(inout) ::yl(*)       ! dependent variables
-    integer,intent(inout)::iJacCol(nnzmxperthread),iJacRow(neq)
-    real,intent(inout):: rJacElem(nnzmxperthread)
+    integer,intent(inout)::iJacCol(nnzmxperchunk),iJacRow(neq)
+    real,intent(inout):: rJacElem(nnzmxperchunk)
     real,intent(in) ::yldot00(neq+2) ! right-hand sides evaluated at yl
     integer,intent(in):: ml, mu   ! lower and upper bandwidths
     real,intent(out)::TimeJacRow(neq)
     ! ... Work-array argument:
-    real,intent(inout) :: wk(neq)     ! work space available to this subroutine
-
+    real :: wk(neq)     ! work space available to this subroutine
+    real :: yl_check(neq)     ! work space available to this subroutine
     ! ... Functions:
     logical ::tstguardc
-    real(kind=4) gettime
     !     real(kind=4) ranf
 
     ! ... Local variables:
@@ -229,6 +233,7 @@ end subroutine jac_calc_parallel
 
     ! ... Set beginning and ending indices of right-hand sides that might be
     !     perturbed.
+    external:: xerrab, kaboom
 
     nnz=1
     loopiv: do iv=ivmin,ivmax
@@ -238,9 +243,16 @@ end subroutine jac_calc_parallel
         ii2 = min(iv+ml, neq)
         ! ... Reset range if this is a potential perturbation with isnewpot=1
         !         if (isphion*isnewpot.eq.1 .and. mod(iv,numvar).eq.0) then
-        if (ExtendedJacPhi.gt.0 .and. isphion*isnewpot.eq.1 .and. mod(iv,numvar).eq.0) then
+        if (ExtendedJacPhi.eq.1) then
+        if  (isphion*isnewpot.eq.1 .and. mod(iv,numvar).eq.0) then
             ii1 = max(iv-4*numvar*nx, 1)      ! 3*nx may be excessive
             ii2 = min(iv+4*numvar*nx, neq)    ! 3*nx may be excessive
+        endif
+        else if (ExtendedJacPhi.eq.2) then
+        if(isphion*isnewpot.eq.1) then
+            ii1 = max(iv-4*numvar*nx, 1)      ! 3*nx may be excessive
+            ii2 = min(iv+4*numvar*nx, neq)   ! 3*nx may be excessive
+        endif
         endif
 
         ! ... Reset range if extrapolation boundary conditions are used
@@ -290,7 +302,7 @@ end subroutine jac_calc_parallel
             !jacelem = (wk/(ii) - yldot0(ii)) / (2*dyl)  ! for 2nd order Jac
 
             !Add diagonal 1/dt for nksol
-            ifdiagonal:if (((svrpkg.eq."nksol") .or. (svrpkg.eq."petsc")) .and. iv.eq.ii) then
+            ifdiagonal:if (iv.eq.ii) then
                 if (iseqalg(iv)*(1-isbcwdt).eq.0) then
                     jacelem = jacelem - 1/dtuse(iv)
                 endif
@@ -302,7 +314,7 @@ end subroutine jac_calc_parallel
             endif ifdiagonal
 
             ! ...  Add a pseudo timestep to the diagonal #! if eqn is not algebraic
-            if (svrpkg .ne. "cvode" .and. nufak .gt. 0) then
+            if (nufak .gt. 0) then
                 if (iv.eq.ii .and. yl(neq+1).eq.1) jacelem = jacelem - nufak  !omit .and. iseqalg(iv).eq.0)
             !     .                   jacelem = jacelem - nufak*suscal(iv)/sfscal(iv)
             endif
@@ -316,9 +328,9 @@ end subroutine jac_calc_parallel
             endif debug
 
             storage: if (abs(jacelem*sfscal(iv)) .gt. jaccliplim) then
-                if (nnz .gt. nnzmxperthread) then
-                    write(*,*) 'nnz=',nnz,'nnzmxperthread=',nnzmxperthread
-                    write(*,*) 'ith',ith,'*** jac_calc -- More storage needed for Jacobian. Increase lenpfac or omplenpfac.'
+                if (nnz .gt. nnzmxperchunk) then
+                   write(*,*) 'nnz=',nnz,'nnzmxperchunk=',nnzmxperchunk
+                    write(*,*) 'chunk',ichunk,'*** jac_calc -- More storage needed for Jacobian. Increase omplenpfac.'
                     call xerrab("")
                 endif
                 !              if (rdoff.ne.0.e0) jacelem=jacelem*(1.0e0+ranf()*rdoff)
@@ -328,7 +340,7 @@ end subroutine jac_calc_parallel
             endif storage
 
             check: if (istopjac.gt.0 .and. ii.eq.irstop .and. iv.eq.icstop) then
-                !               yldot_pert(ii) = wk(ii)      ! for diagnostic only
+                !               yl_check(ii) = wk(ii)      ! for diagnostic only
                 if (istopjac == 2) then
                     yl(iv) = yold
                     call pandf1 (xc, yc, iv, neq, t, yl, wk)
@@ -346,28 +358,32 @@ end subroutine jac_calc_parallel
         !         call convsr_vo (xc, yc, yl)  ! was one call to convsr
         !         call convsr_aux (xc, yc, yl)
 
+!        write(*,*) "First pandf1 start"
         call pandf1 (xc, yc, iv, neq, t, yl, wk)
+!        write(*,*) "First pandf1 end"
 
         ! 18   continue
         !...  If this is the last variable before jumping to new cell, reset pandf
 
         reset: if( isjacreset.ge.1) then
-            yldot_pert(1:neq)=wk(1:neq)
+            yl_check(1:neq)=wk(1:neq)
             ! 18   continue
             !...  If this is the last variable before jumping to new cell, reset pandf
             !JG this call to pandf1 can be safely ignored with ijacreset=0 (and save some time...)
             if (mod(iv,numvar).eq.0) then
+!                write(*,*) "Second pandf1 start"
                 call pandf1 (xc, yc, iv, neq, t, yl, wk)
+!                write(*,*) "Second pandf1 end"
             endif
 
-            do ii=1,neq
-                if (yldot_pert(ii).ne.wk(ii)) then
-                    write(*,'(a,i5,e20.12,e20.12)') ' *** wk modified on second call to pandf1 at ii=', ii,yldot_pert(ii),wk(ii)
-                    call xerrab('*** Stop ***')
-                endif
-                if (isnan(yldot_pert(ii))) then
-                    write(*,*) 'NaN at ii=',ii
+            do ii=ii1,ii2
+                if (isnan(yl_check(ii))) then
+                    write(*,*) 'NaN at ii=',ii,'equation #', mod(ii,numvar)+1
                     call xerrab('*** Nan in wk array in jac_calc ***')
+                endif
+                if (yl_check(ii).ne.wk(ii)) then
+                    write(*,'(a,i5,e20.12,e20.12)') ' *** wk modified on second call to pandf1 at ii=', ii,yl_check(ii),wk(ii)
+                    call xerrab('*** Stop ***')
                 endif
 
             enddo
@@ -602,11 +618,12 @@ end subroutine
 
         real function tock(t)
          implicit none
-            real, intent(in) :: t
+            real, intent(inout) :: t
             integer :: now, clock_rate
             call system_clock(now,clock_rate)
 
             tock = real(now)/real(clock_rate)-t
+            t=tock
         end function tock
 
 
