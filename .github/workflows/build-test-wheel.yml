@@ -10,38 +10,82 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.9]
+        python-version: [3.11]
         tests: [fulltests, unittests/D+C, unittests/D_mols, unittests/D_only, unittests/slab_D_only]
     steps:
     - uses: actions/checkout@v4
+
+    - name: Set UBUNTU tags env variables.
+      if: runner.os == 'Linux'
+      run: |
+          # Set "checking" variable to false by default.
+          echo "has_tags=false" >> $GITHUB_ENV
+          # Get your last commit message, not the merge commit.
+          text=$(git log -1 --no-merges --pretty=%B)
+          # Read the commit message into an array split by "#".
+          readarray -d "#" -t commit_message <<< "$text"
+          # Sanity check.
+          echo "the tags are: ${commit_message[1]}"
+          # Add tags and overwrite "checking" variable to true if there are tags.
+          if [[ "${commit_message[1]}" == *"@"*  ]]; then
+            echo "spec_tags=${commit_message[1]}" >> $GITHUB_ENV
+          fi
+
+    - name: Set macOS tags env variables.
+      if: runner.os == 'macOS'
+      run: |
+
+          # Set "checking" variable to false by default.
+          echo "has_tags=false" >> $GITHUB_ENV
+          # Get your last commit message, not the merge commit.
+          text=$(git log -1 --no-merges --pretty=%B)
+          # Read the commit message into an array split by "#".
+          echo $(echo $text|tr -d '\n')
+          commit_args=${text#*#}
+          # Sanity check.
+          echo "the tags are: ${commit_message[1]}"
+          # Add tags and overwrite "checking" variable to true if there are tags.
+          if [[ "${commit_args}" == *"@"*  ]]; then
+            echo "spec_tags=${commit_args}" >> $GITHUB_ENV
+          fi
+
     - name: Set up Python ${{ matrix.python-version }}
+      if: ${{ ! contains(env.spec_tags, '@notest') }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+
     - name: Install pip dependencies
+      if: ${{ ! contains(env.spec_tags, '@notest') }}
       run: |
         python -m pip install --upgrade pip
         python -m pip install forthon>=0.10.7 numpy==1.26.4 h5py
         python -m pip install flake8
         python -m pip install pytest-isolate pytest-xdist
+
     - name: Build UEDGE
+      if: ${{ ! contains(env.spec_tags, '@notest') }}
       run: |
-        python -m pip install .
+        python -m pip install . -C "--build-option=--serial"
+
     - name: Return to pytests branch
+      if: ${{ ! contains(env.spec_tags, '@notest') }}
       uses: actions/checkout@v4
       with:
         ref: pytests-develop
         repository: LLNL/UEDGE 
+
     - name: Test with pytest
+      if: ${{ ! contains(env.spec_tags, '@notest') }}
       run: |
         # Create a clean UEDGE instance for every test
-        pytest --isolate --tb=native pytests/${{ matrix.tests }}
+        pytest --isolate --tb=long pytests/${{ matrix.tests }} -s
 
 
   build_wheels:
     name: Build wheels on ${{ matrix.os }} for Python ${{ matrix.pyver }}
  #   if: github.event_name == 'pull_request'
-    needs: run-all-tests
+#    needs: run-all-tests
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     strategy:
@@ -54,31 +98,64 @@ jobs:
       - name: Checks out repo
         uses: actions/checkout@v4
 
-      - name: Symlink gfortran for x86 macOS
-        if: matrix.os == 'macos-13'
+      - name: Set UBUNTU tags env variables.
+        if: runner.os == 'Linux'
         run: |
-          # make sure gfortran is available
-          ln -s /usr/local/bin/gfortran-13 /usr/local/bin/gfortran
-          gfortran --version
+          # Set "checking" variable to false by default.
+          echo "has_tags=false" >> $GITHUB_ENV
+          # Get your last commit message, not the merge commit.
+          text=$(git log -1 --no-merges --pretty=%B)
+          # Read the commit message into an array split by "#".
+          readarray -d "#" -t commit_message <<< "$text"
+          # Sanity check.
+          echo "the tags are: ${commit_message[1]}"
+          # Add tags and overwrite "checking" variable to true if there are tags.
+          if [[ "${commit_message[1]}" == *"@"*  ]]; then
+            echo "spec_tags=${commit_message[1]}" >> $GITHUB_ENV
+          fi
 
-
-      - name: Symlink gfortran for ARM macOS
-        if: matrix.os == 'macos-14'
+      - name: Set macOS tags env variables.
+        if: runner.os == 'macOS'
         run: |
-          # make sure gfortran is available
-          ln -s /opt/homebrew/bin/gfortran-13 /opt/homebrew/bin/gfortran
-          gfortran --version
+
+          # Set "checking" variable to false by default.
+          echo "has_tags=false" >> $GITHUB_ENV
+          # Get your last commit message, not the merge commit.
+          text=$(git log -1 --no-merges --pretty=%B)
+          # Read the commit message into an array split by "#".
+          echo $(echo $text|tr -d '\n')
+          commit_args=${text#*#}
+          # Sanity check.
+          echo "the tags are: ${commit_message[1]}"
+          # Add tags and overwrite "checking" variable to true if there are tags.
+          if [[ "${commit_args}" == *"@"*  ]]; then
+            echo "spec_tags=${commit_args}" >> $GITHUB_ENV
+          fi
+
+      - name: Set up macOS-specific paths and libraries
+        if: ${{ ((runner.os == 'macOS') && (! contains(env.spec_tags, '@nowheel'))) }}
+        run: |
+            # Symlink the correct gfortran compiler 
+            ln -s $(brew --prefix)/bin/gfortran-13 $(brew --prefix)/bin/gfortran
+            # Install OMP libraries
+            brew install libomp
+            # Link environments to env for later us with cibuildwheel
+            echo "LIBOMPPATH=$(brew --prefix libomp)" >> $GITHUB_ENV
+            echo "LLVMCLANG=$(brew --prefix llvm@15)" >> $GITHUB_ENV
 
       - name: Build wheels
-        if: ${{ !(matrix.os == 'macos-14' && matrix.pyver == 'cp37') }}
+        if: ${{ ! contains(env.spec_tags, '@nowheel') }}
         uses: pypa/cibuildwheel@v2.17.0
         env:
             CIBW_BUILD: ${{matrix.pyver}}-*
             CIBW_SKIP: "pp37-* cp37-* *-win32 *-manylinux_i686"
             CIBW_ARCHS_LINUX: auto
             CIBW_BEFORE_BUILD: pip install numpy 'forthon>=0.10.7' 'build<0.10.0'
+            CC: ${{ env.LLVMCLANG }}/bin/clang
+            LDFLAGS: "-L${{env.LIBOMPPATH }}/lib"
 
       - name: Upload Artifacts
+        if: ${{ ! contains(env.spec_tags, '@nowheel') }}
         uses: actions/upload-artifact@v4
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ matrix.pyver }}-${{ strategy.job-index }}
@@ -86,8 +163,9 @@ jobs:
 
   build_wheels_pypy:
     name: Build PyPy wheels on ${{ matrix.os }} 
+    if: false
 #    if: github.event_name == 'pull_request'
-    needs: run-all-tests
+#    needs: run-all-tests
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     strategy:
@@ -99,20 +177,16 @@ jobs:
       - name: Checks out repo
         uses: actions/checkout@v4
 
-      - name: Symlink gfortran for x86 macOS
-        if: matrix.os == 'macos-13'
+      - name: Set up macOS-specific paths and libraries
+        if: runner.os == 'macOS'
         run: |
-          # make sure gfortran is available
-          ln -s /usr/local/bin/gfortran-13 /usr/local/bin/gfortran
-          gfortran --version
-
-
-      - name: Symlink gfortran for ARM macOS
-        if: matrix.os == 'macos-14'
-        run: |
-          # make sure gfortran is available
-          ln -s /opt/homebrew/bin/gfortran-13 /opt/homebrew/bin/gfortran
-          gfortran --version
+            # Symlink the correct gfortran compiler 
+            ln -s $(brew --prefix)/bin/gfortran-13 $(brew --prefix)/bin/gfortran
+            # Install OMP libraries
+            brew install libomp
+            # Link environments to env for later us with cibuildwheel
+            echo "LIBOMPPATH=$(brew --prefix libomp)" >> $GITHUB_ENV
+            echo "LLVMCLANG=$(brew --prefix llvm@15)" >> $GITHUB_ENV
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.17.0
@@ -120,13 +194,14 @@ jobs:
             CIBW_BUILD: pp*
             CIBW_SKIP: "pp37-* cp37-* *-win32 *-manylinux_i686"
             CIBW_BEFORE_BUILD: pip install numpy 'forthon>=0.10.7' 'build<0.10.0'
+            CC: ${{ env.LLVMCLANG }}/bin/clang
+            LDFLAGS: "-L${{env.LIBOMPPATH }}/lib"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: cibw-wheels-pyp-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
-
 
   build_wheels_cross:
     name: Build Linux cross-wheels
@@ -190,10 +265,9 @@ jobs:
           name: cibw-cross-wheels-pypy-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
 
-
   gather_wheels:
     name: Gather built wheels
-    needs: [build_wheels, build_wheels_pypy]
+    needs: [build_wheels] #, build_wheels_pypy]
 #    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
