@@ -37,6 +37,7 @@ if sys.hexversion >= 0x03000000:
     from .wdfpy import wdf
     from .apipy import api
     from .aphpy import aph
+    from .ppppy import ppp
     from .nclpy import ncl
 else:
     from wdfpy import wdf

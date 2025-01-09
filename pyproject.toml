@@ -73,8 +73,6 @@ script-files = [
     "pyscripts/bas2py",
     "pyscripts/hdf52pdb",
 ]
-#packages = ["uedge"]
-#package-dir = {"" = "pyscripts"}
 
 
 

@@ -13,7 +13,7 @@ from subprocess import call
 from sys import hexversion, argv, platform
 import numpy
 try:
-    from setuptools import Extension, setup, Distribution
+    from setuptools import Extension, setup, Distribution, find_packages
     from setuptools.command.build import build
 except:
     from distutils.core import Extension, setup
@@ -202,22 +202,32 @@ class uedgeClean(build):
             raise SystemExit("Clean failure")
 
 
-setup(name="uedge",
-      ext_modules=[Extension('uedge.uedgeC',
-                             ['uedgeC_Forthon.c',
-                              os.path.join(builddir, 'Forthon.c'),
-                              'com/handlers.c', 'com/vector.c','bbb/exmain.c'],
-                             include_dirs=[builddir, numpy.get_include()],
-                             library_dirs=library_dirs,
-                             libraries=libraries,
-                             define_macros=define_macros,
-                             extra_objects=uedgeobjects,
-                             extra_link_args=FLAGS['CARGS']+['-g','-DFORTHON'] +
-                             fcompiler.extra_link_args,
-                             extra_compile_args=fcompiler.extra_compile_args
-                             )],
-
-      cmdclass={
+setup(  name="uedge",
+        ext_modules= [
+            Extension(
+                'uedge.uedgeC',
+                [   'uedgeC_Forthon.c',
+                    os.path.join(builddir, 'Forthon.c'),
+                    'com/handlers.c', 
+                    'com/vector.c',
+                    'bbb/exmain.c'
+                ],
+                include_dirs = [
+                    builddir, 
+                    numpy.get_include()
+                ],
+                library_dirs=library_dirs,
+                libraries=libraries,
+                define_macros=define_macros,
+                extra_objects=uedgeobjects,
+                extra_link_args=FLAGS['CARGS']+['-g','-DFORTHON'] +
+                fcompiler.extra_link_args,
+                extra_compile_args=fcompiler.extra_compile_args
+            )
+        ],
+        cmdclass={
             'build': uedgeBuild,
-            'clean': uedgeClean},
+            'clean': uedgeClean
+        },
+        package_dir = {'uedge': 'buildscripts'}
 )
