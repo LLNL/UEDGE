@@ -117,12 +117,12 @@ Use(Imslwrk)   # nxdata_api,nydata_api,nzdata
 
 c     Construct 3-dimensional B-spline representation for impurity
 c     emissivity and charge state versus e-temperature, ng/ne and
-c     n*tau (data from POST '93 tables)
+c     n*tau (data from POST 93 tables)
 
 c     Allocate arrays for spline fitting --
-      nxdata_api=nt		# temperature
-      nydata_api=nr		# density ratio
-      nzdata=nn		# n*tau
+      nxdata_api=nt     # temperature
+      nydata_api=nr     # density ratio
+      nzdata=nn         # n*tau
       nwork2 = kyords_api*kzords + 3*max(kxords_api,kyords_api,kzords) + kzords + 2
       nwork3 = nxdata_api*nydata_api*nzdata + 2*max( kxords_api*(nxdata_api+1),
      &           kyords_api*(nydata_api+1), kzords*(nzdata+1) )
