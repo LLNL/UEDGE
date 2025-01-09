@@ -716,8 +716,9 @@ c... Timing of pandf components (added by J. Guterl)
         endif
         if (TimingPandfOn.gt.0) TimePandf=tick()
 c... Roadblockers for  call to pandf through openmp structures (added by J.Guterl)
-      if ((isimpon.gt.0 .and. isimpon.ne.6) .and. (ParallelJac.gt.0 .or. ParallelPandf1.gt.0)) then
-      call xerrab('Only isimpon=0 or 6 is validated with openmp.
+      if ((isimpon.gt.0 .and. ((isimpon.ne.6) .and. (isimpon.ne.2) .and. 
+     .(isimpon.ne.7))) .and. (ParallelJac.gt.0 .or. ParallelPandf1.gt.0)) then
+      call xerrab('Only isimpon=0, 2, 6, or 7 is validated with openmp.
      .Contact the UEDGE team to use other  options with openmp.')
       endif
 
@@ -8681,8 +8682,10 @@ c ... Calculate right-hand sides near location of perturbed variable.
          call pandf1 (xc, yc, iv, neq, t, yl, wk)
 
 c ... Calculate possibly nonzero Jacobian elements for this variable,
-c     and store nonzero elements in compressed sparse column format.
-         jcsc(iv) = nnz      # sets index for first Jac. elem. of var. iv
+c ... and store nonzero elements in compressed sparse column format.
+c ... Note that iv is the row (eqn) index and ii is column (var) index
+
+         jcsc(iv) = nnz      # sets index for first Jac. elem. of eqn iv
          do ii = ii1, ii2
             jacelem = (wk(ii) - yldot00(ii)) / dyl
 ccc            jacelem = (wk(ii) - yldot0(ii)) / (2*dyl)  # for 2nd order Jac
@@ -8703,7 +8706,7 @@ c ...  Add a pseudo timestep to the diagonal ## if eqn is not algebraic
                if (iv.eq.ii .and. yl(neq+1).eq.1) 
      .             jacelem = jacelem - nufak  #omit .and. iseqalg(iv).eq.0)
             endif
-            if (abs(jacelem*sfscal(iv)) .gt. jaccliplim) then
+            if (abs(jacelem*sfscal(ii)) .gt. jaccliplim) then
                if (nnz .gt. nnzmx) then
                   write(STDOUT,*)
      .             '*** jac_calc -- More storage needed for Jacobian.',
@@ -12319,13 +12322,14 @@ c ... Output arguments:
 
       Use(ParallelEval)   # ParallelJac
 
-c!omp  if (ParallelJac.eq.1) then
-c!omp    call jac_calc_parallel (neq, t, yl, yldot00, ml, mu, wk,
-c!omp.             nnzmx, jac, ja, ia)
-c!omp  else
+      write(*,*) "jc_interf, ParallelJac = ", ParallelJac
+      if (ParallelJac.eq.1) then
+         call jac_calc_parallel (neq, t, yl, yldot00, ml, mu, wk,
+     .             nnzmx, jac, ja, ia)
+       else
          call jac_calc (neq, t, yl, yldot00, ml, mu, wk,
      .               nnzmx, jac, ja, ia)
-c!omp  endif
+       endif
        end subroutine jac_calc_interface
 
       subroutine Pandf1rhs_interface(neq, time, yl, yldot)
@@ -12336,11 +12340,11 @@ c ... Interface for pandf1 rhs calculation for nksol only (added by. J.Guterl)
           integer neq
           real time, yl(neqmx),yldot(neq)
 
-c!omp     if (ParallelPandf1.gt.0) then
-c!omp         call OMPPandf1Rhs(neq, time, yl, yldot)
-c!omp     else
+          if (ParallelPandf1.gt.0) then
+              call OMPPandf1Rhs(neq, time, yl, yldot)
+          else
               call pandf1(-1, -1, 0, neq, time, yl, yldot)
-c!omp     endif
+          endif
 
       end subroutine Pandf1rhs_interface
 
