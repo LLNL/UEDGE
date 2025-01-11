@@ -43,11 +43,10 @@ def Petsc(s):
             s=s.replace("cpetsc","")
     return s
 def Omp(s):
-    if getenv("ENV_VAR", 'False').lower() in ('true', '1', 't')
+    if getenv("OMP", 'False').lower() in ('true', '1', 't'):
         if s.startswith("c!omp"):
             s=s.replace("c!omp","     ")
     return s
-
 saved_dec=0
 in_uses=0
 savedlines=[]

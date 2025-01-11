@@ -4,6 +4,7 @@
 #
 import os
 import os.path
+from os import remove, environ
 import string
 import site
 from Forthon.compilers import FCompiler
@@ -167,6 +168,11 @@ class uedgeBuild(build):
             FLAGS['OMPargs'].remove('--omp')
             FLAGS['FARGS'].remove('-fopenmp')
             FLAGS['CARGS'].remove('-fopenmp')
+            # Flag for localrules
+            os.environ["OMP"] = "FALSE"
+        else:
+            # Flag for localrules
+            os.environ["OMP"] = "TRUE"
         # Add boundary checking to non-debug build
         if arglist['checkbounds']:
             FLAGS['FARGSOPT'] = FLAGS['FARGSOPT']  + [
@@ -200,7 +206,6 @@ class uedgeClean(build):
 #        if call(['make', '-f', 'Makefile.'+ "PETSc"*(arglist['petsc']) + "Forthon"*(not arglist['petsc']), 'clean']) != 0:
         if call(['make', '-f', 'Makefile.Forthon', 'clean']) != 0:
             raise SystemExit("Clean failure")
-
 
 setup(  name="uedge",
         ext_modules= [

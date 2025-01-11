@@ -12323,13 +12323,13 @@ c ... Output arguments:
       Use(ParallelEval)   # ParallelJac
 
       write(*,*) "jc_interf, ParallelJac = ", ParallelJac
-      if (ParallelJac.eq.1) then
-         call jac_calc_parallel (neq, t, yl, yldot00, ml, mu, wk,
-     .             nnzmx, jac, ja, ia)
-       else
+c!omp if (ParallelJac.eq.1) then
+c!omp    call jac_calc_parallel (neq, t, yl, yldot00, ml, mu, wk,
+c!omp.             nnzmx, jac, ja, ia)
+c!omp else
          call jac_calc (neq, t, yl, yldot00, ml, mu, wk,
      .               nnzmx, jac, ja, ia)
-       endif
+c!omp  endif
        end subroutine jac_calc_interface
 
       subroutine Pandf1rhs_interface(neq, time, yl, yldot)
@@ -12340,11 +12340,11 @@ c ... Interface for pandf1 rhs calculation for nksol only (added by. J.Guterl)
           integer neq
           real time, yl(neqmx),yldot(neq)
 
-          if (ParallelPandf1.gt.0) then
-              call OMPPandf1Rhs(neq, time, yl, yldot)
-          else
+c!omp     if (ParallelPandf1.gt.0) then
+c!omp         call OMPPandf1Rhs(neq, time, yl, yldot)
+c!omp     else
               call pandf1(-1, -1, 0, neq, time, yl, yldot)
-          endif
+c!omp     endif
 
       end subroutine Pandf1rhs_interface
 
