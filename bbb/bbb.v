@@ -4082,8 +4082,6 @@ OMPTotTimeCollect real /0.0/
 OMPTotTimeJacCalc real /0.0/
 PrintTimingPandf() subroutine
 
-PrintTimingExmain() subroutine
-
 **** CapFloor: # added by J.Guterl
 ngcap(0:nx+1,0:ny+1,1:ngsp)   _real  [m^-3]   +threadprivate #gas density in primary cell (ix,iy) capped to prevent ng->0
 nicap(0:nx+1,0:ny+1,1:nisp)   _real  [m^-3]   +threadprivate #ion density in primary cell (ix,iy) capped to prevent ni->0

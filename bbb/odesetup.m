@@ -366,8 +366,7 @@ c     if necessary.
 
 c...  Init OMP/MPI/Hybrid variables after assignment of nnzmx,
 c...   which is used in InitOMP/InitMPI/InitHybrid (added by  J.Guterl)
-cccTR022224        if (VerboseDebug.gt.0) write(*,*) "--- InitParallel"
-      call InitParallel
+c!omp call InitParallel
 
       if (premeth .eq. 'ilut') then
          lwp = nnzmx + lenplufac*neq   # extra space for fill in
