@@ -1,0 +1,37 @@
+name: Build and test UEDGE - write wheel files if tests pass
+
+
+on: [push, pull_request]
+
+jobs:
+  run-all-tests:
+    name: Builds BASIS UEDGE using Docker
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v4
+    - env:
+         BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
+    - name: Set UBUNTU tags env variables.
+      if: runner.os == 'Linux'
+      run: |
+          # Set "checking" variable to false by default.
+          echo "has_tags=false" >> $GITHUB_ENV
+          # Get your last commit message, not the merge commit.
+          text=$(git log -1 --no-merges --pretty=%B)
+          # Read the commit message into an array split by "#".
+          readarray -d "#" -t commit_message <<< "$text"
+          # Sanity check.
+          echo "the tags are: ${commit_message[1]}"
+          # Add tags and overwrite "checking" variable to true if there are tags.
+          if [[ "${commit_message[1]}" == *"@"*  ]]; then
+            echo "spec_tags=${commit_message[1]}" >> $GITHUB_ENV
+          fi
+    - name: Test with pytest
+      if: ${{ ! contains(env.spec_tags, '@nobasis') }}
+      run: |
+        echo $BRANCH_NAME
+        docker run -it --rm fusionbillm/basisuedge checkout $BRANCH_NAME
+
+
