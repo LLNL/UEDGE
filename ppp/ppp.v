@@ -5,11 +5,11 @@ ppp
 ***** ParallelSettings:
 OMPParallelPandf1 integer /0/      # [0]: serial pandf1 rhs calc [1] omp parallel pandf1 rhs calc
 OMPParallelJac    integer /0/     # [0]: serial jacobian calc [1] omp parallel jacobian calc
-ParallelWarning   integer /1/     # Warning for users who wish to use it
+ParallelWarning   integer /0/     # Warning for users who wish to use it
 CheckJac          integer /0/      # [0/1]: Turn on on-the-fly comparison of parallel vs serial evaluation of Jacobian.
                                   # If differences between para and serial Jacobians, dump both Jacs in serialjac.dat and paralleljac.dat with routine jac_write in current working folder. See UEDGEToolBox docs for analysis tools.
 Nthreads          integer /64/ # Number of threads to be used to calculate the Jacobian
-CheckPandf1       integer /1/      # [0/1]: Turn on on-the-fly comparison of parallel vs serial evaluation of pandf1.
+CheckPandf1       integer /0/      # [0/1]: Turn on on-the-fly comparison of parallel vs serial evaluation of pandf1.
 
 ***** ParallelDebug:
 OMPJacDebug       integer /0/ #Print debug info for omp constructs

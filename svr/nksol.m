@@ -737,6 +737,7 @@ c
       real zero,one,two,three
       logical mxtkn
        Use(Cdv)
+       Use(Svrstatus) # comnfe
 cpetsc      external gettime
 cpetsc      real gettime,sec4
 c+pnb
@@ -1006,6 +1007,7 @@ c     call subroutine f to evaluate f at the initial guess.
 c-----------------------------------------------------------------------
       call f(n, u, savf)
       nfe = nfe + 1
+      comnfe = comnfe + 1
       fnrm = vnormnk(n,savf,sf)
       f1nrm = fnrm*fnrm/two
       if (iprint .ge. 1) write(iunit,400) iter,fnrm,nfe
@@ -1215,6 +1217,7 @@ c-----------------------------------------------------------------------
 c     nks001 common block.
 c-----------------------------------------------------------------------
       real eps, sqteta, rhom
+       Use(Svrstatus) # comnfe
       common /nks001/ eps, rhom, sqteta, locwmp, locimp, iersl, kmp,
      *                mmax, methn, methk, ipflg, mfdif, nfe, nje, nni,
      *                nli,  npe, nps, ncfl, nbcf
@@ -1478,6 +1481,7 @@ c-----------------------------------------------------------------------
 c     nks001 common block.
 c-----------------------------------------------------------------------
       real eps, sqteta, rhom
+       Use(Svrstatus) # comnfe
       common /nks001/ eps, rhom, sqteta, locwmp, locimp, iersl, kmp,
      *                mmax, methn, methk, ipflg, mfdif, nfe, nje, nni,
      *                nli,  npe, nps, ncfl, nbcf
@@ -1601,6 +1605,7 @@ c-----------------------------------------------------------------------
 c     nks001 common block.
 c-----------------------------------------------------------------------
       real eps, sqteta, rhom
+       Use(Svrstatus) # comnfe
       common /nks001/ eps, rhom, sqteta, locwmp, locimp, iersl, kmp,
      *                mmax, methn, methk, ipflg, mfdif, nfe, nje, nni,
      *                nli,  npe, nps, ncfl, nbcf
@@ -1966,6 +1971,7 @@ c-----------------------------------------------------------------------
 c     nks001 common block.
 c-----------------------------------------------------------------------
       real delt, sqteta, rhom
+       Use(Svrstatus) # comnfe
       common /nks001/ delt, rhom, sqteta, locwmp, locimp, iersl, kmp,
      *                mmax, methn, methk, ipflg, mfdif, nfe, nje, nni,
      *                nli,  npe, nps, ncfl, nbcf
@@ -2043,6 +2049,7 @@ c ipflg = 1. apply inverse of right preconditioner
         endif
       call f(n, u, ftem)
       nfe = nfe + 1
+      comnfe = comnfe + 1
 ccc      do 281 i = 1, n                  # Begin 2nd order Jac
 ccc         u(i) = z(i) - sigma*vtem(i)   # change sign of perturbation
 ccc 281  continue
@@ -2640,6 +2647,7 @@ c-----------------------------------------------------------------------
       integer icflag, icnstr, ivio, ivar
       dimension icnstr(n)
       logical mxtkn, dog1, nwttkn
+       Use(Svrstatus) # comnfe
 c-----------------------------------------------------------------------
 c     nks001 common block.
 c-----------------------------------------------------------------------
@@ -2733,6 +2741,7 @@ c----------------------- end of subroutine dogdrv ----------------------
      *          v(n,m), wk(n), wmp(*), iwmp(*), u(*), su(n), sf(n), 
      *          savf(n)
       logical dog1, nwttkn
+       Use(Svrstatus) # comnfe
 c-----------------------------------------------------------------------
 c this is subroutine dogstp, which computes the dogleg step for a
 c given trust region size tau.
@@ -2914,6 +2923,7 @@ c----------------------- end of subroutine dogstp ----------------------
      *                 wk, savf
       dimension u(*), x(n), ynew(m), savf(n), su(n), sf(n),
      *          hes(mmaxp1,m), uprev(n), fprev(n), upls(n), wk(np1)
+       Use(Svrstatus) # comnfe
 c-----------------------------------------------------------------------
 c this is the real version of subroutine trgupd, which determines
 c if the x(tau) returned by dogstp satisfies
@@ -3053,6 +3063,7 @@ c-----------------------------------------------------------------------
  20     continue
       call f (n, u, savf)
       nfe = nfe + 1
+      comnfe = comnfe + 1
       call sswap(n, u, 1, upls, 1)
       fnrmp = vnormnk(n, savf, sf)
       f1pls = pt5*fnrmp*fnrmp
@@ -3214,6 +3225,7 @@ c-----------------------------------------------------------------------
       dimension savf(n),u(*),unew(n),p(n),su(n),sf(n),icnstr(n)
       real pt1,pt1trl,pt99,one,two,alpha,acond,mcond,bcond
       logical mxtkn
+       Use(Svrstatus) # comnfe
 c-----------------------------------------------------------------------
 c     nks001 common block.
 c-----------------------------------------------------------------------
@@ -3284,6 +3296,7 @@ c-----------------------------------------------------------------------
  120    continue
       call f(n, u, savf)
       nfe = nfe + 1
+      comnfe = comnfe + 1
       call sswap(n, u, 1, unew, 1)
       fnrmp = vnormnk(n,savf,sf)
       f1nrmp = fnrmp*fnrmp/two
@@ -3310,6 +3323,7 @@ c alpha-condition satisfied.  now check for beta-condition.
  140          u(i) = unew(i) + rl*p(i)
             call f(n, u, savf)
             nfe = nfe + 1
+            comnfe = comnfe + 1
             call sswap(n, u, 1, unew, 1)
             fnrmp = vnormnk(n,savf,sf)
             f1nrmp = fnrmp*fnrmp/two
@@ -3339,6 +3353,7 @@ c alpha-condition satisfied.  now check for beta-condition.
  160          u(i) = unew(i) + rl*p(i)
             call f(n, u, savf)
             nfe = nfe + 1
+            comnfe = comnfe + 1
             call sswap(n, u, 1, unew, 1)
             fnrmp = vnormnk(n,savf,sf)
             f1nrmp = fnrmp*fnrmp/two
@@ -3369,6 +3384,7 @@ c increment counter on number of steps beta-condition not satisfied.
  170            u(i) = unew(i) + rllo*p(i)
               call f(n, u, savf)
               nfe = nfe + 1
+              comnfe = comnfe + 1
               call sswap(n, u, 1, unew, 1)
               fnrmp = vnormnk(n,savf,sf)
               f1nrmp = fnrmp*fnrmp/two
@@ -3392,6 +3408,7 @@ c copy u into unew, set return code and return.
 c load savf and f1nrmp with current values.
         call f(n, u, savf)
         nfe = nfe + 1
+        comnfe = comnfe + 1
         fnrmp = vnormnk(n,savf,sf)
         f1nrmp = fnrmp*fnrmp/two
         return
@@ -3860,6 +3877,7 @@ c-----------------------------------------------------------------------
       dimension savf(n),u(*),unew(n),p(n),su(n),sf(n),icnstr(n)
       real pt99,one,two
       logical mxtkn
+       Use(Svrstatus) # comnfe
 c-----------------------------------------------------------------------
 c     nks001 common block.
 c-----------------------------------------------------------------------
@@ -3919,6 +3937,7 @@ c
  20     continue
       call f(n, u, savf)
       nfe = nfe + 1
+      comnfe = comnfe + 1
       call sswap(n, u, 1, unew, 1)
       fnrmp = vnormnk(n,savf,sf)
       f1nrmp = fnrmp*fnrmp/two
