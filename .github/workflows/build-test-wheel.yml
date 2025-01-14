@@ -4,9 +4,46 @@ name: Build and test UEDGE - write wheel files if tests pass
 on: [push, pull_request]
 
 jobs:
+
+  check-requests:
+    name: Checks whether tests and/or wheels are requested
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set UBUNTU tags env variables.
+      if: runner.os == 'Linux'
+      run: |
+          # Set "checking" variable to false by default.
+          # Get your last commit message, not the merge commit.
+          text=$(git log -1 --no-merges --pretty=%B)
+          # Read the commit message into an array split by "#".
+          readarray -d "#" -t commit_message <<< "$text"
+          # Sanity check.
+          echo "Tags are: ${commit_message[1]}"
+          # Add tags and overwrite "checking" variable to true if there are tags.
+          if [[ "${commit_message[1]}" == *"@notest"*  ]]; then
+              echo "Seting test flags to FALSE"
+              echo "test=FALSE" >> $GITHUB_OUTPUT
+          else
+              echo "Seting test flags to TRUE"
+              echo "test=TRUE" >> $GITHUB_OUTPUT
+          fi
+          if [[ "${commit_message[1]}" == *"@nowheel"*  ]]; then
+              echo "Seting wheel flags to FALSE"
+              echo "wheel=FALSE" >> $GITHUB_OUTPUT
+          else
+              echo "Seting wheel flags to TRUE"
+              echo "wheel=TRUE" >> $GITHUB_OUTPUT
+          fi
+
+
+
   run-all-tests:
     name: Runs test ${{ matrix.tests }}
     runs-on: ubuntu-latest
+    needs: check-requests
+    if: needs.check-requests.outputs.test != 'TRUE'
     strategy:
       fail-fast: false
       matrix:
@@ -15,48 +52,29 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set UBUNTU tags env variables.
-      if: runner.os == 'Linux'
+    - name: Check branch and define test branch
+      env:
+        BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
       run: |
-          # Set "checking" variable to false by default.
-          echo "has_tags=false" >> $GITHUB_ENV
-          # Get your last commit message, not the merge commit.
-          text=$(git log -1 --no-merges --pretty=%B)
-          # Read the commit message into an array split by "#".
-          readarray -d "#" -t commit_message <<< "$text"
-          # Sanity check.
-          echo "the tags are: ${commit_message[1]}"
-          # Add tags and overwrite "checking" variable to true if there are tags.
-          if [[ "${commit_message[1]}" == *"@"*  ]]; then
-            echo "spec_tags=${commit_message[1]}" >> $GITHUB_ENV
-          fi
+        echo "Branch is:", $BRANCH_NAME
+        if [[ ${BRANCH_NAME} == *"master"* ]]; then
+            echo "testbranch=pytests" >> $GITHUB_ENV
+            echo "Using pytests test branch"
+        else
+            echo "testbranch=pytests-develop" >> $GITHUB_ENV
+            echo "Using pytests-develop test branch"
+        fi
 
-    - name: Set macOS tags env variables.
-      if: runner.os == 'macOS'
+    - name: Echo test branch name
       run: |
-
-          # Set "checking" variable to false by default.
-          echo "has_tags=false" >> $GITHUB_ENV
-          # Get your last commit message, not the merge commit.
-          text=$(git log -1 --no-merges --pretty=%B)
-          # Read the commit message into an array split by "#".
-          echo $(echo $text|tr -d '\n')
-          commit_args=${text#*#}
-          # Sanity check.
-          echo "the tags are: ${commit_message[1]}"
-          # Add tags and overwrite "checking" variable to true if there are tags.
-          if [[ "${commit_args}" == *"@"*  ]]; then
-            echo "spec_tags=${commit_args}" >> $GITHUB_ENV
-          fi
+        echo ${{ env.testbranch }}
 
     - name: Set up Python ${{ matrix.python-version }}
-      if: ${{ ! contains(env.spec_tags, '@notest') }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
 
     - name: Install pip dependencies
-      if: ${{ ! contains(env.spec_tags, '@notest') }}
       run: |
         python -m pip install --upgrade pip
         python -m pip install forthon>=0.10.7 numpy==1.26.4 h5py
@@ -64,19 +82,16 @@ jobs:
         python -m pip install pytest-isolate pytest-xdist
 
     - name: Build UEDGE
-      if: ${{ ! contains(env.spec_tags, '@notest') }}
       run: |
         python -m pip install . -C "--build-option=--serial"
 
-    - name: Return to pytests branch
-      if: ${{ ! contains(env.spec_tags, '@notest') }}
+    - name: Switch to pytests branch
       uses: actions/checkout@v4
       with:
-        ref: pytests-develop
+        ref: ${{ env.testbranch }}
         repository: LLNL/UEDGE 
 
     - name: Test with pytest
-      if: ${{ ! contains(env.spec_tags, '@notest') }}
       run: |
         # Create a clean UEDGE instance for every test
         pytest --isolate --tb=long pytests/${{ matrix.tests }} -s
@@ -84,8 +99,8 @@ jobs:
 
   build_wheels:
     name: Build wheels on ${{ matrix.os }} for Python ${{ matrix.pyver }}
- #   if: github.event_name == 'pull_request'
-#    needs: run-all-tests
+    needs: [run-all-tests, check-requests]
+    if: needs.check-requests.outputs.wheels != 'TRUE'
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     strategy:
@@ -98,42 +113,8 @@ jobs:
       - name: Checks out repo
         uses: actions/checkout@v4
 
-      - name: Set UBUNTU tags env variables.
-        if: runner.os == 'Linux'
-        run: |
-          # Set "checking" variable to false by default.
-          echo "has_tags=false" >> $GITHUB_ENV
-          # Get your last commit message, not the merge commit.
-          text=$(git log -1 --no-merges --pretty=%B)
-          # Read the commit message into an array split by "#".
-          readarray -d "#" -t commit_message <<< "$text"
-          # Sanity check.
-          echo "the tags are: ${commit_message[1]}"
-          # Add tags and overwrite "checking" variable to true if there are tags.
-          if [[ "${commit_message[1]}" == *"@"*  ]]; then
-            echo "spec_tags=${commit_message[1]}" >> $GITHUB_ENV
-          fi
-
-      - name: Set macOS tags env variables.
-        if: runner.os == 'macOS'
-        run: |
-
-          # Set "checking" variable to false by default.
-          echo "has_tags=false" >> $GITHUB_ENV
-          # Get your last commit message, not the merge commit.
-          text=$(git log -1 --no-merges --pretty=%B)
-          # Read the commit message into an array split by "#".
-          echo $(echo $text|tr -d '\n')
-          commit_args=${text#*#}
-          # Sanity check.
-          echo "the tags are: ${commit_message[1]}"
-          # Add tags and overwrite "checking" variable to true if there are tags.
-          if [[ "${commit_args}" == *"@"*  ]]; then
-            echo "spec_tags=${commit_args}" >> $GITHUB_ENV
-          fi
-
       - name: Set up macOS-specific paths and libraries
-        if: ${{ ((runner.os == 'macOS') && (! contains(env.spec_tags, '@nowheel'))) }}
+        if: runner.os == 'macOS'
         run: |
             # Symlink the correct gfortran compiler 
             ln -s $(brew --prefix)/bin/gfortran-13 $(brew --prefix)/bin/gfortran
@@ -144,7 +125,6 @@ jobs:
             echo "LLVMCLANG=$(brew --prefix llvm@15)" >> $GITHUB_ENV
 
       - name: Build wheels
-        if: ${{ ! contains(env.spec_tags, '@nowheel') }}
         uses: pypa/cibuildwheel@v2.17.0
         env:
             CIBW_BUILD: ${{matrix.pyver}}-*
@@ -155,7 +135,6 @@ jobs:
             LDFLAGS: "-L${{env.LIBOMPPATH }}/lib"
 
       - name: Upload Artifacts
-        if: ${{ ! contains(env.spec_tags, '@nowheel') }}
         uses: actions/upload-artifact@v4
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ matrix.pyver }}-${{ strategy.job-index }}
@@ -165,7 +144,7 @@ jobs:
     name: Build PyPy wheels on ${{ matrix.os }} 
     if: false
 #    if: github.event_name == 'pull_request'
-#    needs: run-all-tests
+    needs: run-all-tests
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     strategy:
@@ -206,7 +185,7 @@ jobs:
   build_wheels_cross:
     name: Build Linux cross-wheels
     if: false
-#    needs: run-all-tests
+    needs: run-all-tests
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
@@ -239,7 +218,7 @@ jobs:
   build_wheels_cross_pypy:
     name: Build Linux PyPy cross-wheels
     if: false
-#    needs: run-all-tests
+    needs: run-all-tests
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
