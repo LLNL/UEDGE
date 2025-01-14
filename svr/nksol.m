@@ -1203,8 +1203,8 @@ c                    norm(f) asymptotes from above to a finite value
 c                    in some direction, or stepmx is too small.
 c                    
 c-----------------------------------------------------------------------
-       Use(Cdv)
       implicit none
+       Use(Cdv)
       integer n, iret, iter, itermx, ncscmx, iterm, locwmp, locimp
       integer iersl, kmp, mmax, methn, methk, ipflg, mfdif, nfe, nje
       integer nni, nli, npe, nps, ncfl, nbcf, ipcur, nnipset
@@ -1466,8 +1466,8 @@ c            iersl = 9 means there was a nonrecoverable error in psol
 c                      and the nonlinear iteration is halted.
 c
 c-----------------------------------------------------------------------
-       Use(Cdv)
       implicit none
+       Use(Cdv)
       integer n, lenwm, leniwm, locwmp, locimp, iersl, kmp, mmax
       integer methn, methk, ipflg, mfdif, nfe, nje, nni, nli, npe
       integer nps, ncfl, nbcf, ipcur, nnipset, incpset, ier
@@ -1537,8 +1537,8 @@ c----------------------- end of subroutine model -----------------------
       end
       subroutine solpk (n, wm, lenwm, iwm, leniwm, u, savf, x, su, sf,
      *                  f, jac, psol)
-       Use(Cdv)
       implicit none
+       Use(Cdv)
       integer lenwm, leniwm, locwmp, locimp, iersl, kmp, mmax
       integer methn, methk, ipflg, mfdif, nfe, nje, nni, nli, npe
       integer nps, ncfl, nbcf, iwk, npsl, mmaxp1, ihsv, iq, mgmr
@@ -1913,8 +1913,8 @@ c----------------------- end of subroutine spiom -----------------------
       end
       subroutine atv (n, u, savf, v, su, sf, ftem, f, jac, psol, z,
      *                vtem, wmp, iwmp, ier, npsl)
-       Use(Cdv)
       implicit none
+       Use(Cdv)
       integer iwmp, ier, npsl, locwmp, locimp, iersl, kmp, mmax
       integer methn, methk, ipflg, mfdif, nfe, nje, nni, nli, npe
       integer nps, ncfl, nbcf, i
@@ -2631,8 +2631,8 @@ c                   that was sufficiently distinct from u.  this
 c                   failure causes the nonlinear iteration to halt.
 c
 c-----------------------------------------------------------------------
-       Use(Cdv)
       implicit none
+       Use(Cdv)
       integer n, lenwm, iwm, leniwm, iret, locwmp, locimp, iersl
       integer kmp, mmax, methn, methk, ipflg, mfdif, nfe, nje, nni
       integer nli, npe, nps, ncfl, nbcf, iprint, iunit, iermsg, np1
@@ -2729,8 +2729,8 @@ c----------------------- end of subroutine dogdrv ----------------------
      *                  stepmx, dog1, nwttkn, cpl, gml, n, v, xnew,
      *                  xnewl, wk, wmp, iwmp, u, su, sf, savf, f, jac,
      *                  psol)
-       Use(Cdv)
       implicit none
+       Use(Cdv)
       integer m, mp1, mmaxp1, n, iwmp, locwmp, locimp, iersl, kmp
       integer mmax, methn, methk, ipflg, mfdif, nfe, nje, nni, nli
       integer npe, nps, ncfl, nbcf, i, ier
@@ -2912,8 +2912,8 @@ c----------------------- end of subroutine dogstp ----------------------
      *                   ynew, su, sf, nwttkn, stepmx, beta, hes,
      *                   stptol, mxtkn, tau, uprev, fprev, f1prv, upls, 
      *                   f1pls, wk, ivio, iret, f)
-       Use(Cdv)
       implicit none
+       Use(Cdv)
       integer m, mp1, mmaxp1, n, np1, ivio, iret, locwmp, locimp
       integer iersl, kmp, mmax, methn, methk, ipflg, mfdif, nfe, nje
       integer nni, nli, npe, nps, ncfl, nbcf, i
@@ -3209,8 +3209,8 @@ c            (in common).  this value is incremented by one if
 c            the beta-condition could not be met on this call.
 c
 c-----------------------------------------------------------------------
-       Use(Cdv)
       implicit none
+       Use(Cdv)
       integer n, iret, icflag, icnstr, locwmp, locimp, iersl, kmp
       integer mmax, methn, methk, ipflg, mfdif, nfe, nje, nni, nli
       integer npe, nps, ncfl, nbcf, iprint, iunit, iermsg, i, ivio
@@ -3863,8 +3863,8 @@ c   mxtkn  = logical flag indicating if the step just taken was of
 c            maximum length stepmx.
 c
 c-----------------------------------------------------------------------
-       Use(Cdv)
       implicit none
+       Use(Cdv)
       integer n, iret, icflag, icnstr, locwmp, locimp, iersl, kmp
       integer mmax, methn, methk, ipflg, mfdif, nfe, nje, nni, nli
       integer npe, nps, ncfl, nbcf, iprint, iunit, iermsg, i, ivio, ivar
