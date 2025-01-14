@@ -706,6 +706,3 @@ tanh_multi(i:integer,a:real,j:integer,b:real,fname:string,d:real) subroutine
 # Common flags used by UEDGE
 iprint  integer     /1/     # Flag controlling whether to be verbose or not
 
-***** Svrstatus:
-# Parameters indicating the solver status
-comnfe  integer     /0/     # Number of NK iterations for time-step

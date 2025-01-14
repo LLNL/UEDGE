@@ -604,8 +604,8 @@ subroutine OMPPandf1Rhs(neq,time,yl,yldot)
     use Dim,only:ny
     use Selec, only:yinc,xrinc,xlinc
     Use Grid,only:ijactot
-    Use Svrstatus, only: comnfe
-
+    Use Cdv, only: comnfe
+    
     integer yinc_bkp,xrinc_bkp,xlinc_bkp,iv,tid
     integer,intent(in)::neq
     real,intent(in)::yl(*)

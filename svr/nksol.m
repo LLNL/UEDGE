@@ -737,7 +737,6 @@ c
       real zero,one,two,three
       logical mxtkn
        Use(Cdv)
-       Use(Svrstatus) # comnfe
 cpetsc      external gettime
 cpetsc      real gettime,sec4
 c+pnb
@@ -1204,6 +1203,7 @@ c                    norm(f) asymptotes from above to a finite value
 c                    in some direction, or stepmx is too small.
 c                    
 c-----------------------------------------------------------------------
+       Use(Cdv)
       implicit none
       integer n, iret, iter, itermx, ncscmx, iterm, locwmp, locimp
       integer iersl, kmp, mmax, methn, methk, ipflg, mfdif, nfe, nje
@@ -1217,7 +1217,6 @@ c-----------------------------------------------------------------------
 c     nks001 common block.
 c-----------------------------------------------------------------------
       real eps, sqteta, rhom
-       Use(Svrstatus) # comnfe
       common /nks001/ eps, rhom, sqteta, locwmp, locimp, iersl, kmp,
      *                mmax, methn, methk, ipflg, mfdif, nfe, nje, nni,
      *                nli,  npe, nps, ncfl, nbcf
@@ -1467,6 +1466,7 @@ c            iersl = 9 means there was a nonrecoverable error in psol
 c                      and the nonlinear iteration is halted.
 c
 c-----------------------------------------------------------------------
+       Use(Cdv)
       implicit none
       integer n, lenwm, leniwm, locwmp, locimp, iersl, kmp, mmax
       integer methn, methk, ipflg, mfdif, nfe, nje, nni, nli, npe
@@ -1481,7 +1481,6 @@ c-----------------------------------------------------------------------
 c     nks001 common block.
 c-----------------------------------------------------------------------
       real eps, sqteta, rhom
-       Use(Svrstatus) # comnfe
       common /nks001/ eps, rhom, sqteta, locwmp, locimp, iersl, kmp,
      *                mmax, methn, methk, ipflg, mfdif, nfe, nje, nni,
      *                nli,  npe, nps, ncfl, nbcf
@@ -1538,6 +1537,7 @@ c----------------------- end of subroutine model -----------------------
       end
       subroutine solpk (n, wm, lenwm, iwm, leniwm, u, savf, x, su, sf,
      *                  f, jac, psol)
+       Use(Cdv)
       implicit none
       integer lenwm, leniwm, locwmp, locimp, iersl, kmp, mmax
       integer methn, methk, ipflg, mfdif, nfe, nje, nni, nli, npe
@@ -1605,7 +1605,6 @@ c-----------------------------------------------------------------------
 c     nks001 common block.
 c-----------------------------------------------------------------------
       real eps, sqteta, rhom
-       Use(Svrstatus) # comnfe
       common /nks001/ eps, rhom, sqteta, locwmp, locimp, iersl, kmp,
      *                mmax, methn, methk, ipflg, mfdif, nfe, nje, nni,
      *                nli,  npe, nps, ncfl, nbcf
@@ -1914,6 +1913,7 @@ c----------------------- end of subroutine spiom -----------------------
       end
       subroutine atv (n, u, savf, v, su, sf, ftem, f, jac, psol, z,
      *                vtem, wmp, iwmp, ier, npsl)
+       Use(Cdv)
       implicit none
       integer iwmp, ier, npsl, locwmp, locimp, iersl, kmp, mmax
       integer methn, methk, ipflg, mfdif, nfe, nje, nni, nli, npe
@@ -1971,7 +1971,6 @@ c-----------------------------------------------------------------------
 c     nks001 common block.
 c-----------------------------------------------------------------------
       real delt, sqteta, rhom
-       Use(Svrstatus) # comnfe
       common /nks001/ delt, rhom, sqteta, locwmp, locimp, iersl, kmp,
      *                mmax, methn, methk, ipflg, mfdif, nfe, nje, nni,
      *                nli,  npe, nps, ncfl, nbcf
@@ -2632,6 +2631,7 @@ c                   that was sufficiently distinct from u.  this
 c                   failure causes the nonlinear iteration to halt.
 c
 c-----------------------------------------------------------------------
+       Use(Cdv)
       implicit none
       integer n, lenwm, iwm, leniwm, iret, locwmp, locimp, iersl
       integer kmp, mmax, methn, methk, ipflg, mfdif, nfe, nje, nni
@@ -2647,7 +2647,6 @@ c-----------------------------------------------------------------------
       integer icflag, icnstr, ivio, ivar
       dimension icnstr(n)
       logical mxtkn, dog1, nwttkn
-       Use(Svrstatus) # comnfe
 c-----------------------------------------------------------------------
 c     nks001 common block.
 c-----------------------------------------------------------------------
@@ -2730,6 +2729,7 @@ c----------------------- end of subroutine dogdrv ----------------------
      *                  stepmx, dog1, nwttkn, cpl, gml, n, v, xnew,
      *                  xnewl, wk, wmp, iwmp, u, su, sf, savf, f, jac,
      *                  psol)
+       Use(Cdv)
       implicit none
       integer m, mp1, mmaxp1, n, iwmp, locwmp, locimp, iersl, kmp
       integer mmax, methn, methk, ipflg, mfdif, nfe, nje, nni, nli
@@ -2741,7 +2741,6 @@ c----------------------- end of subroutine dogdrv ----------------------
      *          v(n,m), wk(n), wmp(*), iwmp(*), u(*), su(n), sf(n), 
      *          savf(n)
       logical dog1, nwttkn
-       Use(Svrstatus) # comnfe
 c-----------------------------------------------------------------------
 c this is subroutine dogstp, which computes the dogleg step for a
 c given trust region size tau.
@@ -2913,6 +2912,7 @@ c----------------------- end of subroutine dogstp ----------------------
      *                   ynew, su, sf, nwttkn, stepmx, beta, hes,
      *                   stptol, mxtkn, tau, uprev, fprev, f1prv, upls, 
      *                   f1pls, wk, ivio, iret, f)
+       Use(Cdv)
       implicit none
       integer m, mp1, mmaxp1, n, np1, ivio, iret, locwmp, locimp
       integer iersl, kmp, mmax, methn, methk, ipflg, mfdif, nfe, nje
@@ -2923,7 +2923,6 @@ c----------------------- end of subroutine dogstp ----------------------
      *                 wk, savf
       dimension u(*), x(n), ynew(m), savf(n), su(n), sf(n),
      *          hes(mmaxp1,m), uprev(n), fprev(n), upls(n), wk(np1)
-       Use(Svrstatus) # comnfe
 c-----------------------------------------------------------------------
 c this is the real version of subroutine trgupd, which determines
 c if the x(tau) returned by dogstp satisfies
@@ -3210,6 +3209,7 @@ c            (in common).  this value is incremented by one if
 c            the beta-condition could not be met on this call.
 c
 c-----------------------------------------------------------------------
+       Use(Cdv)
       implicit none
       integer n, iret, icflag, icnstr, locwmp, locimp, iersl, kmp
       integer mmax, methn, methk, ipflg, mfdif, nfe, nje, nni, nli
@@ -3225,7 +3225,6 @@ c-----------------------------------------------------------------------
       dimension savf(n),u(*),unew(n),p(n),su(n),sf(n),icnstr(n)
       real pt1,pt1trl,pt99,one,two,alpha,acond,mcond,bcond
       logical mxtkn
-       Use(Svrstatus) # comnfe
 c-----------------------------------------------------------------------
 c     nks001 common block.
 c-----------------------------------------------------------------------
@@ -3864,6 +3863,7 @@ c   mxtkn  = logical flag indicating if the step just taken was of
 c            maximum length stepmx.
 c
 c-----------------------------------------------------------------------
+       Use(Cdv)
       implicit none
       integer n, iret, icflag, icnstr, locwmp, locimp, iersl, kmp
       integer mmax, methn, methk, ipflg, mfdif, nfe, nje, nni, nli
@@ -3877,7 +3877,6 @@ c-----------------------------------------------------------------------
       dimension savf(n),u(*),unew(n),p(n),su(n),sf(n),icnstr(n)
       real pt99,one,two
       logical mxtkn
-       Use(Svrstatus) # comnfe
 c-----------------------------------------------------------------------
 c     nks001 common block.
 c-----------------------------------------------------------------------
