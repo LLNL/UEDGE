@@ -2208,7 +2208,7 @@ c ... Neutral temperature - test if tg eqn is on, then set BC
               tbound = max(tbound,0.5*temin*ev)
               yldot(iv) = nurlxg*(tbound - tg(ixt,iy,igsp))/(temp0*ev)
             elseif (istglb(igsp) == 2)  #placeholder for gradient BC
-              call xerrab("**INPUT ERROR: istglb=2 grad opt not implemented")
+              call xerrab("**INPUT ERROR: invalid istglb=2 grad opt ")
             elseif (istglb(igsp) == 3)  #Maxwell thermal flux to wall
               t0 = max(cdifg(igsp)*tg(ixt1,iy,igsp), tgmin*ev)
               vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
@@ -2890,7 +2890,7 @@ c ... Neutral temperature - test if tg eqn is on, then set BC
               tbound = max(tbound,0.5*temin*ev)
               yldot(iv) = nurlxg*(tbound - tg(ixt,iy,igsp))/(temp0*ev)
             elseif (istgrb(igsp) == 2)  #placeholder for gradient BC
-              call xerrab("**INPUT ERROR: istgrb=2 grad opt not implemented")
+              call xerrab("**INPUT ERROR: invalid istgrb=2 grad opt")
             elseif (istgrb(igsp) == 3)  #Maxwell thermal flux to wall
               t0 = max(cdifg(igsp)*tg(ixt1,iy,igsp), temin*ev)
               vxn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
