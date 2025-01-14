@@ -3237,6 +3237,7 @@ ifexmain           integer /0/  #scalar to indicate if subroutine allocate
                                 #=0 means it is not.
 exmain_aborted logical /.false./ # Set to .true. in Python version on control-C abort
 iallcall	   integer /0/  #flag to signal first call to allocate
+comnfe  integer     /0/     # Number of NK iterations for time-step
 
 ***** RZ_cell_info:
 # RZ grid-cell center and face locations

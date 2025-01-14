@@ -604,7 +604,8 @@ subroutine OMPPandf1Rhs(neq,time,yl,yldot)
     use Dim,only:ny
     use Selec, only:yinc,xrinc,xlinc
     Use Grid,only:ijactot
-
+    Use Cdv, only: comnfe
+    
     integer yinc_bkp,xrinc_bkp,xlinc_bkp,iv,tid
     integer,intent(in)::neq
     real,intent(in)::yl(*)
@@ -674,30 +675,28 @@ Time1=omp_get_wtime()-Time1
 
 
       if (CheckPandf1.gt.0) then
-          Time2=omp_get_wtime()
-         call pandf1 (-1, -1, 0.0, neq, time, ylcopy, yldotsave)
-         Time2=omp_get_wtime()-Time2
-          OMPTimeSerialPandf1=Time2+OMPTimeSerialPandf1
+        Time2=omp_get_wtime()
+        call pandf1 (-1, -1, 0.0, neq, time, ylcopy, yldotsave)
+        Time2=omp_get_wtime()-Time2
+        OMPTimeSerialPandf1=Time2+OMPTimeSerialPandf1
+        if (OMPPandf1Verbose.gt.0) then
           write(*,*) "Timing Pandf1 serial:",OMPTimeSerialPandf1,"(",Time2,")/parallel:",OMPTimeParallelPandf1,'(',Time1,')'
-          write(*,*) 'ijactot ',ijactot
-          call Compare(yldot,yldotsave,neq)
-          write(*,*) "serial and parallel pandf are identical"
         endif
+        call Compare(yldot,yldotsave,neq)
+        write(*,'(a,i4)') "  Serial and parallel pandf are identical for nfe = ", comnfe
+      endif
   else
        call pandf1 (-1,-1, 0.0, neq, time, yl, yldot)
 endif
 end subroutine OMPPandf1Rhs
 
-module Bins
-contains
-subroutine CreateBin(ieqmin,ieqmax,ichunkmin,ichunkmax,Padding,iCenterBin,iLeftBin,iRightBin,inc)
-    integer,intent(in):: ieqmin, ieqmax,Padding,ichunkmin,ichunkmax
-    integer ::N,SizeBin,i,Nchunk
-    integer,intent(out),allocatable:: iCenterbin(:),inc(:),iLeftBin(:),iRightBin(:)
-!    integer,intent(out):: iCenterbin(Nchunk),inc(Nchunk),iLeftBin(Nchunk),iRightBin(Nchunk)
+subroutine CreateBin(ieqmin,ieqmax,ichunkmin,ichunkmax,ichunktot,Padding,iCenterBin,iLeftBin,iRightBin,inc)
+    implicit none
+    integer,intent(in):: ieqmin, ieqmax,Padding,ichunkmin,ichunkmax, ichunktot
+    integer,intent(out):: iCenterbin(ichunktot),inc(ichunktot),iLeftBin(ichunktot),iRightBin(ichunktot)
+    integer ::N,SizeBin,Nchunk, i
     N=ieqmax-ieqmin+1
     Nchunk=ichunkmax-ichunkmin+1
-    allocate (iCenterbin(Nchunk),inc(Nchunk),iLeftBin(Nchunk),iRightBin(Nchunk))
 
     if (N>Nchunk) then
         SizeBin=int((N/Nchunk))
@@ -724,7 +723,6 @@ subroutine CreateBin(ieqmin,ieqmax,ichunkmin,ichunkmax,Padding,iCenterBin,iLeftB
     return
 
 end subroutine CreateBin
-end module Bins
 
 subroutine MakeChunksPandf1()
     Use Indexes,only: igyl
@@ -733,17 +731,12 @@ subroutine MakeChunksPandf1()
     Nivchunk,Nxchunks,Nychunks,iymaxchunk,ixmaxchunk,iyminchunk,ixminchunk
     use Lsode, only: neq
     use Dim, only:nx,ny
-    use Bins
     implicit none
     integer:: remakechunk,i,ii,ichunk,iv,ix,iy
-    integer,allocatable:: iyCenterBin(:),iyRightBin(:),iyLeftBin(:),incy(:)
-    integer,allocatable:: ixCenterBin(:),ixRightBin(:),ixLeftBin(:),incx(:)
-
-    allocate (iyCenterBin(Nychunks),iyRightBin(Nychunks),iyLeftBin(Nychunks),incy(Nychunks))
-    allocate (ixCenterBin(Nxchunks),ixRightBin(Nxchunks),ixLeftBin(Nxchunks),incx(Nxchunks))
+    integer:: iyCenterBin(Nychunks),iyRightBin(Nychunks),iyLeftBin(Nychunks),incy(Nychunks)
+    integer::ixCenterBin(Nxchunks),ixRightBin(Nxchunks),ixLeftBin(Nxchunks),incx(Nxchunks)
        remakechunk=0
        if ((Nxchunks.ne.Nxchunks_old).or.(Nychunks.ne.Nychunks_old)) then
-
 
        if (Nychunks.gt.1) then
            if (Nychunks.eq.ny) then
@@ -751,23 +744,30 @@ subroutine MakeChunksPandf1()
               iyRightBin(1)=1
               iyCenterBin(1)=1
               incy(1)=ypadding
-              call CreateBin(2,ny-1,2,Nychunks-1,ypadding,iyCenterBin,iyLeftBin,iyRightBin,incy)
+              call CreateBin(   2,ny-1,2,Nychunks-1, Nychunks, ypadding, &
+                                iyCenterBin, iyLeftBin, iyRightBin,&
+                                incy &
+              )
               iyLeftBin(Nychunks)=ny
               iyRightBin(Nychunks)=ny+1
               iyCenterBin(Nychunks)=ny
               incy(Nychunks)=ypadding
-              write(*,*) '----- Bins in y direction: ', Nychunks, ny+2
-              do iy=1,Nychunks
-                write(*,*) iyCenterBin(iy),iyLeftBin(iy),iyRightBin(iy),incy(iy)
-              enddo
+              if (OMPPandf1Verbose.gt.1) then
+                write(*,*) '----- Bins in y direction: ', Nychunks, ny+2
+                do iy=1,Nychunks
+                    write(*,*) iyCenterBin(iy),iyLeftBin(iy),iyRightBin(iy),incy(iy)
+                enddo
+              endif
            else
 
-            call CreateBin(0,ny+1,1,Nychunks,ypadding,iyCenterBin,iyLeftBin,iyRightBin,incy)
+            call CreateBin(0,ny+1,1,Nychunks,Nychunks,ypadding,iyCenterBin,iyLeftBin,iyRightBin,incy)
 
-            write(*,*) '----- Bins in y direction: ', Nychunks, ny+2
-            do iy=1,Nychunks
+            if (OMPPandf1Verbose.gt.1) then
+                write(*,*) '----- Bins in y direction: ', Nychunks, ny+2
+                do iy=1,Nychunks
                     write(*,*) iyCenterBin(iy),iyLeftBin(iy),iyRightBin(iy),incy(iy)
-            enddo
+                enddo
+            endif
 
            ! now we check the first and last bins to check that ypadding is 3 if iyCenterBin=2
            if (iyCenterBin(1)==0) then
@@ -787,7 +787,7 @@ subroutine MakeChunksPandf1()
 
 
        if (Nxchunks.gt.1) then
-           call CreateBin(0,nx+1,1,Nxchunks,xpadding,ixCenterBin,ixLeftBin,ixRightBin,incx)
+           call CreateBin(0,nx+1,1,Nxchunks,Nxchunks,xpadding,ixCenterBin,ixLeftBin,ixRightBin,incx)
        else
            ixCenterBin(1)=-1
            ixLeftBin(1)=0
@@ -865,8 +865,7 @@ subroutine MakeChunksPandf1()
     enddo
     endif
     endif
-
-
+    return
 end subroutine MakeChunksPandf1
 
 !subroutine PrintChunks

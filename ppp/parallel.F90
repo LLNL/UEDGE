@@ -32,15 +32,18 @@ subroutine InitParallel
 
     endif
 
-!    if (OMPParallelPandf1.gt.0) then
-!        if (OMPParallelJac==0) then
-!            call xerrab('Cannot run omp parallel evaluation of pandf1 without running jacobian omp evaluation.')
-!        endif
-!        call InitOMPPandf1()
-!        ParallelPandf1=1
-!    else
-!        ParallelPandf1=0
-!    endif
+    if (OMPParallelPandf1.gt.0) then
+        if (OMPParallelJac==0) then
+            write(*,*) "Parallel Pandf1  requires Parallel Jac: activating..."
+            OMPParallelJac=1
+            call InitOMPJac
+            ParallelJac=1
+        endif
+        call InitOMPPandf1()
+        ParallelPandf1=1
+    else
+        ParallelPandf1=0
+    endif
 
 
 end subroutine InitParallel
