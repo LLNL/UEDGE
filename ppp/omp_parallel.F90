@@ -44,7 +44,9 @@ subroutine InitOMPJac()
         nnzmxperchunk=ceiling(real(nnzmx)/real(NchunksJac))*omplenpfac !nnzmx=neq*lenfac
     endif
 
-    write(*,*) OMPJacStamp,' Nthreads:', Nthreads, 'NchunksJac:',NchunksJac, 'nnzmxperchunk:',nnzmxperchunk,'neq:',neq
+    if (OMPJacVerbose.gt.0) &
+        write(*,"(a,a,i4,a,i6,a,i5,a,i6)") TRIM(OMPJacStamp),' Nthreads:', Nthreads, ' NchunksJac:', &
+                NchunksJac, ' nnzmxperchunk:',nnzmxperchunk,' neq:',neq
     call gchange('OMPJac',0)
 !    if (OMPParallelPandf1.gt.0) then
 !      OMPPandf1FlagVerbose=1
@@ -168,6 +170,7 @@ subroutine jac_calc_omp (neq, t, yl, yldot00, ml, mu, wk,nnzmx, jac, ja, ia)
     use OMPJacSettings,only:OMPJacVerbose,OMPCheckNaN,&
     OMPLoadBalance,OMPAutoBalance,OMPJacStamp,OMPBalanceStrength
     use ParallelDebug,only: WriteJacobian,OMPJacDebug
+    use Flags, only: iprint
 
     use OMPJac,only:iJacCol,rJacElem,iJacRow,OMPivmin,OMPivmax,nnz,nnzcum,OMPLoadWeight,OMPTimeLocalJac
     use UEpar, only: svrpkg
@@ -239,8 +242,10 @@ write(*,'(a,I3,a,I7,I7,f6.2,a,f6.2)') '  * ichunk ', ichunk,':',OMPivmin(ichunk)
     !   Count Jacobian evaluations, both for total and for this case
     ijactot = ijactot + 1
     ijac(ig) = ijac(ig) + 1
-    if (svrpkg.eq.'nksol') write(*,*) ' Updating Jacobian, npe =  ',ijac(ig)
-
+!    if (svrpkg.eq.'nksol') write(*,*) ' Updating Jacobian, npe =  ',ijac(ig)
+    if ((svrpkg.eq.'nksol') .and. (iprint .ne. 0)) &
+        write(*,'(a,i4,a,i6,a,i9)') ' Updating OMP Jacobian [',Nthreads,'|',NchunksJac, &
+            ']: npe = ', ijac(ig)
     !   Set up diagnostic arrays for debugging
     do iv = 1, neq
         yldot_unpt(iv) = yldot00(iv)  ! for diagnostic only
@@ -312,7 +317,11 @@ write(*,'(a,I3,a,I7,I7,f6.2,a,f6.2)') '  * ichunk ', ichunk,':',OMPivmin(ichunk)
 
     if (istimingon .eq. 1) ttjstor = ttjstor + gettime(sec4) - tsjstor
 
-    write(*,'(a,1pe9.2,a,I4,aI6,a)') 'Time in omp jac_calc:',tock(OMPTimeJacCalc),' [',Nthreads,'|',NchunksJac,']'
+!    write(*,'(a,i4,a,i6,a,1pe9.2,a)') '  [Nthreads | NchunkcsJac | OMP time] = [', &
+!       Nthreads,'|',NchunksJac, '|', tock(OMPTimeJacCalc), ']'
+    if ((OMPJacVerbose.gt.0) .and. (iprint .ne. 0)) &
+        write(*,'(a,1pe9.2,a)') '  OMP Jac timing:', tock(OMPTimeJacCalc), 's'
+        
     return
 end subroutine jac_calc_omp
 !-------------------------------------------------------------------------------------------------

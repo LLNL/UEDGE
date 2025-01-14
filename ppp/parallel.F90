@@ -28,7 +28,6 @@ subroutine InitParallel
             ParallelJac=0
         endif
     else
-        write(*,'(a)') '*OMPJac* Jacobian calculation: OMP not enabled'
         ParallelJac=0
 
     endif

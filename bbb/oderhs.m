@@ -12322,7 +12322,6 @@ c ... Output arguments:
 
       Use(ParallelEval)   # ParallelJac
 
-      write(*,*) "jc_interf, ParallelJac = ", ParallelJac
 c!omp if (ParallelJac.eq.1) then
 c!omp    call jac_calc_parallel (neq, t, yl, yldot00, ml, mu, wk,
 c!omp.             nnzmx, jac, ja, ia)
