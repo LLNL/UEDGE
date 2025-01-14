@@ -31,8 +31,8 @@ $(BUILDDIR)/bbbpydep: $(BUILDDIR)/compydep bbb/boundary.F bbb/convert.F bbb/geom
 	$(FORTHON) -a $(INSTALLARGS)  -a $(FCOMP) $(DEBUG) --interfacefile bbb/bbb.v --macros com/com.v $(READLINE) -d com -f bbb/boundary.F bbb bbb/convert.F bbb/geometry.F bbb/griddubl.F bbb/oderhs.F bbb/odesetup.F bbb/odesolve.F bbb/potencur.F bbb/turbulence.F bbb/ext_neutrals.F
 	touch $@
 
-$(BUILDDIR)/ppppydep: $(BUILDDIR)/compydep $(BUILDDIR)/bbbpydep ppp/parallel.F90 ppp/omp_parallel.F90 ppp/mpi_parallel.F90 ppp/debug_parallel.F90 ppp/hybrid_parallel.F90 ppp/ppp.v com/com.v bbb/bbb.v
-	$(FORTHON) -a $(INSTALLARGS)  -a $(FCOMP) $(DEBUG) --interfacefile ppp/ppp.v --macros com/com.v --macros bbb/bbb.v -d com -d bbb -f ppp/parallel.F90 ppp ppp/omp_parallel.F90 ppp/mpi_parallel.F90 ppp/debug_parallel.F90 ppp/hybrid_parallel.F90
+$(BUILDDIR)/ppppydep: $(BUILDDIR)/compydep $(BUILDDIR)/bbbpydep ppp/parallel.F90 ppp/omp_parallel.F90 ppp/debug_parallel.F90 ppp/ppp.v com/com.v bbb/bbb.v
+	$(FORTHON) -a $(INSTALLARGS)  -a $(FCOMP) $(DEBUG) --interfacefile ppp/ppp.v --macros com/com.v --macros bbb/bbb.v -d com -d bbb -f ppp/parallel.F90 ppp ppp/omp_parallel.F90 ppp/debug_parallel.F90 
 	touch $@
 
 $(BUILDDIR)/flxpydep: $(BUILDDIR)/compydep flx/flxcomp.F flx/flxdriv.F flx/flxread.F flx/flxwrit.F flx/flx.v com/com.v

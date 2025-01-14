@@ -4,22 +4,14 @@ subroutine InitOMPJac()
     use OMPJac!,only: nnzmxperchunk,NchunksJac
     Use ParallelSettings,only: OMPParallelPandf1,Nthreads
     !Use OMPPandf1Settings,only: OMPPandf1FlagVerbose,OMPPandf1FirstRun
-    Use MPIJacSettings,only:nnzmxperproc,MPIrank
-    Use HybridSettings,only: HybridOMPMPI,Hybridstamp
     Use Jacobian,only:nnzmx
     Use Lsode, only:neq
 
     implicit none
     integer:: OMP_GET_NUM_THREADS,OMP_GET_THREAD_NUM,OMP_GET_MAX_THREADS
-    character*8 :: MPIRankTag
 #ifndef _OPENMP
      call xerrab("UEDGE was not compiled with OpenMP. Cannot use OMP parallel features.")
 #else
-    ! prepare MPI/Hybrid stamps for output
-    if (HybridOMPMPI>0) then
-        write(MPIRankTag,'(I4)') MPIrank
-        write(OMPJacStamp,'(a,a,a)') '[',trim(adjustl(trim(MPIRankTag))),'] OMPJac* '
-    endif
     if (OMPJacVerbose.gt.1) write(*,*) OMPJacStamp,' Max number of threads available:',OMP_GET_MAX_THREADS()
     call OMP_SET_NUM_THREADS(OMP_GET_MAX_THREADS())
 
@@ -47,17 +39,9 @@ subroutine InitOMPJac()
     endif
  
     if (Nthreads.gt.1) then
-        if (HybridOMPMPI>0) then
-            nnzmxperchunk=ceiling(real(nnzmxperproc)/real(NchunksJac-1)*omplenpfac)
-        else
-            nnzmxperchunk=ceiling(real(nnzmx)/real(NchunksJac))*omplenpfac !nnzmx=neq*lenfac
-        endif
+        nnzmxperchunk=ceiling(real(nnzmx)/real(NchunksJac))*omplenpfac !nnzmx=neq*lenfac
     else
-        if (HybridOMPMPI>0) then
-            nnzmxperchunk=nnzmxperproc
-        else
-            nnzmxperchunk=ceiling(real(nnzmx)/real(NchunksJac))*omplenpfac !nnzmx=neq*lenfac
-        endif
+        nnzmxperchunk=ceiling(real(nnzmx)/real(NchunksJac))*omplenpfac !nnzmx=neq*lenfac
     endif
 
     write(*,*) OMPJacStamp,' Nthreads:', Nthreads, 'NchunksJac:',NchunksJac, 'nnzmxperchunk:',nnzmxperchunk,'neq:',neq

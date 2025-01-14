@@ -1859,7 +1859,6 @@ Use Dim
       Use Reduced_ion_interface ! misotope,natomic
       Use Indices_domain_dcl    ! ixmxbcl
       Use Indices_domain_dcg    ! ndomain
-      Use Npes_mpi             ! mype
       Use RZ_grid_info  		 ! bpol
       Use Interp				 ! ngs, tgs
 integer ix,iy,ifld,ix1
@@ -1978,7 +1977,6 @@ end subroutine compute_electron_vel
 !      Use(Reduced_ion_interface) # misotope,natomic
 !      Use(Indices_domain_dcl)    # ixmxbcl
 !      Use(Indices_domain_dcg)    # ndomain
-!      Use(Npes_mpi)              # mype
 !      Use(RZ_grid_info)  		 # bpol
 !      Use(Interp)				 # ngs, tgs
 !      use ParallelEval,only: ParallelJac,ParallelPandf1

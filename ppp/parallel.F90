@@ -5,13 +5,12 @@
 !-------------------------------------------------------------------------------------------------
 subroutine InitParallel
 
-    Use ParallelSettings,only:OMPParallelJac,MPIParallelJac,OMPParallelPandf1,ParallelWARNING
+    Use ParallelSettings,only:OMPParallelJac,OMPParallelPandf1,ParallelWARNING
     Use ParallelEval,only:ParallelJac,ParallelPandf1
-    Use HybridSettings,only:HybridOMPMPI
     implicit none
 
 
-    if (OMPParallelJac==1 .and. MPIParallelJac==0) then
+    if (OMPParallelJac==1) then
         if (ParallelWARNING.gt.0) then
             write(*,*) "<<< WARNING >>> : You are using openmp routines to evaluate the Jacobian or/and pandf1."
             write(*,*) "<<< WARNING >>> : Read first the documentation about how to use these options."
@@ -30,7 +29,6 @@ subroutine InitParallel
         endif
     else
         write(*,'(a)') '*OMPJac* Jacobian calculation: OMP not enabled'
-        !write(*,'(a)') '*MPIJac* Jacobian calculation: MPI not enabled'
         ParallelJac=0
 
     endif
@@ -51,7 +49,7 @@ end subroutine InitParallel
 subroutine jac_calc_parallel(neq, t, yl, yldot00, ml, mu, wk,nnzmx, jac, ja, ia)
 
 
-    Use ParallelSettings,only:OMPParallelJac,MPIParallelJac
+    Use ParallelSettings,only:OMPParallelJac
     Use ParallelSettings,only:CheckJac
     Use ParallelDebug,only: iidebugprint,ivdebugprint,DebugJac,ForceSerialCheck,DumpFullJac,DumpJac
     Use Cdv,only:exmain_aborted
@@ -77,14 +75,10 @@ subroutine jac_calc_parallel(neq, t, yl, yldot00, ml, mu, wk,nnzmx, jac, ja, ia)
     ! ... Work-array argument:
     real wk(neq)     ! work space available to this subroutine
     if (exmain_aborted) call xerrab('exmain aborted...')
-    if (OMPParallelJac==1 .and. MPIParallelJac==0) then
+    if (OMPParallelJac==1) then
         call jac_calc_omp (neq, t, yl, yldot00, ml, mu, wk,nnzmx, jac, ja, ia)
-    elseif (OMPParallelJac==0 .and. MPIParallelJac==1) then
-        call jac_calc_mpi (neq, t, yl, yldot00, ml, mu, wk,nnzmx, jac, ja, ia)
-    elseif (OMPParallelJac==1 .and. MPIParallelJac==1) then
-        call jac_calc_hybrid (neq, t, yl, yldot00, ml, mu, wk,nnzmx, jac, ja, ia)
     else
-        call xerrab('Cannot call calc_jac_parallel OMP and MPI jac calc are not enabled')
+        call xerrab('Cannot call calc_jac_parallel OMP jac calc is not enabled')
     endif
 
     if (DumpFullJac.gt.0) then
@@ -155,14 +149,10 @@ subroutine jac_calc_parallel(neq, t, yl, yldot00, ml, mu, wk,nnzmx, jac, ja, ia)
            iidebugprint=ja(i)
            ivdebugprint=iv-1
            write(*,*) 'recalculating jacobian to dump debug data for iv=',ivdebugprint,' ii=',iidebugprint
-           if (OMPParallelJac==1 .and. MPIParallelJac==0) then
+           if (OMPParallelJac==1) then
             call jac_calc_omp (neq, t, yl, yldot00, ml, mu, wk,nnzmx, jac, ja, ia)
-           elseif (OMPParallelJac==0 .and. MPIParallelJac==1) then
-            call jac_calc_mpi (neq, t, yl, yldot00, ml, mu, wk,nnzmx, jac, ja, ia)
-           elseif (OMPParallelJac==1 .and. MPIParallelJac==1) then
-            call jac_calc_hybrid (neq, t, yl, yldot00, ml, mu, wk,nnzmx, jac, ja, ia)
            else
-            call xerrab('Cannot call calc_jac_parallel OMP and MPI jac calc are not enabled')
+            call xerrab('Cannot call calc_jac_parallel OMP jac calc is not enabled')
            endif
            call jac_calc (neq, t, yl, yldot00, ml, mu, wk,nnzmx, jaccopy, jacopy, iacopy)
            endif

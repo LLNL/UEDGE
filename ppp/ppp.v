@@ -5,7 +5,6 @@ ppp
 ***** ParallelSettings:
 OMPParallelPandf1 integer /0/      # [0]: serial pandf1 rhs calc [1] omp parallel pandf1 rhs calc
 OMPParallelJac    integer /0/     # [0]: serial jacobian calc [1] omp parallel jacobian calc
-MPIParallelJac    integer /0/     # [0]: serial jacobian calc [1] omp parallel jacobian calc
 ParallelWarning   integer /1/     # Warning for users who wish to use it
 CheckJac          integer /0/      # [0/1]: Turn on on-the-fly comparison of parallel vs serial evaluation of Jacobian.
                                   # If differences between para and serial Jacobians, dump both Jacs in serialjac.dat and paralleljac.dat with routine jac_write in current working folder. See UEDGEToolBox docs for analysis tools.
@@ -90,40 +89,6 @@ ixminchunk(NchunksPandf1)_integer
 
 neq_old integer /0/
 
-***** HybridSettings:
-HybridOMPMPI    integer /0/        # Flag for HybridOMPMPI. Automatically turn on with OMPParallelJac and PMIParallelJac
-HybridDebug integer /0/ #Print debug info for omp constructs
-HybridVerbose integer /1/ #Print info for omp jacobian calculation
-HybridCheckNaN       integer /0/ #Check whether jacobian terms are NaN after jacobian calculation
-HybridStamp       character*20 # Stamp for hybrid output (not an user input)
-
-***** MPIJacSettings:
-MPIRank integer /0/ # Rank of the processor
-ComSize integer /1/ # Size of the common world
-MPIDebug integer /0/ #Print debug info for omp constructs
-MPIVerbose integer /1/ #Print info for omp jacobian calculation
-MPIWriteJacobian     integer /0/ # Write jacobian in an ascii text file
-MPIlenpfac       integer /1/ # Factor to increase nnzmxperchunk
-nnzmxperproc   integer # Maximum number of jacobian elements which can be stored per thread. Can be increased with omplenpfac
-MPIneq  integer # number of equation (=neq)
-Nprocs          integer /64/ # Number of threads to be used to calculate the Jacobian
-MPICheckNaN       integer /0/ # Check whether jacobian terms are NaN after jacobian calculation
-ioutmpi           integer /6/ # Unit for stdout for common mpi write statements
-MPILoadBalance integer /0/ #  User defined weights for each MPI tasks (overrided by MPIAutoBalance)
-MPIAutoBalance integer /1/ # Automatic load balancing for MPI tasks
-MPIBalanceStrength real /1.0/ # Strenght s of the load balance (Loadweight=Loadweight*(tproc/<tproc>)**s)
-MPIStamp          character*20 # Stamp for MPI output (not an user input)
-
-***** MPIJacobian:
-MPIivmin(0:Nprocs-1)   _integer # jacobian rows with ivmin(ithread)<=iv<=ivmax(ithread) are calculated on thread ithread (not an user input)
-MPIivmax(0:Nprocs-1)   _integer # jacobian rows with ivmin(ithread)<=iv<=ivmax(ithread) are calculated on thread ithread (not an user input)
-MPIiJacRow(MPIneq) _integer #
-MPIiJacCol(nnzmxperproc) _integer #
-MPIrJacElem(nnzmxperproc) _real #
-MPILoadWeight(0:Nprocs-1)  _real  # weight for load distribution of jacobian calculation among threads
-MPITimeLocalJac(0:Nprocs-1)  _real  # runtime for jac calculation on each threads. Used to optimize load distribution of jacobian calculation among threads when AutoBalance=1
-
-
 **** OMPTiming:
 DebugTime  integer         /0/    # Display execution times of various subroutines
 ShowTime       integer /1/     # Show execution time of routines
@@ -132,68 +97,6 @@ SerialDebug       integer /0/     # Show execution time of routines
 #OMPTotJacCalc real  /0./ # time to calculate jacobian in jac_calc_omp
 #OMPTotTimeCollect real  /0./ # time to collect jacobian elements in jac_calc_omp
 #OMPTotTimeBuild real  /0./ # time to calculate elements of jacobian in jac_calc_omp
-
-**** MPITiming:
-MPITotTimeCollect real  /0./ # time to collect jacobian elements in jac_calc_mpi/hybrid
-MPITotTimeBuild real  /0./ # time to calculate elements of jacobian in jac_calc_mpi/hybrid
-MPITotJacCalc real  /0./ # time to calculate jacobian in jac_calc_mpi/jac_calc_hybrid
-
-
-
-#TimeSerialPandf real /0.0/
-#TimeParallelPandf real /0.0/
-#TimingParaPandf integer /0/
-#TimingConvert integer /0/
-#TimingParaConvert integer /0/
-#OMPTimePandf real /0.0/
-#OMPPandfVerbose integer /0/
-#RhsEval integer /0/
-#TimeConvert0 real /0/
-#TimeConvert1 real /0/
-#TimeNeudif real /0/
-#TimeBlock1 real /0/
-#TimeBlock2 real /0/
-#TimeBlock3 real /0/
-#TimeBlock4 real /0/
-#TimeBlock5 real /0/
-#TimeBlock6 real /0/
-#TimeBlock7 real /0/
-#TimeBlock8 real /0/
-#TimeBlock9 real /0/
-#TimeBlock10 real /0/
-#TimeBlock11 real /0/
-#TimeBlock12 real /0/
-#TimeBlock13 real /0/
-#TimeBlock14 real /0/
-#TimeBlock15 real /0/
-#TimeBlock16 real /0/
-#TimeConv0 real /0/
-#TimeConv1 real /0/
-#TimeParaConv1 real /0/
-#TimeConv2 real /0/
-#TimeConv3 real /0/
-#TimeConv4 real /0/
-#TimeConv5 real /0/
-#TimeConv6 real /0/
-#TimeParaBlock1 real /0/
-#TimeParaBlock2 real /0/
-#TimeParaBlock3 real /0/
-#TimeParaBlock4 real /0/
-#TimeParaBlock5 real /0/
-#TimeParaBlock6 real /0/
-#TimeParaBlock7 real /0/
-#TimeParaBlock8 real /0/
-#TimeParaBlock9 real /0/
-#TimeParaBlock10 real /0/
-#TimeParaBlock11 real /0/
-#TimeParaBlock12 real /0/
-#TimeParaBlock13 real /0/
-#TimeParalock14 real /0/
-#TimeParaBlock15 real /0/
-#TimeParaBlock16 real /0/
-#TimeCopy0 real /0/
-#TimeCopy1 real /0/
-#TimeCopy2 real /0/
 
 ***** JacDebug:
 EvalDumpJac(FileName:string) subroutine
