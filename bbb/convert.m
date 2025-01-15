@@ -107,7 +107,7 @@ c...  Omit constraint check on x-boundaries for Ti - ckinfl problem
             if(ineudif .ne. 3) then
               yl(iv) = ng(ix,iy,igsp)/n0g(igsp)
             elseif(ineudif .eq. 3) then
-              yl(iv) = lng(ix,iy,igsp)
+              yl(iv) = logng(ix,iy,igsp)
             endif
             rtol(iv) = rtolv(igrid)*bfac
             atol(iv) = cngatol*rtol(iv)*bfac*abs(yl(iv))
@@ -261,7 +261,8 @@ c... Added the following for OMPPandf1rhs call (added by .J.Guterl)
                ne(ix,iy) = ne(ix,iy) + zi(ifld)*ni(ix,iy,ifld)
                if (isupgon(1).eq.1 .and. zi(ifld).eq.0) then
                   ng(ix,iy,1) = ni(ix,iy,ifld)
-                  if (ineudif .eq. 3) lng(ix,iy,1)=log(ng(ix,iy,1))
+                  logng(ix,iy,1)=log(abs(ng(ix,iy,1)))
+                  if (ineudif .eq. 3) logng(ix,iy,1)=log(ng(ix,iy,1))
                else
                   nit(ix,iy) = nit(ix,iy) + ni(ix,iy,ifld)
                   if (isimpon.ge.5 .and. nusp_imp.eq.0) 
@@ -280,6 +281,7 @@ c... Added the following for OMPPandf1rhs call (added by .J.Guterl)
 	    if(isteonxy(ix,iy) .eq. 1) then
                te(ix,iy)=yl(idxte(ix,iy))*ennorm/(1.5*ntemp)
                te(ix,iy) = max(te(ix,iy), temin*ev)  #NEW Feb4,2018
+               logte(ix,iy)=log(abs(te(ix,iy)))
             endif
             do 65 igsp =1, ngsp
 	       if(isngonxy(ix,iy,igsp) .eq. 1) then
@@ -292,9 +294,10 @@ c... Added the following for OMPPandf1rhs call (added by .J.Guterl)
 		     igspneg = igsp
                    endif
                  elseif(ineudif .eq. 3) then
-                   lng(ix,iy,igsp) = yl(idxg(ix,iy,igsp))
-                   ng(ix,iy,igsp) = exp(lng(ix,iy,igsp))
+                   logng(ix,iy,igsp) = yl(idxg(ix,iy,igsp))
+                   ng(ix,iy,igsp) = exp(logng(ix,iy,igsp))
                  endif
+                 logng(ix,iy,igsp)=log(abs(ng(ix,iy,igsp)))
                endif
 	       if(istgonxy(ix,iy,igsp) .eq. 1) then
                  ntemp = ng(ix,iy,igsp)
@@ -303,6 +306,7 @@ c... Added the following for OMPPandf1rhs call (added by .J.Guterl)
      .                                                  (1.5*ntemp)
                  tg(ix,iy,igsp) = max(tg(ix,iy,igsp), tgmin*ev) 
                endif
+               logtg(ix,iy,igsp)=log(abs(tg(ix,iy,igsp)))
  65         continue
             ntemp = nit(ix,iy) + cngtgx(1)*ng(ix,iy,1)
             if(isflxvar .eq. 0) ntemp = nnorm
@@ -515,8 +519,11 @@ c... Added the following for OMPPandf1rhs call (added by .J.Guterl)
          do 12 iy = js, je
             do 11 ix = is, ie
                pri(ix,iy,ifld) = ni(ix,iy,ifld) * ti(ix,iy)
-               if (ifld.eq.iigsp .and. istgon(1).eq.1) pri(ix,iy,ifld) = 
-     .                                     ni(ix,iy,ifld) * tg(ix,iy,1)
+               logpri(ix,iy,ifld) = logni(ix,iy,ifld) + logti(ix,iy)
+               if (ifld.eq.iigsp .and. istgon(1).eq.1) then
+                    pri(ix,iy,ifld) = ni(ix,iy,ifld) * tg(ix,iy,1)
+                    logpri(ix,iy,ifld) = logni(ix,iy,ifld) + logtg(ix,iy,1)
+               endif
                if (zi(ifld).ne.0.) then
                   pr(ix,iy) = pr(ix,iy) + pri(ix,iy,ifld)
                   zeff(ix,iy)=zeff(ix,iy)+zi(ifld)**2*ni(ix,iy,ifld)
@@ -552,6 +559,7 @@ ccc         enddo
      .                       (1-istgcon(igsp))*rtg2ti(igsp)*ti(ix,iy) + 
      .                          istgcon(igsp)*tgas(igsp)*ev
 	       pg(ix,iy,igsp) = ng(ix,iy,igsp)*tg(ix,iy,igsp)
+	       logpg(ix,iy,igsp) = logng(ix,iy,igsp) + logtg(ix,iy,igsp)
            enddo
    15    continue
  16   continue

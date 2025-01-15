@@ -1608,7 +1608,6 @@ c.... If the grid does not change, but restart from saved variables
                       call xerrab("")
                    endif
                    logng(ix,iy,igsp)=LOG(ABS(ng(ix,iy,igsp)))
-                   lng(ix,iy,igsp) = LOG(ng(ix,iy,igsp))
                    tg(ix,iy,igsp) = tgs(ix,iy,igsp)
                    logtg(ix,iy,igsp) = LOG(tg(ix,iy,igsp))
                 enddo
@@ -1777,7 +1776,7 @@ c...  Reset gas density to minimum if too small or negative
                   ng(ix,iy,igsp) = max(ng(ix,iy,igsp),
      .                                 1.0e-01*ngbackg(igsp))
                   if (ineudif .eq. 2) then
-                    lng(ix,iy,igsp) = log(ng(ix,iy,igsp))
+                    logng(ix,iy,igsp) = log(ng(ix,iy,igsp))
                   endif
                endif
              enddo

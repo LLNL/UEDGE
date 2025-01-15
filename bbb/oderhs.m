@@ -5832,16 +5832,16 @@ ccc            MER: Set flag to apply xy flux limit except at target plates
      .                 (ix==ixrb(jx).and.ixmxbcl==1) ) isxyfl = .false.
                enddo
                if (methgx .eq. 6) then  # log interpolation
-               grdnv =(   ( fym (ix,iy,1)*log(ng(ix2,iy1 ,igsp)) +
-     .                      fy0 (ix,iy,1)*log(ng(ix2,iy  ,igsp)) +
-     .                      fyp (ix,iy,1)*log(ng(ix2,iy+1,igsp)) + 
-     .                      fymx(ix,iy,1)*log(ng(ix ,iy1 ,igsp)) +
-     .                      fypx(ix,iy,1)*log(ng(ix, iy+1,igsp)) )
-     .                   -( fym (ix,iy,0)*log(ng(ix ,iy1 ,igsp)) +
-     .                      fy0 (ix,iy,0)*log(ng(ix ,iy  ,igsp)) +
-     .                      fyp (ix,iy,0)*log(ng(ix ,iy+1,igsp)) +
-     .                      fymx(ix,iy,0)*log(ng(ix4,iy1 ,igsp)) + 
-     .                      fypx(ix,iy,0)*log(ng(ix6,iy+1,igsp)) ) )/ 
+               grdnv =(   ( fym (ix,iy,1)*logng(ix2,iy1 ,igsp) +
+     .                      fy0 (ix,iy,1)*logng(ix2,iy  ,igsp) +
+     .                      fyp (ix,iy,1)*logng(ix2,iy+1,igsp) + 
+     .                      fymx(ix,iy,1)*logng(ix ,iy1 ,igsp) +
+     .                      fypx(ix,iy,1)*logng(ix, iy+1,igsp) )
+     .                   -( fym (ix,iy,0)*logng(ix ,iy1 ,igsp) +
+     .                      fy0 (ix,iy,0)*logng(ix ,iy  ,igsp) +
+     .                      fyp (ix,iy,0)*logng(ix ,iy+1,igsp) +
+     .                      fymx(ix,iy,0)*logng(ix4,iy1 ,igsp) + 
+     .                      fypx(ix,iy,0)*logng(ix6,iy+1,igsp) ) )/ 
      .                                                  dxnog(ix,iy)
                elseif (methgx .eq. 7) then  # inverse interpolation
                grdnv =( 1/(fym (ix,iy,1)/ng(ix2,iy1 ,igsp) + 
@@ -5874,9 +5874,9 @@ ccc            MER: Set flag to apply xy flux limit except at target plates
      .                           0.5*(nuiz(ix,iy,igsp)+nuiz(ix2,iy,igsp))
               if (methgx .eq. 6) then
                fngxy(ix,iy,igsp) =  exp( 0.5*
-     .                     (log(ng(ix2,iy,igsp))+log(ng(ix,iy,igsp))) )*
+     .                     (logng(ix2,iy,igsp)+logng(ix,iy,igsp)) )*
      .                               difgx2*(grdnv/cosangfx(ix,iy) -
-     .                     (log(ng(ix2,iy,igsp)) - log(ng(ix,iy,igsp)))*
+     .                     (logng(ix2,iy,igsp) - logng(ix,iy,igsp))*
      .                                 gxf(ix,iy) ) * sx(ix,iy)
               else
                fngxy(ix,iy,igsp) = difgx2*( grdnv/cosangfx(ix,iy) -
@@ -6766,7 +6766,7 @@ c --- which has no non-orthogonal part.
             if (isupgon(igsp) .eq. 1) then
               qtgf = qtgf + rrv(ix,iy)*up(ix,iy,iigsp)*sx(ix,iy)
             endif
-            qsh = csh * (lng(ix,iy,igsp)-lng(ix2,iy,igsp)) + qtgf
+            qsh = csh * (logng(ix,iy,igsp)-logng(ix2,iy,igsp)) + qtgf
             qr = abs(qsh/qfl)
 c...  Because guard-cell values may be distorted from B.C., possibly omit terms on
 c...  boundary face - shouldnt matter(just set BC) except for guard-cell values
@@ -6785,7 +6785,7 @@ c...  the temperature gradient term is included in floxg
 c...  now add the convective velocity for charge-exchange neutrals
          if(igsp .eq. 1) floxg(ix,iy) = 
      .              floxg(ix,iy) + cngflox(1)*sx(ix,iy)*uu(ix,iy,1)
-         floxg(ix,iy) = floxg(ix,iy)*2/(lng(ix,iy,igsp)+lng(ix2,iy,igsp))
+         floxg(ix,iy) = floxg(ix,iy)*2/(logng(ix,iy,igsp)+logng(ix2,iy,igsp))
 
   887    continue
          conxg(nx+1,iy) = 0
@@ -6847,7 +6847,7 @@ c...   Use upwind for "convective" grad T term if methgy .ne. 2
             if(methgy.ne.2) nconv =
      .                         ngy0(ix,iy,igsp)*0.5*(1+sign(1.,qtgf)) +
      .                         ngy1(ix,iy,igsp)*0.5*(1-sign(1.,qtgf))
-            qsh = csh * (lng(ix,iy,igsp)-lng(ix,iy+1,igsp)) + qtgf
+            qsh = csh * (logng(ix,iy,igsp)-logng(ix,iy+1,igsp)) + qtgf
             qr = abs(qsh/qfl)
             if(iy.eq.0 .and. iymnbcl.eq.1) then
                qr = gcfacgy*qr
@@ -6866,7 +6866,7 @@ c...  now add the convective velocity for the charge-exchange species
          if(igsp .eq. 1) floyg(ix,iy) =  
      .             floyg(ix,iy)+cngfloy(1)*sy(ix,iy)*vy(ix,iy,1)
 
-         floyg(ix,iy)=floyg(ix,iy)*2/(lng(ix,iy,igsp)+lng(ix,iy+1,igsp))
+         floyg(ix,iy)=floyg(ix,iy)*2/(logng(ix,iy,igsp)+logng(ix,iy+1,igsp))
   889    continue
   890 continue
 
@@ -6875,7 +6875,7 @@ c...  now add the convective velocity for the charge-exchange species
 *  --------------------------------------------------------------------
 
       call fd2tra (nx,ny,floxg,floyg,conxg,conyg,
-     .             lng(0:nx+1,0:ny+1,igsp),flngx(0:nx+1,0:ny+1,igsp),
+     .             logng(0:nx+1,0:ny+1,igsp),flngx(0:nx+1,0:ny+1,igsp),
      .             flngy(0:nx+1,0:ny+1,igsp),0,methg)
 
 c...  Addition for nonorthogonal mesh
@@ -6896,16 +6896,16 @@ ccc            MER: Set flag to apply xy flux limit except at target plates
                   if ( (ix==ixlb(jx).and.ixmnbcl==1) .or.
      .                 (ix==ixrb(jx).and.ixmxbcl==1) )isxyfl = .false.
                enddo
-               grdnv =( (fym (ix,iy,1)*lng(ix2,iy1 ,igsp) + 
-     .                   fy0 (ix,iy,1)*lng(ix2,iy  ,igsp) +
-     .                   fyp (ix,iy,1)*lng(ix2,iy+1,igsp) + 
-     .                   fymx(ix,iy,1)*lng(ix ,iy1 ,igsp) +
-     .                   fypx(ix,iy,1)*lng(ix, iy+1,igsp))
-     .                - (fym (ix,iy,0)*lng(ix ,iy1 ,igsp) +
-     .                   fy0 (ix,iy,0)*lng(ix ,iy  ,igsp) +
-     .                   fyp (ix,iy,0)*lng(ix ,iy+1,igsp) +
-     .                   fymx(ix,iy,0)*lng(ix4,iy1 ,igsp) + 
-     .                   fypx(ix,iy,0)*lng(ix6,iy+1,igsp)) ) / 
+               grdnv =( (fym (ix,iy,1)*logng(ix2,iy1 ,igsp) + 
+     .                   fy0 (ix,iy,1)*logng(ix2,iy  ,igsp) +
+     .                   fyp (ix,iy,1)*logng(ix2,iy+1,igsp) + 
+     .                   fymx(ix,iy,1)*logng(ix ,iy1 ,igsp) +
+     .                   fypx(ix,iy,1)*logng(ix, iy+1,igsp))
+     .                - (fym (ix,iy,0)*logng(ix ,iy1 ,igsp) +
+     .                   fy0 (ix,iy,0)*logng(ix ,iy  ,igsp) +
+     .                   fyp (ix,iy,0)*logng(ix ,iy+1,igsp) +
+     .                   fymx(ix,iy,0)*logng(ix4,iy1 ,igsp) + 
+     .                   fypx(ix,iy,0)*logng(ix6,iy+1,igsp)) ) / 
      .                                                  dxnog(ix,iy)
 
                difgx2 = ave( tg(ix ,iy,igsp)/nuix(ix ,iy,igsp),
@@ -6914,7 +6914,7 @@ ccc            MER: Set flag to apply xy flux limit except at target plates
      .                           0.5*(nuiz(ix,iy,igsp)+nuiz(ix2,iy,igsp))
 
                flngxy(ix,iy,igsp) = difgx2*(grdnv/cosangfx(ix,iy) -
-     .                             (lng(ix2,iy,igsp) - lng(ix,iy,igsp))*
+     .                             (logng(ix2,iy,igsp) - logng(ix,iy,igsp))*
      .                                 gxf(ix,iy) ) * sx(ix,iy)
 
 c...  Now flux limit with flalfgxy
@@ -6977,14 +6977,14 @@ c.... Calculate the particle flux, fnix,y, from flux of lng, i.e., flngx,y
          do ix = i1, i5
             ix2 = ixp1(ix,iy)
             fngx(ix,iy,igsp) = flngx(ix,iy,igsp) *
-     .                     exp(0.5*(lng(ix,iy,igsp)+lng(ix2,iy,igsp)))
+     .                     exp(0.5*(logng(ix,iy,igsp)+logng(ix2,iy,igsp)))
          enddo
       enddo
 c ...   now do fniy
       do iy = j1, j5    # same loop ranges as for fngy in fd2tra
          do ix = i4, i8
             fngy(ix,iy,igsp) = flngy(ix,iy,igsp) *
-     .                     exp(0.5*(lng(ix,iy,igsp)+lng(ix,iy+1,igsp)))
+     .                     exp(0.5*(logng(ix,iy,igsp)+logng(ix,iy+1,igsp)))
          enddo
       enddo
 
@@ -7340,16 +7340,16 @@ c...  Addition for nonorthogonal mesh
                ix5 = ixm1(ix,iy+1)
                ix6 = ixp1(ix,iy+1) 
                if (methgx .eq. 6) then  # log interpolation
-               grdnv =( exp(fym (ix,iy,1)*log(ng(ix2,iy1 ,igsp)) + 
-     .                      fy0 (ix,iy,1)*log(ng(ix2,iy  ,igsp)) +
-     .                      fyp (ix,iy,1)*log(ng(ix2,iy+1,igsp)) + 
-     .                      fymx(ix,iy,1)*log(ng(ix ,iy1 ,igsp)) +
-     .                      fypx(ix,iy,1)*log(ng(ix, iy+1,igsp)))
-     .                - exp(fym (ix,iy,0)*log(ng(ix ,iy1 ,igsp)) +
-     .                      fy0 (ix,iy,0)*log(ng(ix ,iy  ,igsp)) +
-     .                      fyp (ix,iy,0)*log(ng(ix ,iy+1,igsp)) +
-     .                      fymx(ix,iy,0)*log(ng(ix4,iy1 ,igsp)) + 
-     .                      fypx(ix,iy,0)*log(ng(ix6,iy+1,igsp))) ) / 
+               grdnv =( exp(fym (ix,iy,1)*logng(ix2,iy1 ,igsp) + 
+     .                      fy0 (ix,iy,1)*logng(ix2,iy  ,igsp) +
+     .                      fyp (ix,iy,1)*logng(ix2,iy+1,igsp) + 
+     .                      fymx(ix,iy,1)*logng(ix ,iy1 ,igsp) +
+     .                      fypx(ix,iy,1)*logng(ix, iy+1,igsp) )
+     .                - exp(fym (ix,iy,0)*logng(ix ,iy1 ,igsp) +
+     .                      fy0 (ix,iy,0)*logng(ix ,iy  ,igsp) +
+     .                      fyp (ix,iy,0)*logng(ix ,iy+1,igsp) +
+     .                      fymx(ix,iy,0)*logng(ix4,iy1 ,igsp) + 
+     .                      fypx(ix,iy,0)*logng(ix6,iy+1,igsp)) ) / 
      .                                                  dxnog(ix,iy)
                elseif (methgx .eq. 7) then  # inverse interpolation
                grdnv =( 1/(fym (ix,iy,1)/ng(ix2,iy1 ,igsp) + 

@@ -1643,7 +1643,6 @@ logte(0:nx+1,0:ny+1)       _real  [J]	  +threadprivate #log electron temperature
 logti(0:nx+1,0:ny+1)       _real  [J]	  +threadprivate #log ion temperature in primary cell
 ng(0:nx+1,0:ny+1,1:ngsp)   _real  [m^-3]  +threadprivate #gas density in primary cell (ix,iy)
 logng(0:nx+1,0:ny+1,1:ngsp)   _real  [m^-3]   +threadprivate #log gas density in primary cell (ix,iy)
-lng(0:nx+1,0:ny+1,1:ngsp)  _real  [m^-3]  +threadprivate #log(gas dens) in prim. cell (ix,iy)
 uug(0:nx+1,0:ny+1,1:ngsp)  _real  [m/s]   +threadprivate #ratio gas-flux/density at x-face;
                                             #if orthog mesh, poloidal gas velocity
 uuxg(0:nx+1,0:ny+1,1:ngsp) _real  [m/s]   +threadprivate #poloidal-only component of uug;
