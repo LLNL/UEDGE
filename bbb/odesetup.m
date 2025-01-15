@@ -1588,6 +1588,7 @@ c.... If the grid does not change, but restart from saved variables
              do iy = 0, ny+1
                 do ix = 0, nx+1
                    ni(ix,iy,ifld) = nis(ix,iy,ifld)
+                   logni(ix,iy,ifld) = log(ni(ix,iy,ifld))
                    up(ix,iy,ifld) = ups(ix,iy,ifld)
                    if (nis(ix,iy,ifld) <= 0.) then
                       call remark('*** Error: nis <= 0 ***')
@@ -1606,6 +1607,7 @@ c.... If the grid does not change, but restart from saved variables
                       write (*,*) 'Error at ix=', ix,'  iy=',iy
                       call xerrab("")
                    endif
+                   logng(ix,iy,igsp)=log(abs(ng(ix,iy,igsp)))
                    lng(ix,iy,igsp) = log(ng(ix,iy,igsp))
                    tg(ix,iy,igsp) = tgs(ix,iy,igsp)
                 enddo
