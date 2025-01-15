@@ -95,7 +95,7 @@ number of processes, set
 
 
 The following variables are used to turn on the OMP capabilities for UEDGE:
-  ppp.OmpParallelJac - =1 activates OMP paralellization of the Jacobian
+  ppp.OMPParallelJac - =1 activates OMP paralellization of the Jacobian
   ppp.OMPParallelPandf1 - =1 activates OMP paralellization of the pandf1 routine
 
 Additional information on the OMP evaluation can be displayed by setting
