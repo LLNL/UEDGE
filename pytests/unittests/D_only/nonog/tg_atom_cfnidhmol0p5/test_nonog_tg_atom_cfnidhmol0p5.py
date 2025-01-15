@@ -155,7 +155,10 @@ class TestClass:
                                         failed.append(var)
                             failindex = []
                             for s in range(species):
-                                match, fnrm, reffnrm = matches(f, refs[f'{setupkey}-{s}'], epsilon)
+                                try:
+                                   match, fnrm, reffnrm = matches(f, refs[f'{setupkey}-{s}'], epsilon)
+                                except:
+                                   match, fnrm, reffnrm = matches(f, refs[f'{setupkey}'], epsilon)
                                 if not match:
                                     failindex.append(s)
                             print('   - {} for indices: {}'.format(setupkey, str(failindex)[1:-1]))
