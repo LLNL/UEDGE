@@ -1607,9 +1607,10 @@ c.... If the grid does not change, but restart from saved variables
                       write (*,*) 'Error at ix=', ix,'  iy=',iy
                       call xerrab("")
                    endif
-                   logng(ix,iy,igsp)=log(abs(ng(ix,iy,igsp)))
-                   lng(ix,iy,igsp) = log(ng(ix,iy,igsp))
+                   logng(ix,iy,igsp)=LOG(ABS(ng(ix,iy,igsp)))
+                   lng(ix,iy,igsp) = LOG(ng(ix,iy,igsp))
                    tg(ix,iy,igsp) = tgs(ix,iy,igsp)
+                   logtg(ix,iy,igsp) = LOG(tg(ix,iy,igsp))
                 enddo
                 te(ix,iy)      = tes(ix,iy)
                 logte(ix,iy)   = log(te(ix,iy))
