@@ -868,13 +868,13 @@ c ... Jump to here for domain decomposition
             call s2fill (nx+2, ny+2, 0., fymxv(0:nx+1,0:ny+1,iu), 1, nx+2)
             call s2fill (nx+2, ny+2, 0., fypxv(0:nx+1,0:ny+1,iu), 1, nx+2)
          enddo
-      if (isnonog .ge. 1) then
-         call nonorthg   # Sets dist btwn interp pts as dxnog, dynog
+         if (isnonog .ge. 1) then
+            call nonorthg   # Sets dist btwn interp pts as dxnog, dynog
                          # Also sets nonorth stencils:fx0,fxm,fy0,fym etc
          do ix = 0, nx+1    # Bdry value set: matters little except vygtan
 ccc            gxfn(ix,0) = gxfn(ix,1)
             dxnog(ix,0) = dxnog(ix,1)
-	    dxnog(ix,ny+1) = dxnog(ix,ny)
+            dxnog(ix,ny+1) = dxnog(ix,ny)
          enddo
          do iy = 0, ny+1  # likewise, dxnog(nx+1,) not relevant, but avoid 0
            dxnog(nx+1,iy) = 0.1*dxnog(nx,iy)
@@ -906,10 +906,10 @@ cc      limit dx to avoid large Jacobian terms; test impact by changing
              dx(ix,iy) = max(dx(ix,iy), dxmin)
 cc      for nonorthogonal mesh, dy gets reduced by cosine(average_angle)
             if ((islimon .ne. 0) .and. (ix .eq. ix_lim+1)) then
-               dy(ix,iy) = dy(ix,iy)*cos( angfx(ix,iy) )
+               dy(ix,iy) = dy(ix,iy)*cosangfx(ix,iy) 
             elseif (nxpt==2 .and. ix==ixlb(nxpt)) then  # full double null
 c              Effectively, use angfx(ix-1,iy)=angfx(ix,iy) at left boundaries
-               dy(ix,iy) = dy(ix,iy)*cos( angfx(ix,iy) )
+               dy(ix,iy) = dy(ix,iy)*cosangfx(ix,iy)
             else
                dy(ix,iy) = dy(ix,iy)*cos( 0.5*
      .                          (angfx(ix,iy) + angfx(ixm1(ix,iy),iy)) )
@@ -944,12 +944,12 @@ c              Effectively, use angfx(ix-1,iy)=angfx(ix,iy) at left boundaries
 *     -- 1/gyc is length*cos(angfx) between vertex (ix,iy) and (ix,iy-1)
             dyc = sqrt((rm(ix+nj,iy,4)-rm(ix+nj,iy,2))**2
      .              + (zm(ix+nj,iy,4)-zm(ix+nj,iy,2))**2) *
-     .               cos(angfx(ix,iy))
+     .               cosangfx(ix,iy)
             gyc(ix,iy) = 1/dyc
             dz = 2 * pi * 0.5*(rm(ix+nj,iy,4)+rm(ix+nj,iy,2))
             if (mhdgeo == -1) dz = 1.
             sx(ix,iy) = dyc * dz
-	    sxnp(ix,iy) = sx(ix,iy)/(cos(angfx(ix,iy)))
+	    sxnp(ix,iy) = sx(ix,iy)/(cosangfx(ix,iy))
 ctdr .. Special case - xgbx is used as reduction factor - not related to G.B.
 ccc            if (ix.eq.ixpt1(1) .and. iy.le.iysptrx1(1)) then
 ccc              sx(ix,iy) = xgbx*sx(ix,iy)
@@ -1173,7 +1173,7 @@ c...  Setup the isixcore(ix) array: =1 if ix on iy=0 core bdry; =0 if not
           gradb2(ix,iy) = 0.5*( 1/b(ix+nj,iy,4)**2 +
      .                          1/b(ix+nj,iy,2)**2 )*
      .                    (b(ix+nj,iy,4)-b(ix+nj,iy,2))*gyc(ix,iy)*
-     .                        cos(angfx(ix,iy)) # cos corrects gyc
+     .                        cosangfx(ix,iy) # cos corrects gyc
 ccc          if (iy .ge. ny-1) then
 ccc            curvrby(ix,iy) = 0.
 ccc            gradby(ix,iy) = 0.
@@ -1957,9 +1957,11 @@ c...  Now calculate the angles at the x-faces, angfx
          iym1 = max(0, iy-1)
          do ix = 0, nx+1
             angfx(ix,iy) = 0.5*(vtag(ix,iy)+vtag(ix,iym1))
+            cosangfx(ix,iy) = COS(angfx(ix,iy))
             if (islimon .eq. 1) then
                if (iy.eq.iy_lims) then
                   angfx(ix,iy) = vtag(ix,iy)
+                  cosangfx(ix,iy) = COS(angfx(ix,iy))
                endif
                if (iy .eq. iy_lims-1) then
                   angfx(ix,iy) = vtag(ix,iym1)
@@ -1976,6 +1978,7 @@ c...  cells at ix_lim and ix_lim+1.
       if(redopltvtag == 1) then
        do iy = 0, ny+1
          angfx(0,iy) = 2*angfx(1,iy) - angfx(2,iy)
+         cosangfx(0,iy) = COS(angfx(0,iy))
          vtag(0,iy) = 2*vtag(1,iy) - vtag(2,iy)
          if (nxomit .gt. 0) then
             angfx(0,iy) = angfx(1,iy)
@@ -1983,23 +1986,31 @@ c...  cells at ix_lim and ix_lim+1.
          endif
          if (islimon .ne. 0) then
             angfx(ix_lim-1,iy) = 2*angfx(ix_lim-2,iy)-angfx(ix_lim-3,iy)
+            cosangfx(ix_lim-1,iy) = COS(angfx(ix_lim-1,iy))
             vtag(ix_lim-1,iy) = 2*vtag(ix_lim-2,iy)-vtag(ix_lim-3,iy)
             angfx(ix_lim,iy) = angfx(ix_lim-1,iy)
+            cosangfx(ix_lim,iy) = COS(angfx(ix_lim,iy))
             vtag(ix_lim,iy) = vtag(ix_lim-1,iy)
             angfx(ix_lim+1,iy) = 2*angfx(ix_lim+2,iy)-angfx(ix_lim+3,iy)
+            cosangfx(ix_lim+1,iy) = COS(angfx(ix_lim+1,iy))
             vtag(ix_lim+1,iy) = 2*vtag(ix_lim+2,iy)-vtag(ix_lim+3,iy)
          endif
          if (nxpt==2) then                # full double null
            angfx(ixrb(1),iy) = 2*angfx(ixrb(1)-1,iy) - angfx(ixrb(1)-2,iy)
+           cosangfx(ixrb(1),iy) = COS(angfx(ixrb(1),iy))
            vtag(ixrb(1),iy) = 2*vtag(ixrb(1)-1,iy) - vtag(ixrb(1)-2,iy)
            angfx(ixrb(1)+1,iy) = angfx(ixrb(1),iy)
+           cosangfx(ixrb(1)+1,iy) = COS(angfx(ixrb(1)+1,iy))
            vtag(ixrb(1)+1,iy) = vtag(ixrb(1),iy)
            angfx(ixlb(2),iy) = 2*angfx(ixlb(2)+1,iy) - angfx(ixlb(2)+2,iy)
+           cosangfx(ixlb(2),iy) = COS(angfx(ixlb(2),iy))
            vtag(ixlb(2),iy) = 2*vtag(ixlb(2)+1,iy) - vtag(ixlb(2)+2,iy)
          endif
          angfx(nx,iy) = 2*angfx(nx-1,iy) - angfx(nx-2,iy)
+         cosangfx(nx,iy) = COS(angfx(nx,iy))
          vtag(nx,iy) = 2*vtag(nx-1,iy) - vtag(nx-2,iy)
          angfx(nx+1,iy) = angfx(nx,iy)    # not really used
+         cosangfx(nx+1,iy) = COS(angfx(nx+1,iy))
          vtag(nx+1,iy) = vtag(nx,iy)      # not really used
        enddo
       endif
@@ -2007,7 +2018,9 @@ c...  cells at ix_lim and ix_lim+1.
 c...  Set angfx and vtag in the y-guard cells to adjacent values
       do ix = 0, nx+1
          angfx(ix,0) = angfx(ix,1)
+         cosangfx(ix,0) = COS(angfx(ix,0))
          angfx(ix,ny+1) = angfx(ix,ny)
+         cosangfx(ix,ny+1) = COS(angfx(ix,ny+1))
          vtag(ix,0) = vtag(ix,1)
          vtag(ix,ny+1) = vtag(ix,ny)
       enddo
@@ -2017,13 +2030,19 @@ c...  reset values around x-point - make orthogonal for now
       do jx = 1, nxpt
          if (ixpt1(jx) .gt. 0) then
             angfx(ixpt1(jx),iysptrx1(jx)-1) = 0.
+            cosangfx(ixpt1(jx),iysptrx1(jx)-1) = COS(0.)
             angfx(ixpt1(jx),iysptrx1(jx)  ) = 0.
+            cosangfx(ixpt1(jx),iysptrx1(jx)) = COS(0.)
             angfx(ixpt1(jx),iysptrx1(jx)+1) = 0.
+            cosangfx(ixpt1(jx),iysptrx1(jx)+1) = COS(0.)
          endif
          if (ixpt2(jx) .gt. 0) then
             angfx(ixpt2(jx),iysptrx2(jx)-1) = 0.
+            cosangfx(ixpt2(jx),iysptrx2(jx)-1) = COS(0.)
             angfx(ixpt2(jx),iysptrx2(jx)  ) = 0.
+            cosangfx(ixpt2(jx),iysptrx2(jx)) = COS(0.)
             angfx(ixpt2(jx),iysptrx2(jx)+1) = 0.
+            cosangfx(ixpt2(jx),iysptrx2(jx)+1) = COS(0.)
          endif
       enddo
 
@@ -2031,11 +2050,13 @@ c...  reset values next to cut at ixpt1 or ixpt2 if half-space problem
       if (isfixlb(1).eq.2 .and. ixpt2(1).gt.0) then
          do iy = 0, iysptrx1(1)
             angfx(ixpt2(1),iy) = 0.
+            cosangfx(ixpt2(1),iy) = COS(0.)
           enddo
        endif
        if (isfixrb(1).eq.2 .and. ixpt1(1).gt.0) then
          do iy = 0, iysptrx1(1)
             angfx(ixpt1(1),iy) = 0.
+            cosangfx(ixpt1(1),iy) = COS(0.)
           enddo
        endif
         
@@ -2044,8 +2065,11 @@ c...  reset values for midplane guard cells of double-null configuration
       if ((isudsym==1.or.(geometry.eq.'dnXtarget')) .and. nxc.gt.0) then
          do iy = 0, ny+1
             angfx(nxc-1,iy) = 0.
+            cosangfx(nxc-1,iy) = COS(0.)
             angfx(nxc  ,iy) = 0.
+            cosangfx(nxc,iy) = COS(0.)
             angfx(nxc+1,iy) = 0.
+            cosangfx(nxc+1,iy) = COS(0.)
             vtag(nxc-1,iy) = 0.
             vtag(nxc  ,iy) = 0.
             vtag(nxc+1,iy) = 0.

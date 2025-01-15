@@ -1287,6 +1287,8 @@ qe              real            /1.6022e-19/            #Elementary charge
 mu0             real            /1.25663706e-6/         #Vac. magnetic perm.
 eps0            real            /8.8542e-12/            #Vac. dielectric perm.
 rt8opi          real            /1.595769121606e0/      #sqrt(8/pi)
+log_10          real            /2.302585092994046/     #log(10)
+log10ev          real           /-18.795283272599516/     #log10(ev)
 
 ***** Comtra restart:
 #Variables that contain the transport parameters.
@@ -1593,7 +1595,7 @@ mg(1:ngsp)         _real [kg] /1.67e-27/ #gas species mass, calc. fr minu
 facmg(1:nispmx)        real /nispmx*1./  #scale factor for mg to recov old case
 znucl(1:nisp)              _integer [ ]   #tot. nucl. charge, calc. from znuclin
 ni(0:nx+1,0:ny+1,1:nisp)   _real  [m^-3]  +threadprivate #ion density in primary cell (ix,iy)
-lni(0:nx+1,0:ny+1,1:nisp)  _real  [m^-3]  #log(ion dens) in prim. cell (ix,iy)
+logni(0:nx+1,0:ny+1,1:nisp)   _real  [m^-3]   +threadprivate #log ion density in primary cell (ix,iy)
 nm(0:nx+1,0:ny+1,1:nisp)   _real [kg*m^-3] +threadprivate #mass density [nm(,,1) is sum, exclud.
                                           #gas, if nusp=1, isimpon=5] in cell
 nz2(0:nx+1,0:ny+1)         _real  [m^-3]  +threadprivate #sum of ni*zi**2 over all ion species
@@ -3062,8 +3064,9 @@ ix2g(0:nx+1,0:ny+1)          _integer  #ix index for sec. interm. (ix,iy) pt.
 iy2g(0:nx+1,0:ny+1)          _integer  #iy index for sec. interm. (ixo,iy) pt.
 ixv2g(0:nx+1,0:ny+1)         _integer  #ixv index for sec. interm.(ixvo,iy) pt.
 iyv2g(0:nx+1,0:ny+1)         _integer  #iyv index for sec.interm.(ixvo,iy) pt.
-nis(0:nxold+1,0:nyold+1,1:nisp) _real [m^-3] +state
-                                             #ion dens at last success. calc
+nis(0:nxold+1,0:nyold+1,1:nisp) _real [m^-3] +state          
+                                   #ion dens at last success. calc
+lognis(0:nxold+1,0:nyold+1,1:nisp) _real [m^-3] +restart #log ion dens at last success. calc
 tes(0:nxold+1,0:nyold+1)        _real [J]    #elec. temp at last success. calc
 tis(0:nxold+1,0:nyold+1)        _real [J]    #ion temp at last success. calc
 tgs(0:nxold+1,0:nyold+1,1:ngsp) _real [J]    #gas temp at last success. calc

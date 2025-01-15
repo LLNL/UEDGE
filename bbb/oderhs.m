@@ -1449,7 +1449,7 @@ cc     .                                                    dxnog(ix,iy)
      .                     fypx(ix,iy,0)*log(ni(ix6,iy2,ifld)) ) ) /
      .                                                      dxnog(ix,iy)
             vytan(ix,iy,ifld)=(fcdif*difni(ifld) + dif_use(ix,iy,ifld)) *
-     .                                      (grdnv/cos(angfx(ix,iy)) - 
+     .                                      (grdnv/cosangfx(ix,iy) - 
      .                       (log(ni(ix2,iy,ifld)) - log(ni(ix,iy,ifld)))
      .                                                 * gxf(ix,iy) )
             if (islimon.eq.1.and. ix.eq.ix_lim.and. iy.ge.iy_lims) then
@@ -4345,7 +4345,7 @@ c...  First do the Te equation
      .                         (log(te(ix2,iy)) + log(te(ix,iy))) )* 
      .                               (fcdif*kye+kye_use(ix,iy))*0.5*
      .                                       (ne(ix2,iy)+ne(ix,iy))*
-     .                                     (grdnv/cos(angfx(ix,iy)) - 
+     .                                     (grdnv/cosangfx(ix,iy) - 
      .                         (log(te(ix2,iy)) - log(te(ix,iy)))* 
      .                                         gxf(ix,iy))*sx(ix,iy)
 
@@ -4375,7 +4375,7 @@ c --- a nonorthogonal mesh because of niy1,0 - see def. of hcyn
      .                                     (nit(ix2,iy)+nit(ix,iy))
      .          + cftiexclg*cfneut*cfneutsor_ei*0.25*(hcyn(ix ,iy)+hcyn(ix ,iy1)
      .                              +hcyn(ix2,iy)+hcyn(ix4,iy1)) ) *
-     .                                 (  grdnv/cos(angfx(ix,iy))
+     .                                 (  grdnv/cosangfx(ix,iy)
      .                         - (log(ti(ix2,iy)) - log(ti(ix,iy)))*
      .                                        gxf(ix,iy) )*sx(ix,iy)
 c...  Flux limit with flalftxt even though hcys have parallel FL built in
@@ -5675,7 +5675,7 @@ c.... First the flux in the x-direction
                vygtan(ix,iy,igsp) = exp( 0.5*
      .                     (log(tg(ix2,iy,igsp))+log(tg(ix,iy,igsp))) )*
      .                      ( cngfx(igsp) / (mg(igsp)*0.5*(nu1+nu2)) ) *
-     .                                     ( grdnv/cos(angfx(ix,iy)) - 
+     .                                     ( grdnv/cosangfx(ix,iy) - 
      .                       (log(tg(ix2,iy,igsp)) - log(tg(ix,iy,igsp)))
      .                                                 * gxf(ix,iy) ) 
              if (islimon.eq.1.and. ix.eq.ix_lim.and. iy.ge.iy_lims) then
@@ -5875,11 +5875,11 @@ ccc            MER: Set flag to apply xy flux limit except at target plates
               if (methgx .eq. 6) then
                fngxy(ix,iy,igsp) =  exp( 0.5*
      .                     (log(ng(ix2,iy,igsp))+log(ng(ix,iy,igsp))) )*
-     .                               difgx2*(grdnv/cos(angfx(ix,iy)) -
+     .                               difgx2*(grdnv/cosangfx(ix,iy) -
      .                     (log(ng(ix2,iy,igsp)) - log(ng(ix,iy,igsp)))*
      .                                 gxf(ix,iy) ) * sx(ix,iy)
               else
-               fngxy(ix,iy,igsp) = difgx2*( grdnv/cos(angfx(ix,iy)) -
+               fngxy(ix,iy,igsp) = difgx2*( grdnv/cosangfx(ix,iy) -
      .                             (ng(ix2,iy,igsp) - ng(ix,iy,igsp))*
      .                                 gxf(ix,iy) ) * sx(ix,iy)
               endif
@@ -6173,7 +6173,7 @@ c ..Timing;initialize
                vygtan(ix,iy,igsp) = exp( 0.5*
      .                     (log(tg(ix2,iy,igsp))+log(tg(ix,iy,igsp))) )*
      .                      ( alftng / (mg(igsp)*0.5*(nu1+nu2)) ) *
-     .                                     ( grdnv/cos(angfx(ix,iy)) - 
+     .                                     ( grdnv/cosangfx(ix,iy) - 
      .                       (log(tg(ix2,iy,igsp)) - log(tg(ix,iy,igsp)))
      .                                                 * gxf(ix,iy) ) 
              if (islimon.eq.1.and. ix.eq.ix_lim.and. iy.ge.iy_lims) then
@@ -6414,11 +6414,11 @@ ccc            MER: Set flag to apply xy flux limit except at target plates
               if (methgx .eq. 6) then
                fngxy(ix,iy,igsp) =  exp( 0.5*
      .                     (log(pg(ix2,iy,igsp))+log(pg(ix,iy,igsp))) )*
-     .                               difgx2*(grdnv/cos(angfx(ix,iy)) -
+     .                               difgx2*(grdnv/cosangfx(ix,iy) -
      .                     (log(pg(ix2,iy,igsp)) - log(pg(ix,iy,igsp)))*
      .                                 gxf(ix,iy) ) * sx(ix,iy)
               else
-               fngxy(ix,iy,igsp) = difgx2*(grdnv/cos(angfx(ix,iy)) -
+               fngxy(ix,iy,igsp) = difgx2*(grdnv/cosangfx(ix,iy) -
      .                             (pg(ix2,iy,igsp) - pg(ix,iy,igsp))*
      .                                 gxf(ix,iy) ) * sx(ix,iy)
               endif
@@ -6750,7 +6750,7 @@ c.... First the flux in the x-direction
      .                     (log(tg(ix2,iy,igsp))+log(tg(ix,iy,igsp))) )*
      .                                  ( cngfx(igsp) / (mg(igsp)*0.5*
      .                         (nuix(ix,iy,igsp)+nuix(ix2,iy,igsp))) ) *
-     .                             ( grdnv/cos(angfx(ix,iy)) - 
+     .                             ( grdnv/cosangfx(ix,iy) - 
      .                       (log(tg(ix2,iy,igsp)) - log(tg(ix,iy,igsp)))
      .                                                 * gxf(ix,iy) ) 
                if (islimon.eq.1.and. ix.eq.ix_lim.and. iy.ge.iy_lims) then
@@ -6913,7 +6913,7 @@ ccc            MER: Set flag to apply xy flux limit except at target plates
      .                         + rld2dxg(igsp)**2*(1/gxf(ix,iy)**2)*
      .                           0.5*(nuiz(ix,iy,igsp)+nuiz(ix2,iy,igsp))
 
-               flngxy(ix,iy,igsp) = difgx2*(grdnv/cos(angfx(ix,iy)) -
+               flngxy(ix,iy,igsp) = difgx2*(grdnv/cosangfx(ix,iy) -
      .                             (lng(ix2,iy,igsp) - lng(ix,iy,igsp))*
      .                                 gxf(ix,iy) ) * sx(ix,iy)
 
@@ -7161,7 +7161,7 @@ c     .                 (nuix(ix,iy,igsp)+nuix(ix2,iy,igsp))
                endif
                vygtan(ix,iy,igsp) = ( cngfx(igsp) / (mg(igsp)*0.5*
      .                         (nuix(ix,iy,igsp)+nuix(ix2,iy,igsp))) ) *
-     .                             ( grdnv/cos(angfx(ix,iy)) - 
+     .                             ( grdnv/cosangfx(ix,iy) - 
      .                             (tg(ix2,iy,igsp) - tg(ix,iy,igsp))
      .                                                 * gxf(ix,iy) ) 
                if (islimon.eq.1.and. ix.eq.ix_lim.and. iy.ge.iy_lims) then
@@ -7380,7 +7380,7 @@ c...  Addition for nonorthogonal mesh
      .                       tg(ix2,iy,igsp)/nuix(ix2,iy,igsp) )/mg(igsp)
      .                         + rld2dxg(igsp)**2*(1/gxf(ix,iy)**2)*
      .                           0.5*(nuiz(ix,iy,igsp)+nuiz(ix2,iy,igsp))
-               fngxy(ix,iy,igsp) = difgx2*(grdnv/cos(angfx(ix,iy)) -
+               fngxy(ix,iy,igsp) = difgx2*(grdnv/cosangfx(ix,iy) -
      .                             (ng(ix2,iy,igsp) - ng(ix,iy,igsp))*
      .                                 gxf(ix,iy) ) * sx(ix,iy)
  8904       continue
@@ -7760,7 +7760,7 @@ c --- a nonorthogonal mesh because of ngy1,0 - see def. of hcyn
                fegxy(ix,iy,igsp) = cfegxy*exp( 0.5*
      .                 (log(tg(ix2,iy,igsp))+log(tg(ix,iy,igsp))) )*
      .                      difgx2*ave(ng(ix2,iy,igsp),ng(ix,iy,igsp))*
-     .                                 ( grdnv/cos(angfx(ix,iy))
+     .                                 ( grdnv/cosangfx(ix,iy)
      .                  - (log(tg(ix2,iy,igsp)) - log(tg(ix,iy,igsp)))*
      .                                        gxf(ix,iy) )*sx(ix,iy)
 c...  Flux limit with flalftxt even though hcys have parallel FL built in
@@ -10586,7 +10586,7 @@ c ... First do the divertor plate surfaces
      .                            rm(ixv+nj,iyv,3)-rm(ix+nj,iy,0) )
               dthgy = abs(theta_ray1-theta_ray2)
               frth = min(dthgy, 2*pi-dthgy)/(2*pi)  # frac.; need angle < pi
-              sxo = sx(ixv,iyv)/(cos(angfx(ixv,iyv)))
+              sxo = sx(ixv,iyv)/(cosangfx(ixv,iyv))
               pwr_pltz(iyv,ip) = pwr_pltz(iyv,ip) + 
      .                                 prdu(ix,iy)*vol(ix,iy)*frth/sxo
               pwr_plth(iyv,ip) = pwr_plth(iyv,ip) + (
@@ -10707,8 +10707,8 @@ c  Local variables
         ixi=ixlb(jx)	# ixi=0
         ixo=ixrb(jx)	# ixo=nx
         do iy=1,ny+1
-          sxo(iy,jx) = sx(ixo,iy)/(cos(angfx(ixo,iy)))
-          sxi(iy,jx) = sx(ixi,iy)/(cos(angfx(ixi,iy)))
+          sxo(iy,jx) = sx(ixo,iy)/(cosangfx(ixo,iy))
+          sxi(iy,jx) = sx(ixi,iy)/(cosangfx(ixi,iy))
           do id = 1, nfsp
 	    gdilb(iy,id,jx) = -fnix(ixi,iy,id)/sxi(iy,jx)
 	    gdirb(iy,id,jx) =  fnix(ixo,iy,id)/sxo(iy,jx)
@@ -11969,149 +11969,6 @@ c *** Local variables
 
       return
       end
-c ======================================================================
-c
-      subroutine coneq
-
-c ... This subroutine calculates the fluxes needed for the ion continuity
-c ... equations
-
-      implicit none
-
-*  -- local variables
-      integer methnx,methny,ifld
-      #Former Aux module variables
-      integer ix,iy,igsp,iv,iv1,iv2,iv3,ix2,ix3,ix4,ix5,ix6
-      real t,t0,t1,t2,a
-      Use(Dim)      # nx,ny,nhsp,nisp,ngsp
-      Use(Share)    # nxpt,geometry,nxc,cutlo
-      Use(Xpoint_indices)      # ixpt1,ixpt2,iysptrx
-      Use(UEpar)    # methn,nlimix,nlimiy,nlimiy
-      Use(Coefeq)   # cnfx,cnfy
-      Use(Selec)    # i1,i2,i3,i4,i5,i6,i7,i8,j1,j2,j3,j4,j5,j6,j7,j8
-                    # xlinc,xrinc,yinc,ixm1,ixp1
-      Use(Comgeo)   # vol, gx, gy, sx ,xy
-      Use(Compla)   # mi, zi, ni, uu, up, v2, v2ce, vygtan, mg
-      Use(Comflo)   # flnix,flniy
-      Use(Indices_domain_dcl)   # ixmxbcl
-	  
-c ------------------
-
-      do 104 ifld = 1, nfsp
-*  ---------------------------------------------------------------------
-*     compute flux, residual
-*     The residual is: res := snic + sniv * ni - outflow(ni).
-*  ---------------------------------------------------------------------
-
-*  -- compute flnix, flox, conx --
-
-         methnx = mod(methn, 10)
-         methny = methn/10
-         do 81 iy = j4, j8
-            do 80 ix = i1, i5
-              if (zi(ifld).eq.0. .and. ineudif <= 2) then
-                 flnix(ix,iy,ifld) = fngx(ix,iy,1)
-              else
-               ix2 = ixp1(ix,iy)
-
-               if (methnx .eq. 2) then   # central differencing
-
-                  t2 = ( lni(ix, iy,ifld) + lni(ix2,iy,ifld) ) / 2
-
-               elseif (methnx .eq. 3) then   # upwind differencing
-
-                  if( uu(ix,iy,ifld) .ge. 0.) then
-                     t2 = lni(ix,iy,ifld)
-                  else
-                     t2 = lni(ix2,iy,ifld)
-                  endif
-
-               else   # interp. ave or harmonic ave depending on wind*grad
-
-                  t0 = ( lni(ix, iy,ifld)*gx(ix, iy) +
-     .                   lni(ix2,iy,ifld)*gx(ix2,iy) ) / 
-     .                                      ( gx(ix,iy)+gx(ix2,iy) )
-                  t1 = ( gx(ix,iy)+gx(ix2,iy) ) * lni(ix,iy,ifld) *
-     .                   lni(ix2,iy,ifld) / ( cutlo + lni(ix,iy,ifld)*
-     .                   gx(ix2,iy) + lni(ix2,iy,ifld)*gx(ix,iy) )
-                  if( uu(ix,iy,ifld)*(lni(ix,iy,ifld)-lni(ix2,iy,ifld)) 
-     .                                                     .ge. 0.) then
-                     t2 = t0
-                  else
-                     t2 = t1
-                  endif
-
-               endif
-
-               flnix(ix,iy,ifld) = cnfx*uu(ix,iy,ifld) * sx(ix,iy) * t2
-                  flnix(ix,iy,ifld) = flnix(ix,iy,ifld)/( 1 +
-     .                             (nlimix(ifld)/lni(ix2,iy,ifld))**2 +
-     .                             (nlimix(ifld)/lni(ix ,iy,ifld))**2 )
-               endif
-   80      continue
-           if ((isudsym==1.or.geometry.eq.'dnXtarget') 
-     .                               .and. nxc > 1) flnix(nxc,iy,ifld)=0.
-           if (islimon.ne.0 .and. iy.ge.iy_lims) flnix(ix_lim,iy,ifld)=0.
-           if (nxpt==2.and.ixmxbcl==1) flnix(ixrb(1)+1,iy,ifld)=0.
-   81    continue
-
-
-*  -- compute flniy, floy, cony --
-
-         do 83 iy = j1, j5
-            do 82 ix = i4, i8
-               if (zi(ifld).eq.0.) then
-                  flniy(ix,iy,ifld) = fngy(ix,iy,1)
-               else
-                  if (methny .eq. 2) then   # central differencing
-
-                     t2 = ( niy0(ix,iy,ifld) + niy1(ix,iy,ifld) ) / 2
-
-                  elseif (methny .eq. 3) then    # upwind differencing
-
-                     if( vy(ix,iy,ifld) .ge. 0.) then
-                        t2 = niy0(ix,iy,ifld)
-                     else
-                        t2 = niy1(ix,iy,ifld)
-                     endif
-
-                  else    # interp. ave or harmonic ave depending on wind*grad
-
-                     t0 = ( niy0(ix,iy,ifld)*gy(ix,iy  ) +
-     .                    niy1(ix,iy,ifld)*gy(ix,iy+1) ) / 
-     .                    ( gy(ix,iy)+gy(ix,iy+1) )
-                     t1 = ( gy(ix,iy)+gy(ix,iy+1) ) * niy0(ix,iy,ifld)*
-     .                    niy1(ix,iy,ifld) / ( cutlo + niy0(ix,iy,ifld)*
-     .                    gy(ix,iy+1) + niy1(ix,iy,ifld)*gy(ix,iy) )
-                     if( (niy0(ix,iy,ifld)-niy1(ix,iy,ifld))*
-     .                    vy(ix,iy,ifld) .ge. 0.) then
-                        t2 = t0
-                     else
-                        t2 = t1
-                     endif
-                  
-                  endif
-               
-                  flniy(ix,iy,ifld) = cnfy*vy(ix,iy,ifld)*sy(ix,iy)*t2
-                  if (vy(ix,iy,ifld)*(lni(ix,iy,ifld)-lni(ix,iy+1,ifld))
-     .                                                      .lt. 0.) then
-                     flniy(ix,iy,ifld) = flniy(ix,iy,ifld)/( 1 +
-     .                               (nlimiy(ifld)/lni(ix,iy+1,ifld))**2 +
-     .                               (nlimiy(ifld)/lni(ix,iy  ,ifld))**2 )
-                  endif
-               endif
- 82         continue
- 83      continue
-         
-         do ix = i4, i8
-            flniy(ix,ny+1,ifld) = 0.0e0
-         enddo
-
- 104  continue
-
-      return
-      end
-c ***** End of subroutine coneq **********
 c ======================================================================
 c
       subroutine upvisneo
