@@ -96,7 +96,6 @@ jobs:
         # Create a clean UEDGE instance for every test
         pytest --isolate --tb=long pytests/${{ matrix.tests }} -s
 
-
   build_wheels:
     name: Build wheels on ${{ matrix.os }} for Python ${{ matrix.pyver }}
     needs: [run-all-tests, check-requests]
