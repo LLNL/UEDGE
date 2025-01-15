@@ -79,6 +79,41 @@ The options are passed to the build using the following syntax
 
 where arg1 and/or arg2 are one of the options from the above list.
 
+## Using the OMP parallel version of UEDGE
+The pip-distributed UEDGE packages starting from V8.3 have OMP capabilities.
+
+The following runtime environment variables _must_ be defined before using
+the OMP capabilities to avoid running out of memory on the threads
+
+    ulimit -s unlimited
+    export OMP_STACKSIZE=2G
+
+In case of unexpected crashes, increase OMP_STACKSIZE further. To control the 
+number of processes, set
+
+    export OMP_NUM_THREADS=32
+
+
+The following variables are used to turn on the OMP capabilities for UEDGE:
+  ppp.OmpParallelJac - =1 activates OMP paralellization of the Jacobian
+  ppp.OMPParallelPandf1 - =1 activates OMP paralellization of the pandf1 routine
+
+Additional information on the OMP evaluation can be displayed by setting
+  ppp.ParallelWarning - =1 outputs OMP parallelization information
+  ppp.OMPPandf1Verbose - =[1,2] outputs diagnostics on parallel pandf1 evaluation
+  ppp.OMPPandf1Verbose - =[1,2] outputs diagnostics on parallel pandf1 evaluation
+  ppp.OMPJacVerbose - =[1,2] outputs diagnostics on parallel pandf1 evaluation
+
+The OMP settings are controlled using the variables:
+  ppp.OMPlenpfac - size allocated to each process
+  ppp.OMPJacNchunks - number of chunks Jacobian is split into (defaults to neq)
+  ppp.OMPPandf1Nychunks - number of chunks to decompose domain into (defaults to ny)
+
+Checks on the OMP parallelization for code development testing can be turned
+on using:
+  bbb.isjacreset - checks on subsequent parallel Jacobian (computes Jacobian twice)
+  ppp.CheckJac - =1 compares parallel Jacobian to serial (runs both)
+  ppp.CheckPandf1 - =1 compares parallel pandf1 to serial (runs both)
 
 ## How to get involved and contribute
 Sent email to one of the developers listed below expressing your interest in modifying or developing packages 

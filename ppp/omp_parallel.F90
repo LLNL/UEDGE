@@ -166,7 +166,7 @@ subroutine jac_calc_omp (neq, t, yl, yldot00, ml, mu, wk,nnzmx, jac, ja, ia)
     use Grid,only:ngrid,ig,ijac,ijactot
     use Jacobian_csc,only:rcsc,jcsc,icsc,yldot_pert,yldot_unpt
     use OMPJac,only:NchunksJac,nnzmxperchunk
-    use ParallelSettings,only: Nthreads
+    use ParallelSettings,only: Nthreads, OMPParallelPandf1
     use OMPJacSettings,only:OMPJacVerbose,OMPCheckNaN,&
     OMPLoadBalance,OMPAutoBalance,OMPJacStamp,OMPBalanceStrength
     use ParallelDebug,only: WriteJacobian,OMPJacDebug
@@ -243,9 +243,16 @@ write(*,'(a,I3,a,I7,I7,f6.2,a,f6.2)') '  * ichunk ', ichunk,':',OMPivmin(ichunk)
     ijactot = ijactot + 1
     ijac(ig) = ijac(ig) + 1
 !    if (svrpkg.eq.'nksol') write(*,*) ' Updating Jacobian, npe =  ',ijac(ig)
-    if ((svrpkg.eq.'nksol') .and. (iprint .ne. 0)) &
-        write(*,'(a,i4,a,i6,a,i9)') ' Updating OMP Jacobian [',Nthreads,'|',NchunksJac, &
-            ']: npe = ', ijac(ig)
+    if ((svrpkg.eq.'nksol') .and. (iprint .ne. 0)) then
+        if (OMPParallelPandf1 .eq. 0) then
+            write(*,'(a,i4,a,i6,a,i9)') ' Updating OMP Jacobian [' &
+                    ,Nthreads,'|',NchunksJac, ']: npe = ', ijac(ig)
+        else
+            write(*,'(a,i4,a,i6,a,i9)') &
+                    ' Updating OMP Jacobian using OMP Pandf1 [' &
+                    ,Nthreads,'|',NchunksJac, ']: npe = ', ijac(ig)
+        endif
+    endif
     !   Set up diagnostic arrays for debugging
     do iv = 1, neq
         yldot_unpt(iv) = yldot00(iv)  ! for diagnostic only
