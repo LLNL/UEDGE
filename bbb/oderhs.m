@@ -6371,16 +6371,16 @@ ccc            MER: Set flag to apply xy flux limit except at target plates
      .               (ix==ixrb(jx).and.ixmxbcl==1) ) isxyfl = .false.
                enddo
                if (methgx .eq. 6) then  # log interpolation
-               grdnv =(   ( fym (ix,iy,1)*logpg(ix2,iy1 ,igsp) + 
-     .                      fy0 (ix,iy,1)*logpg(ix2,iy  ,igsp) +
-     .                      fyp (ix,iy,1)*logpg(ix2,iy+1,igsp) + 
-     .                      fymx(ix,iy,1)*logpg(ix ,iy1 ,igsp) +
-     .                      fypx(ix,iy,1)*logpg(ix, iy+1,igsp) )
-     .                   -( fym (ix,iy,0)*logpg(ix ,iy1 ,igsp) +
-     .                      fy0 (ix,iy,0)*logpg(ix ,iy  ,igsp) +
-     .                      fyp (ix,iy,0)*logpg(ix ,iy+1,igsp) +
-     .                      fymx(ix,iy,0)*logpg(ix4,iy1 ,igsp) + 
-     .                      fypx(ix,iy,0)*logpg(ix6,iy+1,igsp) ) )/ 
+               grdnv =(   ( fym (ix,iy,1)*log(pg(ix2,iy1 ,igsp)) + 
+     .                      fy0 (ix,iy,1)*log(pg(ix2,iy  ,igsp)) +
+     .                      fyp (ix,iy,1)*log(pg(ix2,iy+1,igsp)) + 
+     .                      fymx(ix,iy,1)*log(pg(ix ,iy1 ,igsp)) +
+     .                      fypx(ix,iy,1)*log(pg(ix, iy+1,igsp)) )
+     .                   -( fym (ix,iy,0)*log(pg(ix ,iy1 ,igsp)) +
+     .                      fy0 (ix,iy,0)*log(pg(ix ,iy  ,igsp)) +
+     .                      fyp (ix,iy,0)*log(pg(ix ,iy+1,igsp)) +
+     .                      fymx(ix,iy,0)*log(pg(ix4,iy1 ,igsp)) + 
+     .                      fypx(ix,iy,0)*log(pg(ix6,iy+1,igsp)) ) )/ 
      .                                                  dxnog(ix,iy)
                elseif (methgx .eq. 7) then # inverse interpolation
                grdnv =( 1/(fym (ix,iy,1)/pg(ix2,iy1 ,igsp) + 
@@ -6413,9 +6413,9 @@ ccc            MER: Set flag to apply xy flux limit except at target plates
      .                           0.5*(nuiz(ix,iy,igsp)+nuiz(ix2,iy,igsp))
               if (methgx .eq. 6) then
                fngxy(ix,iy,igsp) =  exp( 0.5*
-     .                     (logpg(ix2,iy,igsp)+logpg(ix,iy,igsp)) )*
+     .                     (log(pg(ix2,iy,igsp))+log(pg(ix,iy,igsp))) )*
      .                               difgx2*(grdnv/cosangfx(ix,iy) -
-     .                     (logpg(ix2,iy,igsp) - logpg(ix,iy,igsp))*
+     .                     (log(pg(ix2,iy,igsp)) - log(pg(ix,iy,igsp)))*
      .                                 gxf(ix,iy) ) * sx(ix,iy)
               else
                fngxy(ix,iy,igsp) = difgx2*(grdnv/cosangfx(ix,iy) -
