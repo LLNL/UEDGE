@@ -261,8 +261,7 @@ c... Added the following for OMPPandf1rhs call (added by .J.Guterl)
                ne(ix,iy) = ne(ix,iy) + zi(ifld)*ni(ix,iy,ifld)
                if (isupgon(1).eq.1 .and. zi(ifld).eq.0) then
                   ng(ix,iy,1) = ni(ix,iy,ifld)
-                  logng(ix,iy,1)=log(abs(ng(ix,iy,1)))
-                  if (ineudif .eq. 3) logng(ix,iy,1)=log(ng(ix,iy,1))
+                  if (ineudif .eq. 3) logng(ix,iy,1)=LOG(ng(ix,iy,1))
                else
                   nit(ix,iy) = nit(ix,iy) + ni(ix,iy,ifld)
                   if (isimpon.ge.5 .and. nusp_imp.eq.0) 
@@ -297,7 +296,6 @@ c... Added the following for OMPPandf1rhs call (added by .J.Guterl)
                    logng(ix,iy,igsp) = yl(idxg(ix,iy,igsp))
                    ng(ix,iy,igsp) = exp(logng(ix,iy,igsp))
                  endif
-                 logng(ix,iy,igsp)=log(abs(ng(ix,iy,igsp)))
                endif
 	       if(istgonxy(ix,iy,igsp) .eq. 1) then
                  ntemp = ng(ix,iy,igsp)
