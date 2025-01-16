@@ -1611,9 +1611,7 @@ c.... If the grid does not change, but restart from saved variables
                    logtg(ix,iy,igsp) = LOG(tg(ix,iy,igsp))
                 enddo
                 te(ix,iy)      = tes(ix,iy)
-                logte(ix,iy)   = log(te(ix,iy))
                 ti(ix,iy)      = tis(ix,iy)
-                logti(ix,iy)   = log(ti(ix,iy))
                 phi(ix,iy) = phis(ix,iy)
                 if (isimpon .eq. 2 .or. isimpon .eq. 7) then
                   if (afracs(1,1)+afracs(nx,ny).gt.1.e-20) then
