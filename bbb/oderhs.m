@@ -1437,20 +1437,20 @@ cc     .                     fyp (ix,iy,0)*log(ni(ix ,iy2,ifld)) +
 cc     .                     fymx(ix,iy,0)*log(ni(ix4,iy1,ifld)) +
 cc     .                     fypx(ix,iy,0)*log(ni(ix6,iy2,ifld)) ) ) /
 cc     .                                                    dxnog(ix,iy)
-            grdnv = (    ( fym (ix,iy,1)*logni(ix2,iy1,ifld) + 
-     .                     fy0 (ix,iy,1)*logni(ix2,iy ,ifld) +
-     .                     fyp (ix,iy,1)*logni(ix2,iy2,ifld) +
-     .                     fymx(ix,iy,1)*logni(ix ,iy1,ifld) +
-     .                     fypx(ix,iy,1)*logni(ix, iy2,ifld) ) 
-     .                  -( fym (ix,iy,0)*logni(ix ,iy1,ifld) + 
-     .                     fy0 (ix,iy,0)*logni(ix ,iy ,ifld) +
-     .                     fyp (ix,iy,0)*logni(ix ,iy2,ifld) +
-     .                     fymx(ix,iy,0)*logni(ix4,iy1,ifld) +
-     .                     fypx(ix,iy,0)*logni(ix6,iy2,ifld) ) ) /
+            grdnv = (    ( fym (ix,iy,1)*log(ni(ix2,iy1,ifld)) + 
+     .                     fy0 (ix,iy,1)*log(ni(ix2,iy ,ifld)) +
+     .                     fyp (ix,iy,1)*log(ni(ix2,iy2,ifld)) +
+     .                     fymx(ix,iy,1)*log(ni(ix ,iy1,ifld)) +
+     .                     fypx(ix,iy,1)*log(ni(ix, iy2,ifld)) ) 
+     .                  -( fym (ix,iy,0)*log(ni(ix ,iy1,ifld)) + 
+     .                     fy0 (ix,iy,0)*log(ni(ix ,iy ,ifld)) +
+     .                     fyp (ix,iy,0)*log(ni(ix ,iy2,ifld)) +
+     .                     fymx(ix,iy,0)*log(ni(ix4,iy1,ifld)) +
+     .                     fypx(ix,iy,0)*log(ni(ix6,iy2,ifld)) ) ) /
      .                                                      dxnog(ix,iy)
             vytan(ix,iy,ifld)=(fcdif*difni(ifld) + dif_use(ix,iy,ifld)) *
      .                                      (grdnv/cosangfx(ix,iy) - 
-     .                       (logni(ix2,iy,ifld) - logni(ix,iy,ifld))
+     .                       (log(ni(ix2,iy,ifld)) - log(ni(ix,iy,ifld)))
      .                                                 * gxf(ix,iy) )
             if (islimon.eq.1.and. ix.eq.ix_lim.and. iy.ge.iy_lims) then
               vytan(ix,iy,ifld) = 0.
@@ -3216,7 +3216,7 @@ c ... Call routine to evaluate gas energy fluxes
 
                elseif (methnx .eq. 6) then   # log central differencing
                   t2 = exp(0.5*
-     .                ( logni(ix,iy,ifld) + logni(ix2,iy,ifld) ))
+     .                ( log(ni(ix,iy,ifld)) + log(ni(ix2,iy,ifld)) ))
 
                else   # interp. ave or harmonic ave depending on wind*grad
 

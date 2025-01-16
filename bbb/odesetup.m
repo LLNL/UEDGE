@@ -1588,7 +1588,6 @@ c.... If the grid does not change, but restart from saved variables
              do iy = 0, ny+1
                 do ix = 0, nx+1
                    ni(ix,iy,ifld) = nis(ix,iy,ifld)
-                   logni(ix,iy,ifld) = log(ni(ix,iy,ifld))
                    up(ix,iy,ifld) = ups(ix,iy,ifld)
                    if (nis(ix,iy,ifld) <= 0.) then
                       call remark('*** Error: nis <= 0 ***')
