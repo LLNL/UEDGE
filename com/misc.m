@@ -88,18 +88,19 @@ c **--local variables--**
       end
 c ****end of subroutine quadsvr**********
 
-c ****Function gettime ******************
+        real function tick()
+        implicit none
+            integer :: now, clock_rate
+            call system_clock(now,clock_rate)
+            tick=real(now)/real(clock_rate)
+        end function tick
 
-      real(Size4) function gettime(clk)
-      real(Size4) clk, rcount, rrate
-      integer count, rate
-      gettime = 0
-      call system_clock(count, rate)
-      if (rate .ne. 0) then
-         rcount = count
-         rrate = rate
-         gettime = rcount / rrate
-      endif
-      return
-      end
-c ****end of function gettime**********
+        real function tock(t)
+         implicit none
+            real, intent(in) :: t
+            integer :: now, clock_rate
+            call system_clock(now,clock_rate)
+
+            tock = real(now)/real(clock_rate)-t
+        end function tock
+

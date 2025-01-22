@@ -45,7 +45,6 @@ c_mpi      Use(Npes_mpi)
       real, dimension(:,:,:), allocatable :: vs3d
       real, dimension(:,:), allocatable :: vs2d
       integer i,ifld,lid, lenx, leny, ixs, ixe, iys, iye
-      real(Size4) gettime, sec4
       INTEGER(HID_T) :: root_gid,bbbid,fid, runInfoId
       logical :: dumpPriv, dumpCore, dumpSOL, dumpPrivRite
       logical :: dumpPrivLeft,dumpCoreLeftCell,dumpCoreRiteCell
@@ -577,7 +576,6 @@ c_mpi      Use(Npes_mpi)
       real, dimension(:,:), allocatable :: vs2d
       integer i,ifld,lid
       integer lenx, leny, ixs, ixe, iys, iye
-      real(Size4) gettime, sec4
       integer(int4) :: ierr
       INTEGER(HID_T) :: root_gid,bbbid,fid
 *  ---------------------------------------------------------------------

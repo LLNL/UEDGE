@@ -737,8 +737,6 @@ c
       real zero,one,two,three
       logical mxtkn
        Use(Cdv)
-cpetsc      external gettime
-cpetsc      real gettime,sec4
 c+pnb
 C
 C Type declaration for the additional diagnostics set up to inquire ----

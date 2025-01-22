@@ -5,6 +5,8 @@ c!include "api.h"
 	subroutine coulfric(amu,denz2,dloglam,mntau,zi_api,capm,capn,
      >	ela,elab,tempa)
   	implicit real (a-h,o-z), integer (i-n)
+        real tick, tock, tsval
+        external tick, tock
 	Use(Reduced_ion_constants)
 	real capm(KXA,miso,KXA,miso),denz2(miso),
      >		 capn(KXA,KXA,miso,miso),mntau(miso,miso),
@@ -56,7 +58,6 @@ c-----------------------------------------------------------------------
         Use(Reduced_ion_constants)
 	Use(Reduced_ion_variables)
         Use(Timing)   # istimingon,ttimpc
-        real(Size4) sec4, gettime, tsval
 	real amu(misotope), den(misotope*(nchstate+1)),
      >	gradp(misotope*nchstate), gradt(misotope*nchstate),
      >	nurec(misotope*nchstate), nuion(misotope*(nchstate+1)),
@@ -198,7 +199,7 @@ c-----------------------------------------------------------------------
 !
 
 c ... Start timing impurity calculations.
-      if (istimingon .eq. 1 .and. misotope .gt. 1) tsval = gettime(sec4)
+      if (istimingon .eq. 1 .and. misotope .gt. 1) tsval = tick()
 
 c ... Initialize amat array.
         ndima=KXA*(MXMISO1)*KXA*(MXMISO1)
@@ -244,7 +245,7 @@ c
 
 c ... End timing impurity calculations.
         if (istimingon .eq. 1 .and. misotope .gt. 1)
-     .     ttimpc = ttimpc + gettime(sec4) - tsval
+     .     ttimpc = ttimpc + tock(tsval)
 
 	return
 	end

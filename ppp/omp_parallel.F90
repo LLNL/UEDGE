@@ -196,12 +196,11 @@ subroutine jac_calc_omp (neq, t, yl, yldot00, ml, mu, wk,nnzmx, jac, ja, ia)
     integer:: nnzcumout
     ! ... Functions
     logical tstguardc
-    real(kind=4) gettime
     real tick,tock
     external tick,tock
 
     ! ... Local variables:
-    real(kind=4) sec4, tsjstor, tsimpjf, dtimpjf,time0,time1
+    real tsjstor, tsimpjf, dtimpjf,time0,time1
     integer:: i,thread,ichunk,iv,TID, OMP_GET_THREAD_NUM
     character(len = 80) ::  filename
 
@@ -237,7 +236,7 @@ write(*,'(a,I3,a,I7,I7,f6.2,a,f6.2)') '  * ichunk ', ichunk,':',OMPivmin(ichunk)
     OMPTimeJacCalc= tick()
 
     !   Get initial value of system cpu timer.
-    if (istimingon .eq. 1) tsjstor = gettime(sec4)
+    if (istimingon .eq. 1) tsjstor = tick()
 
     !   Count Jacobian evaluations, both for total and for this case
     ijactot = ijactot + 1
@@ -299,7 +298,7 @@ write(*,'(a,I3,a,I7,I7,f6.2,a,f6.2)') '  * ichunk ', ichunk,':',OMPivmin(ichunk)
     endif
 
     !   Convert Jacobian from compressed sparse column to compressedsparse row format.
-    time1=gettime(sec4)
+    time1=tick()
     call csrcsc (neq, 1, 1, rcsc, icsc, jcsc, jac, ja, ia)
 
     !! ... If desired, calculate Jacobian elements for ion continuity
@@ -322,7 +321,7 @@ write(*,'(a,I3,a,I7,I7,f6.2,a,f6.2)') '  * ichunk ', ichunk,':',OMPivmin(ichunk)
     !         endif
     !      endif
 
-    if (istimingon .eq. 1) ttjstor = ttjstor + gettime(sec4) - tsjstor
+    if (istimingon .eq. 1) ttjstor = ttjstor + tock(tsjstor)
 
 !    write(*,'(a,i4,a,i6,a,1pe9.2,a)') '  [Nthreads | NchunkcsJac | OMP time] = [', &
 !       Nthreads,'|',NchunksJac, '|', tock(OMPTimeJacCalc), ']'
