@@ -12329,12 +12329,15 @@ c ... Interface for pandf1 rhs calculation for nksol only (added by. J.Guterl)
           implicit none
           Use(Math_problem_size) # neqmx
           Use(ParallelEval)      # ParallelPandf1
+          Use(Cdv)             # pandfitertag
           integer neq
           real time, yl(neqmx),yldot(neq)
 
 c!omp     if (ParallelPandf1.gt.0) then
+c!omp         pandfitertag = "OMP iter="
 c!omp         call OMPPandf1Rhs(neq, time, yl, yldot)
 c!omp     else
+              pandfitertag = "iter="
               call pandf1(-1, -1, 0, neq, time, yl, yldot)
 c!omp     endif
 

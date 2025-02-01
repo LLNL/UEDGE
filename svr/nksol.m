@@ -736,7 +736,7 @@ c- icntnu change
 c
       real zero,one,two,three
       logical mxtkn
-       Use(Cdv)
+       Use(Cdv)  # comnfe, pandfitertag
 c+pnb
 C
 C Type declaration for the additional diagnostics set up to inquire ----
@@ -1007,7 +1007,7 @@ c-----------------------------------------------------------------------
       comnfe = comnfe + 1
       fnrm = vnormnk(n,savf,sf)
       f1nrm = fnrm*fnrm/two
-      if (iprint .ge. 1) write(iunit,400) iter,fnrm,nfe
+      if (iprint .ge. 1) write(iunit,400) TRIM(pandfitertag), iter,fnrm,nfe
 c-----------------------------------------------------------------------
 c     test to see if initial conditions satisfy stopping criterion.
 c-----------------------------------------------------------------------
@@ -1096,8 +1096,8 @@ c
         u(i) = rwork(i+lup-1)
  300    continue
       f1nrm = f1nrmp
-      if (iprint .ge. 1) write(iunit,400) iter,fnrm,nfe
- 400  format(' iter= ',i4,' fnrm= ',g26.16,' nfe= ',i6)
+      if (iprint .ge. 1) write(iunit,400) TRIM(pandfitertag), iter,fnrm,nfe
+ 400  format(' ', a,i4,' fnrm= ',g26.16,' nfe= ',i6)
       if (iterm .eq. 0) go to 100
 c-----------------------------------------------------------------------
 c     load optional outputs into iwork array and return.

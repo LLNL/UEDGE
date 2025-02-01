@@ -874,6 +874,30 @@ subroutine MakeChunksPandf1()
     return
 end subroutine MakeChunksPandf1
 
+subroutine set_eymask1d()
+    USE Gradients, only: eymask1d
+    USE Dim, only: nxpt
+    USE Xpoint_indices, only: iysptrx, ixpt1, ixpt2
+    USE Uepar, only: isphicore0
+    IMPLICIT NONE
+    
+    integer :: jx, iy, ix
+!...  Set eymask1d to give ey=0 in core+sep for 1d SOL pot (isphicore0=1)
+      eymask1d = 1.  ! 2D array initialization
+      if (isphicore0 == 1) then  ! only solve pot eqn in SOL; phi_core const
+        do jx = 1, nxpt
+          do iy = 0, iysptrx
+            do ix = ixpt1(jx)+1, ixpt2(jx)
+              eymask1d(ix,iy) = 0.
+            enddo
+          enddo
+        enddo
+      endif
+    return
+end subroutine set_eymask1d
+
+
+
 !subroutine PrintChunks
 !use OMPPandf1Settings,only: OMPPandf1Stamp
 !use OMPPandf1, only: NchunksPandf1,yincchunk,xincchunk,iychunk,ixchunk,Nxchunks,Nychunks,iyminchunk,iymaxchunk

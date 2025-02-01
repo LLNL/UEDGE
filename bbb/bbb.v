@@ -3238,6 +3238,7 @@ ifexmain           integer /0/  #scalar to indicate if subroutine allocate
 exmain_aborted logical /.false./ # Set to .true. in Python version on control-C abort
 iallcall	   integer /0/  #flag to signal first call to allocate
 comnfe  integer     /0/     # Number of NK iterations for time-step
+pandfitertag character*20  /'iter='/ # Flag controlling serial/parallel PANDF output 
 
 ***** RZ_cell_info:
 # RZ grid-cell center and face locations
