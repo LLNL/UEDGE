@@ -212,16 +212,12 @@ subroutine LocalJacBuilder(ivmin,ivmax,neq, t, yl, yldot00,ml, mu,iJacCol,rJacEl
     real :: yl_check(neq)     ! work space available to this subroutine
     ! ... Functions:
     logical ::tstguardc
-    !     real(kind=4) ranf
 
     ! ... Local variables:
     real ::yold, dyl, jacelem,Time
     real(kind=4) sec4, tsjstor, tsimpjf, dtimpjf
     integer:: ii, iv, jv,ii1, ii2, xc, yc, ix, iy,tid
-    !       time0=gettime(sec4) #here
 
-    ! ... Only perturb variables that are being solved for (for Daspk option)
-    !      if (iseqon(iv) .eq. 0) goto 18
 
     ! ... Set beginning and ending indices of right-hand sides that might be
     !     perturbed.
@@ -234,7 +230,6 @@ subroutine LocalJacBuilder(ivmin,ivmax,neq, t, yl, yldot00,ml, mu,iJacCol,rJacEl
         ii1 = max(iv-mu, 1)
         ii2 = min(iv+ml, neq)
         ! ... Reset range if this is a potential perturbation with isnewpot=1
-        !         if (isphion*isnewpot.eq.1 .and. mod(iv,numvar).eq.0) then
         if (ExtendedJacPhi.eq.1) then
         if  (isphion*isnewpot.eq.1 .and. mod(iv,numvar).eq.0) then
             ii1 = max(iv-4*numvar*nx, 1)      ! 3*nx may be excessive
@@ -276,12 +271,7 @@ subroutine LocalJacBuilder(ivmin,ivmax,neq, t, yl, yldot00,ml, mu,iJacCol,rJacEl
         yl(iv) = yold + dyl
 
         !Calculate right-hand sides near location of perturbed variable.
-        !call convsr_vo (xc, yc, yl)  ! test new convsr placement
-        !call convsr_aux (xc, yc, yl) ! test new convsr placement
         call pandf1 (xc, yc, iv, neq, t, yl, wk)
-
-        !yl(iv) = yold - dyl    ! for 2nd order Jac
-        !call pandf1 (xc, yc, iv, neq, t, yl, yldot0) ! for 2nd order Jac
 
         !Calculate possibly nonzero Jacobian elements for this variable,
         !and store nonzero elements in compressed sparse column format.
@@ -291,7 +281,6 @@ subroutine LocalJacBuilder(ivmin,ivmax,neq, t, yl, yldot00,ml, mu,iJacCol,rJacEl
 
         loopii: do ii = ii1, ii2
             jacelem = (wk(ii) - yldot00(ii)) / dyl
-            !jacelem = (wk/(ii) - yldot0(ii)) / (2*dyl)  ! for 2nd order Jac
 
             !Add diagonal 1/dt for nksol
             ifdiagonal:if (iv.eq.ii) then
@@ -307,8 +296,7 @@ subroutine LocalJacBuilder(ivmin,ivmax,neq, t, yl, yldot00,ml, mu,iJacCol,rJacEl
 
             ! ...  Add a pseudo timestep to the diagonal #! if eqn is not algebraic
             if (nufak .gt. 0) then
-                if (iv.eq.ii .and. yl(neq+1).eq.1) jacelem = jacelem - nufak  !omit .and. iseqalg(iv).eq.0)
-            !     .                   jacelem = jacelem - nufak*suscal(iv)/sfscal(iv)
+                if (iv.eq.ii .and. yl(neq+1).eq.1) jacelem = jacelem - nufak 
             endif
 
             ! Debug
@@ -325,20 +313,16 @@ subroutine LocalJacBuilder(ivmin,ivmax,neq, t, yl, yldot00,ml, mu,iJacCol,rJacEl
                     write(*,*) 'chunk',ichunk,'*** jac_calc -- More storage needed for Jacobian. Increase omplenpfac.'
                     call xerrab("")
                 endif
-                !              if (rdoff.ne.0.e0) jacelem=jacelem*(1.0e0+ranf()*rdoff)
                 iJacCol(nnz)=ii
                 rJacElem(nnz)=jacelem
                 nnz = nnz + 1
             endif storage
 
             check: if (istopjac.gt.0 .and. ii.eq.irstop .and. iv.eq.icstop) then
-                !               yl_check(ii) = wk(ii)      ! for diagnostic only
                 if (istopjac == 2) then
                     yl(iv) = yold
                     call pandf1 (xc, yc, iv, neq, t, yl, wk)
                 endif
-                !               call convsr_vo (xc, yc, yl)  ! was one call to convsr
-                !               call convsr_aux (xc, yc, yl)
                 call remark("***** non-zero jac_elem at irstop,icstop")
                 write(*,*) 'irstop = ', irstop, ', icstop = ', icstop
                 call xerrab("")
@@ -347,25 +331,15 @@ subroutine LocalJacBuilder(ivmin,ivmax,neq, t, yl, yldot00,ml, mu,iJacCol,rJacEl
         enddo loopii
         ! ... Restore dependent variable and plasma variables near its location.
         yl(iv) = yold
-        !         call convsr_vo (xc, yc, yl)  ! was one call to convsr
-        !         call convsr_aux (xc, yc, yl)
 
-!        write(*,*) "First pandf1 start"
         call pandf1 (xc, yc, iv, neq, t, yl, wk)
-!        write(*,*) "First pandf1 end"
 
-        ! 18   continue
         !...  If this is the last variable before jumping to new cell, reset pandf
-
         reset: if( isjacreset.ge.1) then
             yl_check(1:neq)=wk(1:neq)
-            ! 18   continue
-            !...  If this is the last variable before jumping to new cell, reset pandf
             !JG this call to pandf1 can be safely ignored with ijacreset=0 (and save some time...)
             if (mod(iv,numvar).eq.0) then
-!                write(*,*) "Second pandf1 start"
                 call pandf1 (xc, yc, iv, neq, t, yl, wk)
-!                write(*,*) "Second pandf1 end"
             endif
 
             do ii=ii1,ii2
@@ -395,88 +369,6 @@ end subroutine LocalJacBuilder
 
 !-----------------------------------------------------------------------
 
-!
-!    subroutine TestParallelPandf1(neq,time,yl,yldot)
-!    use omp_lib
-!    use OMPPandf1
-!    use OMPPandf1Settings
-!    use OMPJacSettings
-!    use Dim,only:nx
-!    use Selec, only: xlinc,xrinc
-!    integer xlinc_bkp,xrinc_bkp,iv
-!    integer,intent(in)::neq
-!    real,intent(in)::yl(*)
-!    real,intent(out)::yldot(*)
-!    real,intent(in)::time
-!    real::yldotcopy(1:neq)
-!    real::TimeStart,TimeEnd
-!    real::walltime
-!    real yldotsave(neq)
-!    !call omp_set_num_threads(int(OMPPandf_Nthreads,kind=4))
-!
-!integer::ith,OMPic(Nthreads),OMPlinc(Nthreads),OMPrinc(Nthreads),OMPivthread(1:neq)
-!
-!    call OMPSplitIndexPandf(0,nx+1,Nthreads,OMPic,OMPlinc,OMPrinc,OMPivthread,neq)
-!
-!    !if (OMPJacVerbose.gt.0) then
-!        write(*,*)' *OMPPandf1* nx=',nx
-!        write(*,*)' *OMPPandf1* Ic(ith),linc(ith),rinc(ith) ***'
-!        do ith=1,Nthreads
-!            write(*,'(a,I3,a,I7,I7,I7)') '  *    ithread ', ith,':',OMPic(ith),OMPlinc(ith),OMPrinc(ith)
-!        enddo
-!      walltime=omp_get_wtime()
-!!      if (OMPCheckThreadedPandf.gt.0) then
-!!      TimingPandf=0
-!!      TimingParaPandf=1
-!!      TimingParaConvert=1
-!!      endif
-!      call pandf1 (-1, -1, 0, neq, time, yl, yldot)
-!
-!      TimeParallelPandf=omp_get_wtime()-walltime+TimeParallelPandf
-!      write(*,*) "Timing Pandf1 serial",TimeParallelPandf
-!      xlinc_bkp=xlinc
-!      xrinc_bkp=xrinc
-!      do ith=1,Nthreads
-!        xlinc=OMPlinc(ith)
-!        xrinc=OMPrinc(ith)
-!        call pandf1 (ith, -1, 0, neq, time, yl, yldotcopy)
-!    do iv=1,neq
-!      if (OMPivthread(iv)==ith) then
-!       yldotsave(iv)=yldotcopy(iv)
-!      endif
-!      enddo
-!
-!      enddo
-!        xlinc=xlinc_bkp
-!        xrinc=xrinc_bkp
-!
-!
-!
-!      call Compare(yldot,yldotsave,neq)
-!      write(*,*) "yldot and yldotsave are identical"
-!!      call omp_set_num_threads(int(Nthreads,kind=4))
-!!
-!!      if (OMPCheckThreadedPandf.gt.0.and.OMPParallelPandf.gt.0) then
-!!      if (OMPThreadedPandfVerbose.gt.0) write(*,*) 'pandf checked'
-!!      OMPParallelPandf=0
-!!      walltime=omp_get_wtime()
-!!      TimingPandf=1
-!!      TimingParaPandf=0
-!!      TimingParaConvert=0
-!!      call pandf1 (-1, -1, 0, neq, time, yl, yldotsave)
-!!      TimingPandf=0
-!!      TimeSerialPandf=omp_get_wtime()-walltime+TimeSerialPandf
-!!      OMPParallelPandf=1
-!!
-!
-!
-!!      endif
-!
-!
-!end subroutine TestParallelPandf1
-!
-
-
 subroutine Compare(yldot,yldotsave,neq)
 integer:: iv,neq
 integer::istop
@@ -497,129 +389,6 @@ istop=0
 
 
 end subroutine Compare
-
-
-
-subroutine AddTimeDerivative(neq,yl,yldot)
-use Compla,only: zi
-use UEpar,only:isbcwdt,isnionxy,isuponxy,isteonxy,istionxy,isngonxy,isphionxy,ineudif,fdtnixy,&
-               fdtupxy,fdttexy,fdttixy,fdtngxy,fdttgxy,fdtphixy,istgonxy
-use Dim, only:  nusp,nisp,ngsp,nx,ny
-use Time_dep_nwt,only:dtreal,ylodt,dtuse,dtphi
-use Indexes,only: idxn,idxg,idxu,idxti,idxte,idxphi,idxtg
-use Ynorm,only:n0,n0g
-!use Share    # geometry,nxc,isnonog,cutlo
-use Indices_domain_dcl,only: ixmnbcl,ixmxbcl,iymnbcl,iymxbcl
-real,intent(inout)::yldot(*)
-real,intent(in)::yl(*)
-integer,intent(in):: neq
-!use Xpoint_indices      # ixpt1,ixpt2,iysptrx
-integer j2l,j5l,i2l,i5l,ifld,igsp,iv,ix,iy,iv1
-if (isbcwdt .eq. 0) then  ! omit b.c. eqns
-!!!MER   NOTE: what about internal guard cells (for dnbot,dnull,limiter) ???
-            j2l = 1
-            j5l = ny
-            i2l = 1
-            i5l = nx
-         else                      ! include b.c. eqns
-            j2l = (1-iymnbcl)
-            j5l = ny+1-(1-iymxbcl)
-            i2l = (1-ixmnbcl)
-            i5l = nx+1-(1-ixmxbcl)
-         endif
-         do iy = j2l, j5l    !if j2l=j2, etc., omit the boundary equations
-            do ix = i2l, i5l
-              do ifld = 1, nisp
-                if(isnionxy(ix,iy,ifld) .eq. 1) then
-                  iv = idxn(ix,iy,ifld)
-                  yldot(iv) = (1.-fdtnixy(ix,iy,ifld))*yldot(iv)
-                  if(zi(ifld).eq.0. .and. ineudif.eq.3) then
-                    yldot(iv) = yldot(iv) - (1/n0(ifld))* (exp(yl(iv))-exp(ylodt(iv)))/dtuse(iv)
-                  else
-                    yldot(iv) =yldot(iv)-(yl(iv)-ylodt(iv))/dtuse(iv)
-                  endif
-                endif
-              enddo
-               if(ix.ne.nx+2*isbcwdt) then
-                              ! nx test - for algebr. eq. unless isbcwdt=1
-                  do ifld = 1, nusp
-                    if(isuponxy(ix,iy,ifld).eq.1) then
-                      iv = idxu(ix,iy,ifld)
-                      yldot(iv) = (1.-fdtupxy(ix,iy,ifld))*yldot(iv)
-                      yldot(iv) = yldot(iv)-(yl(iv)-ylodt(iv))/dtuse(iv)
-                    endif
-                  enddo
-               endif
-               if (isteonxy(ix,iy) == 1) then
-                 iv =  idxte(ix,iy)
-                 yldot(iv) = (1.-fdttexy(ix,iy))*yldot(iv)
-                 yldot(iv) = yldot(iv) - (yl(iv)-ylodt(iv))/dtuse(iv)
-               endif
-               if (istionxy(ix,iy) == 1) then
-                 iv1 = idxti(ix,iy)
-                 yldot(iv1) = (1.-fdttixy(ix,iy))*yldot(iv1)
-                 yldot(iv1)=yldot(iv1) - (yl(iv1)-ylodt(iv1))/dtuse(iv1)
-               endif
-               do igsp = 1, ngsp
-                  if(isngonxy(ix,iy,igsp).eq.1) then
-                     iv = idxg(ix,iy,igsp)
-                     yldot(iv) = (1.-fdtngxy(ix,iy,igsp))*yldot(iv)
-                     if(ineudif.eq.3) then
-                       yldot(iv) = yldot(iv) - (1/n0g(igsp))*(exp(yl(iv))-exp(ylodt(iv)))/dtuse(iv)
-                     else
-                       yldot(iv) =yldot(iv)-(yl(iv)-ylodt(iv))/dtuse(iv)
-                     endif
-                  endif
-               enddo
-               do igsp = 1, ngsp
-                  if(istgonxy(ix,iy,igsp).eq.1) then
-                     iv = idxtg(ix,iy,igsp)
-                     yldot(iv) = (1.-fdttgxy(ix,iy,igsp))*yldot(iv)
-                     yldot(iv) =yldot(iv)-(yl(iv)-ylodt(iv))/dtuse(iv)
-                  endif
-               enddo
-               if (isphionxy(ix,iy).eq.1 .and. isbcwdt.eq.1) then
-                  iv = idxphi(ix,iy)
-                  yldot(iv) = (1.-fdtphixy(ix,iy))*yldot(iv)
-                  yldot(iv) = yldot(iv) - (yl(iv)-ylodt(iv))/dtuse(iv)
-               endif
-
-            enddo
-         enddo
-
-!...  Now do an additional relaxation of the potential equations with
-!...  timestep dtphi
-        if (dtphi < 1e10) then
-          do iy = 0, ny+1
-            do ix = 0, nx+1
-              if (isphionxy(ix,iy) == 1) then
-                iv = idxphi(ix,iy)
-                yldot(iv) = yldot(iv) - (yl(iv)-ylodt(iv))/dtphi
-              endif
-            enddo
-          enddo
-        endif
-end subroutine
-
-        real function tick()
-        implicit none
-            integer :: now, clock_rate
-            call system_clock(now,clock_rate)
-            tick=real(now)/real(clock_rate)
-        end function tick
-
-        real function tock(t)
-         implicit none
-            real, intent(inout) :: t
-            integer :: now, clock_rate
-            call system_clock(now,clock_rate)
-
-            tock = real(now)/real(clock_rate)-t
-            t=tock
-        end function tock
-
-
-
 
 
 
