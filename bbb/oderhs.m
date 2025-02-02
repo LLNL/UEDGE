@@ -614,6 +614,7 @@ cnxg      data igs/1/
       Use(Timing)   # istimingon,ttotfe,ttotjf,ttimpfe,ttimpjf,ttnpg
       Use(Share)    # nxpt,nxomit,geometry,nxc,cutlo,islimon,ix_lim,iy_lims
                     # istabon,isudsym
+      Use(Math_problem_size)   # neqmx,numvar
       Use(Phyvar)   # pi,me,mp,ev,qe,rt8opi
       Use(UEpar)    # methe,methu,methn,methi,methg,concap,lnlam,
                     # convis,icnuiz,icnucx,cnuiz,cnucx,isrecmon,
