@@ -606,6 +606,8 @@ c    yldot is the RHS of ODE solver or RHS=0 for Newton solver (NKSOL)
       # former Aux module variables
       integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
       real tv,t0,t1,t2,a,t1old,t1new,t2old,t2new
+      # new helper variables
+      real up1cc, upgcc, vycc, v2cc
 cnxg      data igs/1/
 
       Use(Dim)      # nx,ny,nhsp,nusp,nzspt,nzsp,nisp,ngsp,nxpt
@@ -683,10 +685,10 @@ cnxg      data igs/1/
       integer zmax,znuc
       real dene,denz(0:1),radz(0:1)
       real rsa, rra, rqa, rcx, emissbs, erl1, erl2, radneq, radimpmc
-      real radmc, svdiss, vyiy0, vyiym1, v2ix0, v2ixm1
-      real tgupyface, ngupyface, n1upyface, ng2upyface
+      real radmc, svdiss, vyiy0, vyiym1, v2ix0, v2ixm1, sv_crumpet
       external rsa, rra, rqa, rcx, emissbs, erl1, erl2, radneq, radimpmc
-      external radmc, svdiss
+      real tgupyface, ngupyface, n1upyface, ng2upyface
+      external radmc, svdiss, sv_crumpet
       real tick,tock
       external tick, tock
 	  
@@ -1830,6 +1832,9 @@ c ... If isybdrywd = 1, make vey diffusive, just like vy
             seev(ix,iy) = 0.0
             seic(ix,iy) = 0.0
             seiv(ix,iy) = 0.0
+            seik(ix,iy) = 0.0
+            seid(ix,iy) = 0.0
+            seidh(ix,iy) = 0.0
 	    psorbgz(ix,iy) = 0.    # diagnostic only
   701    continue
   702 continue
@@ -1907,7 +1912,7 @@ c ... get optical-depth to outer (iy=ny+1) bdry; selection of min rtau
 
 c...  Initialize save-variables if this is a Jacobian (xc,yc > -1)
          if (xc .ge. 0 .and. yc .ge. 0) then
-            psordisold = psordis(xc,yc)
+            psordisold = psordis(xc,yc, ifld)
 cc            write(*,*) 'Just after psordisold; xc,yc=',xc,yc
             do ifld = 1, nfsp
                psorold(ifld) = psorc(xc,yc,ifld)
@@ -1969,7 +1974,7 @@ c     Ionization of neutral hydrogen by electrons and recombination--
                psorgc(ix,iy,igsp) = -ng(ix,iy,igsp)*nuiz(ix,iy,igsp)*vol(ix,iy) +
      .                              psorbgg(ix,iy,igsp)
                psorc(ix,iy,ifld) = - psorgc(ix,iy,igsp)
-               psordis(ix,iy) = cfdiss*psorc(ix,iy,1)  # overwritten below if ishymol=1
+               psordis(ix,iy,2) = cfdiss*psorc(ix,iy,1)  # changed below if ishymol=1
                psorxrc(ix,iy,ifld) = -ni(ix,iy,ifld)*nurc(ix,iy,igsp)*vol(ix,iy)
                psorrgc(ix,iy,igsp) = -psorxrc(ix,iy,ifld)
                msor(ix,iy,ifld) = 0.
@@ -2327,10 +2332,12 @@ c ... Set up nuiz & sources for hydrogen molecular gas
         endif
         do iy = iys1, iyf6
          do ix = ixs1, ixf6
-           nuiz(ix,iy,2) = ne(ix,iy) * (  #.. Tom 
-     .                          svdiss( te(ix,iy) )
-     .                        + cfizmol*rsa(te(ix,iy),ne_sgvi,rtau(ix,iy),0)
-     .                        + sigvi_floor )
+           nuiz(ix,iy,2) = 
+     .          ne(ix,iy) * (  
+     .              (1-ismolcrm)*(svdiss( te(ix,iy) )
+     .              + cfizmol*rsa(te(ix,iy),ne_sgvi,rtau(ix,iy),0)
+     .              + sigvi_floor ) 
+     .          ) - ismolcrm*sv_crumpet( te(ix,iy), ne(ix,iy),10)
            massfac = 16*mi(1)/(3*(mg(2)+mi(1)))
            nuix(ix,iy,2)= fnuizx*nuiz(ix,iy,2) + 
      .                           massfac*( kelighi(2)*ni(ix,iy,1)+
@@ -2341,11 +2348,21 @@ c ...  molecule-molecule collisions would enter viscosity, not nuix
      .                                        nuiz(ix,iy,2) * vol(ix,iy)
            psorgc(ix,iy,2) = - ng(ix,iy,2)*nuiz(ix,iy,2)*vol(ix,iy) +
      .                        psorbgg(ix,iy,2)
-           psorg(ix,iy,2) = psorgc(ix,iy,2)  # no mol sor averaging
-           psordis(ix,iy) = -2*psorgc(ix,iy,2)  # 2 atoms per molecule
-           if(isupgon(1) .eq. 1) then
-             psor(ix,iy,iigsp) = psor(ix,iy,iigsp) + psordis(ix,iy)
-           endif
+                psorg(ix,iy,2) = psorgc(ix,iy,2)  # no mol sor averaging
+                psordisg(ix,iy,2) = -ng(ix,iy,2)*nuiz(ix,iy,2)*vol(ix,iy)
+                psordis(ix,iy,2) = 
+     .                  - (1-ismolcrm)*2*psordisg(ix,iy,2) 
+     .                  + ismolcrm*cfcrma*ng(ix,iy,2)*vol(ix,iy)
+     .                  * sv_crumpet(te(ix,iy),ne(ix,iy),11)
+                # 2 atoms per molecule in old model, rates from CRM for new
+                psordisg(ix,iy,1)=psordis(ix,iy,2)
+                psordis(ix,iy,1) = -cfcrmi*(2*psordisg(ix,iy,2)+
+     .                              psordis(ix,iy,2))
+                psor(ix,iy,1) = psor(ix,iy,1) + psordis(ix,iy,1)
+c ... TODO: How to deal with diffusive atom model - is it maintained?
+                if(isupgon(1) .eq. 1) then
+                  psor(ix,iy,iigsp) = psor(ix,iy,iigsp) + psordis(ix,iy,iigsp)
+                endif
          enddo
         enddo 
       endif  # end of loop for ishymol=1 (hydrogen molecules on)
@@ -3156,22 +3173,6 @@ c..   Now radial direction
           hcxg(:,:,igsp) = hcxn(:,:)
           hcyg(:,:,igsp) = hcyn(:,:)
         endif
-       enddo
-      endif
-
-c ... Gas molecule thermal equipartition with hydrogen ions and atoms
-*****************************************************************
-      if (nisp >= 2) then   # uses ni(,,2), so must have atoms
-       do igsp = 1, ngsp
-        do iy = j1, j6
-          do ix = i1, i6
-	    nhi_nha = ni(ix,iy,1)+ni(ix,iy,2)
-#            eqpg(ix,iy,igsp) = cftgeqp*ng(ix,iy,igsp)*nhi_nha*
-#     .                                            keligig(igsp)
-            eqpg(ix,iy,igsp) = cftgeqp*ng(ix,iy,igsp)*
-     .                   (ni(ix,iy,1)+cftiexclg*ni(ix,iy,2))*keligig(igsp)
-          enddo
-        enddo
        enddo
       endif
 
@@ -4511,6 +4512,10 @@ c...  Electron radiation loss -- ionization and recombination
      .                                           eeli(ix,iy) = 13.6*ev + 
      .                               erliz(ix,iy)/(fac2sp*psor(ix,iy,1))
 
+                   edisse(ix,iy)=-(1-ismolcrm)*ediss*ev*(-0.5*psordis(ix,iy,2)) +
+     .                               ismolcrm*ng(ix,iy,2)*vol(ix,iy)*
+     .                               sv_crumpet(te(ix,iy), ne(ix,iy), 20)
+
                   pradhyd(ix,iy)= ( (eeli(ix,iy)-ebind*ev)*psor(ix,iy,1)+
      .                                         erlrc(ix,iy) )/vol(ix,iy)
  315           continue
@@ -4523,7 +4528,7 @@ c...  Electron radiation loss -- ionization and recombination
      .          + cfneut*cfneutsor_ee*cnsor*13.6*ev*fac2sp*psorrgc(ix,iy,1)
      .          - cfneut*cfneutsor_ee*cnsor*erliz(ix,iy)
      .          - cfneut*cfneutsor_ee*cnsor*erlrc(ix,iy)
-     .          - cfneut*cfneutsor_ee*cnsor*ediss*ev*(0.5*psordis(ix,iy))
+     .          - 2*(0.5-ishymol) * cfneut*cfneutsor_ee*cnsor*cmesore*edisse(ix,iy)
         enddo
       enddo
 
@@ -4591,47 +4596,107 @@ c*************************************************************
             ix1 = ixm1(ix,iy)
             w0(ix,iy) = vol(ix,iy) * eqp(ix,iy) * (te(ix,iy)-ti(ix,iy))
             resee(ix,iy) = resee(ix,iy) - w0(ix,iy) + vsoree(ix,iy)
+c ... Energy density change due to molecular dissociation ("Franck-Condon")
+            emolia(ix, iy, 1) = 
+     .          + ismolcrm*ng(ix,iy,2)*vol(ix,iy)* 
+     .          sv_crumpet(te(ix,iy), ne(ix,iy), 21) 
+     .          * ( psordis(ix,iy,1)/(-2*psordisg(ix,iy,2)))
+            emolia(ix, iy, 2) =
+     .          + ismolcrm*ng(ix,iy,2)*vol(ix,iy)* 
+     .          sv_crumpet(te(ix,iy), ne(ix,iy), 21) 
+     .          * ( psordis(ix,iy,2)/(-2*psordisg(ix,iy,2)))
+
             if (isupgon(1).eq.1) then
-c These terms include electron-ion equipartition as well as terms due
-c to the friction force between neutrals and ions
-               t1 = 0.5*(up(ix,iy,1)+up(ix1,iy,1))
-               t2 = 0.5*(up(ix,iy,iigsp)+up(ix1,iy,iigsp))
-               temp3 = cfnidhgy*0.25*(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
-     .                              *(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
-               temp4 = cfnidhg2*0.25*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
-     .                              *(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
-               tv = cfticx*nucx(ix,iy,1)*ng(ix,iy,1)*vol(ix,iy)
-               t0 = 1.5*( tg(ix,iy,1)* (psor(ix,iy,1)+tv)
-     .                     -ti(ix,iy) * (psorrg(ix,iy,1)+tv) )
-               resei(ix,iy) = resei(ix,iy) + w0(ix,iy)
-     .             + cfneut * cfneutsor_ei * cfnidh * 0.5*mi(1) * 
-     .                          ( (t1-t2)*(t1-t2)+temp3+temp4 ) * 
-     .                    (  psor(ix,iy,1) + cftiexclg*psorrg(ix,iy,1)
-     .              + tv + cftiexclg * tv  )
-     .              + (1.0-cftiexclg) * t0
-     .             + cftiexclg * cfneut * cfneutsor_ei * cnsor
-     .               *( eion*ev+cfnidhdis*
-     .                  0.5*mg(1)*(t2*t2+temp3+temp4) )*psordis(ix,iy) 
-     .             + cfnidh2* 
-     .                       ( -mi(1)*t1*t2*(psor(ix,iy,1)+tv)
-     .                         +0.5*mi(1)*t1*t1*
-     .                          (psor(ix,iy,1)+psorrg(ix,iy,1)+2*tv) )
+c             Set up helper arrays for velocities
+              up1cc = 0.5*(up(ix,iy,1)+up(ix1,iy,1))
+              upgcc = 0.5*(up(ix,iy,iigsp)+up(ix1,iy,iigsp))
+              vycc = (cfnidhgy**0.5)*0.5*(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
+              v2cc = (cfnidhg2**0.5)*0.5*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
+
+c             IONS
+c             -------------------------------------------------------------
+c             Ion rate from CX
+              psicx(ix,iy) = cfticx*nucx(ix,iy,1)*ng(ix,iy,1)*vol(ix,iy)
+
+c             Ion internal energy sink/source from ioniz & recom
+              seit(ix,iy) = 1.5*( 
+     .                tg(ix,iy,1) * (psor(ix,iy,1) + psicx(ix,iy))
+     .              - ti(ix,iy) * (psorrg(ix,iy,1) +psicx(ix,iy))
+     .        )
+
+c             Ion energy source/sink from ioniz & recom
+              seik(ix,iy) = cfneut * cfneutsor_ei * cfnidh * 
+     .              0.5*mi(1) * ( (up1cc-upgcc)**2 + vycc**2 + v2cc**2 ) * 
+     .              (  psor(ix,iy,1) + cftiexclg*psorrg(ix,iy,1)
+     .              + (1 + cftiexclg) * psicx(ix,iy) )
+
+c             Ion energy source from mol. diss ("Franck Condon")
+              seid(ix,iy) = cftiexclg * cfneut * cfneutsor_ei 
+     .              * 2*(0.5 - ishymol) 
+     .              * cnsor*eion*(1-ismolcrm)*ev*psordis(ix,iy,2) 
+     .              + emolia(ix,iy,1) + cftiexclg*emolia(ix,iy,2) # CRM FC
+
+c             Ion energy source from drift heating 
+              seidh(ix,iy) = cfnidh2* 
+     .              ( -mi(1)*up1cc*upgcc*(psor(ix,iy,1)+psicx(ix,iy))
+     .              + 0.5*mi(1)*up1cc**2
+     .              * (psor(ix,iy,1)+psorrg(ix,iy,1)+2*psicx(ix,iy)) )
+
+              resei(ix,iy) = resei(ix,iy) + w0(ix,iy)
+     .              + seik(ix,iy) 
+     .              + (1.0-cftiexclg) * seit(ix,iy)
+     .              + seid(ix,iy)
+     .              + seidh(ix,iy)
+
+c             ATOMS
+c             -------------------------------------------------------------
+c             Atom kinetic energy source from recom & CX
+              seak(ix,iy) = 0.5*mg(1) * ( (up1cc-upgcc)**2 + vycc**2 + v2cc**2 )
+     .              * (psorrg(ix,iy,1)+psicx(ix,iy))
+
+c              Atom kinetic energy source from mol. diss
+               sead(ix,iy) = (1-ismolcrm)*2*(0.5-ishymol)*(
+     .              eion*ev*psordis(ix,iy,2) 
+     .          ) + emolia(ix,iy,2) 
+
+c              Atom energy source from drift heating 
+               seadh(ix,iy) = cfnidh2* ( -mg(1) *up1cc*upgcc 
+     .              * (psorrg(ix,iy,1)+psicx(ix,iy)) 
+     .              + 0.5*mg(1) * (upgcc**2 + vycc**2 + v2cc**2)
+     .              * (psor(ix,iy,1)+psorrg(ix,iy,1)+2*psicx(ix,iy)) )
+
                reseg(ix,iy,1) = reseg(ix,iy,1)
-     .                            - t0+0.5*mg(1) * ( (t1-t2)*(t1-t2)
-     .                                              +temp3+temp4 )
-     .                            * (psorrg(ix,iy,1)+tv)
-     .                            + ( eion*ev + cfnidh*cfnidhdis*
-     .                   0.5*mg(1)*(t2*t2+temp3+temp4) )*psordis(ix,iy)
-     .                     + cfnidh2* 
-     .                       ( -mg(1)*t1*t2*(psorrg(ix,iy,1)+tv)
-     .                         +0.5*mg(1)*(t2*t2+temp3+temp4)*
-     .                          (psor(ix,iy,1)+psorrg(ix,iy,1)+2*tv) )
+     .                  - seit(ix,iy)
+     .                  + seak(ix,iy)
+     .                  + sead(ix,iy)
+     .                  + seadh(ix,iy)
+
+                if (ishymol .eq. 0) then
+c                   Atom kinetic energy source from mol. drift heating
+                    reseg(ix,iy,1) = reseg(ix,iy,1) 
+     .                  + cfnidh*cfnidhdis*0.5*mg(1)
+     .                  * (upgcc**2 + vycc**2 + v2cc**2)
+     .                  * psordis(ix,iy,2)
+
+c                   Ion energy source from mol. drift heating
+                    resei(ix,iy) = resei(ix,iy)
+     .                  - cftiexclg * cfneut * cfneutsor_ei * cnsor 
+     .                  * cfnidhdis * 0.5*mg(1)
+     .                  * (upgcc**2 + vycc**2 + v2cc**2) 
+     .                  * ( 
+     .                      (1-ismolcrm)*psordis(ix,iy,2) 
+     .                  +   ismolcrm * psordis(ix,iy,1)
+     .                  )
+                endif
             else
                resei(ix,iy) = resei(ix,iy) + w0(ix,iy)
      .             + cfneut * cfneutsor_ei * ctsor*1.25e-1*mi(1)*
      .                    (upi(ix,iy,1)+upi(ix1,iy,1))**2*
      .                    fac2sp*psor(ix,iy,1)
-     .             + cfneut * cfneutsor_ei * ceisor*cnsor* eion*ev*psordis(ix,iy)
+     .             + cfneut * cfneutsor_ei * ceisor*(
+c     .                    cnsor* eiamoldiss(ix,iy)
+     .                  + cmesori*(emolia(ix,iy,1)+emolia(ix,iy,2)) 
+     .              )
      .             - cfneut * cfneutsor_ei * ccoldsor*ng(ix,iy,1)*nucx(ix,iy,1)*
      .                    (  1.5*ti(ix,iy)
      .                     - 0.125*mi(1)*(upi(ix,iy,1)+upi(ix1,iy,1))**2
@@ -4640,19 +4705,6 @@ c to the friction force between neutrals and ions
   151    continue
   152 continue
 
-
-c ... If molecules are present as gas species 2, add ion/atom cooling
-      # energy transfer between ions and molecueles due to 
-      # ion/molecule elastic collisions have been moved in
-      # engbalg subroutine, so comment the following lines...
-#      if(ishymol == 1) then
-#        do iy = j2, j5
-#          do ix = i2, i5
-#            resei(ix,iy) = resei(ix,iy) - vol(ix,iy)*eqpg(ix,iy,2)*
-#     .                                     (ti(ix,iy)-tg(ix,iy,2))
-#          enddo
-#        enddo
-#      endif
 
 *  -- Energy transfer to impurity neutrals at tg(,,igsp)
       if (ngsp >= 2) then   # for now, specialized to igsp=2 only
@@ -5023,7 +5075,7 @@ c...  Finally, reset some source terms if this is a Jacobian evaluation
             frice(xc,yc) = friceo
             upe(ix1,yc) = upeom
             upe(xc,yc) = upeo
-            psordis(xc,yc) = psordisold
+            psordis(xc,yc,ifld) = psordisold
             do ifld = 1, nfsp
                psorc(xc,yc,ifld) = psorold(ifld)
                psorxr(xc,yc,ifld) = psorxrold(ifld)
@@ -5995,7 +6047,7 @@ c.... Calculate the residual for the gas equation for diffusive neutral case
      .             - fluxfacy*(fngy(ix,iy,igsp) - fngy(ix ,iy-1,igsp))
      .                       + psgov_use(ix,iy,igsp)*vol(ix,iy)
                if (igsp.eq.1 .and. ishymol.eq.1) resng(ix,iy,igsp) =
-     .                                  resng(ix,iy,igsp)+psordis(ix,iy)
+     .                  resng(ix,iy,igsp)+psordis(ix,iy,2)
  891        continue
  892     continue
       endif
@@ -6588,7 +6640,7 @@ c ... is it correct to use ng instead of ni??? i.e. will ng enter jacobian?
      .             + volpsorg(ix,iy,igsp)
      .             + psgov_use(ix,iy,igsp)*vol(ix,iy)
             if (igsp.eq.1 .and. ishymol.eq.1)
-     .            resng(ix,iy,igsp) = resng(ix,iy,igsp) + psordis(ix,iy)
+     .          resng(ix,iy,igsp) = resng(ix,iy,igsp)+psordis(ix,iy,2)
             resng(ix,iy,igsp) = resng(ix,iy,igsp) - cfneutdiv*
      .          cfneutdiv_fng*((fngx(ix,iy,igsp) - fngx(ix1,iy, igsp)) +
      .          fluxfacy*(fngy(ix,iy,igsp) - fngy(ix,iy-1,igsp)) )
@@ -7006,8 +7058,8 @@ c.... Calculate the residual for the gas equation for diffusive neutral case
      .             - fluxfacy*(fngy(ix,iy,igsp) - fngy(ix ,iy-1,igsp))
      .                       + psgov_use(ix,iy,igsp)*vol(ix,iy)
 
-               if (igsp.eq.1 .and. ishymol.eq.1) resng(ix,iy,igsp) =
-     .                                  resng(ix,iy,igsp)+psordis(ix,iy)
+               if (igsp.eq.1 .and. ishymol.eq.1)  
+     .              resng(ix,iy,igsp) = resng(ix,iy,igsp)+psordis(ix,iy,2)
  891        continue
  892     continue
       endif
@@ -7424,8 +7476,8 @@ c.... Calculate the residual or right-hand-side for the gas equation
      .                       - fngx(ix,iy,igsp) + fngx(ix1,iy  ,igsp)
      .                       - fngy(ix,iy,igsp) + fngy(ix ,iy-1,igsp)
      .                       + psgov_use(ix,iy,igsp)*vol(ix,iy)
-               if (igsp.eq.1 .and. ishymol.eq.1) resng(ix,iy,igsp) =
-     .                                  resng(ix,iy,igsp)+psordis(ix,iy)
+               if (igsp.eq.1 .and. ishymol.eq.1) 
+     .              resng(ix,iy,igsp) = resng(ix,iy,igsp)-psordis(ix,iy,2)
  891        continue
  892     continue
       else if (isupgon(igsp).eq.1) then
@@ -7517,6 +7569,7 @@ c --------------------------------------------------------------------------
       #Former Aux module variables
       integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
       real t0,t1,t2,tv,a
+      real uuxgcc, vygcc, v2gcc, upgcc, vycc, v2cc
       Use(Dim)      # nx,ny,nhsp,nisp,ngsp,nxpt
       Use(Xpoint_indices)      # ixlb,ixpt1,ixpt2,ixrb,iysptrx1
       Use(Share)    # geometry,nxc,isnonog,cutlo,islimon,ix_lim,iy_lims
@@ -7536,7 +7589,7 @@ c --------------------------------------------------------------------------
       Use(Compla)   # mi, zi, ni, uu, up, v2, v2ce, vygtan, mg
       Use(Comflo)   # fngx,fngy,fngxy,fnix,fniy
       Use(Conduc)   # nuiz, nucx, nuix
-      Use(Rhsides)  # resng,psor,psorg,psorrg,sniv
+      Use(Rhsides)  # resng,psor,psorg,psorrg,sniv,eiamoldiss
       Use(Comtra)   # flalfgx,flalfgy
       Use(Locflux)  # floxg,floyg,conxg,conyg
       Use(Indices_domain_dcl)    # iymnbcl,iymxbcl
@@ -7792,49 +7845,152 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
           iy1 = max(0,iy-1)
           do ix = i2, i5
             ix1 = ixm1(ix,iy)
+
+*           Compute thermal equipartition rate with ion-atom fluid
+*           ------------------------------------------------------------
+            if (nisp >= 2) then   # uses ni(,,2), so must have atoms
+                eqpg(ix,iy,igsp) = cftgeqp*(
+     .              ng(ix,iy,igsp)*ni(ix,iy,1)*keligig(igsp)
+     .              + cftiexclg*ng(ix,iy,igsp)*ni(ix,iy,2)*keligig(igsp))
+            endif
+
+*           ------------------------------------------------------------
+*                                GAS-ION/ATOM TERMS
+*           ------------------------------------------------------------
+
+*           Divergence of gaseous flows & v-grad-P heating
+*           ------------------------------------------------------------
             reseg(ix,iy,igsp)= -( fegx(ix,iy,igsp)-fegx(ix1,iy,  igsp)+
      .                            fegy(ix,iy,igsp)-fegy(ix, iy1,igsp) )
      .                                                + segc(ix,iy,igsp)
-            reseg(ix,iy,igsp)= reseg(ix,iy,igsp) + vol(ix,iy)* 
-     .                      eqpg(ix,iy,igsp)*(ti(ix,iy)-tg(ix,iy,igsp))#+
-#     .                   cftgdiss(igsp)*psorg(ix,iy,igsp)*tg(ix,iy,igsp)
+
+*           ------------------------------------------------------------
+*                                GAS-GAS TERMS
+*           ------------------------------------------------------------
             if (igsp.eq.1) then  #..for D0, we should include D+ and D0 in Ti
-              seic(ix,iy) = seic(ix,iy)- vol(ix,iy)*(1.0-cftiexclg)*
-     .                                               eqpg(ix,iy,igsp)*
-     .                                      (ti(ix,iy)-tg(ix,iy,igsp))
+*               Thermal equipartition coupling of atoms and ions
+*               --------------------------------------------------------
+c               Should scale with cftiexclg to conserve energy when 
+c               transitioning with 0<cftiexclg<1
+                reseg(ix,iy,1)= reseg(ix,iy,1) 
+     .              + vol(ix,iy)*eqpg(ix,iy,1)*(ti(ix,iy)-tg(ix,iy,1))
+                seic(ix,iy) = seic(ix,iy)
+     .              - (1.0-cftiexclg)*vol(ix,iy)*eqpg(ix,iy,1)
+     .              * (ti(ix,iy)-tg(ix,iy,1))
             else
-              seic(ix,iy) = seic(ix,iy)- vol(ix,iy)*
-     .                                               eqpg(ix,iy,igsp)*
-     .                                      (ti(ix,iy)-tg(ix,iy,igsp))
-              reseg(ix,iy,igsp) = reseg(ix,iy,igsp)
-     .                                 + cftgeqp*ng(ix,iy,igsp)*
-     .                           (1.0-cftiexclg)*ng(ix,iy,1)*kelighg(igsp)*
-     .                        (tg(ix,iy,1)-tg(ix,iy,igsp))*vol(ix,iy)
-              reseg(ix,iy,1) = reseg(ix,iy,1) - cftgeqp*ng(ix,iy,igsp)*
-     .                                           ng(ix,iy,1)*kelighg(igsp)*
-     .                        (tg(ix,iy,1)-tg(ix,iy,igsp))*vol(ix,iy)
+*               Thermal equipartition coupling of ions and gas
+*               --------------------------------------------------------
+                reseg(ix,iy,igsp)= reseg(ix,iy,igsp) 
+     .              + vol(ix,iy)*eqpg(ix,iy,igsp)*(ti(ix,iy)-tg(ix,iy,igsp))
+                seic(ix,iy) = seic(ix,iy)
+     .              - vol(ix,iy)*eqpg(ix,iy,igsp)*(ti(ix,iy)-tg(ix,iy,igsp))
+
+*               Thermal equipartition coupling of atoms and gas
+*               --------------------------------------------------------
+                reseg(ix,iy,igsp) = reseg(ix,iy,igsp)
+     .              + cftgeqp*(1.0-cftiexclg)*vol(ix,iy)*kelighg(igsp)
+     .              * ng(ix,iy,igsp)*ng(ix,iy,1)*(tg(ix,iy,1)-tg(ix,iy,igsp))
+                reseg(ix,iy,1) = reseg(ix,iy,1) 
+     .              - cftgeqp*vol(ix,iy)*kelighg(igsp)
+     .              * ng(ix,iy,igsp)*ng(ix,iy,1)*(tg(ix,iy,1)-tg(ix,iy,igsp))
+
               if (ishymol.eq.1 .and. igsp.eq.2) then  #..D2 dissociation
-                 reseg(ix,iy,igsp) =
-     .                             reseg(ix,iy,igsp)+psorg(ix,iy,igsp)
-     .                                               *1.5*tg(ix,iy,igsp)
-                 t0 = cfnidhmol*0.25*(uuxg(ix,iy,igsp)+uuxg(ix1,iy,igsp))
-     .                              *(uuxg(ix,iy,igsp)+uuxg(ix1,iy,igsp))
-                 t1 = cfnidhmol*0.25*(vyg(ix,iy,igsp)+vyg(ix1,iy,igsp))
-     .                              *(vyg(ix,iy,igsp)+vyg(ix1,iy,igsp))
-                 t2 = 0. #.. molecule v in the tol direction, it seems to be assumed as 0 in neudifpg?
-                 reseg(ix,iy,1) = reseg(ix,iy,1) + cfnidhdis*
-     .                            0.5*mg(1)*(t0+t1+t2)*psordis(ix,iy)
-                 seic(ix,iy) = seic(ix,iy) + cftiexclg*cfnidhdis*
-     .                            0.5*mg(1)*(t0+t1+t2)*psordis(ix,iy)
-                 t0 = cfnidhmol*0.25*(uuxg(ix,iy,igsp)+uuxg(ix1,iy,igsp))
-     .                              *(uuxg(ix,iy,1)+uuxg(ix1,iy,1))
-                 t1 = cfnidhmol*0.25*(vyg(ix,iy,igsp)+vyg(ix1,iy,igsp))
-     .                              *(vyg(ix,iy,1)+vyg(ix1,iy,1))
-                 t2 = 0.
-                 reseg(ix,iy,1) = reseg(ix,iy,1) - cfnidhdis*
-     .                                mg(1)*(t0+t1+t2)*psordis(ix,iy)
-                 seic(ix,iy) = seic(ix,iy) - cftiexclg*cfnidhdis*
-     .                                mg(1)*(t0+t1+t2)*psordis(ix,iy)
+
+*               Internal ion/atom energy source due to dissociation
+*               ----------------------------------------------------
+*               IONS
+                eiamoldiss(ix,iy,1)=ismolcrm*(3/4)*tg(ix,iy,2)*(-psordis(ix,iy,1)/(-2*psordisg(ix,iy,2)))
+
+*               ATOMS
+                eiamoldiss(ix,iy,2) = ismolcrm * (
+     .              (3/4)*tg(ix,iy,2)*(-psordis(ix,iy,2)/(-2*psordisg(ix,iy,2)))
+     .          )
+
+*               INCLUDE IN RESIDUALS
+                reseg(ix,iy,1) = reseg(ix,iy,1)
+     .              + (1-cftiexclg)*eiamoldiss(ix,iy,2)
+
+                seic(ix,iy) = seic(ix,iy)
+     .              + eiamoldiss(ix,iy,1) + cftiexclg*eiamoldiss(ix,iy,2)
+
+*               Internal molecular energy sink due to dissociation
+*               ----------------------------------------------------
+                reseg(ix,iy,2) = reseg(ix,iy,2) + psorg(ix,iy,2)*1.5*tg(ix,iy,2)
+
+
+*               Drift heating energy source for molecules
+*               ----------------------------------------------------
+c               The below is adapted from the original implementation,
+c               where the first term assumes v_m = 0 when molecular 
+c               dissociation is implicitly assumed. The remaining terms
+c               are corrections for (v_m - v_a)**2. However, the original
+c               implementation seems to mix the poloidal and parallel 
+c               velocities arbitrarily, not actually completing the 
+c               square.
+
+c               The switches are mixed: cfnidhdis for v_a but cfnidhmol
+c               for the molecular terms: use cfnidhmol for all?
+
+c               Only apply drift heating for inertial atoms?
+*               ----------------------------------------------------
+                if (1.eq.1) then
+
+                    upgcc = 0.5*(up(ix,iy,iigsp)+up(ix1,iy,iigsp))
+                    vycc = (cfnidhgy**0.5)*0.5*(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
+                    v2cc = (cfnidhg2**0.5)*0.5*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
+
+                    reseg(ix,iy,1) = reseg(ix,iy,1) 
+     .                  - cfnidh*cfnidhdis*0.5*mg(1)* (upgcc**2 + vycc**2 + v2cc**2)
+     .                  * psordis(ix,iy,2)
+                    seic(ix,iy) = seic(ix,iy)
+     .                  - cftiexclg * cfneut * cfneutsor_ei * cnsor * cfnidhdis
+     .                  * 0.5*mg(1)*(upgcc**2 + vycc**2 + v2cc**2) 
+     .                  * ( (1-ismolcrm)*psordis(ix,iy,2) + ismolcrm*psordis(ix,iy,1) )
+
+                    uuxgcc = (cfnidhmol**0.5)*0.5*(uuxg(ix,iy,2)+uuxg(ix1,iy,2))
+                    vygcc = (cfnidhmol**0.5)*0.5*(vyg(ix,iy,2)+vyg(ix1,iy,2))
+                    v2gcc = 0. #.. molecule v in the tol direction, it seems to be assumed as 0 in neudifpg?
+
+                    reseg(ix,iy,1) = reseg(ix,iy,1) 
+     .                  - cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )*psordis(ix,iy,2)
+                    seic(ix,iy) = seic(ix,iy) 
+     .                  - cftiexclg*cfnidhdis*0.5*mg(1)*(uuxgcc**2 + vygcc**2 + v2gcc**2 )
+     .                  * ( (1-ismolcrm)*psordis(ix,iy,2) + ismolcrm*psordis(ix,iy,1) )
+
+                    uuxgcc = cfnidhmol*0.25*(uuxg(ix,iy,2)+uuxg(ix1,iy,2))
+     .                      *(uuxg(ix,iy,1)+uuxg(ix1,iy,1))
+                    vygcc = cfnidhmol*0.25*(vyg(ix,iy,2)+vyg(ix1,iy,2))
+     .                      *(vyg(ix,iy,1)+vyg(ix1,iy,1))
+                    v2gcc = 0.
+
+                    reseg(ix,iy,1) = reseg(ix,iy,1) 
+     .                  + cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)*psordis(ix,iy,2)
+                    seic(ix,iy) = seic(ix,iy) 
+     .                  + cftiexclg*cfnidhdis*mg(1)*(uuxgcc + vygcc + v2gcc)
+     .                  * ( (1-ismolcrm)*psordis(ix,iy,2) + ismolcrm*psordis(ix,iy,1) )
+
+                else
+                    upgcc = 0.5*(up(ix,iy,iigsp)+up(ix1,iy,iigsp))
+                    vycc = (cfnidhgy**0.5)*0.5*(vy(ix,iy,iigsp)+vy(ix1,iy,iigsp))
+                    v2cc = (cfnidhg2**0.5)*0.5*(v2(ix,iy,iigsp)+v2(ix1,iy,iigsp))
+
+                    uuxgcc = (cfnidhmol**0.5)*0.5*(uuxg(ix,iy,2)+uuxg(ix1,iy,2))
+                    vygcc = (cfnidhmol**0.5)*0.5*(vyg(ix,iy,2)+vyg(ix1,iy,2))
+                    v2gcc = 0. #.. molecule v in the tol direction, it seems to be assumed as 0 in neudifpg?
+
+                    reseg(ix,iy,1) = reseg(ix,iy,1) 
+     .                  - cfnidhdis*0.5*mg(1)
+     .                  * ((uuxgcc-upgcc)**2 + (vygcc-vycc)**2 + (v2gcc-v2cc)**2 )
+     .                  * psordis(ix,iy,2)
+
+                    seic(ix,iy) = seic(ix,iy) 
+     .                  - cftiexclg*cfnidhdis*0.5*mg(1)
+     .                  * ((uuxgcc-upgcc)**2 + (vygcc-vycc)**2 + (v2gcc-v2cc)**2 )
+     .                  * ( (1-ismolcrm)*psordis(ix,iy,2) + ismolcrm*psordis(ix,iy,1) )
+                endif
+
+
+
               endif
             endif
 	    #..zml place holder for neutral-neutral collision,
@@ -10272,7 +10428,7 @@ c ... Common blocks:
       Use(Selec)            #ixm1,ixp1
       Use(Comflo)           #feex,feix,feey,feiy,fqx,fqy,fnix,fniy
       Use(Compla)           #up,mi,ng,v2,vy
-      Use(UEpar)            #ediss,eion,ebind,iigsp,ishosor,fsprd,ishymol
+      Use(UEpar)            #ediss,eion,ebind,iigsp,ishosor,fsprd,ishymol,ismolcrm
       Use(Phyvar)           #ev,qe
       Use(Share)            #cutlo
       Use(Rhsides)          #psor,psorg,psorxr,erliz,erlrc,psor_tmpov
@@ -10287,7 +10443,8 @@ c ... Common blocks:
 
 c ... Local variables:
       integer ix,iy,ix1,ix2,ix3,ix4,iimp,id,igsp,jz,jx,ixt,ixt1,ixr,ixr1
-      real ave,a1,a2,t1,t2,thetaix,thetaix2,eta_dup2dy
+      real ave,a1,a2,t1,t2,thetaix,thetaix2,eta_dup2dy,sv_crumpet
+      external sv_crumpet
 
 c ... Implicit function:
       ave(a1,a2) = a1 * a2 / (a1 + a2 + cutlo)
@@ -10377,11 +10534,22 @@ c ... Implicit function:
 # energy is included in eeli term, but it is carried by the ions.
 # Note also that eion and ediss generally balance in the next line
 # because should have ediss=2*eion - transfer from electron to ion energy
+                pmloss(ix,iy) =(1-ismolcrm)*cnsor*(ediss*ev*(0.5*psordis(ix,iy,2))+
+     .                      ceisor*eion*ev*(psordis(ix,iy,2)) ) + 
+     .                      ismolcrm*cnsor*(
+     .                            cmesori*(emolia(ix,iy,1) + emolia(ix,iy,2))
+     .                          + cmesore*edisse(ix,iy)
+     .                      )
+                pmpot(ix,iy) = ismolcrm*ng(ix,iy,2)*vol(ix,iy)*
+     .                          sv_crumpet(te(ix,iy), ne(ix,iy), 22)
+                pmrada(ix,iy) = ismolcrm*ng(ix,iy,2)*vol(ix,iy)*
+     .                          sv_crumpet(te(ix,iy), ne(ix,iy), 23)
+                pmradm(ix,iy) = ismolcrm*ng(ix,iy,2)*vol(ix,iy)*
+     .                          sv_crumpet(te(ix,iy), ne(ix,iy), 24)
             peirad(ix,iy) = cnsor*( erliz(ix,iy) + erlrc(ix,iy) +
      .                              ebind*ev*psor(ix,iy,1) -
      .                              ebind*ev*psorrg(ix,iy,1) +
-     .                              ediss*ev*(0.5*psordis(ix,iy)) -
-     .                        ceisor*eion*ev*(psordis(ix,iy)) )
+     .                              pmloss(ix,iy))
 
 # other energy diagnostics are given below
 
@@ -10472,11 +10640,15 @@ cc            ptjdote = ptjdote + jdote(ix,iy)
             pradiz = pradiz + (eeli(ix,iy)-ebind*ev) * psor(ix,iy,1) 
             pbinde = pbinde + ebind*ev * psor(ix,iy,1)
             pbindrc = pbindrc + ebind*ev*psorrg(ix,iy,1)
-            prdiss = prdiss + ediss * ev * (0.5*psordis(ix,iy))
-            pibirth = pibirth + ceisor* eion*ev * (psordis(ix,iy)) -
+            prdiss = prdiss+(1-ismolcrm)*(ediss*ev*(0.5*psordis(ix,iy,2)))+
+     .                              ismolcrm*cmesore*edisse(ix,iy)
+            pibirth = pibirth+(1-ismolcrm)*(ceisor* eion*ev * (psordis(ix,iy,2)) -
      .                ccoldsor*ng(ix,iy,1)*(1.5*ti(ix,iy)-eion*ev)*
-     .                                          nucx(ix,iy,1)*vol(ix,iy) 
-          enddo
+     .                                          nucx(ix,iy,1)*vol(ix,iy) )+
+     .                  ismolcrm*( ceisor*cmesore*(emolia(ix,iy,1) + emolia(ix,iy,2))
+     .                   - ccoldsor*ng(ix,iy,1)*(1.5*ti(ix,iy)-eion*ev)*
+     .                                          nucx(ix,iy,1)*vol(ix,iy) )
+         enddo
         enddo
       enddo
       pradht = pradiz + pradrc
