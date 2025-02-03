@@ -2,6 +2,7 @@
 # This is generic down to the UEDGE section
 import copy
 import os
+from os import getenv
 def Use2use(s):
     #Return s if this is a comment
     if (not s[0].isspace()) and s[0] != "U":
@@ -42,11 +43,10 @@ def Petsc(s):
             s=s.replace("cpetsc","")
     return s
 def Omp(s):
-    if os.getenv('OMP') != None:
+    if getenv("OMP", 'False').lower() in ('true', '1', 't'):
         if s.startswith("c!omp"):
             s=s.replace("c!omp","     ")
     return s
-
 saved_dec=0
 in_uses=0
 savedlines=[]

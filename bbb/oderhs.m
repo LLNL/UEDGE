@@ -601,7 +601,7 @@ c    yldot is the RHS of ODE solver or RHS=0 for Newton solver (NKSOL)
       real dndym1,dndy0,dndyp1,d2ndy20,d2ndy2p1,d3ndy3
       real dtdym1,dtdy0,dtdyp1,d2tdy20,d2tdy2p1,d3tdy3,nhi_nha
       integer idum, idumaray(1)
-      real(Size4) sec4, gettime, tsimpfe, tsimp, tsnpg, ueb
+      real tsimpfe, tsimp, tsnpg, ueb
       integer impflag
       # former Aux module variables
       integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
@@ -613,10 +613,10 @@ cnxg      data igs/1/
       Use(Dim)      # nx,ny,nhsp,nusp,nzspt,nzsp,nisp,ngsp,nxpt
       Use(Xpoint_indices)      # ixlb,ixpt1,ixpt2,ixrb,iysptrx1,iysptrx2
                                # iysptrx
-      Use(Math_problem_size)   # neqmx,numvar
       Use(Timing)   # istimingon,ttotfe,ttotjf,ttimpfe,ttimpjf,ttnpg
       Use(Share)    # nxpt,nxomit,geometry,nxc,cutlo,islimon,ix_lim,iy_lims
                     # istabon,isudsym
+      Use(Math_problem_size)   # neqmx,numvar
       Use(Phyvar)   # pi,me,mp,ev,qe,rt8opi
       Use(UEpar)    # methe,methu,methn,methi,methg,concap,lnlam,
                     # convis,icnuiz,icnucx,cnuiz,cnucx,isrecmon,
@@ -690,10 +690,9 @@ cnxg      data igs/1/
       real tgupyface, ngupyface, n1upyface, ng2upyface
       external radmc, svdiss, sv_crumpet
       real tick,tock
-      external tick,tock
+      external tick, tock
 	  
 ccc      save
-
 *  -- procedures --
       real ave, etaper, interp_yf, interp_xf
       ave(t0,t1) = 2*t0*t1 / (cutlo+t0+t1)
@@ -718,8 +717,9 @@ c... Timing of pandf components (added by J. Guterl)
         endif
         if (TimingPandfOn.gt.0) TimePandf=tick()
 c... Roadblockers for  call to pandf through openmp structures (added by J.Guterl)
-      if ((isimpon.gt.0 .and. isimpon.ne.6) .and. (ParallelJac.gt.0 .or. ParallelPandf1.gt.0)) then
-      call xerrab('Only isimpon=0 or 6 is validated with openmp.
+      if ((isimpon.gt.0 .and. ((isimpon.ne.6) .and. (isimpon.ne.2) .and. 
+     .(isimpon.ne.7))) .and. (ParallelJac.gt.0 .or. ParallelPandf1.gt.0)) then
+      call xerrab('Only isimpon=0, 2, 6, or 7 is validated with openmp.
      .Contact the UEDGE team to use other  options with openmp.')
       endif
 
@@ -862,9 +862,9 @@ c            write(*,*) parvis
 
 c ... Get initial value of system cpu timer.
       if(xc .lt. 0) then
-         tsfe = gettime(sec4)
+         tsfe = tick()
       else
-         tsjf = gettime(sec4)
+         tsjf = tick()
       endif
 
       if ( (xc .lt. 0) .or. 
@@ -1581,11 +1581,11 @@ c     saved here so they can be restored below.
             ix = xc
             ix1 = ixm1(ix,iy)
             if (isimpon .eq. 5) then   # Hirshmans reduced-ion approx.
-               if (istimingon .eq. 1) tsimp = gettime(sec4)
+               if (istimingon .eq. 1) tsimp = tick()
                call mombal (ix1,ix,iy)
                if (istimingon .eq. 1) call timimpfj (tsimp, xc)
             elseif(isimpon .eq. 6 .or. isimpon .eq. 7) then # Force balance without inertia
-               if (istimingon .eq. 1) tsimp = gettime(sec4)
+               if (istimingon .eq. 1) tsimp = tick()
                call mombalni (ix1,ix,iy)
                if (istimingon .eq. 1) call timimpfj (tsimp, xc)
             endif
@@ -1613,11 +1613,11 @@ c     saved here so they can be restored below.
          do ix = ixs1, min(ixf6, nx+1-ixmxbcl)
             ix2 = ixp1(ix,iy)
             if (isimpon .eq. 5) then
-               if (istimingon .eq. 1) tsimp = gettime(sec4)
+               if (istimingon .eq. 1) tsimp = tick()
                call mombal (ix,ix2,iy)
                if (istimingon .eq. 1) call timimpfj (tsimp, xc)
             elseif(isimpon .eq. 6 .or. isimpon .eq. 7) then # Force balance without inertia
-               if (istimingon .eq. 1) tsimp = gettime(sec4)
+               if (istimingon .eq. 1) tsimp = tick()
                call mombalni (ix,ix2,iy)
                if (istimingon .eq. 1) call timimpfj (tsimp, xc)
             endif
@@ -2097,7 +2097,7 @@ c              +n_(z+1)[ne K^r_(z+1)+ng K^cx_(z+1)]  # cx/r gain to z from z+1
           do 604 iy = iys1, iyf6
              do 603 ix = ixs1, ixf6
 
-                  if (istimingon .eq. 1) tsimp = gettime(sec4)
+                  if (istimingon .eq. 1) tsimp = tick()
                   nevol = ne(ix,iy) * vol(ix,iy)
                   ngvol = ng(ix,iy,1) * vol(ix,iy)
 
@@ -2442,10 +2442,10 @@ ccc      if (isupgon .eq. 1 .and. zi(ifld) .eq. 0.0) call neudif
          call neudif
       elseif (ineudif .eq. 2) then
 c ..Timing
-      if(istimingon==1) tsnpg=gettime(sec4)
+      if(istimingon==1) tsnpg=tick()
          call neudifpg
 c ..Timing
-      if(istimingon==1) ttnpg=ttnpg+(gettime(sec4)-tsnpg)
+      if(istimingon==1) ttnpg = ttnpg + tock(tsnpg)
       elseif (ineudif .eq. 3) then
          call neudifl
       else
@@ -4726,7 +4726,7 @@ c     .                    cnsor* eiamoldiss(ix,iy)
 *  -- impurity radiation --
 
       if (isimpon .ge. 2) then
-         if (istimingon .eq. 1) tsimp = gettime(sec4)
+         if (istimingon .eq. 1) tsimp = tick()
 
          do 533 iy = iys1, iyf6  #if Jacobian, only 1 cell done - local sor
             do 532 ix = ixs1, ixf6
@@ -5117,9 +5117,9 @@ c...  Finally, reset some source terms if this is a Jacobian evaluation
 
 c ... Accumulate cpu time spent here.
       if(xc .lt. 0) then
-         ttotfe = ttotfe + gettime(sec4) - tsfe
+         ttotfe = ttotfe + tock(tsfe)
       else
-         ttotjf = ttotjf + gettime(sec4) - tsjf
+         ttotjf = ttotjf + tock(tsjf)
       endif
       if (TimingPandfOn.gt.0) TotTimePandf=TotTimePandf+tock(TimePandf)
       return
@@ -5516,17 +5516,16 @@ c ...       No flxlimf for 1st option; it only enhances (1/taudeff)
       end
 c****** end of subroutine mombalni ************
 c-----------------------------------------------------------------------
-      subroutine timimpfj (tsimp, xc)
-      real(Size4) tsimp
+      subroutine timimpfj(tick, xc)
+      real tock, tick
       integer xc
+      external tock
       Use(Timing)   # ttimpfe,ttimpjf
-      real(Size4) sec4, gettime, dtimp
 
-      dtimp = gettime(sec4) - tsimp
       if (xc .lt. 0) then
-         ttimpfe = ttimpfe + dtimp
+         ttimpfe = ttimpfe + tock(tick)
       else
-         ttimpjf = ttimpjf + dtimp
+         ttimpjf = ttimpjf + tock(tick)
       endif
 
       return
@@ -6126,10 +6125,10 @@ c
       integer iy1, methgx, methgy, iy2, jx, jfld, ifld
       integer iym1,iyp1,iyp2,ixm1b,ixp1b,ixp2b
       logical isxyfl
-      real(Size4) sec4, gettime
       # Former Aux module variables
       integer ix,iy,igsp,iv,iv1,iv2,iv3,ix1,ix2,ix3,ix4,ix5,ix6
-      real t,t0,t1,t2,a
+      real t,t0,t1,t2,a,tick,tock
+      external tick, tock
 
       Use(Dim)      # nx,ny,nhsp,nisp,ngsp,nxpt
       Use(Xpoint_indices)      # ixlb,ixpt1,ixpt2,ixrb,iysptrx1
@@ -6178,7 +6177,7 @@ c.... First the flux in the x-direction
 c *********************************************
 
 c ..Timing;initialize 
-      if(istimingon==1) tsngxlog = gettime(sec4)
+      if(istimingon==1) tsngxlog = tick()
 
       do 888 iy = j4, j8
          do 887 ix = i1, i5
@@ -6284,14 +6283,14 @@ c...  For one impurity, add convect vel for elastic scattering with ions
   888 continue
 
 c ..Timing; add info if timing is on
-      if(istimingon==1) ttngxlog=ttngxlog+(gettime(sec4)-tsngxlog)
+      if(istimingon==1) ttngxlog = ttngxlog + tock(tsngxlog)
 
 c *******************************************************
 c.... Now the flux in the y-direction
 c *******************************************************
 
 c ..Timing; initiate time for y-direction calc
-      if(istimingon==1) tsngylog = gettime(sec4)
+      if(istimingon==1) tsngylog = tick()
 
       do 890 iy = j1, j5
          do 889 ix = i4, i8
@@ -6386,24 +6385,24 @@ c...  For impurities, add convect vel for elastic scattering with ions
   890 continue
 
 c ..Timing; add increment if timing is on
-      if(istimingon==1) ttngylog=ttngylog+(gettime(sec4)-tsngylog)
+      if(istimingon==1) ttngylog = ttngylog + tock(tsngylog)
 
 *  --------------------------------------------------------------------
 *  compute the neutral particle flow
 *  --------------------------------------------------------------------
 c ..Timing
-      if(istimingon==1) tsngfd2 = gettime(sec4)
+      if(istimingon==1) tsngfd2 = tick()
 
       call fd2tra (nx,ny,floxg,floyg,conxg,conyg,
      .             pg(0:nx+1,0:ny+1,igsp),fngx(0:nx+1,0:ny+1,igsp),
      .             fngy(0:nx+1,0:ny+1,igsp),0,methg)
 c ..Timing
-      if(istimingon==1) ttngfd2=ttngfd2+(gettime(sec4)-tsngfd2)
+      if(istimingon==1) ttngfd2 = ttngfd2 + tock(tsngfd2)
 
 c...  Addition for nonorthogonal mesh
       if (isnonog .eq. 1) then
 c ..Timing
-      if(istimingon==1) tsngfxy = gettime(sec4)
+      if(istimingon==1) tsngfxy = tick()
 
          do 8905 iy = j1, min(j6, ny)
             iy1 = max(iy-1,0)
@@ -6497,7 +6496,7 @@ ccc   MER NOTE:  no xy flux limit for ix=0 or ix=nx in original code
  8904       continue
  8905    continue
 c ..Timing
-      if(istimingon==1) ttngfxy=ttngfxy+(gettime(sec4)-tsngfxy)
+      if(istimingon==1) ttngfxy = ttngfxy + tock(tsngfxy)
 
 c...  Fix the total fluxes; note the loop indices same as fd2tra
 c...  Flux-limit the total poloidal flux here
@@ -8749,26 +8748,26 @@ c ... Common blocks:
 
 c ... Functions:
       logical tstguardc
-      real(Size4) gettime
 cc      real(Size4) ranf
 
 c ... Local variables:
       integer nnz, ii, iv, ii1, ii2, xc, yc, ix, iy
       real yold, dyl, jacelem
-      real(Size4) sec4, tsjstor, tsimpjf, dtimpjf
+      real tick, tock, tsjstor, tsimpjf, dtimpjf
+      external tick, tock
 
 ccc      save
 
 c ... Get initial value of system cpu timer.
-      if (istimingon .eq. 1) tsjstor = gettime(sec4)
+      if (istimingon .eq. 1) tsjstor = tick()
 
 c ... Pause from BASIS if a ctrl_c is typed
       call ruthere
 
       ijac(ig) = ijac(ig) + 1
 
-      if ((svrpkg.eq.'nksol') .and. (iprint .ne. 0)) write(*,*) ' Updating Jacobian, npe =  ', 
-     .                                                          ijac(ig)
+      if ((svrpkg.eq.'nksol') .and. (iprint .ne. 0)) 
+     .      write(*,*) ' Updating Jacobian, npe =  ', ijac(ig)
 
 c ... Set up diagnostic arrays for debugging
       do iv = 1, neq
@@ -8848,8 +8847,10 @@ c ... Calculate right-hand sides near location of perturbed variable.
          call pandf1 (xc, yc, iv, neq, t, yl, wk)
 
 c ... Calculate possibly nonzero Jacobian elements for this variable,
-c     and store nonzero elements in compressed sparse column format.
-         jcsc(iv) = nnz      # sets index for first Jac. elem. of var. iv
+c ... and store nonzero elements in compressed sparse column format.
+c ... Note that iv is the row (eqn) index and ii is column (var) index
+
+         jcsc(iv) = nnz      # sets index for first Jac. elem. of eqn iv
          do ii = ii1, ii2
             jacelem = (wk(ii) - yldot00(ii)) / dyl
 ccc            jacelem = (wk(ii) - yldot0(ii)) / (2*dyl)  # for 2nd order Jac
@@ -8870,7 +8871,7 @@ c ...  Add a pseudo timestep to the diagonal ## if eqn is not algebraic
                if (iv.eq.ii .and. yl(neq+1).eq.1) 
      .             jacelem = jacelem - nufak  #omit .and. iseqalg(iv).eq.0)
             endif
-            if (abs(jacelem*sfscal(iv)) .gt. jaccliplim) then
+            if (abs(jacelem*sfscal(ii)) .gt. jaccliplim) then
                if (nnz .gt. nnzmx) then
                   write(STDOUT,*)
      .             '*** jac_calc -- More storage needed for Jacobian.',
@@ -8922,7 +8923,7 @@ c ... Count Jacobian evaluations, both for total and for this case
       ijactot = ijactot + 1   #note: ijactot set 0 in exmain if icntnunk=0
 
 c ... Accumulate cpu time spent here.
-      if (istimingon .eq. 1) ttjstor = ttjstor + gettime(sec4) - tsjstor
+      if (istimingon .eq. 1) ttjstor = ttjstor + tock(tsjstor)
       return
       end
 c-----------------------------------------------------------------------
@@ -8956,13 +8957,12 @@ c ... Common blocks:
       Use(Temporary_work_arrays)   # rwk1,rwk2,iwk1,iwk2,iwk3
 
 c ... Function:
-      real(Size4) gettime
 
 c ... Local variables:
       integer lowd, ierr, i, idum(1)
       real rcond, dum(1)
-      real(Size4) sec4
-      real tsmatfac
+      real tsmatfac, tick, tock
+      external tick, tock
 
 c ... Convert compressed sparse row to banded format and use exact
 c     factorization routine sgbco from Linpack/SLATEC.
@@ -8975,7 +8975,7 @@ c     factorization routine sgbco from Linpack/SLATEC.
      .         '*** jac_lu_decomp -- csrbnd returned ierr =', ierr
             call xerrab("")
          endif
-         tsmatfac = gettime(sec4)
+         tsmatfac = tick()
          call sgbco (wp, lowd, neq, lbw, ubw, iwp(4), rcond, rwk1)
          iwp(1) = lowd
          iwp(2) = lbw
@@ -8995,7 +8995,7 @@ c ... Reorder Jacobian rows and columns, if desired.
          call jac_reorder (neq, jac, ja, ia, wp, iwp(neq+2), iwp)
 
 c ... Use incomplete factorization routine ilut from SparsKit.
-         tsmatfac = gettime(sec4)
+         tsmatfac = tick()
          call ilut (neq,jac,ja,ia,lfililut,tolilut,wp,iwp(neq+1),
      .              iwp,lenplumx,rwk1,rwk2,iwk1,
      .              iwk2,iwk3,ierr) 
@@ -9044,13 +9044,13 @@ c ... Reorder rows to be in increasing column order.
      .                  rwkd)
 
 c ... Finally, calculate approximate LU decomposition.
-         tsmatfac = gettime(sec4)
+         tsmatfac = tick()
          call precond5 (neq, ndiag, ndiagm, adiag, wp, rwk2, rwk1,
      .                  iwk3, iwk2, siginel, fmuinel, iwp(3))
       endif
 
 c ... Accumulate cpu time spent here.
- 99   ttmatfac = ttmatfac + (gettime(sec4) - tsmatfac)
+ 99   ttmatfac = ttmatfac + tock(tsmatfac)
       return
       end
 c-----------------------------------------------------------------------
@@ -9077,15 +9077,14 @@ c ... Common blocks:
       Use(Jacreorder)      # perm,qperm,levels,nlev,mask,maskval,ireorder
 
 c ... Function:
-      real(Size4) gettime
 
 c ... Local variables:
-      real(Size4) sec4
-      real tsjreorder
+      real tick, tock, tsjreorder
       integer i, nfirst
+      external tick, tock
 
 c ... Get initial value of system cpu timer.
-      tsjreorder = gettime(sec4)
+      tsjreorder = tick()
 
       if ((ireorder .eq. 1) .and. (premeth .eq. 'ilut')) then
 
@@ -9119,7 +9118,7 @@ c ... End of If block
       endif
 
 c ... Accumulate cpu time spent here.
-      ttjreorder = ttjreorder + (gettime(sec4) - tsjreorder)
+      ttjreorder = ttjreorder + tock(tsjreorder)
       return
       end
 c-----------------------------------------------------------------------
@@ -9141,20 +9140,19 @@ c ... Common blocks:
       Use(Jacaux)   # isrnorm,normtype,fnormnw
 
 c ... Function:
-      real(Size4) gettime
 
 c ... Local variables:
-      real(Size4) sec4
-      real tsjrnorm
+      real tsjrnorm, tick, tock
+      external tick, tock
 
 c ... Get initial value of system cpu timer.
-      tsjrnorm = gettime(sec4)
+      tsjrnorm = tick()
 
       if (isrnorm .eq. 1) call roscal (neq, 0, normtype, jac, ja, ia,
      .                               fnormnw, jac, ja, ia)
 
 c ... Accumulate cpu time spent here.
-      ttjrnorm = ttjrnorm + (gettime(sec4) - tsjrnorm)
+      ttjrnorm = ttjrnorm + tock(tsjrnorm)
       return
       end
 c-----------------------------------------------------------------------
@@ -9910,17 +9908,16 @@ c ... Common blocks:
       Use(UEpar)             # svrpkg (used to reset usingsu for daspk)
 
 c ... Function:
-      real(Size4) gettime
 
 c ... Local variables:
       integer i
       integer lowd, lbw, ubw
       integer ndiag, ndiagm
-      real(Size4) sec4
-      real tsmatsol
+      real tsmatsol, tick, tock
+      external tick, tock
 
 c ... Get initial value of system cpu timer.
-      tsmatsol = gettime(sec4)
+      tsmatsol = tick()
 
 c ... Scale c by multiplying by row-normalization factors, if used,
 c     and by column scaling vector su (for svrpkg='nksol' only).
@@ -9975,7 +9972,7 @@ c ... Divide solution x by column-scaling factors (for svrpkg='nksol').
 
 c ... Accumulate cpu time spent here.
       ierr = 0
-      ttmatsol = ttmatsol + (gettime(sec4) - tsmatsol)
+      ttmatsol = ttmatsol + tock(tsmatsol)
       return
       end
 c-----------------------------------------------------------------------
@@ -12502,10 +12499,10 @@ c ... Output arguments:
 
       Use(ParallelEval)   # ParallelJac
 
-c!omp  if (ParallelJac.eq.1) then
+c!omp if (ParallelJac.eq.1) then
 c!omp    call jac_calc_parallel (neq, t, yl, yldot00, ml, mu, wk,
 c!omp.             nnzmx, jac, ja, ia)
-c!omp  else
+c!omp else
          call jac_calc (neq, t, yl, yldot00, ml, mu, wk,
      .               nnzmx, jac, ja, ia)
 c!omp  endif
@@ -12516,12 +12513,15 @@ c ... Interface for pandf1 rhs calculation for nksol only (added by. J.Guterl)
           implicit none
           Use(Math_problem_size) # neqmx
           Use(ParallelEval)      # ParallelPandf1
+          Use(Cdv)             # pandfitertag
           integer neq
           real time, yl(neqmx),yldot(neq)
 
 c!omp     if (ParallelPandf1.gt.0) then
+c!omp         pandfitertag = "OMP iter="
 c!omp         call OMPPandf1Rhs(neq, time, yl, yldot)
 c!omp     else
+              pandfitertag = "iter="
               call pandf1(-1, -1, 0, neq, time, yl, yldot)
 c!omp     endif
 
@@ -12539,20 +12539,4 @@ c!omp     endif
             write(*,*) '-----------------------------------'
             endif
         end subroutine PrintTimingPandf
-
-        real function tick()
-        implicit none
-            integer :: now, clock_rate
-            call system_clock(now,clock_rate)
-            tick=real(now)/real(clock_rate)
-        end function tick
-
-        real function tock(t)
-         implicit none
-            real, intent(in) :: t
-            integer :: now, clock_rate
-            call system_clock(now,clock_rate)
-
-            tock = real(now)/real(clock_rate)-t
-        end function tock
 

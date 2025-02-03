@@ -16,7 +16,7 @@ FGroup     = 1
   Use      = gfortran
   Optimize = -Ofast
   Debug    = -g
-  Flags    =  -fcray-pointer -cpp
+  Flags    =  -fcray-pointer -cpp -fallow-argument-mismatch
 
 CGroup     = 1 
   Use      = gnu_cc
@@ -35,4 +35,4 @@ FGroup     = 2 (api/fimp.m)
   Use      = gfortran
   Optimize = -Ofast
   Debug    = -g
-  Flags    = -fcray-pointer -cpp
+  Flags    = -fcray-pointer -cpp -fallow-argument-mismatch

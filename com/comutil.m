@@ -40,7 +40,7 @@ c...  Writes timing data for splines
 
       write(*,900) 'Total in B2VAhL spline routine = ', totb2val
       write(*,900) 'Total in INTRhV spline routine = ', totintrv
- 900  format(a36,f10.4,' sec')
+ 900  format(a36,f10.4,20x,' sec')
       totb2val = 0.0e0
       totintrv = 0.0e0
 
@@ -3599,7 +3599,8 @@ C
       EXTERNAL         INTRhV, B1VAhL, XERMShG
 
       Use(Timespl)
-      real(Size4) sec4, gettime, tsint
+      real tick, tock, tsint
+      external tick, tock
 
 C
 C***FIRST EXECUTABLE STATEMENT  B2VAhL
@@ -3648,9 +3649,9 @@ C
 C     ... FIND KNOT INTERVAL CONTAINING YVAL
 C
       INY = 1
-      tsint = gettime(sec4)
+      tsint = tick()
       CALL INTRhV(TY,NY+KY,YVAL,INY,LEFTY,MFLAG)
-      totintrv = totintrv + gettime(sec4) - tsint
+      totintrv = totintrv + tock(tsint)
       IF (MFLAG .NE. 0) THEN
 C
 C        ... YVAL .EQ. T(NY+KY),  ADJUST TO GET LEFT LIMITING VALUE
@@ -3867,7 +3868,8 @@ C
       EXTERNAL         INTRhV, XERMShG
 
       Use(Timespl)
-      real(Size4) sec4, gettime, tsint
+      real tick, tock, tsint
+      external tick, tock
 
 C
 C***FIRST EXECUTABLE STATEMENT  B1VAhL
@@ -3895,9 +3897,9 @@ C  -------------------------------
 C
 C     ... FIND LARGEST I IN (1,N+K) SUCH THAT T(I) .LE. X .LT. T(I+1)
 C
-      tsint = gettime(sec4)
+      tsint = tick()
       CALL INTRhV(T, NPK, X, INBV, I, MFLAG)
-      totintrv = totintrv + gettime(sec4) - tsint
+      totintrv = totintrv + tock(tsint)
       IF (MFLAG .NE. 0) THEN
 C
 C        ... X .EQ. T(N+K),  USE LEFT LIMITING VALUE
