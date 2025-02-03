@@ -5,9 +5,6 @@
 # meyer8@llnl.gov
 #
 #
-
-from __future__ import print_function
-
 import sys
 
 

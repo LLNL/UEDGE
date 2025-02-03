@@ -68,17 +68,23 @@ ueplot = [
 
 # TODO: add scripts to separate folder
 [tool.setuptools]
+packages = [
+    "uedge",
+    "uedge.rates",
+]
 script-files = [
     "pyscripts/pdb2hdf5",
     "pyscripts/bas2py",
     "pyscripts/hdf52pdb",
 ]
-#packages = ["uedge"]
-#package-dir = {"" = "pyscripts"}
 
-
+[tool.setuptools.package-dir]
+uedge = "src/uedge"
+"uedge.rates" = "rates"
 
 [tool.setuptools.dynamic]
-#version = {attr = "uedge.__version__"}
 version = {file = ["src/uedge/VERSION"]}
-#version = {file = "VERSION"}
+
+[tool.setuptools.package-data]
+"*" = ['*.dat']
+

@@ -30,16 +30,17 @@ jobs:
     - name: Return to pytests branch
       uses: actions/checkout@v4
       with:
-        ref: pytests
+        ref: pytests-develop
         repository: LLNL/UEDGE 
     - name: Test with pytest
       run: |
         # Create a clean UEDGE instance for every test
-        pytest --isolate --tb=native pytests/${{ matrix.tests }}
+        pytest --isolate --tb=native -s pytests/${{ matrix.tests }}
 
 
   build_wheels:
     name: Build wheels on ${{ matrix.os }} for Python ${{ matrix.pyver }}
+    if: false
  #   if: github.event_name == 'pull_request'
     needs: run-all-tests
     runs-on: ${{ matrix.os }}
@@ -86,6 +87,7 @@ jobs:
 
   build_wheels_pypy:
     name: Build PyPy wheels on ${{ matrix.os }} 
+    if: false
 #    if: github.event_name == 'pull_request'
     needs: run-all-tests
     runs-on: ${{ matrix.os }}
@@ -193,6 +195,7 @@ jobs:
 
   gather_wheels:
     name: Gather built wheels
+    if: false
     needs: [build_wheels, build_wheels_pypy]
 #    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
