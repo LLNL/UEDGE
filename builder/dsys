@@ -13,6 +13,8 @@ Usage:
   dsys delete [ pck | \$Arch ]
    # Delete pck files, or a specific architecture under ../dev, or
    # without arguments, delete *all* config and build products.
+  dsys podman [branch]  # run podmman image to build and test 
+  dsys docker [branch]  # run docker image to build and test 
 EOF
 }
 
@@ -40,6 +42,29 @@ getpack() {
 
 # Configure with mio. Use $BASIS_ROOT
 f_config() { $BASIS_ROOT/bin/mio -a $*; }
+
+f_docker() { 
+  br=master
+  if [ -n "$1" ] ; then
+	  br=$1
+  fi
+  if [ -n "`which docker`" ] ; then
+      /usr/bin/env docker run --rm fusionbillm/basisuedge checkout $br
+  else 
+      echo "Docker binary not found in environment."
+  fi
+}
+f_podman() { 
+  br=master
+  if [ -n "$1" ] ; then
+	  br=$1
+  fi
+  if [ -n "`which podman`" ] ; then
+      /usr/bin/env podman run --rm docker.io/fusionbillm/basisuedge checkout $br
+  else 
+      echo "Podman binary not found in environment."
+  fi
+}
 
 # Run test suite.
 f_test() {
@@ -73,6 +98,6 @@ case "$1" in
               usage
             fi
           done;;
-  config|test) comm=f_$1; shift; $comm "$@";;
+  config|test|docker|podman) comm=f_$1; shift; $comm "$@";;
   *) usage;;
 esac
