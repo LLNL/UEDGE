@@ -418,11 +418,11 @@ Use(Rtdata)
 Use(Rtdegas)
 Use(Aphwrk)
       Use(Timespl)
-      real tick, tock, tsval
+      real(Size4) sec4, gettime, tsval
 
 c     external procedures --
       real rsa, svradp, B2VAhL
-      external rsa, svradp, B2VAhL, tick, tock
+      external rsa, svradp, B2VAhL, gettime
 
 c     local variables --
       real a
@@ -590,10 +590,10 @@ c     compute abscissae --
       nxcoef=nxdata_aph
       nycoef=nydata_aph
 
-      tsval = tick()
+      tsval = gettime(sec4)
       w = B2VAhL(xuse, yuse, 0, 0, xknots_aph, yknots_aph, nxcoef, nycoef,
      .          kxords_aph, kyords_aph, rqacoef, ldf_aph, workh, iflag_aph)
-      totb2val = totb2val + tock(tsval)
+      totb2val = totb2val + gettime(sec4) - tsval
 c     electron energy loss rate parameter --
          rqa = w + 13.6 * ev_aph * rsa(te,ne,0.,k)
 
@@ -626,11 +626,11 @@ Use(Rtdata)
 Use(Rtdegas)
 Use(Aphwrk)
       Use(Timespl)
-      real tick, tock, tsval
+      real(Size4) sec4, gettime, tsval
 
 c     external procedures --
       real srecf, B2VAhL
-      external srecf, B2VAhL, tick, tock
+      external srecf, B2VAhL, gettime
 
 c     local variables --
       integer ine,ite
@@ -767,10 +767,10 @@ c     compute abscissae --
       nxcoef=nxdata_aph
       nycoef=nydata_aph
 
-      tsval = tick()
+      tsval = gettime(sec4)
       rra = B2VAhL(xuse, yuse, 0, 0, xknots_aph, yknots_aph, nxcoef, nycoef,
      .          kxords_aph, kyords_aph, rracoef, ldf_aph, workh, iflag_aph)
-      totb2val = totb2val + tock(tsval)
+      totb2val = totb2val + gettime(sec4) - tsval
 c----------------------------------------------------------------------c
       elseif (istabon .eq. 7) then
 c                       use polynomial fit from Bob Campbell -  8/93
@@ -881,11 +881,11 @@ Use(Rtdata)
 Use(Rtdegas)
 Use(Aphwrk)
       Use(Timespl)
-      real tick, tock, tsval
+      real(Size4) sec4, gettime, tsval
 
 c     external procedures --
       real sionf, B2VAhL
-      external sionf, B2VAhL, tick, tock
+      external sionf, B2VAhL, gettime
 
 c     local variables --
       real a
@@ -1025,10 +1025,10 @@ c     compute abscissae --
       nxcoef=nxdata_aph
       nycoef=nydata_aph
 
-      tsval = tick()
+      tsval = gettime(sec4)
       rsa = B2VAhL(xuse, yuse, 0, 0, xknots_aph, yknots_aph, nxcoef, nycoef,
      .          kxords_aph, kyords_aph, rsacoef, ldf_aph, workh, iflag_aph)
-      totb2val = totb2val + tock(tsval)
+      totb2val = totb2val + gettime(sec4) - tsval      
 c----------------------------------------------------------------------c
       elseif (istabon .eq. 7) then
 c                       use polynomial fit from Bob Campbell -  8/93

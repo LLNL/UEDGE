@@ -217,7 +217,7 @@ c ... Write timing data for the api package.
 
       write(*,902) 'Impur.:  physics w/o bookkeeping = ', ttimpc
  902  format(a36,f10.4,20x,' sec')
-      write(*,*) '(incl. in above f & Jac numbers)'
+      write(*,*) '(included in above f & Jac numbers)'
       ttimpc = 0.
 
       return

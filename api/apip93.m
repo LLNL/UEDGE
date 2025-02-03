@@ -1,41 +1,15 @@
 c----------------------------------------------------------------------c
 
-      subroutine readpost
+      subroutine readpost (fname)
       implicit none
-      character*(500) fname
-      logical fileExists
-Use(P93dat)     # atn,atw,nt,nr,nn
-Use(Impdata)    # coronalimppath, coronalimpfilename
+      character*(*) fname
+Use(P93dat)   # atn,atw,nt,nr,nn
 
 c     local variables --
       integer ios, nget
 
 c     procedures --
       external xerrab, remark, gallot, readpost1
-
-c----------------------------------------------------------------------c
-c     Set up path to mist.dat file
-c----------------------------------------------------------------------c
-
-
-       fname=TRIM(coronalimppath) // '/'//TRIM(coronalimpfname)
-       INQUIRE(FILE=TRIM(fname),EXIST=fileExists)
-       if (fileExists .neqv. .TRUE.) then
-         fname=TRIM(coronalimpfname)
-         INQUIRE(FILE=TRIM(fname),EXIST=fileExists)
-         if (fileExists .neqv. .TRUE.) then
-            write(*,*) "**** Coronal Equilibrium data file not found! ****"
-            write(*,*) ""
-            write(*,*) "Cannot find "//TRIM(coronalimpfname)//" in:"
-            write(*,*) TRIM(coronalimppath)
-            write(*,*) " or current directory."
-            write(*,*) ""
-            write(*,*) "Specify the file name using coronalimpfname"
-            write(*,*) "and its path using coronalimppath"
-            call xerrab("")
-         endif
-       endif
-
 
 c----------------------------------------------------------------------c
 c     Read impurity emissivity and charge state from POST93 data files
@@ -46,6 +20,11 @@ c----------------------------------------------------------------------c
      .     status='old')
       if (ios .ne. 0) then
          call remark("**** data file mist.dat not found --")
+         call remark(" ")
+         call remark("**** Data files for various impurities are available;")
+         call remark("**** check uedge/in/api or contact authors")
+         call remark(" ")
+         call remark("**** For UEDGE, the data file must be re-named mist.dat")
          call xerrab("")
       endif
 
@@ -117,12 +96,12 @@ Use(Imslwrk)   # nxdata_api,nydata_api,nzdata
 
 c     Construct 3-dimensional B-spline representation for impurity
 c     emissivity and charge state versus e-temperature, ng/ne and
-c     n*tau (data from POST 93 tables)
+c     n*tau (data from POST '93 tables)
 
 c     Allocate arrays for spline fitting --
-      nxdata_api=nt     # temperature
-      nydata_api=nr     # density ratio
-      nzdata=nn         # n*tau
+      nxdata_api=nt		# temperature
+      nydata_api=nr		# density ratio
+      nzdata=nn		# n*tau
       nwork2 = kyords_api*kzords + 3*max(kxords_api,kyords_api,kzords) + kzords + 2
       nwork3 = nxdata_api*nydata_api*nzdata + 2*max( kxords_api*(nxdata_api+1),
      &           kyords_api*(nydata_api+1), kzords*(nzdata+1) )

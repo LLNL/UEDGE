@@ -100,10 +100,6 @@ avgz2(NCASET,NCASENO,NCASENT)	real
 ***** Impdata:
 # name of directory containing impurity atomic rate data
 apidir character*120 /"."/  # name of directory containing impurity data files
-coronalimpfname  character*120 /"mist.dat"/   +input # name coronal impurity rate file
-                                                     # File looked for relative to coronalimpfname
-coronalimppath  character*120 /"."/   +input    # path to folders of coronal imp files
-                                                # file name defined by coronalimpfname
   
 
 ***** MC_subs:
@@ -146,34 +142,34 @@ z2datm(nt,nr,nn)	_real			# average Z**2
 
 ***** Imslwrk:
 # working arrays for 3-d spline interpolation
-nxdata_api	integer /1/ +threadprivate
-nydata_api	integer /1/ +threadprivate
-nzdata	integer /1/ +threadprivate
-xdata_api(1:nxdata_api)	_real +threadprivate
-ydata_api(1:nydata_api)	_real +threadprivate
-zdata(1:nzdata)	_real +threadprivate
-fdata_api(1:nxdata_api,1:nydata_api,1:nzdata)	_real +threadprivate
-ldf_api	integer +threadprivate			# first dimension of 3-d data array
-mdf	integer +threadprivate			# second dimension of 3-d data array
-iflagi	integer +threadprivate			# input/output flag for 3-d spline routines
-nwork2	integer /1/ +threadprivate			# size of array work2
-work2(nwork2)	_real +threadprivate		# work array for B3VAL
-nwork3	integer /1/ +threadprivate			# size of array work3
-work3(nwork3)	_real +threadprivate		# work array for B3INT
-iworki(10)	integer +threadprivate		# work array for B3VAL
-icont		integer	/0/ +threadprivate	# input flag for B3VAL
-kxords_api	integer	/4/ +threadprivate	# order of spline fit versus x
+nxdata_api	integer
+nydata_api	integer
+nzdata	integer
+xdata_api(1:nxdata_api)	_real
+ydata_api(1:nydata_api)	_real
+zdata(1:nzdata)	_real
+fdata_api(1:nxdata_api,1:nydata_api,1:nzdata)	_real
+ldf_api	integer			# first dimension of 3-d data array
+mdf	integer			# second dimension of 3-d data array
+iflagi	integer			# input/output flag for 3-d spline routines
+nwork2	integer			# size of array work2
+work2(nwork2)	_real		# work array for B3VAL
+nwork3	integer			# size of array work3
+work3(nwork3)	_real		# work array for B3INT
+iworki(10)	integer		# work array for B3VAL
+icont		integer	/0/	# input flag for B3VAL
+kxords_api	integer	/4/	# order of spline fit versus x
 #	kxords_api=4 (default) is cubic interpolation
-kyords_api	integer	/4/ +threadprivate	# order of spline fit versus y
+kyords_api	integer	/4/	# order of spline fit versus y
 #	kyords_api=4 (default) is cubic interpolation
-kzords	integer	/4/ +threadprivate	# order of spline fit versus z
+kzords	integer	/4/	# order of spline fit versus z
 #	kzords=4 (default) is cubic interpolation
-xknots_api(1:nxdata_api+kxords_api)	_real +threadprivate
-yknots_api(1:nydata_api+kyords_api)	_real +threadprivate
-zknots(1:nzdata+kzords)	_real +threadprivate
-emcoef(1:nxdata_api,1:nydata_api,1:nzdata)	_real +threadprivate	# spline coeff's for emissivity 
-z1coef(1:nxdata_api,1:nydata_api,1:nzdata)	_real +threadprivate	# spline coeff's for average-Z
-z2coef(1:nxdata_api,1:nydata_api,1:nzdata)	_real +threadprivate	# spline coeff's for average-Z**2
+xknots_api(1:nxdata_api+kxords_api)	_real
+yknots_api(1:nydata_api+kyords_api)	_real
+zknots(1:nzdata+kzords)	_real
+emcoef(1:nxdata_api,1:nydata_api,1:nzdata)	_real	# spline coeff's for emissivity 
+z1coef(1:nxdata_api,1:nydata_api,1:nzdata)	_real	# spline coeff's for average-Z
+z2coef(1:nxdata_api,1:nydata_api,1:nzdata)	_real	# spline coeff's for average-Z**2
 
 ***** P93fcn:
 # setup and evaluation routines for spline representation of data on impurity

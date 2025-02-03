@@ -19,7 +19,7 @@ end subroutine WriteArrayInteger
 !JG 03/2020 Subroutine for debugging purpose: print out all the threadprivate variable.
 !JG This routine was created with the OMPDebugger.py script, which also contains methods to analyze the outpout of this routine.
 !JG This routine can be called within the jacobian constructor to determine which variables behave differenlty in serial vs openmp jacobian calculations
-subroutine DebugHelper(FileName)
+      subroutine DebugHelper(FileName)
 
       Use Bcond
       Use Cfric
@@ -32,7 +32,7 @@ subroutine DebugHelper(FileName)
       Use Dim
       Use Gradients
       Use Imprad
-!TR      Use Imslwrk
+      Use Imslwrk
       Use Indices_domain_dcl
       Use Jacobian_csc
       Use Locflux
@@ -247,14 +247,14 @@ subroutine DebugHelper(FileName)
       call WriteArrayReal(fngyso,size(fngyso),iunit)
       write(iunit,*) "fnix"
       call WriteArrayReal(fnix,size(fnix),iunit)
-!      write(iunit,*) "fnixcb"
-!      call WriteArrayReal(fnixcb,size(fnixcb),iunit)
+      write(iunit,*) "fnixcb"
+      call WriteArrayReal(fnixcb,size(fnixcb),iunit)
       write(iunit,*) "fniy"
       call WriteArrayReal(fniy,size(fniy),iunit)
       write(iunit,*) "fniy4ord"
       call WriteArrayReal(fniy4ord,size(fniy4ord),iunit)
-!      write(iunit,*) "fniycb"
-!      call WriteArrayReal(fniycb,size(fniycb),iunit)
+      write(iunit,*) "fniycb"
+      call WriteArrayReal(fniycb,size(fniycb),iunit)
       write(iunit,*) "fniycbo"
       call WriteArrayReal(fniycbo,size(fniycbo),iunit)
       write(iunit,*) "fq2"
@@ -593,6 +593,8 @@ subroutine DebugHelper(FileName)
       call WriteArrayReal(psorg,size(psorg),iunit)
       write(iunit,*) "psorgc"
       call WriteArrayReal(psorgc,size(psorgc),iunit)
+      write(iunit,*) "psori"
+      call WriteArrayReal(psori,size(psori),iunit)
       write(iunit,*) "psorold"
       call WriteArrayReal(psorold,size(psorold),iunit)
       write(iunit,*) "psorrg"
@@ -860,6 +862,906 @@ subroutine DebugHelper(FileName)
       close(iunit)
       end subroutine DebugHelper
 
+
+#ifdef _OPENMP
+      subroutine OmpCopyPointerbbb2
+use OmpCopybbb
+!call OmpCopyPointerctaue
+!call OmpCopyPointerctaui
+!call OmpCopyPointercfvcsx
+!call OmpCopyPointercfvcsy
+!call OmpCopyPointercfvgpx
+!call OmpCopyPointercfvgpy
+!call OmpCopyPointeriwalli
+!call OmpCopyPointeriwallo
+!call OmpCopyPointerfngysi
+!call OmpCopyPointerfngyso
+!call OmpCopyPointeryld_carbi
+!call OmpCopyPointeryld_carbo
+!call OmpCopyPointerfqpsatlb
+!call OmpCopyPointerfqpsatrb
+!call OmpCopyPointertotfeexl
+!call OmpCopyPointertotfeexr
+!call OmpCopyPointertotfeixl
+!call OmpCopyPointertotfeixr
+!call OmpCopyPointersputflxlb
+!call OmpCopyPointersputflxrb
+!call OmpCopyPointersputflxw
+!call OmpCopyPointersputflxpf
+call OmpCopyPointerparvis
+call OmpCopyPointertravis
+!call OmpCopyPointerdiffusivwrk
+!call OmpCopyPointercoll_fe
+!call OmpCopyPointercoll_fi
+!call OmpCopyPointerni
+!call OmpCopyPointernm
+!call OmpCopyPointernz2
+!call OmpCopyPointeruu
+!call OmpCopyPointeruup
+
+
+!call OmpCopyPointerup
+!call OmpCopyPointerupi
+!call OmpCopyPointeruz
+!
+!
+!call OmpCopyPointerv2
+!call OmpCopyPointerv2xgp
+!call OmpCopyPointerv2ce
+!call OmpCopyPointerv2cb
+!call OmpCopyPointerve2cb
+!call OmpCopyPointerv2cd
+!call OmpCopyPointerve2cd
+!call OmpCopyPointerq2cd
+!call OmpCopyPointerv2rd
+!call OmpCopyPointerv2dd
+!call OmpCopyPointervy
+!call OmpCopyPointervygp
+!call OmpCopyPointervytan
+!call OmpCopyPointervygtan
+!call OmpCopyPointervyce
+!call OmpCopyPointervycb
+!call OmpCopyPointerveycb
+!call OmpCopyPointervycp
+!call OmpCopyPointerveycp
+!call OmpCopyPointervyrd
+!call OmpCopyPointervydd
+!call OmpCopyPointervyavis
+!call OmpCopyPointervex
+!call OmpCopyPointerupe
+!call OmpCopyPointervey
+!
+!!!!!!!!!!!!!!!!!!!!!!
+!call OmpCopyPointervycf
+!call OmpCopyPointervycr
+!call OmpCopyPointerte
+!call OmpCopyPointerti
+!call OmpCopyPointerng
+!call OmpCopyPointerlng
+!call OmpCopyPointeruug
+!call OmpCopyPointervyg
+!call OmpCopyPointertg
+!call OmpCopyPointertev
+!call OmpCopyPointertiv
+!call OmpCopyPointerniy0
+!call OmpCopyPointerniy1
+!call OmpCopyPointerniy0s
+!call OmpCopyPointerniy1s
+!call OmpCopyPointerney0
+!call OmpCopyPointerney1
+!call OmpCopyPointernity0
+!call OmpCopyPointernity1
+!call OmpCopyPointertey0
+!call OmpCopyPointertey1
+!call OmpCopyPointertiy0
+!call OmpCopyPointertiy1
+!call OmpCopyPointertiy0s
+!call OmpCopyPointertiy1s
+!call OmpCopyPointertgy0
+!
+!!call OmpCopyPointertgy1
+!
+!write(*,*) '#Master::: Calling routine to copy variable ngy0'
+!
+!call OmpCopyPointerngy0
+!
+!write(*,*) '#Master::: Calling routine to copy variable ngy1'
+!
+!call OmpCopyPointerngy1
+!
+!write(*,*) '#Master::: Calling routine to copy variable pgy0'
+!
+!call OmpCopyPointerpgy0
+!
+!write(*,*) '#Master::: Calling routine to copy variable pgy1'
+!
+!call OmpCopyPointerpgy1
+!
+!write(*,*) '#Master::: Calling routine to copy variable pg'
+!
+!call OmpCopyPointerpg
+!
+!write(*,*) '#Master::: Calling routine to copy variable phiy0'
+!
+!call OmpCopyPointerphiy0
+!
+!write(*,*) '#Master::: Calling routine to copy variable phiy1'
+!
+!call OmpCopyPointerphiy1
+!
+!write(*,*) '#Master::: Calling routine to copy variable phiy0s'
+!
+!call OmpCopyPointerphiy0s
+!
+!write(*,*) '#Master::: Calling routine to copy variable phiy1s'
+!
+!call OmpCopyPointerphiy1s
+!
+!write(*,*) '#Master::: Calling routine to copy variable pr'
+!
+!call OmpCopyPointerpr
+!
+!write(*,*) '#Master::: Calling routine to copy variable prev'
+!
+!call OmpCopyPointerprev
+!
+!write(*,*) '#Master::: Calling routine to copy variable prtv'
+!
+!call OmpCopyPointerprtv
+!
+!write(*,*) '#Master::: Calling routine to copy variable pri'
+!
+!call OmpCopyPointerpri
+!
+!write(*,*) '#Master::: Calling routine to copy variable priv'
+!
+!call OmpCopyPointerpriv
+!
+!write(*,*) '#Master::: Calling routine to copy variable priy0'
+!
+!call OmpCopyPointerpriy0
+!
+!write(*,*) '#Master::: Calling routine to copy variable priy1'
+!
+!call OmpCopyPointerpriy1
+!
+!write(*,*) '#Master::: Calling routine to copy variable pre'
+!
+!call OmpCopyPointerpre
+!
+!write(*,*) '#Master::: Calling routine to copy variable ne'
+!
+!call OmpCopyPointerne
+!
+!write(*,*) '#Master::: Calling routine to copy variable nit'
+!
+!call OmpCopyPointernit
+!
+!write(*,*) '#Master::: Calling routine to copy variable phi'
+!
+!call OmpCopyPointerphi
+!
+!write(*,*) '#Master::: Calling routine to copy variable phiv'
+!
+!call OmpCopyPointerphiv
+!
+!write(*,*) '#Master::: Calling routine to copy variable zeff'
+!
+!call OmpCopyPointerzeff
+!
+!write(*,*) '#Master::: Calling routine to copy variable loglambda'
+!
+!call OmpCopyPointerloglambda
+!
+!write(*,*) '#Master::: Calling routine to copy variable netap'
+!
+!call OmpCopyPointernetap
+!call OmpCopyPointerznot
+!call OmpCopyPointerupxpt
+!call OmpCopyPointernixpt
+!call OmpCopyPointervisyxpt
+!call OmpCopyPointervyhxpt
+!call OmpCopyPointervyvxpt
+!call OmpCopyPointerfmihxpt
+!call OmpCopyPointerfmivxpt
+!call OmpCopyPointerrtaux
+!call OmpCopyPointerrtauy
+!call OmpCopyPointerrtau
+!call OmpCopyPointerbetap
+!call OmpCopyPointerfqp
+!call OmpCopyPointerfq2
+!call OmpCopyPointerfqx
+!call OmpCopyPointerfqxb
+!call OmpCopyPointerfdiaxlb
+!call OmpCopyPointerfdiaxrb
+!call OmpCopyPointerfloxebgt
+!call OmpCopyPointerfloxibgt
+!call OmpCopyPointerfqy
+!
+!write(*,*) '#Master::: Calling routine to copy variable fqyb'
+!
+!call OmpCopyPointerfqyb
+!
+!write(*,*) '#Master::: Calling routine to copy variable fqyn'
+!
+!call OmpCopyPointerfqyn
+!
+!write(*,*) '#Master::: Calling routine to copy variable fqym'
+!
+!call OmpCopyPointerfqym
+!
+!write(*,*) '#Master::: Calling routine to copy variable fqymi'
+!
+!call OmpCopyPointerfqymi
+!
+!write(*,*) '#Master::: Calling routine to copy variable fqya'
+!
+!call OmpCopyPointerfqya
+!
+!write(*,*) '#Master::: Calling routine to copy variable fqydt'
+!
+!call OmpCopyPointerfqydt
+!
+!write(*,*) '#Master::: Calling routine to copy variable fqydti'
+!
+!call OmpCopyPointerfqydti
+!
+!write(*,*) '#Master::: Calling routine to copy variable fqyao'
+!
+!call OmpCopyPointerfqyao
+!
+!write(*,*) '#Master::: Calling routine to copy variable fqyae'
+!
+!call OmpCopyPointerfqyae
+!
+!write(*,*) '#Master::: Calling routine to copy variable fqyai'
+!
+!call OmpCopyPointerfqyai
+!
+!write(*,*) '#Master::: Calling routine to copy variable fqyd'
+!
+!call OmpCopyPointerfqyd
+!
+!write(*,*) '#Master::: Calling routine to copy variable fqygp'
+!
+!call OmpCopyPointerfqygp
+!
+!write(*,*) '#Master::: Calling routine to copy variable fq2d'
+!
+!call OmpCopyPointerfq2d
+!
+!write(*,*) '#Master::: Calling routine to copy variable fnix'
+!
+!call OmpCopyPointerfnix
+!call OmpCopyPointerfnixcb
+!call OmpCopyPointerfniy
+!call OmpCopyPointerfniy4ord
+!call OmpCopyPointerfniycb
+!call OmpCopyPointerfmix
+!call OmpCopyPointerfmiy
+!call OmpCopyPointerfmixy
+!call OmpCopyPointerfmity
+!call OmpCopyPointerfeex
+!call OmpCopyPointerfeey
+!call OmpCopyPointerfeexy
+!call OmpCopyPointerfeey4ord
+!call OmpCopyPointerfeix
+!call OmpCopyPointerfeiy
+!call OmpCopyPointerfegx
+!call OmpCopyPointerfegy
+!call OmpCopyPointerqipar
+!call OmpCopyPointerfniycbo
+!call OmpCopyPointerfeiycbo
+!call OmpCopyPointerfeeycbo
+!call OmpCopyPointerfeixy
+!call OmpCopyPointerfeiy4ord
+!call OmpCopyPointerfngx
+!call OmpCopyPointerfngx4ord
+!call OmpCopyPointerflngx
+!call OmpCopyPointerfngy
+!call OmpCopyPointerfngy4ord
+!call OmpCopyPointerflngy
+!call OmpCopyPointerfngxy
+!call OmpCopyPointerflngxy
+!call OmpCopyPointerbcel
+!call OmpCopyPointerbcer
+!call OmpCopyPointerbcil
+!call OmpCopyPointerbcir
+!call OmpCopyPointerkappal
+!call OmpCopyPointerkappar
+!call OmpCopyPointerdphi_iy1
+!call OmpCopyPointerkincorlb
+!call OmpCopyPointerkincorrb
+!call OmpCopyPointerex
+!call OmpCopyPointerey
+!call OmpCopyPointergpix
+!call OmpCopyPointergpiy
+!call OmpCopyPointergpex
+!call OmpCopyPointergpey
+!call OmpCopyPointergprx
+!call OmpCopyPointergpry
+!call OmpCopyPointergtex
+!call OmpCopyPointergtey
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable gtix'
+!!
+!!call OmpCopyPointergtix
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable gtiy'
+!!
+!!call OmpCopyPointergtiy
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable frice'
+!!
+!!call OmpCopyPointerfrice
+!!call OmpCopyPointerfrici
+!!call OmpCopyPointerfricnrl
+!!call OmpCopyPointeralfe
+!!call OmpCopyPointerbetai
+!!call OmpCopyPointerw
+!!call OmpCopyPointerw0
+!!call OmpCopyPointerw1
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable w2'
+!!
+!!call OmpCopyPointerw2
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable w3'
+!!
+!!call OmpCopyPointerw3
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable wvh'
+!!
+!!call OmpCopyPointerwvh
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable flox'
+!!
+!!call OmpCopyPointerflox
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable floy'
+!!
+!!call OmpCopyPointerfloy
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable conx'
+!!
+!!call OmpCopyPointerconx
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable cony'
+!!
+!!call OmpCopyPointercony
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable floxe'
+!!
+!!call OmpCopyPointerfloxe
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable floye'
+!!
+!!call OmpCopyPointerfloye
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable floxi'
+!!
+!!call OmpCopyPointerfloxi
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable floyi'
+!!
+!!call OmpCopyPointerfloyi
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable floxg'
+!!
+!!call OmpCopyPointerfloxg
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable floyg'
+!!
+!!call OmpCopyPointerfloyg
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable conxe'
+!!
+!!call OmpCopyPointerconxe
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable conye'
+!!
+!!call OmpCopyPointerconye
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable conxi'
+!!
+!!call OmpCopyPointerconxi
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable conyi'
+!!
+!!call OmpCopyPointerconyi
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable conxg'
+!!
+!!call OmpCopyPointerconxg
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable conyg'
+!!
+!!call OmpCopyPointerconyg
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable floxge'
+!!
+!!call OmpCopyPointerfloxge
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable floyge'
+!!
+!!call OmpCopyPointerfloyge
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable conxge'
+!!
+!!call OmpCopyPointerconxge
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable conyge'
+!!
+!!call OmpCopyPointerconyge
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable visx'
+!!
+!!call OmpCopyPointervisx
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable visy'
+!!
+!!call OmpCopyPointervisy
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable hcxe'
+!!
+!!call OmpCopyPointerhcxe
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable hcye'
+!!
+!!call OmpCopyPointerhcye
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable hcxij'
+!!
+!!call OmpCopyPointerhcxij
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable hcyij'
+!!
+!!call OmpCopyPointerhcyij
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable hcxg'
+!!
+!!call OmpCopyPointerhcxg
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable hcyg'
+!!
+!!call OmpCopyPointerhcyg
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable hcxi'
+!!
+!!call OmpCopyPointerhcxi
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable hcxineo'
+!!
+!!call OmpCopyPointerhcxineo
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable hcyi'
+!!
+!!call OmpCopyPointerhcyi
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable hcxn'
+!!
+!!call OmpCopyPointerhcxn
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable hcyn'
+!!
+!!call OmpCopyPointerhcyn
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable kxbohm'
+!!
+!!call OmpCopyPointerkxbohm
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable kybohm'
+!!
+!!call OmpCopyPointerkybohm
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable dif_use'
+!!
+!!call OmpCopyPointerdif_use
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable difp_use'
+!!
+!!call OmpCopyPointerdifp_use
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable dif2_use'
+!!
+!!call OmpCopyPointerdif2_use
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable tray_use'
+!!
+!!call OmpCopyPointertray_use
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable trax_use'
+!!
+!!call OmpCopyPointertrax_use
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable kye_use'
+!!
+!!call OmpCopyPointerkye_use
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable kyi_use'
+!!
+!!call OmpCopyPointerkyi_use
+!!call OmpCopyPointerkxe_use
+!!call OmpCopyPointerkxi_use
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable dutm_use'
+!!
+!!call OmpCopyPointerdutm_use
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable vy_use'
+!!
+!!call OmpCopyPointervy_use
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable vy_cft'
+!!
+!!call OmpCopyPointervy_cft
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable vyte_cft'
+!!
+!!call OmpCopyPointervyte_cft
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable vyti_cft'
+!!
+!!call OmpCopyPointervyti_cft
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable nuiz'
+!!
+!!call OmpCopyPointernuiz
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable nucx'
+!!
+!!call OmpCopyPointernucx
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable nucxi'
+!!
+!!call OmpCopyPointernucxi
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable nueli'
+!!
+!!call OmpCopyPointernueli
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable nuelg'
+!!
+!!call OmpCopyPointernuelg
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable nuix'
+!!
+!!call OmpCopyPointernuix
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable nurc'
+!!
+!!call OmpCopyPointernurc
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable nuvl'
+!!
+!!call OmpCopyPointernuvl
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable eqp'
+!!
+!!call OmpCopyPointereqp
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable eqpg'
+!!
+!!call OmpCopyPointereqpg
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable eeli'
+!!
+!!call OmpCopyPointereeli
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable pradhyd'
+!!
+!!call OmpCopyPointerpradhyd
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable eta1'
+!!
+!!call OmpCopyPointereta1
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable rtaue'
+!!
+!!call OmpCopyPointerrtaue
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable dclass_e'
+!!
+!!call OmpCopyPointerdclass_e
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable dclass_i'
+!!
+!!call OmpCopyPointerdclass_i
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable visxneo'
+!!
+!!call OmpCopyPointervisxneo
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable visvol_v'
+!!
+!!call OmpCopyPointervisvol_v
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable visvol_q'
+!!
+!!call OmpCopyPointervisvol_q
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable nuii'
+!!
+!!call OmpCopyPointernuii
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable nuiistar'
+!!
+!!call OmpCopyPointernuiistar
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable alfneo'
+!!
+!!call OmpCopyPointeralfneo
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable k2neo'
+!!
+!!call OmpCopyPointerk2neo
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable ktneo'
+!!
+!!call OmpCopyPointerktneo
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable snic'
+!!
+!!call OmpCopyPointersnic
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable sniv'
+!!
+!!call OmpCopyPointersniv
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable psorc'
+!!
+!!call OmpCopyPointerpsorc
+!!call OmpCopyPointerpsor
+!!call OmpCopyPointerpsorxrc
+!!call OmpCopyPointerpsorxr
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable psor_tmpov'
+!!
+!!call OmpCopyPointerpsor_tmpov
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable psorgc'
+!!
+!!call OmpCopyPointerpsorgc
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable psorg'
+!!
+!!call OmpCopyPointerpsorg
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable psorrgc'
+!!
+!!call OmpCopyPointerpsorrgc
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable psorrg'
+!!
+!!call OmpCopyPointerpsorrg
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable psorcxgc'
+!!
+!!call OmpCopyPointerpsorcxgc
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable psorcxg'
+!!
+!!call OmpCopyPointerpsorcxg
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable psori'
+!!
+!!call OmpCopyPointerpsori
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable psordis'
+!!
+!!call OmpCopyPointerpsordis
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable psorbgg'
+!!
+!!call OmpCopyPointerpsorbgg
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable psorbgz'
+!!
+!!call OmpCopyPointerpsorbgz
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable erliz'
+!!
+!!call OmpCopyPointererliz
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable erlrc'
+!!
+!!call OmpCopyPointererlrc
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable vsoreec'
+!!
+!!call OmpCopyPointervsoreec
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable vsoree'
+!!
+!!call OmpCopyPointervsoree
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable pwrebkg'
+!!
+!!call OmpCopyPointerpwrebkg
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable pwribkg'
+!!
+!!call OmpCopyPointerpwribkg
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable wjdote'
+!!
+!!call OmpCopyPointerwjdote
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable smoc'
+!!
+!!call OmpCopyPointersmoc
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable smov'
+!!
+!!call OmpCopyPointersmov
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable msor'
+!!
+!!call OmpCopyPointermsor
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable msorxr'
+!!
+!!call OmpCopyPointermsorxr
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable seec'
+!!
+!!call OmpCopyPointerseec
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable seev'
+!!
+!!call OmpCopyPointerseev
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable seic'
+!!
+!!call OmpCopyPointerseic
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable seiv'
+!!
+!!call OmpCopyPointerseiv
+!!
+!!
+!!
+!!call OmpCopyPointerresco
+!!
+!! to copy variable resng'
+!!
+!!call OmpCopyPointerresng
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable reseg'
+!!
+!!call OmpCopyPointerreseg
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable resmo'
+!!
+!!call OmpCopyPointerresmo
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable resee'
+!!
+!!call OmpCopyPointerresee
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable resei'
+!!
+!!call OmpCopyPointerresei
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable resphi'
+!!
+!!call OmpCopyPointerresphi
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable sng_ue'
+!!
+!!call OmpCopyPointersng_ue
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable seg_ue'
+!!
+!!call OmpCopyPointerseg_ue
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable psorold'
+!!
+!!call OmpCopyPointerpsorold
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable psorxrold'
+!!
+!!call OmpCopyPointerpsorxrold
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable msorold'
+!!
+!!call OmpCopyPointermsorold
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable msorxrold'
+!!
+!!call OmpCopyPointermsorxrold
+!!
+!!write(*,*) '#Master::: Calling routine to copy variable yldot_pert'
+!!
+!!call OmpCopyPointeryldot_pert
+!!call OmpCopyPointernzloc
+!!call OmpCopyPointerimpradloc
+!!call OmpCopyPointerpwrzec
+!!call OmpCopyPointerpwrze
+!!call OmpCopyPointerpradc
+!!call OmpCopyPointerpradcff
+!!call OmpCopyPointerprad
+!!call OmpCopyPointerpradzc
+!!call OmpCopyPointerpradz
+!!call OmpCopyPointerna
+!!call OmpCopyPointerntau
+!!call OmpCopyPointernratio
+!!call OmpCopyPointertempa
+!!call OmpCopyPointerden
+!!call OmpCopyPointergradp
+!!call OmpCopyPointergradt
+!!call OmpCopyPointerdztot
+end subroutine OmpCopyPointerbbb2
+
+
+subroutine ompCopyConvert
+      use OmpCopybbb
+      implicit none
+      call OmpCopyPointerne
+      call OmpCopyPointernit
+      call OmpCopyPointernm
+      call OmpCopyPointernz2
+      call OmpCopyPointerni
+      call OmpCopyPointerng
+      call OmpCopyPointerlng
+      call OmpCopyPointerte
+      call OmpCopyPointertg
+      call OmpCopyPointerti
+      call OmpCopyPointerphi
+      call OmpCopyPointerup
+      call OmpCopyPointerpr
+      call OmpCopyPointerzeff
+      call OmpCopyPointerpri
+      call OmpCopyPointerpre
+      call OmpCopyPointerznot
+      call OmpCopyPointertg
+      call OmpCopyPointerpg
+      call OmpCopyPointergprx
+      call OmpCopyPointerney0
+      call OmpCopyPointerney1
+      call OmpCopyPointernity0
+      call OmpCopyPointernity1
+      call OmpCopyPointergpry
+      call OmpCopyPointergpix
+      call OmpCopyPointerniy0
+      call OmpCopyPointerniy1
+      call OmpCopyPointerniy0s
+      call OmpCopyPointerniy1s
+      call OmpCopyPointerpriy0
+      call OmpCopyPointerpriy1
+      call OmpCopyPointergpiy
+      call OmpCopyPointertey0
+      call OmpCopyPointertey1
+      call OmpCopyPointertiy0
+      call OmpCopyPointertiy1
+      call OmpCopyPointerphiy0
+      call OmpCopyPointerphiy1
+      call OmpCopyPointertiy0s
+      call OmpCopyPointertiy1s
+      call OmpCopyPointerphiy0s
+      call OmpCopyPointerphiy1s
+      call OmpCopyPointerngy0
+      call OmpCopyPointerngy1
+      call OmpCopyPointertgy0
+      call OmpCopyPointertgy1
+      call OmpCopyPointerpgy0
+      call OmpCopyPointerpgy1
+      call OmpCopyPointergpex
+      call OmpCopyPointergtex
+      call OmpCopyPointergtix
+      call OmpCopyPointerex
+      call OmpCopyPointergpey
+      call OmpCopyPointergtey
+      call OmpCopyPointergtiy
+      call OmpCopyPointerey
+      call OmpCopyPointerphiv
+      call OmpCopyPointertiv
+      call OmpCopyPointertev
+      call OmpCopyPointerprev
+      call OmpCopyPointerprtv
+      call OmpCopyPointerpriv
+      end subroutine ompCopyConvert
+#endif
 subroutine jac_write(filename,neq, jac, jaccol, jacrow)
 
 !  This function serves to output the jacobian for viewing purposes
@@ -880,6 +1782,8 @@ subroutine jac_write(filename,neq, jac, jaccol, jacrow)
 
 subroutine EvalDumpJac(FileName,neq,yl,yldot00)
 
+    Use ParallelSettings,only:OMPParallelJac,MPIParallelJac
+    Use OMPJacSettings,only:iidebugprint,ivdebugprint,DebugJac,ForceSerialCheck,CheckJac,DumpFullJac, DumpJac
     Use Cdv,only:exmain_aborted
     implicit none
     ! ... Input arguments:
@@ -897,4 +1801,3 @@ subroutine EvalDumpJac(FileName,neq,yl,yldot00)
     write(*,*) '--- Dumping jacobian for analysis of bandwidth'
     call jac_write(FileName,neq, jaccopy, jacopy, iacopy)
 end subroutine EvalDumpJac
-

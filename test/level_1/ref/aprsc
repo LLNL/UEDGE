@@ -1,5 +1,4 @@
 Starting Basis global memory monitoring
-Ending Basis global memory monitoring
 errortrp("off")
 echo = no
 --------------------------------------------------------------------------
@@ -48,3 +47,4 @@ z =    1.23400D+00, 3.14159D+00
 z =    7774737166 31055034530,10002220771 36006703157
 z =   3FF3BE76 C8B43958,400921F9 F01B866F
 --------------------------------------------------------------------------
+Ending Basis global memory monitoring

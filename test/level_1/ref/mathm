@@ -1,5 +1,4 @@
 Starting Basis global memory monitoring
-Ending Basis global memory monitoring
 #
 # MATHM - matrix tests
 #
@@ -12,3 +11,4 @@ ok c
 ok d
 ok e
 ok f
+Ending Basis global memory monitoring

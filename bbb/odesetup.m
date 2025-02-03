@@ -363,11 +363,6 @@ c     if necessary.
       else
         nnzmx = lenpfac*neq
       endif
-
-c...  Init OMP/MPI/Hybrid variables after assignment of nnzmx,
-c...   which is used in InitOMP/InitMPI/InitHybrid (added by  J.Guterl)
-c!omp call InitParallel
-
       if (premeth .eq. 'ilut') then
          lwp = nnzmx + lenplufac*neq   # extra space for fill in
          lenplumx = lwp
@@ -551,7 +546,7 @@ c...  arrays as set by the user after allocation
                     # isnioffxy,isupoffxy,isngoffxy,isteoffxy,istioffxy,isphioffxy
 #      Use(Math_problem_size)   # neqmx
 #      Use(Lsode)    # neq
-      Use(Parallv)    # neq
+##      Use(Parallv)    # neq
 #      Use(Indices_domain_dcl)  # ixmxbcl,ixmnbcl,iymxbcl,iymnbcl
 
       integer ix,ifld,igsp
@@ -1126,7 +1121,7 @@ c ... Set up tables for impurity atomic-physics processes.
       if (isimpon .eq. 1) then		# obsolete option
          call xerrab ('ueinit -- option isimpon=1 is obsolete; use 2')
       elseif (isimpon .eq. 2) then	# data supplied by D. Post 1993
-         call readpost
+         call readpost(coronalimpfname)
          call splinem
          call remark('*** For isimpon=2, set afracs, not afrac ***')
       elseif ((isimpon .eq. 3) .and. (nzspt .gt. 0)) then    # avg-ion
@@ -1146,7 +1141,7 @@ c ... Set up tables for impurity atomic-physics processes.
          endif
       elseif (isimpon .eq. 7) then      # read both Post and Braams tables
 c.....First the Post table(s):
-         call readpost
+         call readpost(coronalimpfname)
          call splinem
          call remark('*** For isimpon=7, set afracs, not afrac ***')
 c.....Then the Braams table(s):

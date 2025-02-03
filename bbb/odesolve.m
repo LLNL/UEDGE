@@ -51,7 +51,6 @@ c Diagnostic data
       Use(Indices_domain_dcl) # ivloc2sdgl
       Use(Xpoint_indices)
       Use(Indices_domain_dcg)
-      Use(Cdv)
 c_mpi      Use(MpiVars)  #module defined in com/mpivarsmod.F.in
 
 
@@ -68,22 +67,23 @@ c_mpi      integer*4 ii4
 
       external ffun, jacnw, psolnw, resid, jacd2, psold, jacd1
       external rhsvd, jacvd, psolvd, rhsnk, psetnk, psolnk, jacvnk
+      external gettime
       real vnormnk,r1mach9
 
 c     local variables
       real tbout, dtreal_sav, initguess(neq), snesans(neq), snesminusnksol
-      real fnrm, fnew, tick, tock
-      external tick, tock
+      real fnrm, fnew
       integer i,ifld,lid,ilg
       #Former Aux module variables
       integer ix,iy,igsp,iv
 
+      real(Size4) gettime, sec4
 
 c **- For parallel mpi case, set up preliminary mpi stuff
       if (ismpion .eq. 1) call uedriv_pll
 
 c ... Save initial time and set accumulated times to zero.
-      tstart = tick()
+      tstart = gettime(sec4)
       ttotfe = 0.
       ttotjf = 0.
       ttimpfe = 0.
@@ -582,7 +582,7 @@ c_mpi      endif
          write(*,*) ng
       endif
 
-      tend = tock(tstart)
+      tend = gettime(sec4)
       if (iprinttim .eq. 1) call wtottim  # write out timing information
 
       return
@@ -979,18 +979,17 @@ c ... Writes out total timing data
       Use(Timing)     # tend,tstart,ttotfe,...
 
          write(*,*) ' '
-         write(*,900) 'Total time for last solution = ', tend
+         write(*,900) 'Total time for last solution = ', tend-tstart
          write(*,901) 'Total full f evaluation = ', ttotfe
          write(*,902) 'Impur. part of full f evaluation = ', ttimpfe
-         write(*,901) 'Total CPU Jacobian f evaluation = ', ttotjf
-         write(*,901) 'Total Wall-Clock Jacobian f eval. = ', ttjstor
+         write(*,901) 'Total Jacobian f evaluation = ', ttotjf
          write(*,902) 'Impur. part of Jacobian eval. = ', ttimpjf
          if (nisp .gt. nhsp) call wapitim
          write(*,901) 'Total Matrix factorization = ', ttmatfac
          write(*,901) 'Total Matrix backsolve = ', ttmatsol
          write(*,901) 'Total row normalization = ', ttjrnorm
          write(*,901) 'Total row and column reordering = ', ttjreorder
-c         write(*,901) 'Total in other Jacobian work = ', ttjstor-ttotjf
+         write(*,901) 'Total in other Jacobian work = ', ttjstor-ttotjf
  900     format(a36,20x,f10.4,' sec')
  901     format(a36,10x,f10.4,10x,' sec')
  902     format(a36,f10.4,20x,' sec')

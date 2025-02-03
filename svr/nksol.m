@@ -736,7 +736,9 @@ c- icntnu change
 c
       real zero,one,two,three
       logical mxtkn
-       Use(Cdv)  # comnfe, pandfitertag
+       Use(Cdv)
+cpetsc      external gettime
+cpetsc      real gettime,sec4
 c+pnb
 C
 C Type declaration for the additional diagnostics set up to inquire ----
@@ -1004,10 +1006,9 @@ c     call subroutine f to evaluate f at the initial guess.
 c-----------------------------------------------------------------------
       call f(n, u, savf)
       nfe = nfe + 1
-      comnfe = comnfe + 1
       fnrm = vnormnk(n,savf,sf)
       f1nrm = fnrm*fnrm/two
-      if (iprint .ge. 1) write(iunit,400) TRIM(pandfitertag), iter,fnrm,nfe
+      if (iprint .ge. 1) write(iunit,400) iter,fnrm,nfe
 c-----------------------------------------------------------------------
 c     test to see if initial conditions satisfy stopping criterion.
 c-----------------------------------------------------------------------
@@ -1096,8 +1097,8 @@ c
         u(i) = rwork(i+lup-1)
  300    continue
       f1nrm = f1nrmp
-      if (iprint .ge. 1) write(iunit,400) TRIM(pandfitertag), iter,fnrm,nfe
- 400  format(' ', a,i4,' fnrm= ',g26.16,' nfe= ',i6)
+      if (iprint .ge. 1) write(iunit,400) iter,fnrm,nfe
+ 400  format(' iter= ',i4,' fnrm= ',g26.16,' nfe= ',i6)
       if (iterm .eq. 0) go to 100
 c-----------------------------------------------------------------------
 c     load optional outputs into iwork array and return.
@@ -1202,7 +1203,6 @@ c                    in some direction, or stepmx is too small.
 c                    
 c-----------------------------------------------------------------------
       implicit none
-       Use(Cdv)
       integer n, iret, iter, itermx, ncscmx, iterm, locwmp, locimp
       integer iersl, kmp, mmax, methn, methk, ipflg, mfdif, nfe, nje
       integer nni, nli, npe, nps, ncfl, nbcf, ipcur, nnipset
@@ -1465,7 +1465,6 @@ c                      and the nonlinear iteration is halted.
 c
 c-----------------------------------------------------------------------
       implicit none
-       Use(Cdv)
       integer n, lenwm, leniwm, locwmp, locimp, iersl, kmp, mmax
       integer methn, methk, ipflg, mfdif, nfe, nje, nni, nli, npe
       integer nps, ncfl, nbcf, ipcur, nnipset, incpset, ier
@@ -1536,7 +1535,6 @@ c----------------------- end of subroutine model -----------------------
       subroutine solpk (n, wm, lenwm, iwm, leniwm, u, savf, x, su, sf,
      *                  f, jac, psol)
       implicit none
-       Use(Cdv)
       integer lenwm, leniwm, locwmp, locimp, iersl, kmp, mmax
       integer methn, methk, ipflg, mfdif, nfe, nje, nni, nli, npe
       integer nps, ncfl, nbcf, iwk, npsl, mmaxp1, ihsv, iq, mgmr
@@ -1912,7 +1910,6 @@ c----------------------- end of subroutine spiom -----------------------
       subroutine atv (n, u, savf, v, su, sf, ftem, f, jac, psol, z,
      *                vtem, wmp, iwmp, ier, npsl)
       implicit none
-       Use(Cdv)
       integer iwmp, ier, npsl, locwmp, locimp, iersl, kmp, mmax
       integer methn, methk, ipflg, mfdif, nfe, nje, nni, nli, npe
       integer nps, ncfl, nbcf, i
@@ -2046,7 +2043,6 @@ c ipflg = 1. apply inverse of right preconditioner
         endif
       call f(n, u, ftem)
       nfe = nfe + 1
-      comnfe = comnfe + 1
 ccc      do 281 i = 1, n                  # Begin 2nd order Jac
 ccc         u(i) = z(i) - sigma*vtem(i)   # change sign of perturbation
 ccc 281  continue
@@ -2630,7 +2626,6 @@ c                   failure causes the nonlinear iteration to halt.
 c
 c-----------------------------------------------------------------------
       implicit none
-       Use(Cdv)
       integer n, lenwm, iwm, leniwm, iret, locwmp, locimp, iersl
       integer kmp, mmax, methn, methk, ipflg, mfdif, nfe, nje, nni
       integer nli, npe, nps, ncfl, nbcf, iprint, iunit, iermsg, np1
@@ -2728,7 +2723,6 @@ c----------------------- end of subroutine dogdrv ----------------------
      *                  xnewl, wk, wmp, iwmp, u, su, sf, savf, f, jac,
      *                  psol)
       implicit none
-       Use(Cdv)
       integer m, mp1, mmaxp1, n, iwmp, locwmp, locimp, iersl, kmp
       integer mmax, methn, methk, ipflg, mfdif, nfe, nje, nni, nli
       integer npe, nps, ncfl, nbcf, i, ier
@@ -2911,7 +2905,6 @@ c----------------------- end of subroutine dogstp ----------------------
      *                   stptol, mxtkn, tau, uprev, fprev, f1prv, upls, 
      *                   f1pls, wk, ivio, iret, f)
       implicit none
-       Use(Cdv)
       integer m, mp1, mmaxp1, n, np1, ivio, iret, locwmp, locimp
       integer iersl, kmp, mmax, methn, methk, ipflg, mfdif, nfe, nje
       integer nni, nli, npe, nps, ncfl, nbcf, i
@@ -3060,7 +3053,6 @@ c-----------------------------------------------------------------------
  20     continue
       call f (n, u, savf)
       nfe = nfe + 1
-      comnfe = comnfe + 1
       call sswap(n, u, 1, upls, 1)
       fnrmp = vnormnk(n, savf, sf)
       f1pls = pt5*fnrmp*fnrmp
@@ -3208,7 +3200,6 @@ c            the beta-condition could not be met on this call.
 c
 c-----------------------------------------------------------------------
       implicit none
-       Use(Cdv)
       integer n, iret, icflag, icnstr, locwmp, locimp, iersl, kmp
       integer mmax, methn, methk, ipflg, mfdif, nfe, nje, nni, nli
       integer npe, nps, ncfl, nbcf, iprint, iunit, iermsg, i, ivio
@@ -3293,7 +3284,6 @@ c-----------------------------------------------------------------------
  120    continue
       call f(n, u, savf)
       nfe = nfe + 1
-      comnfe = comnfe + 1
       call sswap(n, u, 1, unew, 1)
       fnrmp = vnormnk(n,savf,sf)
       f1nrmp = fnrmp*fnrmp/two
@@ -3320,7 +3310,6 @@ c alpha-condition satisfied.  now check for beta-condition.
  140          u(i) = unew(i) + rl*p(i)
             call f(n, u, savf)
             nfe = nfe + 1
-            comnfe = comnfe + 1
             call sswap(n, u, 1, unew, 1)
             fnrmp = vnormnk(n,savf,sf)
             f1nrmp = fnrmp*fnrmp/two
@@ -3350,7 +3339,6 @@ c alpha-condition satisfied.  now check for beta-condition.
  160          u(i) = unew(i) + rl*p(i)
             call f(n, u, savf)
             nfe = nfe + 1
-            comnfe = comnfe + 1
             call sswap(n, u, 1, unew, 1)
             fnrmp = vnormnk(n,savf,sf)
             f1nrmp = fnrmp*fnrmp/two
@@ -3381,7 +3369,6 @@ c increment counter on number of steps beta-condition not satisfied.
  170            u(i) = unew(i) + rllo*p(i)
               call f(n, u, savf)
               nfe = nfe + 1
-              comnfe = comnfe + 1
               call sswap(n, u, 1, unew, 1)
               fnrmp = vnormnk(n,savf,sf)
               f1nrmp = fnrmp*fnrmp/two
@@ -3405,7 +3392,6 @@ c copy u into unew, set return code and return.
 c load savf and f1nrmp with current values.
         call f(n, u, savf)
         nfe = nfe + 1
-        comnfe = comnfe + 1
         fnrmp = vnormnk(n,savf,sf)
         f1nrmp = fnrmp*fnrmp/two
         return
@@ -3862,7 +3848,6 @@ c            maximum length stepmx.
 c
 c-----------------------------------------------------------------------
       implicit none
-       Use(Cdv)
       integer n, iret, icflag, icnstr, locwmp, locimp, iersl, kmp
       integer mmax, methn, methk, ipflg, mfdif, nfe, nje, nni, nli
       integer npe, nps, ncfl, nbcf, iprint, iunit, iermsg, i, ivio, ivar
@@ -3934,7 +3919,6 @@ c
  20     continue
       call f(n, u, savf)
       nfe = nfe + 1
-      comnfe = comnfe + 1
       call sswap(n, u, 1, unew, 1)
       fnrmp = vnormnk(n,savf,sf)
       f1nrmp = fnrmp*fnrmp/two

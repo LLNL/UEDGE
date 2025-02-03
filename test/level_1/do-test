@@ -21,12 +21,11 @@ set Arch = `$BASIS_ROOT/bin/cfgman use`
 set Base = `pwd`
 set Base = $Base:h
 set Base = $Base:h
-set Base = $Base:h
 set Root = $Base/dev/$Arch
 set BinD = $Root/bin
 
-setenv UEDGE $Base/builder/test
-setenv UEDGE_SCRIPTS $Base/builder/test/scripts
+setenv UEDGE $Base/test
+setenv UEDGE_SCRIPTS $Base/test/scripts
 
 if (-e $BinD/xuedge) then
    set Code = $BinD/xuedge
@@ -131,17 +130,11 @@ foreach i ($Tests)
       echo ""
       echo "xuedge $Opts read ../$SRC -> $RES"
    endif
-   if ( -f ../$SRC )  then
-      $Code $Opts read ../$SRC >& $RES
-      set tstatus = $status
-   else
-      set tstatus = 254
-   endif
+   $Code $Opts read ../$SRC >& $RES
+   set tstatus = $status
 
    if ($tstatus == 255) then
       echo "	(OMITTED)"
-   else if ($tstatus == 254) then
-      echo "	(NO FILE)"
 
    else if ($tstatus != 0) then
       set Failed = ( $Failed $i )

@@ -167,7 +167,6 @@ z                  shape: (4,2)
  row\col =                                      1
  (1)          4005AE14 7AE147AE,40091EB8 51EB851F
  (2)          4015AE14 7AE147AE,40191EB8 51EB851F
-Ending Basis global memory monitoring
  (3)          4020428F 5C28F5C2,4022D70A 3D70A3D7
  (4)          4025AE14 7AE147AE,40291EB8 51EB851F
  row\col =                                      2
@@ -176,3 +175,4 @@ Ending Basis global memory monitoring
  (3)          4032F851 EB851EB8,4035FAE1 47AE147B
  (4)          4035AE14 7AE147AE,40391EB8 51EB851F
 --------------------------------------------------------------------------
+Ending Basis global memory monitoring
