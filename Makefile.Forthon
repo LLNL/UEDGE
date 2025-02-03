@@ -9,7 +9,7 @@ FORTHON = Forthon3
 BUILDBASE = -v --build-base $(BUILDDIR)
 INSTALLARGS = --pkgbase uedge $(BUILDBASE) $(OMPFLAGS)
 
-all: mppl2f90 $(BUILDDIR)/compydep $(BUILDDIR)/aphpydep $(BUILDDIR)/bbbpydep $(BUILDDIR)/apipydep $(BUILDDIR)/ppppydep $(BUILDDIR)/flxpydep $(BUILDDIR)/grdpydep $(BUILDDIR)/svrpydep $(BUILDDIR)/wdfpydep $(BUILDDIR)/nclpydep
+all: mppl2f90 $(BUILDDIR)/compydep $(BUILDDIR)/bbbpydep $(BUILDDIR)/aphpydep  $(BUILDDIR)/apipydep $(BUILDDIR)/ppppydep $(BUILDDIR)/flxpydep $(BUILDDIR)/grdpydep $(BUILDDIR)/svrpydep $(BUILDDIR)/wdfpydep $(BUILDDIR)/nclpydep
 	rm -f uedgeC.so
 
 mppl2f90:
