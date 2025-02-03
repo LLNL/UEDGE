@@ -2038,7 +2038,7 @@ cfkincor            real     [ ] /0.5/ +input # factor for kincorlb,rb denom. fa
 einduc			             real  [V/m]   +input #inductive tor. E-field - input
 ex(0:nx+1,0:ny+1)           _real  [V/m]   +threadprivate #poloidal electric field
 ey(0:nx+1,0:ny+1)           _real  [V/m]   +threadprivate #radial electric field
-eymask1d(0:nx+1,0:ny+1)     _real  [V/m]   +threadprivate #set ey=0 in core+sep if isphicore0=1
+eymask1d(0:nx+1,0:ny+1)     _real  [V/m]   #set ey=0 in core+sep if isphicore0=1
 gpix(0:nx+1,0:ny+1,1:nisp)  _real  [Pa/m]  +threadprivate #X-gradient of ion pressure
 gpiy(0:nx+1,0:ny+1,1:nisp)  _real  [Pa/m]  +threadprivate #Y-gradient of ion pressure
 gpex(0:nx+1,0:ny+1)         _real  [Pa/m]  +threadprivate #X-gradient of el. pressure

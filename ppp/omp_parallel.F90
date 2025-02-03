@@ -509,7 +509,6 @@ END SUBROUTINE OMPSplitIndex
                 xlinc_bkp=xlinc
                 xrinc_bkp=xrinc
                 yldotcopy = 0
-                call set_eymask1d
                 if (iychunk(ichunk).ne.-1) then
                     yinc=yincchunk(ichunk)
                 endif
@@ -721,26 +720,4 @@ END SUBROUTINE OMPSplitIndex
     endif
     RETURN
   END SUBROUTINE MakeChunksPandf1
-
-  SUBROUTINE set_eymask1d()
-    USE Gradients, ONLY: eymask1d
-    USE Dim, ONLY: nxpt
-    USE Xpoint_indices, ONLY: iysptrx, ixpt1, ixpt2
-    USE Uepar, ONLY: isphicore0
-    IMPLICIT NONE
-    
-    integer :: jx, iy, ix
-!...  Set eymask1d to give ey=0 in core+sep for 1d SOL pot (isphicore0=1)
-    eymask1d = 1.  ! 2D array initialization
-    if (isphicore0 == 1) then  ! only solve pot eqn in SOL; phi_core const
-        do jx = 1, nxpt
-            do iy = 0, iysptrx
-                do ix = ixpt1(jx)+1, ixpt2(jx)
-                    eymask1d(ix,iy) = 0.
-                enddo
-            enddo
-        enddo
-    endif
-    RETURN
-  END SUBROUTINE set_eymask1d
 #endif
