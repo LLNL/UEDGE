@@ -22,7 +22,7 @@ Directory : . {
        Main      = 1
 
        PackFiles = uedge.pack
-       Packages  = aph api bbb com flx grd svr wdf fbasis mth pfb par ezn ezd
+       Packages  = api bbb com aph flx grd svr wdf fbasis mth pfb par ezn ezd
 
        Source    = glbtmdat.f
        Libraries = Lapack NCAR

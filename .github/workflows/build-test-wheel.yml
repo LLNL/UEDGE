@@ -43,7 +43,7 @@ jobs:
     name: Runs test ${{ matrix.tests }}
     runs-on: ubuntu-latest
     needs: check-requests
-    if: needs.check-requests.outputs.test == 'TRUE'
+    if: needs.check-requests.outputs.test != 'TRUE'
     strategy:
       fail-fast: false
       matrix:
@@ -100,7 +100,7 @@ jobs:
   build_wheels:
     name: Build wheels on ${{ matrix.os }} for Python ${{ matrix.pyver }}
     needs: [run-all-tests, check-requests]
-    if: needs.check-requests.outputs.wheels == 'TRUE'
+    if: needs.check-requests.outputs.wheels != 'TRUE'
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     strategy:

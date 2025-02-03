@@ -3,6 +3,6 @@
 #
 
 ProgName = xuedge
-Packages = aph api bbb com dce flx grd ncl svr wdf mds idf psi std dst .
+Packages = api bbb com aph dce flx grd ncl svr wdf mds idf psi std dst .
 Macros = sptodp
 RealSize = 8
