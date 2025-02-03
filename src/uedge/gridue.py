@@ -54,11 +54,8 @@ def read_gridue(fname=None):
     if fname is None:
         fname = bbb.GridFileName[0].decode('UTF-8').strip()
 
-    if len(fname.split('/'))>3:
-        prfname="/".join(["..."]+fname.split("/")[-2:])
-
     if com.iprint != 0:
-        print(' Reading grid data from {}.hdf5'.format(prfname))
+        print(' Reading grid data from {}.hdf5'.format(fname))
     read_gridpars(fname)
     gchange('RZ_grid_info')
     try:
@@ -100,7 +97,7 @@ def read_gridue(fname=None):
     gridue.close()
     if com.iprint != 0:
         print(' Grid data read successfully:')
-        print('     file name:   {}.hdf5'.format(prfname))
+        print('     file name:   {}.hdf5'.format(fname))
         print('     run-ID:      {}'.format(com.runid[0].decode('UTF-8')))
 
 def write_gridue(fname=None, runid=None):
