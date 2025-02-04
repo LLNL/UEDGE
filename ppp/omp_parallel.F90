@@ -478,6 +478,7 @@ END SUBROUTINE OMPSplitIndex
     USE Selec, ONLY:yinc,xrinc,xlinc
     USE Grid, ONLY:ijactot
     USE Cdv, ONLY: comnfe
+    USE Rhsides, ONLY: psorcxg, psorrg
     IMPLICIT NONE
  
     integer yinc_bkp,xrinc_bkp,xlinc_bkp,iv,tid
@@ -516,6 +517,9 @@ END SUBROUTINE OMPSplitIndex
                     xrinc=xincchunk(ichunk)
                     xlinc=xincchunk(ichunk)
                 endif
+                ! Necessary initialization for icntnunk=1 evaluation
+                psorcxg = 0
+                psorrg = 0
 
                 call pandf1 (ixchunk(ichunk),iychunk(ichunk), 0.0, neq, time, ylcopy, yldotcopy)
 
