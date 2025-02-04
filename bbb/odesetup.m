@@ -1170,6 +1170,7 @@ c ... If isimpon > 0 and isph_sput = 1, init. DIVIMP data for physical sputt.
 c ... Set up new grid geometry, if desired.
       if(newgeo .eq. 1) then
          call nphygeo
+         newgeo = 0 # Disable re-reading of grid unless explicitly requested
 
 c...  "zero out" sx at ixpt2(1) if isfixlb=2 and ixpt1(1).le.0 to prevent
 c...  flux thru cut
