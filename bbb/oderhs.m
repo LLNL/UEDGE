@@ -4597,14 +4597,18 @@ c*************************************************************
             w0(ix,iy) = vol(ix,iy) * eqp(ix,iy) * (te(ix,iy)-ti(ix,iy))
             resee(ix,iy) = resee(ix,iy) - w0(ix,iy) + vsoree(ix,iy)
 c ... Energy density change due to molecular dissociation ("Franck-Condon")
-            emolia(ix, iy, 1) = 
-     .          + ismolcrm*ng(ix,iy,2)*vol(ix,iy)* 
-     .          sv_crumpet(te(ix,iy), ne(ix,iy), 21) 
-     .          * ( psordis(ix,iy,1)/(-2*psordisg(ix,iy,2)))
-            emolia(ix, iy, 2) =
-     .          + ismolcrm*ng(ix,iy,2)*vol(ix,iy)* 
-     .          sv_crumpet(te(ix,iy), ne(ix,iy), 21) 
-     .          * ( psordis(ix,iy,2)/(-2*psordisg(ix,iy,2)))
+            emolia(ix,iy,1) = 0
+            emolia(ix,iy,2) = 0
+            if (ishymol .eq. 1) then
+                emolia(ix, iy, 1) = emolia(ix,iy,1)
+     .              + ismolcrm*ng(ix,iy,2)*vol(ix,iy)* 
+     .              sv_crumpet(te(ix,iy), ne(ix,iy), 21) 
+     .              * ( psordis(ix,iy,1)/(-2*psordisg(ix,iy,2)))
+                emolia(ix, iy, 2) = emolia(ix,iy,2)
+     .              + ismolcrm*ng(ix,iy,2)*vol(ix,iy)* 
+     .              sv_crumpet(te(ix,iy), ne(ix,iy), 21) 
+     .              * ( psordis(ix,iy,2)/(-2*psordisg(ix,iy,2)))
+            endif
 
             if (isupgon(1).eq.1) then
 c             Set up helper arrays for velocities
@@ -4694,7 +4698,6 @@ c                   Ion energy source from mol. drift heating
      .                    (upi(ix,iy,1)+upi(ix1,iy,1))**2*
      .                    fac2sp*psor(ix,iy,1)
      .             + cfneut * cfneutsor_ei * ceisor*(
-c     .                    cnsor* eiamoldiss(ix,iy)
      .                  + cmesori*(emolia(ix,iy,1)+emolia(ix,iy,2)) 
      .              )
      .             - cfneut * cfneutsor_ei * ccoldsor*ng(ix,iy,1)*nucx(ix,iy,1)*
