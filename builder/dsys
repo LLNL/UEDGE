@@ -50,8 +50,7 @@ f_docker() {
 	  br=$1
   fi
   if [ -n "`which docker`" ] ; then
-      /usr/bin/env docker pull fusionbillm/basisuedge
-      /usr/bin/env docker run --rm fusionbillm/basisuedge checkout $br
+      /usr/bin/env docker run --rm --pull always fusionbillm/basisuedge checkout $br
   else 
       echo "Docker binary not found in environment."
   fi
@@ -62,8 +61,7 @@ f_podman() {
 	  br=$1
   fi
   if [ -n "`which podman`" ] ; then
-      /usr/bin/env podman pull docker.io/fusionbillm/basisuedge
-      /usr/bin/env podman run --rm docker.io/fusionbillm/basisuedge checkout $br
+      /usr/bin/env podman run --rm --pull always docker.io/fusionbillm/basisuedge checkout $br
   else 
       echo "Podman binary not found in environment."
   fi
