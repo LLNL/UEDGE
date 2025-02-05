@@ -237,14 +237,8 @@ END SUBROUTINE InitZeroOMP
     ijactot = ijactot + 1
     ijac(ig) = ijac(ig) + 1
     if ((svrpkg.eq.'nksol') .and. (iprint .ne. 0)) then
-        if (OMPParallelPandf1 .eq. 0) then
-            write(*,'(a,i4,a,i6,a,i9)') ' Updating OMP Jacobian [', &
-                        Nthreads,'|',NchunksJac, ']: npe = ', ijac(ig)
-        else
-            write(*,'(a,i4,a,i6,a,i9)') &
-                    ' Updating OMP Jacobian using OMP Pandf1 [', &
+        write(*,'(a,i4,a,i6,a,i9)') ' Updating OMP Jacobian [', &
                     Nthreads,'|',NchunksJac, ']: npe = ', ijac(ig)
-        endif
     endif
     !   Set up diagnostic arrays for debugging
     do iv = 1, neq
