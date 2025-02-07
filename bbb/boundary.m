@@ -2752,7 +2752,7 @@ c...  local scalars
           integer ix,iy,igsp,iv,iv1,iv2,iv3,iv4,ix1,ix2,ix3,ix4,ixd
           real osmw
           real t0
-          real osmwm, outfluxa, outfluxm, influxa
+          real osmwm, outfluxa, outfluxm, influxa, thfluxa, thfluxm
 
           real harmave, onesided_maxwellian, outflux_atom
           real yld96, kappa
@@ -3250,29 +3250,30 @@ c       Explicit molecules included
             else
                 influxa = fngx(ixt1,iy,1)
             end if
+            thfluxa =    onesided_maxwellian(
+     .                      tg(ixt1,iy,1), 
+     .                      ng(ixt1,iy,1),
+     .                      mg(1),
+     .                      isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy),
+     .                      tgmin*ev
+     .                  )
+            thfluxm =    onesided_maxwellian(
+     .                      tg(ixt1,iy,2), 
+     .                      ng(ixt1,iy,2),
+     .                      mg(2),
+     .                      isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy),
+     .                      tgmin*ev
+     .                  )
+
             call outflux_mol(
      .              fac2sp*fnix(ixt1,iy,1),
      .              influxa,
-     .              onesided_maxwellian(
-     .                  tg(ixt1,iy,1), 
-     .                  ng(ixt1,iy,1),
-     .                  mg(1),
-     .                  isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy),
-     .                  tgmin*ev
-     .              ),
-     .              onesided_maxwellian(
-     .                  tg(ixt1,iy,2), 
-     .                  ng(ixt1,iy,2),
-     .                  mg(2),
-     .                  isoldalbarea*sx(ixt1,iy) + (1-isoldalbarea)*sxnp(ixt1,iy),
-     .                  tgmin*ev
-     .              ),
+     .              thfluxa,
+     .              thfluxm,
      .              recyrb(iy,1,jx),
      .              recyrb(iy,2,jx),
      .              albrb(iy,1,jx),
      .              albrb(iy,2,jx),
-     .              ismolcrm*(1-albrb(iy,1,jx))*onesided_maxwellian(
-     .              tg(ixt1,iy,1), ng(ixt1,iy,1), mg(1), sx(ixt1,iy), tgmin*ev),
      .              outfluxa,
      .              outfluxm
      .      )
@@ -3286,6 +3287,7 @@ c       Explicit molecules included
      .                  - fngxsrb(iy,2,jx) 
      .                  + outfluxm
      .              ) / (vpnorm*n0g(2)*sx(ixt1,iy))
+   
 
         END IF
 
@@ -5609,36 +5611,27 @@ c----------------------------------------------------------------------c
       END FUNCTION outflux_atom
 
       SUBROUTINE outflux_mol(
-     .          iflx_i, iflx_a, thflx_a, thflx_m, frecyca, frecycm,
-     .          alba, albm, flxa,
+     .      iflx_i, iflx_a, thflx_a, thflx_m, recyca, recycm,
+     .      alba, albm,
      .
-     .          oflx_a, oflx_m
-     .  )
-c ...   Calculates the outgoing atomic and molecular fluxes based on
-c ...   the incident fluxes, recycling fraction, pump rate, and 
-c ...   atom/molecular recycling fractions. All fluxes given as magnitudes
+     .      oflx_a, oflx_m
+     . )
       IMPLICIT NONE
-            REAL, INTENT(IN) :: iflx_i, iflx_a, thflx_a, thflx_m,
-     .                          frecyca, frecycm, alba, albm, flxa
-            REAL, INTENT(OUT) :: oflx_a, oflx_m
-            REAL flx_refl, flxth_refla, flxth_reflm
-            oflx_a = iflx_i*frecyca - (1-alba)*thflx_a
-            oflx_m = 0.5*(iflx_i + iflx_a - flxa)*frecycm - (1-albm)*thflx_m
+        REAL, INTENT(IN) :: iflx_i, iflx_a, thflx_a, thflx_m, recyca,
+     .              recycm, alba, albm
+        REAL, INTENT(OUT) :: oflx_a, oflx_m
+        REAL :: totflx
 
-c ...       Calculate the total reflected nuclear flux based on the
-c ...       incident flux and specified recycling fraction
-c            flx_refl = (iflx_i + iflx_a) * frecyc
-c ...       Calculate the returned atomic and molecular fluxes based
-c ...       on the specified albedos (account for 2 nuclei per atom)
-c            flxth_refla = (1-fmolth) * alba * thflx_a 
-c            flxth_reflm = 0.5*(fmolth * thflx_a) + albm * thflx_m
-c ...       Distribute the reflected fluxes between the outgoing atomic
-c ...       and molecular fluxes
-c            oflx_a = (1-fmolflx)*flx_refl - (1-alba)*flxth_refla
-c            oflx_m = 0.5 * fmolflx*flx_refl - (1-albm)*flxth_reflm
-
+        totflx = iflx_i+iflx_a+thflx_a
+        oflx_a = recyca*alba*iflx_i - (1-recyca*alba)*iflx_a
+        oflx_m = 0.5*recycm*(1-recyca)*alba*totflx - (1-albm)*thflx_m
+               
       RETURN
       END SUBROUTINE outflux_mol
+
+
+
+
 
       FUNCTION onesided_maxwellian(
      .      T, n, m, A, T_min
