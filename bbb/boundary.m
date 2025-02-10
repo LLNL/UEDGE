@@ -83,9 +83,10 @@ c...  local scalars
       #Former Aux module variables
       integer ix,iy,igsp,iv,iv1,iv2,iv3,iv4,ix1,ix2,ix3,ix4
       real t0,t1
+      real thflxa, thflxm, outfluxa, outfluxm
 
 *  -- external procedures --
-      real sdot, yld96, kappa
+      real sdot, yld96, kappa, outflux_atom
       external sdot
 
 *  -- procedures --
@@ -730,26 +731,72 @@ c ... Include gas BC from sputtering by ions
      .                                        (vyn*sy(ix,0)*n0g(igsp))
                if(matwalli(ix) .gt. 0) then
                  if (recycwit(ix,igsp,1) .gt. 0.) then
+c ...           Standard recycling model
                    fniy_recy = fac2sp*fniy(ix,0,1)
                    if(isrefluxclip==1) fniy_recy=min(fniy_recy,0.)
-                   if (igsp .gt. nhgsp) fniy_recy = zflux
-                   if (ishymol.eq.1 .and. igsp.eq.2) then # 2 atoms per molecule
-                     if (isupgon(1) .eq. 1) then
-		       fniy_recy = 0.5*( fniy(ix,0,1) + fniy(ix,0,2) )
-                     else
-                       fniy_recy = 0.5*( fniy(ix,0,1) + fngy(ix,0,1) )
-                     endif
-                     if(isrefluxclip==1) fniy_recy=min(fniy_recy,0.)
-                   endif
-                   yldot(iv) = -nurlxg*( fngy(ix,0,igsp) + fniy_recy*
+                    IF (igsp .le. nhgsp) THEN
+c ...               HYDROGEN LOOP
+                        IF (ishymol .ne. 1) THEN
+c ...                   ATOM ONLY MODEL
+                        yldot(iv) = -nurlxg*( fngy(ix,0,1) 
+     .                      + outflux_atom( fniy_recy, nharmave*vyn*sy(ix,0), 
+     .                                      recycwit(ix,1,1), albedoi(ix,1)
+     .                      ) - fngyi_use(ix,1) - fngysi(ix,1) 
+     .                      - fng_chem + sputflxpf(ix,1) ) / 
+     .                                        (vyn*n0g(1)*sy(ix,0))
+                        ELSE
+c ...                       Atom thermal flux impingin on iy boundary
+                            thflxa = (
+     .                          2.*(ng(ix,0,1)*ng(ix,1,1))/(ng(ix,0,1) + ng(ix,1,1))
+     .                          ) * sy(ix,0) * 0.25 * sqrt( 
+     .                              (8 * max(cdifg(1)*tg(ix,0,1),tgmin*ev)
+     .                          )/(pi*mg(1)) )
+c ...                       Molecular thermal flux impingin on iy boundary
+                            thflxm = (
+     .                          2.*(ng(ix,0,2)*ng(ix,1,2))/(ng(ix,0,2) + ng(ix,1,2))
+     .                          ) * sy(ix,0) * 0.25 * sqrt( 
+     .                              (8 * max(cdifg(2)*tg(ix,0,2),tgmin*ev)
+     .                          )/(pi*mg(2)) )
+
+                            call outflux_mol(
+     .                          fniy(ix,0,1), 
+     .                          fniy(ix,0,2)*isupgon(1) + fngy(ix,0,1)*(1-isupgon(1)),
+     .                          thflxa, thflxm, recycwit(ix,1,1), recycwit(ix,2,1),
+     .                          albedoi(ix,1), albedoi(ix,2), 
+     .                          outfluxa, outfluxm 
+     .                      )
+                            yldot(idxg(ix,0,1)) = -nurlxg*( fngy(ix,0,1) 
+     .                          + outfluxa - fngyi_use(ix,1) - fngysi(ix,1) 
+     .                          - fng_chem + sputflxpf(ix,1) ) / 
+     .                                        (vyn*n0g(1)*sy(ix,0))
+                            yldot(idxg(ix,0,2)) = -nurlxg*( fngy(ix,0,2) 
+     .                          + outfluxm - fngyi_use(ix,2) - fngysi(ix,2) 
+     .                          - fng_chem + sputflxpf(ix,2) ) / 
+     .                                        (vyn*n0g(2)*sy(ix,0))
+
+                        ENDIF
+
+                    ELSE
+
+
+
+                   yldot(iv) = -nurlxg*( fngy(ix,0,igsp) + zflux*
      .                          recycwit(ix,igsp,1) - fngyi_use(ix,igsp) -
      .                                        fngysi(ix,igsp) + fng_alb -
      .                             fng_chem + sputflxpf(ix,igsp) ) / 
      .                                        (vyn*n0g(igsp)*sy(ix,0))
+
+                    ENDIF
+
+
                  elseif (recycwit(ix,igsp,1) < -1) then
+c ...           Recycwit < -1, sets ng to ngbackg 
+c ...           TODO: deprecated, remove or add separate switch/entry point
                    yldot(iv)=nurlxg*(ngbackg(igsp)-ng(ix,0,igsp))/
      .                                                          n0g(igsp)
                 elseif (recycwit(ix,igsp,1) .le. 0.) then # treat recycwit as albedo
+c ...           Recycwit in [-1, 0], sets ng to balance fngy
+c ...           TODO: deprecated, remove or add separate switch/entry point
                    nharmave = 2.*(ng(ix,0,igsp)*ng(ix,1,igsp)) /
      .                           (ng(ix,0,igsp)+ng(ix,1,igsp))
                    yldot(iv) = -nurlxg*( fngy(ix,0,igsp) +
@@ -4962,3 +5009,35 @@ c   Compute fluxes along inner wall (need to change sign; some segms are core)
 
 ***** End of subroutine outwallflux ***********
 c----------------------------------------------------------------------c
+
+
+      FUNCTION outflux_atom(
+     .      iflx_i, thflx_a, frecyc, alba 
+     .) RESULT(oflx_a)
+      IMPLICIT NONE
+        REAL, INTENT(IN) :: iflx_i, thflx_a, frecyc, alba
+        REAL :: oflx_a
+            oflx_a = frecyc*iflx_i - (1-alba)*thflx_a
+
+      END FUNCTION outflux_atom
+
+      SUBROUTINE outflux_mol(
+     .      iflx_i, iflx_a, thflx_a, thflx_m, recyca, recycm,
+     .      alba, albm,
+     .
+     .      oflx_a, oflx_m
+     . )
+      IMPLICIT NONE
+        REAL, INTENT(IN) :: iflx_i, iflx_a, thflx_a, thflx_m, recyca,
+     .              recycm, alba, albm
+        REAL, INTENT(OUT) :: oflx_a, oflx_m
+        REAL :: totflx
+
+        totflx = iflx_i+iflx_a+thflx_a
+        oflx_a = recyca*alba*iflx_i - (1-recyca*alba)*iflx_a
+        oflx_m = 0.5*recycm*(1-recyca)*alba*totflx - (1-albm)*thflx_m
+
+      RETURN
+      END SUBROUTINE outflux_mol
+
+
