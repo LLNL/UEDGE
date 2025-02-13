@@ -3793,7 +3793,7 @@ wallflux					subroutine
 
 plateflux					subroutine
 	# diagnostic calc particle/heat flux to plates; alt. to balancee
-outlux_mol( iflx_i:real, iflx_a:real, thflx_a:real, thflxm:real, 
+outflux_mol( iflx_i:real, iflx_a:real, thflx_a:real, thflxm:real, 
             recyca:real, recycm:real, alba:real, albm:real, 
             oflx_a:real, oflx_m:real) subroutine
     # Recycling module for molecular recycling

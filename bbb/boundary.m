@@ -5015,8 +5015,8 @@ c----------------------------------------------------------------------c
      .      iflx_i, thflx_a, frecyc, alba 
      .) RESULT(oflx_a)
       IMPLICIT NONE
-        REAL, INTENT(IN) :: iflx_i, thflx_a, frecyc, alba
-        REAL :: oflx_a
+        REAL(8), INTENT(IN) :: iflx_i, thflx_a, frecyc, alba
+        REAL(8) :: oflx_a
             oflx_a = frecyc*iflx_i - (1-alba)*thflx_a
 
       END FUNCTION outflux_atom
