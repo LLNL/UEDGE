@@ -9,11 +9,8 @@ FORTHON = Forthon3
 BUILDBASE = -v --build-base $(BUILDDIR)
 INSTALLARGS = --pkgbase uedge $(BUILDBASE) $(OMPFLAGS)
 
-all: mppl2f90 $(BUILDDIR)/compydep $(BUILDDIR)/bbbpydep $(BUILDDIR)/aphpydep  $(BUILDDIR)/apipydep $(BUILDDIR)/ppppydep $(BUILDDIR)/flxpydep $(BUILDDIR)/grdpydep $(BUILDDIR)/svrpydep $(BUILDDIR)/wdfpydep $(BUILDDIR)/nclpydep
+all: $(BUILDDIR)/compydep $(BUILDDIR)/bbbpydep $(BUILDDIR)/aphpydep  $(BUILDDIR)/apipydep $(BUILDDIR)/ppppydep $(BUILDDIR)/flxpydep $(BUILDDIR)/grdpydep $(BUILDDIR)/svrpydep $(BUILDDIR)/wdfpydep $(BUILDDIR)/nclpydep
 	rm -f uedgeC.so
-
-mppl2f90:
-	(export PYTHONPATH=.:./buildscripts; $(MYPYTHON) convertor)
 
 $(BUILDDIR)/compydep: com/blasext.F com/brent.F com/comutil.F com/misc.F com/mnbrak.F com/dsum.f com/dummy_py.f com/error.f com/getmsg.f com/ssum.f com/$(PETSC-COM) com/com.v
 	$(FORTHON) -a $(INSTALLARGS) -a $(FCOMP) $(DEBUG) --interfacefile com/com.v -f com/blasext.F com com/brent.F com/comutil.F com/misc.F com/mnbrak.F com/dsum.f com/dummy_py.f com/error.f com/getmsg.f com/ssum.f $(PETSC-COM)
@@ -65,6 +62,7 @@ update:
 	done
 
 clean:
+	@echo Starting cleaning of build directory
 	find . -depth -name build -exec rm -rf {} \;
 	find . -depth -name __pycache__ -exec rm -rf {} \;
 	find . -name \*.pyc -exec rm {} \;

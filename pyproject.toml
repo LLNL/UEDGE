@@ -2,7 +2,8 @@
 requires = [
         "setuptools >= 61.0", 
         "forthon>=0.10.7", 
-        "numpy"
+        "numpy",
+        "h5py",
     ]
 build-backend = "setuptools.build_meta"
 
@@ -13,7 +14,8 @@ dynamic = ["version"]
 name = "uedge"
 dependencies = [
     "forthon>=0.10.7",
-    "numpy"
+    "numpy",
+    "h5py",
 ]
 requires-python = ">= 3.7" # TODO: verify
 authors = [

@@ -1,13 +1,12 @@
 import h5py
-import uedge
+from uedge import bbb, com
+from uedge.uedge_lists import *
+
 try:
     import __version__ as pyv
     pyver = pyv.__version__
 except:
     pyver = uedge.__version__
-from .uedge import bbb
-from .uedge import com
-from .uedge_lists import *
 import time
 from Forthon import packageobject
 
