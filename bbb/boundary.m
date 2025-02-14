@@ -87,7 +87,7 @@ c...  local scalars
 
 *  -- external procedures --
       real sdot, yld96, kappa, outflux_atom
-      external sdot
+      external sdot, outflux_mol
 
 *  -- procedures --
       real ave
@@ -184,11 +184,45 @@ cc     .               fniy(ix,0,ifld) - fng_chem )/(vyn*sy(ix,0)*n0(ifld))
 c...   Caution: the wall source models assume gas species 1 only is inertial
                   if(matwalli(ix) .gt. 0) then
                     if (recycwit(ix,1,1) .gt. 0.) then  
-                      fniy_recy = recycwit(ix,1,1)*fac2sp*fniy(ix,0,1)
+                        IF (ishymol .ne. 1) THEN
+c ...                   Set atoms here for atom-only case: if molecules
+c ...                   present, set atoms in gas loop
+                      fniy_recy = fac2sp*fniy(ix,0,1)
                       if (isrefluxclip==1) fniy_recy=min(fniy_recy,0.)
-                      yldot(iv1)=-nurlxg*( fniy(ix,0,ifld) + fniy_recy -
-     .                            fngyi_use(ix,1) - fngysi(ix,1) + fng_alb - 
-     .                            fng_chem ) / (vyn*n0(ifld)*sy(ix,0))
+
+
+                        yldot(iv1) = -nurlxg*( fniy(ix,0,2) 
+     .                      + outflux_atom( fniy_recy, -nharmave*vyn*sy(ix,0), 
+     .                                      recycwit(ix,1,1), albedoi(ix,1)
+     .                      ) - fngyi_use(ix,1) - fngysi(ix,1) 
+     .                      - fng_chem ) / (vyn*n0g(1)*sy(ix,0))
+                        ELSE
+
+c ...                   Atom thermal flux impinging on iy=0 boundary
+                        thflxa = (
+     .                      2.*(ng(ix,0,1)*ng(ix,1,1))/(ng(ix,0,1) + ng(ix,1,1))
+     .                      ) * sy(ix,0) * 0.25 * sqrt( 
+     .                          (8 * max(cdifg(1)*tg(ix,0,1),tgmin*ev)
+     .                      )/(pi*mg(1)) )
+c ...                   Molecular thermal flux impinging on iy=0 boundary
+                        thflxm = (
+     .                      2.*(ng(ix,0,2)*ng(ix,1,2))/(ng(ix,0,2) + ng(ix,1,2))
+     .                      ) * sy(ix,0) * 0.25 * sqrt( 
+     .                          (8 * max(cdifg(2)*tg(ix,0,2),tgmin*ev)
+     .                      )/(pi*mg(2)) )
+
+                        call outflux_mol(
+     .                      fniy(ix,0,1), 
+     .                      fniy(ix,0,2)*isupgon(1) + fngy(ix,0,1)*(1-isupgon(1)),
+     .                      -thflxa, -thflxm, recycwit(ix,1,1), recycwit(ix,2,1),
+     .                      albedoi(ix,1), albedoi(ix,2), 
+     .                      outfluxa, outfluxm 
+     .                  )
+                        yldot(idxn(ix,0,2)) = -nurlxg*( fniy(ix,0,2) 
+     .                      + outfluxa - fngyi_use(ix,1) - fngysi(ix,1) 
+     .                      - fng_chem ) / (vyn*n0g(1)*sy(ix,0))
+
+                        END IF 
                     elseif (recycwit(ix,1,1) < -1) then
                       yldot(iv1)=nurlxg*(ngbackg(1)-ni(ix,0,ifld))/n0(ifld)
                     elseif (recycwit(ix,1,1) .le. 0.) then  # treat recycwit as albedo
@@ -734,47 +768,41 @@ c ... Include gas BC from sputtering by ions
 c ...           Standard recycling model
                    fniy_recy = fac2sp*fniy(ix,0,1)
                    if(isrefluxclip==1) fniy_recy=min(fniy_recy,0.)
-                    IF (igsp .le. nhgsp) THEN
+                    IF ((igsp .eq. 2) .and. (ishymol .eq. 1)) THEN
 c ...               HYDROGEN LOOP
-                        IF (ishymol .ne. 1) THEN
-c ...                   ATOM ONLY MODEL
-                        yldot(iv) = -nurlxg*( fngy(ix,0,1) 
-     .                      + outflux_atom( fniy_recy, nharmave*vyn*sy(ix,0), 
-     .                                      recycwit(ix,1,1), albedoi(ix,1)
-     .                      ) - fngyi_use(ix,1) - fngysi(ix,1) 
-     .                      - fng_chem + sputflxpf(ix,1) ) / 
-     .                                        (vyn*n0g(1)*sy(ix,0))
-                        ELSE
-c ...                       Atom thermal flux impingin on iy boundary
-                            thflxa = (
-     .                          2.*(ng(ix,0,1)*ng(ix,1,1))/(ng(ix,0,1) + ng(ix,1,1))
-     .                          ) * sy(ix,0) * 0.25 * sqrt( 
-     .                              (8 * max(cdifg(1)*tg(ix,0,1),tgmin*ev)
-     .                          )/(pi*mg(1)) )
-c ...                       Molecular thermal flux impingin on iy boundary
-                            thflxm = (
-     .                          2.*(ng(ix,0,2)*ng(ix,1,2))/(ng(ix,0,2) + ng(ix,1,2))
-     .                          ) * sy(ix,0) * 0.25 * sqrt( 
-     .                              (8 * max(cdifg(2)*tg(ix,0,2),tgmin*ev)
-     .                          )/(pi*mg(2)) )
+c ...                   Atom thermal flux impinging on iy=0 boundary
+                        thflxa = (
+     .                      2.*(ng(ix,0,1)*ng(ix,1,1))/(ng(ix,0,1) + ng(ix,1,1))
+     .                      ) * sy(ix,0) * 0.25 * sqrt( 
+     .                          (8 * max(cdifg(1)*tg(ix,0,1),tgmin*ev)
+     .                      )/(pi*mg(1)) )
+c ...                   Molecular thermal flux impinging on iy=0 boundary
+                        thflxm = (
+     .                      2.*(ng(ix,0,2)*ng(ix,1,2))/(ng(ix,0,2) + ng(ix,1,2))
+     .                      ) * sy(ix,0) * 0.25 * sqrt( 
+     .                          (8 * max(cdifg(2)*tg(ix,0,2),tgmin*ev)
+     .                      )/(pi*mg(2)) )
 
-                            call outflux_mol(
-     .                          fniy(ix,0,1), 
-     .                          fniy(ix,0,2)*isupgon(1) + fngy(ix,0,1)*(1-isupgon(1)),
-     .                          thflxa, thflxm, recycwit(ix,1,1), recycwit(ix,2,1),
-     .                          albedoi(ix,1), albedoi(ix,2), 
-     .                          outfluxa, outfluxm 
-     .                      )
-                            yldot(idxg(ix,0,1)) = -nurlxg*( fngy(ix,0,1) 
-     .                          + outfluxa - fngyi_use(ix,1) - fngysi(ix,1) 
-     .                          - fng_chem + sputflxpf(ix,1) ) / 
-     .                                        (vyn*n0g(1)*sy(ix,0))
-                            yldot(idxg(ix,0,2)) = -nurlxg*( fngy(ix,0,2) 
-     .                          + outfluxm - fngyi_use(ix,2) - fngysi(ix,2) 
-     .                          - fng_chem + sputflxpf(ix,2) ) / 
-     .                                        (vyn*n0g(2)*sy(ix,0))
+                        call outflux_mol(
+     .                      fniy(ix,0,1), 
+     .                      fniy(ix,0,2)*isupgon(1) + fngy(ix,0,1)*(1-isupgon(1)),
+     .                      -thflxa, -thflxm, recycwit(ix,1,1), recycwit(ix,2,1),
+     .                      albedoi(ix,1), albedoi(ix,2), 
+     .                      outfluxa, outfluxm 
+     .                  )
 
+                        IF (isupgon(1) .eq. 0) THEN
+                        yldot(idxn(ix,0,2)) = -nurlxg*( fniy(ix,0,2) 
+     .                      + outfluxa - fngyi_use(ix,1) - fngysi(ix,1) 
+     .                      - fng_chem ) / 
+     .                                    (vyn*n0g(1)*sy(ix,0))
                         ENDIF
+
+                        yldot(idxg(ix,0,2)) = -nurlxg*( fngy(ix,0,2) 
+     .                      + outfluxm - fngyi_use(ix,2) - fngysi(ix,2) 
+     .                      - fng_chem + sputflxpf(ix,2) ) / 
+     .                                    (vyn*n0g(2)*sy(ix,0))
+
 
                     ELSE
 
@@ -1059,7 +1087,8 @@ c  ### First core phi BC at iy=0 & 1 over full ixcore range; then ix=ixmp
 c  ######################################################################
 cc     First check that iphibcc=1,2, or 3; othewise abort with message
                if (iphibcc < 1 .or. iphibcc > 3) then
-                 call xerrab("**INPUT ERROR: only iphibcc=1,2,3 available")
+                 call xerrab(
+     .          "**INPUT ERROR: only iphibcc=1,2,3 available")
                endif
 
                  if (iphibcc==1) then
@@ -1205,11 +1234,50 @@ c ---  typically hydrogen only, so DIVIMP chem sputt not used here
 c...   Caution: the wall source models assume gas species 1 only is inertial
                 if(matwallo(ix) .gt. 0) then
                   if (recycwot(ix,1) .gt. 0.) then
-                    fniy_recy = recycwot(ix,1)*fac2sp*fniy(ix,ny,1)
-                    if(isrefluxclip==1) fniy_recy=max(fniy_recy,0.)
-                    yldot(iv1) = nurlxg*( fniy(ix,ny,ifld) + fniy_recy +
-     .                 fngyo_use(ix,1)+fngyso(ix,1)-fng_alb + fng_chem ) / 
-     .                                          (vyn*n0(ifld)*sy(ix,ny))
+
+                        IF (ishymol .ne. 1) THEN
+c ...                   Set atoms here for atom-only case: if molecules
+c ...                   present, set atoms in gas loop
+                        fniy_recy = fac2sp*fniy(ix,ny,1)
+                        if(isrefluxclip==1) fniy_recy=max(fniy_recy,0.)
+
+
+                        yldot(iv1) = nurlxg*( fniy(ix,ny,2) 
+     .                      + outflux_atom( fniy_recy, -nharmave*vyn*sy(ix,ny), 
+     .                                      recycwot(ix,1), albedoo(ix,1)
+     .                      ) + fngyo_use(ix,1) + fngyso(ix,1) 
+     .                      + fng_chem ) / (vyn*n0g(1)*sy(ix,ny))
+
+                        ELSE
+
+c ...                   Atom thermal flux impinging on iy=0 boundary
+                        thflxa = (
+     .                      2.*(ng(ix,ny,1)*ng(ix,ny+1,1))/(ng(ix,ny,1) + ng(ix,ny+1,1))
+     .                      ) * sy(ix,ny) * 0.25 * sqrt( 
+     .                          (8 * max(cdifg(1)*tg(ix,ny,1),tgmin*ev)
+     .                      )/(pi*mg(1)) )
+c ...                   Molecular thermal flux impinging on iy=0 boundary
+                        thflxm = (
+     .                      2.*(ng(ix,ny,2)*ng(ix,ny+1,2))/(ng(ix,ny,2) + ng(ix,ny+1,2))
+     .                      ) * sy(ix,ny) * 0.25 * sqrt( 
+     .                          (8 * max(cdifg(2)*tg(ix,ny,2),tgmin*ev)
+     .                      )/(pi*mg(2)) )
+
+                        call outflux_mol(
+     .                      fniy(ix,ny,1), 
+     .                      fniy(ix,ny,2)*isupgon(1) + fngy(ix,ny,1)*(1-isupgon(1)),
+     .                      -thflxa, -thflxm, recycwot(ix,1), recycwot(ix,2),
+     .                      albedoo(ix,1), albedoo(ix,2), 
+     .                      outfluxa, outfluxm 
+     .                  )
+                        yldot(idxn(ix,ny,2)) = nurlxg*( fniy(ix,ny,2) 
+     .                      + outfluxa - fngyo_use(ix,1) - fngyso(ix,1) 
+     .                      - fng_chem ) / (vyn*n0g(1)*sy(ix,ny))
+
+                        END IF 
+ 
+
+
                   elseif (recycwot(ix,1) < -1) then
                     yldot(iv1)=nurlxg*(ngbackg(1)-ni(ix,ny+1,ifld))/
      .                                                           n0(ifld)
@@ -1477,21 +1545,52 @@ ccc   MER 01 Apr 2002: need to correct fniy below when drifts are included
 ccc
                 fniy_recy = fac2sp*fniy(ix,ny,1)
                 if(isrefluxclip==1) fniy_recy=max(fniy_recy,0.)
-                if (igsp .gt. nhgsp) fniy_recy = zflux
-                if (ishymol.eq.1 .and. igsp.eq.2) then # 2 atoms per molecule
-                  if (isupgon(1) .eq. 1) then
-                    fniy_recy = 0.5*( fniy(ix,ny,1) + fniy(ix,ny,2) )
-                  else
-                    fniy_recy = 0.5*( fniy(ix,ny,1) + fngy(ix,ny,1) )
-                  endif
-                  if(isrefluxclip==1) fniy_recy=max(fniy_recy,0.)
-                endif
+                IF ((igsp .eq. 2) .and. (ishymol .eq. 1)) THEN
+c ...           HYDROGEN LOOP
+c ...               Atom thermal flux impingin on iy boundary
+                    thflxa = (
+     .                  2.*(ng(ix,ny,1)*ng(ix,ny+1,1))/(ng(ix,ny,1)+ng(ix,ny+1,1))
+     .                  ) * sy(ix,ny) * 0.25 * sqrt(
+     .                      (8*max(cdifg(1)*tg(ix,ny+1,1), tgmin*ev)
+     .                  )/(pi*mg(1)) ) 
+c ...               Molecular thermal flux impingin on iy boundary
+                    thflxm = (
+     .                  2.*(ng(ix,ny,2)*ng(ix,ny+1,2))/(ng(ix,ny,2)+ng(ix,ny+1,2))
+     .                  ) * sy(ix,ny) * 0.25 * sqrt(
+     .                      (8*max(cdifg(2)*tg(ix,ny+1,2), tgmin*ev)
+     .                  )/(pi*mg(2)) ) 
+
+                    call outflux_mol(
+     .                  fniy(ix,iy,1),
+     .                  fniy(ix,iy,2)*isupgon(1) + fngy(ix,iy,1)*(1-isupgon(1)),
+     .                  -thflxa, -thflxm, recycwot(ix,1), recycwot(ix,2),
+     .                  albedoi(ix,1), albedoi(ix,2),
+     .                  outfluxa, outfluxm
+     .              )
+
+
+                    IF (isupgon(1) .eq. 0) THEN
+                    yldot(idxg(ix,ny,1)) = nurlxg*( fngy(ix,ny,1) + 
+     .                      outfluxa + fngyso(ix,1) +
+     .                        fngyo_use(ix,1) - fng_alb +
+     .                        fng_chem + sputflxw(ix,1) ) / 
+     .                             (vyn*n0g(1)*sy(ix,ny))
+                    ENDIF
+    
+                    yldot(idxg(ix,ny,2)) = nurlxg*( fngy(ix,ny,2) + 
+     .                      outfluxa + fngyso(ix,2) +
+     .                        fngyo_use(ix,2) - fng_alb +
+     .                        fng_chem + sputflxw(ix,2) ) / 
+     .                             (vyn*n0g(2)*sy(ix,ny))
+            ELSE
+
                 yldot(iv) = nurlxg*( fngy(ix,ny,igsp) + fniy_recy*
      .                        recycwot(ix,igsp) + fngyso(ix,igsp) +
      .                        fngyo_use(ix,igsp) - fng_alb +
      .                        fng_chem + sputflxw(ix,igsp) ) / 
      .                             (vyn*n0g(igsp)*sy(ix,ny))
-              elseif (recycwot(ix,igsp) < -1) then
+            ENDIF
+            elseif (recycwot(ix,igsp) < -1) then
                 yldot(iv)=nurlxg*(ngbackg(igsp)-ng(ix,ny+1,igsp))/
      .                                                        n0g(igsp)
              elseif (recycwot(ix,igsp) .le. 0.) then # treat recycw as albedo
