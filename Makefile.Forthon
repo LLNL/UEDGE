@@ -62,12 +62,18 @@ update:
 	done
 
 clean:
+	@echo $(NOCLEAN)
+ifeq ($(NOCLEAN),FALSE)
 	@echo Starting cleaning of build directory
 	find . -depth -name build -exec rm -rf {} \;
 	find . -depth -name __pycache__ -exec rm -rf {} \;
 	find . -name \*.pyc -exec rm {} \;
 	find . -name \*.F -exec rm {} \;
 	touch uedgeC_Forthon.c
+else
+	@echo No clean of build requested: proceeding
+
+endif 
 
 #----------------------------------------------------------------------------
 #--- Build command for opendx wrapper.

@@ -16,10 +16,12 @@ import numpy
 try:
     from setuptools import Extension, setup, Distribution, find_packages
     from setuptools.command.build import build
+    from setuptools.command.bdist_wheel import bdist_wheel
 except:
     from distutils.core import Extension, setup
     from distutils.dist import Distribution
     from distutils.command.build import build
+    from distutils.command.bdist_wheel import bdist_wheel
 # Check Python version
 if hexversion < 0x03000000:
     raise SystemExit("Python versions < 3 not supported")
@@ -38,7 +40,6 @@ arglist = {
         'noclean': False,
 #        'petsc': False,
 }
-
 
 
 optlist, args = getopt.getopt(argv[1:], 'gt:F:', list(arglist.keys()))
@@ -683,12 +684,23 @@ def mppl2f90(
 
 
 
-
+class uedgeWheel(bdist_wheel):
+    from os import environ
+    if arglist['noclean']:
+        environ['NOCLEAN'] = "TRUE"
+    else:
+        environ['NOCLEAN'] = "FALSE"
 
 
 
 # Modify Build to inject call to building UEDGE source
 class uedgeBuild(build):
+    from os import environ
+    if arglist['noclean']:
+        environ['NOCLEAN'] = "TRUE"
+    else:
+        environ['NOCLEAN'] = "FALSE"
+
     def run(self):
         # Convert MPPL files to F90 files
         '''
@@ -791,7 +803,8 @@ setup(  name="uedge",
         ],
         cmdclass={
             'build': uedgeBuild,
-            'clean': uedgeClean
+            'clean': uedgeClean,
+            'bdist_wheel': uedgeWheel,
         },
 )
 
