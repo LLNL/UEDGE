@@ -7759,6 +7759,8 @@ c... flux-limit occurs in building hcxg - do not flux-limit 2nd time
         enddo   #ix loop
       enddo
 
+        fegx = 0
+        fegxy = 0
 *  -- Combine conduction/convection to compute thermal energy flow --
       do igsp = 1,ngsp
         if(istgon(igsp) == 1) then
@@ -7837,6 +7839,8 @@ c...  Flux limit with flalftxt even though hcys have parallel FL built in
         enddo       #loop over igsp
       endif         #if-test on isnonog
 
+        fegx(nx+1,:,:) = 0
+        fegxy(nx+1,:,:) = 0
 *  ---------------------------------------------------------------------
 *  compute the energy residuals.
 *  ---------------------------------------------------------------------

@@ -472,7 +472,7 @@ END SUBROUTINE OMPSplitIndex
     USE Selec, ONLY:yinc,xrinc,xlinc
     USE Grid, ONLY:ijactot
     USE Cdv, ONLY: comnfe
-    USE Rhsides, ONLY: psorcxg, psorrg
+    USE Rhsides, ONLY: psorcxg, psorrg, psordis
     IMPLICIT NONE
  
     integer yinc_bkp,xrinc_bkp,xlinc_bkp,iv,tid
@@ -481,14 +481,13 @@ END SUBROUTINE OMPSplitIndex
     real,intent(out)::yldot(*)
     real,intent(in)::time
     real::yldotcopy(1:neq)
-    real yldotsave(1:neq),ylcopy(1:neq+2)!, yldottot(1:neq)
+    real yldotsave(1:neq),ylcopy(1:neq+2), yldottot(1:neq)
     character*80 ::FileName
     real time1,time2
     integer::ichunk
-    !write(*,*)' ======================================== '
     ylcopy(1:neq+1)=yl(1:neq+1)
     yldotcopy = 0
-!    yldottot = 0
+    yldottot = 0
 
     if (ijactot.gt.0) then
 
@@ -496,8 +495,8 @@ END SUBROUTINE OMPSplitIndex
         call MakeChunksPandf1
         call OmpCopyPointerup
           !$omp parallel do default(shared) schedule(dynamic,OMPPandf1LoopNchunk) &
-          !$omp& private(iv,ichunk) firstprivate(ylcopy,yldotcopy) copyin(yinc,xlinc,xrinc) 
-!          !$omp& REDUCTION(+:yldottot)
+          !$omp& private(iv,ichunk) firstprivate(ylcopy,yldotcopy) copyin(yinc,xlinc,xrinc) &
+          !$omp& REDUCTION(+:yldottot)
             loopthread: do ichunk=1,NchunksPandf1 !ichunk from 1 to Nthread, tid from 0 to Nthread-1
             ! we keep all these parameters as it is easier to debug LocalJacBuilder and deal wichunk private/shared attributes
                 yinc_bkp=yinc
@@ -514,13 +513,14 @@ END SUBROUTINE OMPSplitIndex
                 ! Necessary initialization for icntnunk=1 evaluation
                 psorcxg = 0
                 psorrg = 0
+                psordis = 0
 
                 call pandf1 (ixchunk(ichunk),iychunk(ichunk), 0.0, neq, time, ylcopy, yldotcopy)
 
                 do iv=1,Nivchunk(ichunk)
-                    yldot(ivchunk(ichunk,iv))=yldotcopy(ivchunk(ichunk,iv))
-!                    yldottot(ivchunk(ichunk,iv)) = yldottot(ivchunk(ichunk,iv)) + yldotcopy(ivchunk(ichunk,iv))
+                    yldottot(ivchunk(ichunk,iv)) = yldottot(ivchunk(ichunk,iv)) + yldotcopy(ivchunk(ichunk,iv))
                 enddo
+
                 yinc=yinc_bkp
                 xlinc=xlinc_bkp
                 xrinc=xrinc_bkp
@@ -529,6 +529,8 @@ END SUBROUTINE OMPSplitIndex
         Time1=omp_get_wtime()-Time1
 
         OMPTimeParallelPandf1=Time1+OMPTimeParallelPandf1
+
+        yldot(:neq) = yldottot
 
         if (CheckPandf1.gt.0) then
             Time2=omp_get_wtime()
