@@ -2,7 +2,6 @@ include *
 recursive-include  pyscripts *
 #recursive-include  pytests *
 #recursive-include  jupyter *
-recursive-include  buildscripts *
 recursive-include  aph *
 recursive-include  api *
 recursive-include  bbb *
