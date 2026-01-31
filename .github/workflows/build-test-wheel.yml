@@ -90,6 +90,27 @@ jobs:
         with:
           compiler: gcc
 
+      # ============================================================================
+      # NEW: Install libomp on macOS to fix OpenMP emutls issues
+      # ============================================================================
+      - name: Install libomp (macOS only)
+        if: runner.os == 'macOS'
+        run: |
+          echo "=== Installing libomp to avoid emutls conflicts ==="
+          brew install libomp
+          
+          # Verify installation
+          if [ -d /opt/homebrew/opt/libomp ]; then
+            LIBOMP_PREFIX=/opt/homebrew/opt/libomp
+          else
+            LIBOMP_PREFIX=/usr/local/opt/libomp
+          fi
+          
+          echo "libomp installed at: $LIBOMP_PREFIX"
+          ls -la "$LIBOMP_PREFIX/lib/libomp.dylib"
+          
+          # Make location available to Makefile
+          echo "LIBOMP_PREFIX=$LIBOMP_PREFIX" >> $GITHUB_ENV
 
       - name: Determine latest tag
         id: latest_tag
@@ -161,12 +182,16 @@ jobs:
           CIBW_SKIP: "*-manylinux_i686 *-musllinux_*"
           CIBW_ARCHS_LINUX: auto
           CIBW_BUILD_VERBOSITY: 1
+          # ============================================================================
+          # UPDATED: macOS environment now includes libomp paths
+          # ============================================================================
           CIBW_ENVIRONMENT_MACOS: >-
             PATH=/opt/homebrew/bin:/opt/homebrew/sbin:$PATH
             CC=clang
             CXX=clang++
             FC=gfortran
             F77=gfortran 
+            LIBOMP_PREFIX=${{ env.LIBOMP_PREFIX }}
             ${{ matrix.macos_target && format('MACOSX_DEPLOYMENT_TARGET={0}', matrix.macos_target) || '' }}
           CIBW_BEFORE_BUILD: >
             python -m pip install --upgrade pip &&
@@ -223,6 +248,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      # ============================================================================
+      # UPDATED: Install libomp via conda-forge for legacy builds
+      # ============================================================================
       # Install Miniforge (conda-forge) and create an env with compilers
       - name: Set up Miniforge + conda-forge compilers
         uses: conda-incubator/setup-miniconda@v3
@@ -235,15 +263,23 @@ jobs:
           channels: conda-forge
           channel-priority: strict
 
-      - name: Install compilers (conda-forge)
+      - name: Install compilers and libomp (conda-forge)
         shell: bash -l {0}
         run: |
-          mamba install -y compilers make pkg-config
+          # Install compilers AND libomp
+          mamba install -y compilers make pkg-config llvm-openmp
           python -V
           which cc || true
           which clang || true
           which gfortran || true
           gfortran --version || true
+          
+          # Verify libomp installation
+          echo "=== Checking for libomp in conda env ==="
+          ls -la "$CONDA_PREFIX/lib/libomp.dylib" || true
+          
+          # Make libomp location available
+          echo "LIBOMP_PREFIX=$CONDA_PREFIX" >> "$GITHUB_ENV"
 
       # Ensure conda env is on PATH for subsequent steps (including cibuildwheel action)
       - name: Put conda env on PATH
@@ -299,12 +335,16 @@ jobs:
           # Your existing skips; keep i686 skips, keep Windows out
           CIBW_SKIP: "*-manylinux_i686 *-musllinux_*"
 
+          # ============================================================================
+          # UPDATED: Environment now includes LIBOMP_PREFIX for Makefile.Forthon
+          # ============================================================================
           # Pin the minimum supported macOS for THIS matrix entry
           # Also set CMAKE_OSX_DEPLOYMENT_TARGET for projects that use CMake internally
           CIBW_ENVIRONMENT_MACOS: >
             MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos_target }}
             CMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.macos_target }}
             CONDA_PREFIX=${{ env.CONDA_PREFIX }}
+            LIBOMP_PREFIX=${{ env.LIBOMP_PREFIX }}
             DYLD_LIBRARY_PATH=${{ env.CONDA_PREFIX }}/lib
             LIBRARY_PATH=${{ env.CONDA_PREFIX }}/lib
             CC=clang
@@ -385,5 +425,3 @@ jobs:
               && steps.latest_tag.outputs.tag
               || steps.sanitize.outputs.safe_ref }}
           path: wheels
-
-

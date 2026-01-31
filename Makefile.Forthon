@@ -1,4 +1,4 @@
-DEBUG = -v --fargs "-Ofast -DFORTHON -cpp" -g --fargs #"-C=array" #--fargs "-CB -traceback"
+DEBUG = -v --fargs "-Ofast -DFORTHON -cpp -g" #--fargs "-C=array" #--fargs "-CB -traceback"
 
 SO = so
 PUBLICHOME = 
@@ -13,10 +13,32 @@ INSTALLARGS = --pkgbase uedge $(BUILDBASE) $(OMPFLAGS) $(LARGS)
 
 # If building with --omp, ensure the OpenMP runtime is linked for extensions
 ifneq (,$(findstring --omp,$(OMPFLAGS)))
-  # Prefer GCC's libgomp when using gfortran -fopenmp (matches the _GOMP_* symbols)
-  LIBGOMP      := $(shell gfortran -print-file-name=libgomp.1.dylib)
-  LIBGOMP_DIR  := $(dir $(LIBGOMP))
-  OMP_LDFLAGS   = -L$(LIBGOMP_DIR) -lgomp -Wl,-rpath,$(LIBGOMP_DIR)
+  # Platform-specific OpenMP library handling
+  UNAME_S := $(shell uname -s)
+  
+  ifeq ($(UNAME_S),Darwin)
+    # macOS: Use libomp to avoid emutls conflicts
+    # Check Homebrew locations (Apple Silicon first, then Intel)
+    LIBOMP_PREFIX := $(shell [ -d /opt/homebrew/opt/libomp ] && echo /opt/homebrew/opt/libomp || echo /usr/local/opt/libomp)
+    
+    ifneq ($(wildcard $(LIBOMP_PREFIX)/lib/libomp.dylib),)
+      # libomp found - use it
+      OMP_LDFLAGS = -L$(LIBOMP_PREFIX)/lib -lomp -Wl,-rpath,$(LIBOMP_PREFIX)/lib
+      $(info Using libomp from $(LIBOMP_PREFIX))
+    else
+      # Fallback: try to find libgomp (will likely cause TLS issues)
+      LIBGOMP      := $(shell gfortran -print-file-name=libgomp.dylib 2>/dev/null)
+      LIBGOMP_DIR  := $(dir $(LIBGOMP))
+      OMP_LDFLAGS   = -L$(LIBGOMP_DIR) -lgomp -Wl,-rpath,$(LIBGOMP_DIR)
+      $(warning libomp not found at $(LIBOMP_PREFIX) - falling back to libgomp (may cause TLS issues))
+      $(warning Install with: brew install libomp)
+    endif
+  else
+    # Linux/other: Use libgomp
+    LIBGOMP      := $(shell gfortran -print-file-name=libgomp.so)
+    LIBGOMP_DIR  := $(dir $(LIBGOMP))
+    OMP_LDFLAGS   = -L$(LIBGOMP_DIR) -lgomp -Wl,-rpath,$(LIBGOMP_DIR)
+  endif
 endif
 
 ifneq (,$(findstring --omp,$(OMPFLAGS)))
