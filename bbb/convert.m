@@ -831,11 +831,20 @@ c.... cheaper than checking
       do jx = 1, nxpt  # loop over mesh regions
          is = ixpt1(jx)
          js = iysptrx1(jx)
-         if (jx==1) then
-            ie = ixpt2(nxpt) # adjacent cells are in mesh region jx=nxpt
-         else
-            ie = ixpt2(jx-1) # adjacent cells are in the previous mesh region
-         endif
+         if (geometry.eq."snowflake45" .or. geometry.eq."snowflake75") then 
+            if (jx==1) then
+              ie = ixpt2(nxpt-1) # adjacent cells are in mesh region jx=nxpt
+            else
+              ie = ixpt2(jx) # adjacent cells are in the previous mesh region
+            endif
+          else 
+            if (jx==1) then
+              ie = ixpt2(nxpt) # adjacent cells are in mesh region jx=nxpt
+            else
+              ie = ixpt2(jx-1) # adjacent cells are in the previous mesh region
+            endif
+         endif 
+         
       if (is.lt.0 .or. ie.lt.0 .or. ie.gt.nx) goto 45
 c ... Last test (ie.gt.nx) to fix parallel version with mpi - check
       phiv(is,js) = 0.125*( 
@@ -984,11 +993,19 @@ c.. Now reset x-point values; mostly 8-pt ave
         do jx = 1, nxpt  # loop over mesh regions
           is = ixpt1(jx)
           js = iysptrx1(jx)
-          if (jx==1) then
-            ie = ixpt2(nxpt) # adjacent cells are in mesh region jx=nxpt
-          else
-            ie = ixpt2(jx-1) # adjacent cells are in the previous mesh region
-          endif
+          if (geometry.eq."snowflake45" .or. geometry.eq."snowflake75") then 
+            if (jx==1) then
+              ie = ixpt2(nxpt-1) # adjacent cells are in mesh region jx=nxpt
+            else
+              ie = ixpt2(jx) # adjacent cells are in the previous mesh region
+            endif
+          else 
+            if (jx==1) then
+              ie = ixpt2(nxpt) # adjacent cells are in mesh region jx=nxpt
+            else
+              ie = ixpt2(jx-1) # adjacent cells are in the previous mesh region
+            endif
+        endif 
           if (is.lt.0 .or. ie.lt.0 .or. ie.gt.nx) return
 c ... Last test (ie.gt.nx) to fix parallel version with mpi - check
           tev(is,js) = 0.125*(
