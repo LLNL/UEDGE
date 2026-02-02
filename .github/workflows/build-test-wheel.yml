@@ -225,14 +225,14 @@ jobs:
           for w in wheelhouse/*.whl; do
             echo "---- $w ----"
             python - <<'PY'
-import sys, zipfile
-w = sys.argv[1]
-z = zipfile.ZipFile(w)
-hits = [n for n in z.namelist() if "/.dylibs/" in n or n.endswith(".dylib")]
-print("dylib entries:", len(hits))
-for n in hits[:50]:
-    print(" ", n)
-PY
+            import sys, zipfile
+            w = sys.argv[1]
+            z = zipfile.ZipFile(w)
+            hits = [n for n in z.namelist() if "/.dylibs/" in n or n.endswith(".dylib")]
+            print("dylib entries:", len(hits))
+            for n in hits[:50]:
+                print(" ", n)
+            PY
             "$w"
           done
 
