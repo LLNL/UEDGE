@@ -231,7 +231,7 @@ jobs:
                   check(f)
               PYEOF
 
-            CIBW_AFTER_REPAIR_MACOS: |
+          CIBW_AFTER_REPAIR_MACOS: |
               echo "=== Checking flat namespace AFTER delocate ==="
               WHEEL=$(ls {wheel} | head -1)
               unzip -q "$WHEEL" -d /tmp/after_repair
