@@ -45,6 +45,8 @@ ifneq (,$(findstring --omp,$(OMPFLAGS)))
   endif
 endif
 
+OMP_LDFLAGS += -Wl,-U,___emutls_get_address
+
 ifneq (,$(findstring --omp,$(OMPFLAGS)))
   # Pass BOTH compile flags (FFLAGS) and link flags (LDFLAGS)
   FORTHON_ENV = FFLAGS="$(FFLAGS) $(OMP_FFLAGS)" LDFLAGS="$(LDFLAGS) $(OMP_LDFLAGS)"

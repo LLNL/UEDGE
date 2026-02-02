@@ -75,7 +75,6 @@ FLAGS  = {
         '-Wconversion',
         '-fimplicit-none',
         '-fopenmp',
-        '-fno-emulated-tls',
     ],
     # Specify C compiler arguments
     'CARGS': [],
@@ -729,7 +728,6 @@ class uedgeBuild(build):
         if arglist['serial']:
             FLAGS['OMPargs'].remove('--omp')
             FLAGS['FARGS'].remove('-fopenmp')
-            FLAGS['FARGS'].remove('-fno-emulated-tls')
             # Flag for localrules
             os.environ["OMP"] = "FALSE"
         else:
