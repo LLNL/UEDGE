@@ -249,6 +249,53 @@ jobs:
                   check(f)
               PYEOF
 
+
+
+      - name: Verify flat namespace in built wheels
+        if: runner.os == 'macOS'
+        run: |
+          echo "=== Checking wheels for flat namespace ==="
+          for wheel in wheelhouse/*.whl; do
+            echo ""
+            echo "Checking: $wheel"
+            unzip -q "$wheel" -d /tmp/check_wheel
+            
+            python3 << 'PYEOF'
+import struct, glob, sys
+
+def check_flat(filename):
+    try:
+        with open(filename, 'rb') as f:
+            magic = struct.unpack('<I', f.read(4))[0]
+            if magic == 0xfeedfacf:
+                f.read(16)
+                flags = struct.unpack('<I', f.read(4))[0]
+                has_flat = bool(flags & 0x100)
+                status = 'FLAT ✅' if has_flat else 'TWO-LEVEL ❌'
+                print(f"  {filename.split('/')[-1]}: {status} (flags: 0x{flags:08x})")
+                return has_flat
+    except Exception as e:
+        print(f"  Error: {e}")
+    return False
+
+results = []
+for so in glob.glob('/tmp/check_wheel/uedge/*py*.so'):
+    if 'ppppy' in so or 'bbbpy' in so or 'apipy' in so:
+        results.append(check_flat(so))
+
+if results and not all(results):
+    print("\n❌ PROBLEM: Some modules don't have flat namespace!")
+    sys.exit(1)
+elif results and all(results):
+    print("\n✅ SUCCESS: All modules have flat namespace!")
+else:
+    print("\n⚠️  No modules found to check")
+PYEOF
+            
+            rm -rf /tmp/check_wheel
+          done
+
+
       - name: Sanitize ref name
         id: sanitize
         run: |
