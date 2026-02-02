@@ -207,6 +207,47 @@ jobs:
             python -c "import uedge; print('uedge imported OK:', uedge.__version__)"
           CIBW_TEST_SKIP: "*manylinux_*"
           CIBW_REPAIR: ".github/cibw_repair_macfix.sh"
+          CIBW_BEFORE_REPAIR_MACOS: |
+              echo "=== Checking flat namespace BEFORE delocate ==="
+              python3 - <<'EOF'
+              import struct, glob
+              for f in glob.glob("wheelhouse/*.whl"):
+                  print(f"Checking wheel: {f}")
+              EOF
+              # Extract and check
+              WHEEL=$(ls {wheel} | head -1)
+              unzip -q "$WHEEL" -d /tmp/before_repair
+              python3 <<'PYEOF'
+              import struct, sys, glob
+              def check(f):
+                  with open(f, 'rb') as h:
+                      if struct.unpack('<I', h.read(4))[0] == 0xfeedfacf:
+                          h.read(16)
+                          flags = struct.unpack('<I', h.read(4))[0]
+                          flat = bool(flags & 0x100)
+                          print(f"{'✅' if flat else '❌'} {f.split('/')[-1]}: {'FLAT' if flat else 'TWO-LEVEL'} (0x{flags:08x})")
+                          return flat
+              for f in glob.glob("/tmp/before_repair/uedge/*ppppy*.so"):
+                  check(f)
+              PYEOF
+
+            CIBW_AFTER_REPAIR_MACOS: |
+              echo "=== Checking flat namespace AFTER delocate ==="
+              WHEEL=$(ls {wheel} | head -1)
+              unzip -q "$WHEEL" -d /tmp/after_repair
+              python3 <<'PYEOF'
+              import struct, glob
+              def check(f):
+                  with open(f, 'rb') as h:
+                      if struct.unpack('<I', h.read(4))[0] == 0xfeedfacf:
+                          h.read(16)
+                          flags = struct.unpack('<I', h.read(4))[0]
+                          flat = bool(flags & 0x100)
+                          print(f"{'✅' if flat else '❌'} {f.split('/')[-1]}: {'FLAT' if flat else 'TWO-LEVEL'} (0x{flags:08x})")
+                          return flat
+              for f in glob.glob("/tmp/after_repair/uedge/*ppppy*.so"):
+                  check(f)
+              PYEOF
 
       - name: Sanitize ref name
         id: sanitize
