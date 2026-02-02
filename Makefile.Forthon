@@ -23,12 +23,15 @@ ifneq (,$(findstring --omp,$(OMPFLAGS)))
     
     ifneq ($(wildcard $(LIBOMP_PREFIX)/lib/libomp.dylib),)
       # libomp found - use it
+      # CRITICAL: Add -fno-emulated-tls to PREVENT emutls symbol generation
+      OMP_FFLAGS = -fopenmp -fno-emulated-tls
       OMP_LDFLAGS = -L$(LIBOMP_PREFIX)/lib -lomp -Wl,-rpath,$(LIBOMP_PREFIX)/lib
-      $(info Using libomp from $(LIBOMP_PREFIX))
+      $(info Using libomp from $(LIBOMP_PREFIX) with -fno-emulated-tls)
     else
       # Fallback: try to find libgomp (will likely cause TLS issues)
       LIBGOMP      := $(shell gfortran -print-file-name=libgomp.dylib 2>/dev/null)
       LIBGOMP_DIR  := $(dir $(LIBGOMP))
+      OMP_FFLAGS = -fopenmp
       OMP_LDFLAGS   = -L$(LIBGOMP_DIR) -lgomp -Wl,-rpath,$(LIBGOMP_DIR)
       $(warning libomp not found at $(LIBOMP_PREFIX) - falling back to libgomp (may cause TLS issues))
       $(warning Install with: brew install libomp)
@@ -37,12 +40,14 @@ ifneq (,$(findstring --omp,$(OMPFLAGS)))
     # Linux/other: Use libgomp
     LIBGOMP      := $(shell gfortran -print-file-name=libgomp.so)
     LIBGOMP_DIR  := $(dir $(LIBGOMP))
+    OMP_FFLAGS = -fopenmp
     OMP_LDFLAGS   = -L$(LIBGOMP_DIR) -lgomp -Wl,-rpath,$(LIBGOMP_DIR)
   endif
 endif
 
 ifneq (,$(findstring --omp,$(OMPFLAGS)))
-  FORTHON_ENV = LDFLAGS="$(LDFLAGS) $(OMP_LDFLAGS)"
+  # Pass BOTH compile flags (FFLAGS) and link flags (LDFLAGS)
+  FORTHON_ENV = FFLAGS="$(FFLAGS) $(OMP_FFLAGS)" LDFLAGS="$(LDFLAGS) $(OMP_LDFLAGS)"
 else
   FORTHON_ENV =
 endif
