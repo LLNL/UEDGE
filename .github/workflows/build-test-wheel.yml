@@ -214,6 +214,20 @@ jobs:
             python -m pip install -U pip &&
             python -c "import uedge; print('uedge imported OK:', uedge.__version__)"
           CIBW_TEST_SKIP: "*manylinux_*"
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
+            set -euxo pipefail
+            echo "=== BEFORE REPAIR: Checking namespace ==="
+            python3 .github/check_wheel_flat_namespace.py {wheel}
+            echo ""
+            echo "=== Running delocate repair ==="
+            delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}
+            echo ""
+            echo "=== AFTER REPAIR: Checking namespace ==="
+            REPAIRED_WHEEL=$(ls {dest_dir}/*.whl)
+            python3 .github/check_wheel_flat_namespace.py "$REPAIRED_WHEEL"
+            echo ""
+            echo "=== Checking dylib entries ==="
+            python3 -c 'import zipfile,sys; z=zipfile.ZipFile(sys.argv[1]); hits=[n for n in z.namelist() if "/.dylibs/" in n or n.endswith(".dylib")]; print("dylib entries:", len(hits)); [print(" ", n) for n in hits[:50]]' "$REPAIRED_WHEEL"
 
       - name: Verify flat namespace in built wheels
         if: runner.os == 'macOS'
