@@ -184,7 +184,7 @@ jobs:
           clang --version
           echo ""
           echo "=== ld version ==="
-          ld -version
+          ld -v
           echo ""
           echo "=== macOS version ==="
           sw_vers
