@@ -389,6 +389,7 @@ jobs:
             LIBOMP_PREFIX=${{ env.LIBOMP_PREFIX }}
             DYLD_LIBRARY_PATH=${{ env.CONDA_PREFIX }}/lib
             LIBRARY_PATH=${{ env.CONDA_PREFIX }}/lib
+            LDSHARED="clang -bundle -g"
             CC=clang
             CXX=clang++
             FC=gfortran
