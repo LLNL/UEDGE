@@ -177,6 +177,12 @@ jobs:
           echo "LIBOMP_PREFIX: $LIBOMP_PREFIX"
           env | grep -E "(LDFLAGS|CIBW_)" | sort 
 
+      - name: Setup Xcode 16
+        if: runner.os == 'macOS'
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.2'
+
       - name: Check tool versions
         if: runner.os == 'macOS'
         run: |
