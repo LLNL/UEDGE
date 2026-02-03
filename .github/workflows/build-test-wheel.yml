@@ -219,7 +219,8 @@ jobs:
             CXX=clang++
             FC=gfortran
             F77=gfortran 
-            LDFLAGS="-Wl,-flat_namespace -Wl,-U,___emutls_get_address  -Wl,-ld_classic"
+            LDFLAGS="${LDFLAGS:+$LDFLAGS } -Wl,-flat_namespace -Wl,-U,___emutls_get_address  -Wl,-ld_classic"
+            LDSHARED="clang -bundle -Wl,-flat_namespace -Wl,-U,___emutls_get_address"
             LIBOMP_PREFIX=${{ env.LIBOMP_PREFIX }}
             ${{ matrix.macos_target && format('MACOSX_DEPLOYMENT_TARGET={0}', matrix.macos_target) || '' }}
           CIBW_BEFORE_BUILD: >
