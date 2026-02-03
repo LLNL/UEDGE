@@ -26,6 +26,8 @@ ifneq (,$(findstring --omp,$(OMPFLAGS)))
       # CRITICAL: Add -fno-emulated-tls to PREVENT emutls symbol generation
       OMP_FFLAGS = -fopenmp -fno-emulated-tls
       OMP_LDFLAGS = -L$(LIBOMP_PREFIX)/lib -lomp -Wl,-rpath,$(LIBOMP_PREFIX)/lib
+      OMP_LDFLAGS += -Wl,-flat_namespace,-undefined,dynamic_lookup
+      OMP_LDFLAGS += -Wl,-U,___emutls_get_address
       $(info Using libomp from $(LIBOMP_PREFIX) with -fno-emulated-tls)
     else
       # Fallback: try to find libgomp (will likely cause TLS issues)
