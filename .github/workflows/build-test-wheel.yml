@@ -169,7 +169,15 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libhdf5-dev pkg-config
- 
+
+      - name: Debug environment
+        if: runner.os == 'macOS'
+        run: |
+          echo "LDFLAGS: $LDFLAGS"
+          echo "LIBOMP_PREFIX: $LIBOMP_PREFIX"
+          env | grep -E "(LDFLAGS|CIBW_)" | sort 
+
+
       - name: Build wheels (CPython)
         uses: pypa/cibuildwheel@v2.23.3
         env:
@@ -206,7 +214,6 @@ jobs:
             python -m pip install -U pip &&
             python -c "import uedge; print('uedge imported OK:', uedge.__version__)"
           CIBW_TEST_SKIP: "*manylinux_*"
-          CIBW_REPAIR: ".github/cibw_repair_macfix.sh"
 
       - name: Verify flat namespace in built wheels
         if: runner.os == 'macOS'
