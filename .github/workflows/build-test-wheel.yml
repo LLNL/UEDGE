@@ -200,6 +200,8 @@ jobs:
             FC=gfortran
             F77=gfortran 
             LDFLAGS="-Wl,-flat_namespace -Wl,-U,___emutls_get_address"
+            CFLAGS="-Wl,-flat_namespace"
+            CXXFLAGS="-Wl,-flat_namespace"
             LIBOMP_PREFIX=${{ env.LIBOMP_PREFIX }}
             ${{ matrix.macos_target && format('MACOSX_DEPLOYMENT_TARGET={0}', matrix.macos_target) || '' }}
           CIBW_BEFORE_BUILD: >
