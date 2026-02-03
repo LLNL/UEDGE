@@ -177,6 +177,20 @@ jobs:
           echo "LIBOMP_PREFIX: $LIBOMP_PREFIX"
           env | grep -E "(LDFLAGS|CIBW_)" | sort 
 
+      - name: Check tool versions
+        if: runner.os == 'macOS'
+        run: |
+          echo "=== Clang version ==="
+          clang --version
+          echo ""
+          echo "=== ld version ==="
+          ld -version
+          echo ""
+          echo "=== macOS version ==="
+          sw_vers
+          echo ""
+          echo "=== Xcode Command Line Tools ==="
+          pkgutil --pkg-info=com.apple.pkg.CLTools_Executables | grep version || echo "Not found"
 
       - name: Build wheels (CPython)
         uses: pypa/cibuildwheel@v2.23.3
