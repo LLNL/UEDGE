@@ -23,6 +23,10 @@ from setuptools._distutils.ccompiler import CCompiler
 # Check Python version
 if hexversion < 0x03000000:
     raise SystemExit("Python versions < 3 not supported")
+if sys.platform == 'darwin':
+    # This must be imported before setuptools/distutils
+    sys.path.insert(0, '.github')
+    import patch_distutils  # noqa
 
 # *.o-files to be included in the build (in addition to pkg.o and pkg_p.o)
 uedgeobjects = []
