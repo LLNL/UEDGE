@@ -1,5 +1,19 @@
 # UEDGE
 A 2D time-dependent fluid simulation code of plasma and neutrals in magnetic fusion devices.
+
+## Citing work based on UEDGE
+In scientific or general publications including or referencing novel UEDGE results, users
+are responsible for correctly citing the version of UEDGE used in the work. Documenting the 
+exact code version (commit hash or release tag) used ensures reproducibility and clear 
+identification of bugs. For further details on how to cite UEDGE, see [CITATION.md](CITATION.md).
+
+
+## Contributing to UEDGE
+Community-provided features, developments and bugfixes directly to the UEDGE GitHub repositories are 
+welcome. Please reference the relevant documentation in [CONTRIBUTING.md](CONTRIBUTING.md) and 
+[doc/workflow.md](doc/workflow.md). Please contact the UEDGE maintainers to have dedicated
+branches open or to be given contributing access to the UEDGE repo.
+
 ## Brief description 
 UEDGE is an interactive suite of physics packages using the Python or BASIS scripting systems. 
 The original (circa 2007) Python version was further developed under the FACETS SciDAC project 
@@ -115,16 +129,19 @@ on using:
   ppp.CheckJac - =1 compares parallel Jacobian to serial (runs both)
   ppp.CheckPandf1 - =1 compares parallel pandf1 to serial (runs both)
 
-## How to get involved and contribute
-Sent email to one of the developers listed below expressing your interest in modifying or developing packages 
-for UEDGE.  Either new or improved physics models or numerical algorithms are most welcome.
+## UEDGE flags and option
 
-## Authors contributing to V7 release
-T.D. Rognlien, I. Joseph, W.H. Meyer, M.E. Rensink, and M.V. Umansky, LLNL  
-(trognlien@llnl.gov, joseph5@llnl.gov, meyer8@llnl.gov, rensink1@llnl.gov, umansky1@llnl.gov)
+### Run-time options
+UEDGE default output can be supressed using environment variables, according to your needs. The following 
+options are available:
 
-## Acknowledgements to previous contributors
-P.N. Brown, R.H. Cohen, D.P. Grote, A.C. Hindmarsh, L.L. LoDestro, J.L. Milovich, 
+UEDGE_BANNER=0     # disable everything
+UEDGE_LOGO=0       # suppress ASCII logo only
+UEDGE_VERSION=0    # suppress version line only
+UEDGE_MESSAGES=0   # suppress extra messages only
+
+## Acknowledgements of contributors to earlier versions
+P.N. Brown, R.H. Cohen, D.P. Grote, A.C. Hindmarsh, L.L. LoDestro, J.L. Milovich, I. Joseph
 A. Pankin, G.D. Porter, and G.R. Smith, all presently or formerly at LLNL; M. McCourt, 
 L.C. McInnes, and H. Zhang, ANL; J.R. Cary, A.H. Hakim, S.E. Kruger, and A. Pankin, Tech-X; 
 D.A. Knoll, INEEL; D.P. Stotler, PPPL; B.J. Braams, retired, IAEA; A.Yu. Pigarov and 
@@ -150,7 +167,7 @@ M. McCourt, T.D. Rognlien, L.C. McInnes, and H. Zhang, Computational Science & D
 ## Release 
 
 UEDGE is released under an LGPL license.  For more details see the
-NOTICE and LICENSE files.
+[NOTICE](NOTICE) and [LICENSE](LICENSE) files.
 
 ``LLNL-CODE-845914``
 ------
