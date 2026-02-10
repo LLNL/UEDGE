@@ -84,7 +84,9 @@ def maybe_print_banner(*, config: BannerConfig | None = None) -> None:
 
     if cfg.show_version:
         parts.append(f"v{read_version_from_file()}".rjust(31))
-        parts.append(f"{_check_newer_uedge_ver()}")
+        ver = _check_newer_uedge_ver()
+        if ver is not None:
+            parts.append(f"{ver}")
 
 
     if cfg.show_messages:

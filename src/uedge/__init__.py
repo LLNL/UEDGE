@@ -1,7 +1,16 @@
-from __future__ import annotations
-from .uedge import *
-from os import path
+from os import path, RTLD_LAZY, RTLD_GLOBAL
 from uedge import __path__
+from resource import setrlimit
+from sys import setdlopenflags, stderr
+try:
+    from json import loads
+    from  urllib import request
+except:
+    pass
+try:
+    from  importlib import metadata
+except:
+    import pkg_resources
 from ._banner import maybe_print_banner, set_banner_config
 from ._provenance import get_uedge_provenance
 from ._checkver import _check_newer_uedge_ver
@@ -83,34 +92,10 @@ def check_uedge_ver():
         print()
 
 
-def set_prompt(prompt='UEDGE>>> '):
-    import sys
-    try:
-       import IPython
-       from IPython.terminal.prompts import Prompts,Token
-       from IPython.terminal.embed import InteractiveShellEmbed
-    except:
-       pass
-    try:
-
-       class MyPrompt(Prompts):
-         def in_prompt_tokens(self, cli=None):
-             return [(Token.Prompt, prompt)]
-         def out_prompt_tokens(self, cli=None):
-             return [(Token.Prompt, prompt)]
-
-       get_ipython
-    except:
-       sys.ps1='UEDGE>>> '
-    else:
-       ip = get_ipython()
-       ip.prompts = MyPrompt(ip)
-
-#set_prompt()
 check_uedge_ver()
 
 
-uedge.bbb.uedge_ver = __version__
+bbb.uedge_ver = __version__
 
 maybe_print_banner()
 
@@ -121,7 +106,7 @@ def cite(
     repo_url: str | None = "https://github.com/LLNL/UEDGE",
     key: str = "uedge",
     csl_id: str = "uedge",
-    print_to: object | None = sys.stderr,
+    print_to: object | None = stderr,
 ) -> str:
     """
     Return a copy-pasteable reference for this installed UEDGE.
