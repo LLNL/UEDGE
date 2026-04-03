@@ -149,13 +149,6 @@ jobs:
           CIBW_SKIP: "*-manylinux_i686 *-musllinux_*"
           CIBW_ARCHS_LINUX: auto
           CIBW_BUILD_VERBOSITY: 1
-          CIBW_ENVIRONMENT_MACOS: >-
-            PATH=/opt/homebrew/bin:/opt/homebrew/sbin:$PATH
-            CC=clang
-            CXX=clang++
-            FC=gfortran
-            F77=gfortran 
-            ${{ matrix.macos_target && format('MACOSX_DEPLOYMENT_TARGET={0}', matrix.macos_target) || '' }}
           CIBW_BEFORE_BUILD: >
             python -m pip install --upgrade pip &&
             pip install numpy "forthon>=0.10.7" "build<0.10.0"
@@ -163,13 +156,9 @@ jobs:
           CIBW_BUILD_FRONTEND: "pip"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
-          CIBW_TEST_COMMAND_MACOS: >
-            python -m pip install -U pip &&
-            python -c "import uedge; print('uedge imported OK:', uedge.__version__)"
           CIBW_TEST_COMMAND_LINUX: >
             python -m pip install -U pip &&
             python -c "import uedge; print('uedge imported OK:', uedge.__version__)"
-          CIBW_TEST_SKIP: "*manylinux_*"
 
       - name: Sanitize ref name
         id: sanitize
@@ -178,11 +167,10 @@ jobs:
           SAFE_REF="${REF//\//-}"
           echo "safe_ref=$SAFE_REF" >> "$GITHUB_OUTPUT"
 
-
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: cibw-wheels-cpython-${{ matrix.arch }}-macosx_${{ matrix.os }}-${{ github.event_name == 'workflow_dispatch' && steps.latest_tag.outputs.tag || steps.sanitize.outputs.safe_ref }}
+          name: cibw-wheels-cpython-${{ matrix.os }}-${{ github.event_name == 'workflow_dispatch' && steps.latest_tag.outputs.tag || steps.sanitize.outputs.safe_ref }}
           path: ./wheelhouse/*.whl
 
   build_wheels_macos:
