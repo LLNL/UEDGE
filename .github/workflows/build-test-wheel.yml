@@ -157,7 +157,9 @@ jobs:
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
           CIBW_TEST_COMMAND_LINUX: >
-            python -m pip install -U pip h5py &&
+            sudo apt-get update
+            sudo apt-get install -y libhdf5-dev pkg-config
+            python -m pip install -U pip &&
             python -c "import uedge; print('uedge imported OK:', uedge.__version__)"
 
       - name: Sanitize ref name
