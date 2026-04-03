@@ -7,16 +7,14 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-# TODO: Make version dynamic!
 dynamic = ["version"]
-#version = "8.1.0-beta.0"
 name = "uedge"
 dependencies = [
     "forthon>=0.10.7",
     "numpy",
     "h5py",
 ]
-requires-python = ">= 3.7" # TODO: verify
+requires-python = ">= 3.9"
 authors = [
   {name = "Tom Rognlien"}
 ]
@@ -64,11 +62,7 @@ ueplot = [
     "h5py",
 ]
 
-# TODO: rewrite scripts to be importable
-#[project.scripts]
-#spam-cli = "spam:main_cli"
 
-# TODO: add scripts to separate folder
 [tool.setuptools]
 packages = [
     "uedge",

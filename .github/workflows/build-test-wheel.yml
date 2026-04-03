@@ -144,7 +144,7 @@ jobs:
           # Clean old UEDGE builds
           UEDGE_CLEAN_BUILD: "1" 
           # Build all supported CPython wheels in one run.
-          CIBW_BUILD: "cp38-* cp39-* cp310-* cp311-* cp312-* cp313-*"
+          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
           # Clean skip list: no 32-bit builds; no Linux i686. (We are *not* skipping musllinux.)
           CIBW_SKIP: "*-manylinux_i686 *-musllinux_*"
           CIBW_ARCHS_LINUX: auto
@@ -157,7 +157,7 @@ jobs:
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
           CIBW_TEST_COMMAND_LINUX: >
-            python -m pip install -U pip &&
+            python -m pip install -U pip h5py &&
             python -c "import uedge; print('uedge imported OK:', uedge.__version__)"
 
       - name: Sanitize ref name
@@ -170,7 +170,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: cibw-wheels-cpython-${{ matrix.os }}-${{ github.event_name == 'workflow_dispatch' && steps.latest_tag.outputs.tag || steps.sanitize.outputs.safe_ref }}
+          name: wheels-${{ matrix.os }}-cpython-${{ github.event_name == 'workflow_dispatch' && steps.latest_tag.outputs.tag || steps.sanitize.outputs.safe_ref }}
           path: ./wheelhouse/*.whl
 
   build_wheels_macos:
@@ -258,7 +258,7 @@ jobs:
           # Clean old UEDGE builds
           UEDGE_CLEAN_BUILD: "1" 
           # Build CPython 3.8–3.13
-          CIBW_BUILD: "cp38-* cp39-* cp310-* cp311-* cp312-* cp313-*"
+          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
 
           # Limit builds to the runner arch
           CIBW_ARCHS_MACOS: ${{ matrix.arch }}
@@ -295,7 +295,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: cibw-wheels-legacy-macos-${{ matrix.arch }}-macosx_${{ matrix.macos_target }}-cpython-${{ github.event_name == 'workflow_dispatch' && steps.latest_tag.outputs.tag || steps.sanitize.outputs.safe_ref }}
+          name: wheels-macos-${{ matrix.arch }}-macosx_${{ matrix.macos_target }}-cpython-${{ github.event_name == 'workflow_dispatch' && steps.latest_tag.outputs.tag || steps.sanitize.outputs.safe_ref }}
           path: ./wheelhouse/*.whl
 
 
