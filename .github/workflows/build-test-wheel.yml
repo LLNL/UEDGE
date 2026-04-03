@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9"]
+        python-version: ["3.11"]
     steps:
       - name: Check out repo (with tags)
         uses: actions/checkout@v4
@@ -58,7 +58,7 @@ jobs:
           # Run tests from the checked-out pytests tree; UEDGE is already installed above.
           OMP_NUM_THREADS=1 pytest --isolate -s "pytests-src/pytests"
 
-  build_wheels:
+  build_wheels_ubuntu:
     name: Build CPython wheels on ${{ matrix.os }}
     # Only build wheels for tags (push) and published releases; never on PRs.
 #    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
@@ -70,12 +70,7 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-          - os: macos-14
-            macos_target: "14.0"
-          - os: macos-latest
-            macos_target: "15.0"
-          - os: macos-15-intel
-            macos_target: "15.0"
+          - os: ubuntu-24.04-arm
 
     steps:
       - name: Check out repo (with tags)
@@ -166,6 +161,8 @@ jobs:
             pip install numpy "forthon>=0.10.7" "build<0.10.0"
           CIBW_BEFORE_BUILD_LINUX: "python -m pip install -U pip && pip download --only-binary=:all: h5py"
           CIBW_BUILD_FRONTEND: "pip"
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
           CIBW_TEST_COMMAND_MACOS: >
             python -m pip install -U pip &&
             python -c "import uedge; print('uedge imported OK:', uedge.__version__)"
@@ -188,7 +185,7 @@ jobs:
           name: cibw-wheels-cpython-${{ matrix.arch }}-macosx_${{ matrix.os }}-${{ github.event_name == 'workflow_dispatch' && steps.latest_tag.outputs.tag || steps.sanitize.outputs.safe_ref }}
           path: ./wheelhouse/*.whl
 
-  build_wheels_legacy_os:
+  build_wheels_macos:
     name: Build cibuildwheel legacy macOS wheels (${{ matrix.arch }} macOS>=${{ matrix.macos_target }})
 #    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'release' || github.event_name == 'workflow_dispatch'
 #    needs: run-all-tests
@@ -278,9 +275,6 @@ jobs:
           # Limit builds to the runner arch
           CIBW_ARCHS_MACOS: ${{ matrix.arch }}
 
-          # Your existing skips; keep i686 skips, keep Windows out
-          CIBW_SKIP: "*-manylinux_i686 *-musllinux_*"
-
           # Pin the minimum supported macOS for THIS matrix entry
           # Also set CMAKE_OSX_DEPLOYMENT_TARGET for projects that use CMake internally
           CIBW_ENVIRONMENT_MACOS: >
@@ -320,7 +314,7 @@ jobs:
   gather_wheels:
     name: Gather built wheels
     if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
-    needs: [build_wheels, build_wheels_legacy_os]
+    needs: [build_wheels_ubuntu, build_wheels_macos]
     runs-on: ubuntu-latest
 
     steps:
