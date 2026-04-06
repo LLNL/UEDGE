@@ -177,6 +177,7 @@ jobs:
   build_wheels_macos:
     name: Build cibuildwheel legacy macOS wheels (${{ matrix.arch }} macOS>=${{ matrix.macos_target }})
 #    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+    if: false
 #    needs: run-all-tests
     runs-on: ${{ matrix.runner }}
     strategy:
