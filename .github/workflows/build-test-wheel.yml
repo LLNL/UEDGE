@@ -34,6 +34,11 @@ jobs:
         with:
           compiler: gcc
 
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libreadline-dev
+
       - name: Install pip dependencies
         run: |
           python -m pip install --upgrade pip
