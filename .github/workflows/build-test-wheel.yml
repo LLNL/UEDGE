@@ -49,6 +49,12 @@ jobs:
           python -m pip install pytest-isolate pytest-xdist
 
       - name: Build UEDGE
+        env:
+          CC: gcc-10
+          CXX: g++-10
+          FC: gfortran-10
+          F77: gfortran-10
+          F90: gfortran-10
         run: |
           python -m pip install .  -C "--global-option=--serial"
 
