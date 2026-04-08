@@ -29,15 +29,17 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
 
+      - name: Install compilers + system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            gcc-10 g++-10 gfortran-10 \
+            libreadline-dev libhdf5-dev pkg-config
+
       - name: Set up Fortran (gfortran)
         uses: fortran-lang/setup-fortran@v1
         with:
           compiler: gcc
-
-      - name: Install system deps
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libreadline-dev
 
       - name: Install pip dependencies
         run: |
