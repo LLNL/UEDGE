@@ -134,7 +134,7 @@ jobs:
           # Intel / x86_64 wheels (target macOS 10.x+)
           - runner: macos-15-intel
             arch: x86_64
-            macos_target: "10.13"
+            macos_target: "11.0"
           # Apple Silicon / arm64 wheels (target macOS 11+)
           - runner: macos-latest
             arch: arm64
