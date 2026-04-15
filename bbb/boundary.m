@@ -164,11 +164,6 @@ c ---  Below, isupon(1) & ngbackg(1) used, so implies hydrogen
                    nbound = 1.2*nbound/( 1+0.5*exp( -2*(nbound/
      .                           ng(ix,1,1)-1) ) ) + 0.2*ng(ix,1,1)
                    yldot(iv1) = nurlxn *(nbound - ng(ix,0,1))/n0(ifld)
-                 elseif (isngcore(1) .eq. 4) then  #radial gradient 1/lyngcore
-                   yldot(iv1)=-nurlxn*( ngy0(ix,0,1) - ngy1(ix,0,1)*
-     .                                 (2*gyf(ix,0)*lyngcore(1)+1)/
-     .                                 (2*gyf(ix,0)*lyngcore(1)-1)- 
-     .                                     ncoremin(ifld) ) / n0(ifld)
                  else  # old condition before 2/21/99
                    yldot(iv1) = nurlxn*(ni(ix,1,ifld)-ni(ix,0,ifld))/
      .                                                    n0(ifld)

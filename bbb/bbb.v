@@ -493,7 +493,6 @@ isngcore(ngspmx) integer /ngspmx*0/ +input #switch for neutral-density core B.C.
 				    #=1, set uniform, fixed density, ngcore
 				    #=2, not available
 				    #=3, extrapolation, but limited
-				    #=4, set dng/dy=-ng/lyngcore at each pol cell
 				    #=anything else, set zero deriv which was
 				    #prev default inert hy
 				    # anything else same as =0
@@ -632,8 +631,6 @@ lyniix(2,0:nx+1,nisp) _real [m] +input # pol dep radial dens grad length if set 
 			         # isnwconi,o=3: 1:2=i:o, 2nd dim ix, 3rd spec
 lynicore(nispmx) real [m] /nispmx*1e20/     +input # ni core BC rad scale-length if
 					    # isnicore=5
-lyngcore(ngspmx) real [m] /ngspmx*1e20/     +input # ng core BC rad scale-length if
-					    # isngcore=4
 lyup(2) real    /2*1e20/     +input #radial up grad length if isupwi,o=3: 1:2=i:o
 isulyupx        integer      /0/            #if=0, lyupx filled with lyup
 					    #if=1, user values of lynup used
