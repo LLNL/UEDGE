@@ -4483,16 +4483,6 @@ c  -- Add rad flux of 4th order diff operator; damp grid-scale oscillations
         enddo
       endif
 
-c*******************************************************************
-c ... Adjust external Te sink pwrsore to prevent very low Te
-c******************************************************************
-      do iy = j2, j5
-        do ix = i2, i5
-          pwrsore_adj(ix,iy) = pwrsore(ix,iy)/
-     .                          (1. + (tebg2*ev/te(ix,iy))**iteb2)
-        enddo
-      enddo
-
 *  ---------------------------------------------------------------------
 *  compute the energy residuals.
 *  ---------------------------------------------------------------------

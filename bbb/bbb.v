@@ -87,10 +87,8 @@ upclng(nispmx) real [m/s] /nispmx*1.e8/ +input
 facupclng2ups(nispmx) real /nispmx*1.e-8/ +input 
                                   #fraction of upclng subtract from initial ups
 tebg      real [eV]    /1.e-20/   +input #backgrd elec eng sor to limit te~tebg
-tebg2     real [eV]    /1.e-20/   +input #backgrd elec eng sor to limit te~tebg2
 tibg      real [eV]    /1.e-20/   +input #backgrd ion eng sor to limit te~tebg
 iteb      integer         /2/     +input #exponent of (tebg*ev/te)**iteb for bkg sor
-iteb2     integer         /2/     +input #exponent of (tebg2*ev/te)**iteb2 to reduce pwrsore
 temin     real [eV]      /0.03/   +input #min value of te allow; if less, reset to
 temin2    real [eV]      /0.03/   +input #soft floor with te=sqrt[te**2+(temin2*ev)**2]
 tgmin     real [eV]      /0.03/   # min value of tg allowed
@@ -942,7 +940,6 @@ recycmlb(0:ny+1,ngspmx,nxptmx) _real   +maybeinput #total inner plt mom recyclin
 recycmrb(0:ny+1,ngspmx,nxptmx) _real   +maybeinput #total outer plt mom recycling coeff
 recyce           real       /0./       +input #energy recycling/Rp for inertial gas
 recycwe          real       /0./       +input #energy recycling/Rp for inertial gas on walls and prfs
-recycl           real       /1./       +input #recycling coef. at a limiter (ix_lim)
 recycml          real       /0.1/      +input #momentum recycling/Rp for gas at limtr
 recycc(ngspmx)   real       /6*1./     +input #core recycling coeff. if isnicore=3
 albedoc(ngspmx)  real       /6*1./     +input #core neut albedo for isngcore=0
@@ -2256,8 +2253,6 @@ pwrebkg(0:nx+1,0:ny+1)	      _real  [W/m**3]
                                # elec energy backgrd source; limits te~tebg
 pwribkg(0:nx+1,0:ny+1)	      _real  [W/m**3] 
                                # ion energy backgrd source; limits ti~tibg
-pwrsore_adj(0:nx+1,0:ny+1)    _real [W]  
-                               # adjusted pwrsore Te eng sink prevents te<<tebg2
 wjdote(0:nx+1,0:ny+1)         _real  [J/s]     # Joule heating rate
 wvh(0:nx+1,0:ny+1,1:nusp)     _real  [kg/m-s**3]  #ion viscous heating
 smoc(0:nx+1,0:ny+1,1:nusp)    _real
