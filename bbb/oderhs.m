@@ -608,7 +608,6 @@ c    yldot is the RHS of ODE solver or RHS=0 for Newton solver (NKSOL)
       integer ixuf,ixufyp1
       real tv,t0,t1,t2,a,t1old,t1new,t2old,t2new
       real phiface,teface,tiface
-cnxg      data igs/1/
 
       Use(Dim)      # nx,ny,nhsp,nusp,nzspt,nzsp,nisp,ngsp,nxpt
       Use(Xpoint_indices)      # ixlb,ixpt1,ixpt2,ixrb,iysptrx1,iysptrx2
@@ -1700,25 +1699,6 @@ c ...  replace 2nd term in uu above to get cvix
          enddo
       enddo
 
-c ... Compute sum of poloidal and radial ion currents
-      do iy = j1, j6
-        do ix = i1, i6
-	  cjixtot(ix,iy) = 0.
-	  do ifld = 1, nfsp
-	    cjixtot(ix,iy) = cjixtot(ix,iy) + cjix(ix,iy,ifld)
-	  enddo
-	enddo
-      enddo
-        
-      do iy = j1, j5
-        do ix = i1, i6
-	  cjiytot(ix,iy) = 0.
-	  do ifld = 1, nfsp
-	    cjiytot(ix,iy) = cjiytot(ix,iy) + cjiy(ix,iy,ifld)
-	  enddo
-	enddo
-      enddo
-
 c...  If upi not from full ||mom eq (e.g.,isimpon=6), set impurity
 c...  uu(ixrb,,) & upi(ixrb,,) via generalized Bohm cond.
       if(isimpon > 0) then
@@ -2586,64 +2566,9 @@ c ... WARNING: only includes deuterium neutral pressure, not impurities
         enddo
       endif  
          
-c ... Compute cJdotE for seic if phi solved or temporarily frozen
-**********************************************************************
-      if (isphion+isphiofft == 1) then
-c----------------------------------------------------------------------c
-c     COMPUTE CURRENT*PHI FLUXES OF J.E TERM IN ENERGY EQ
-c----------------------------------------------------------------------c
-
-c ... Poloidal J*phi fluxes
-      do iy = j4, j8
-        do ix = i1, i5
-	  ix2 = ixp1(ix,iy)
-          fphijxi(ix,iy) = 0.5*cjixtot(ix,iy)*
-     .                            (phi(ix,iy)+phi(ix2,iy))*sx(ix,iy)
-	  fphijxe(ix,iy) = 0.5*cjex(ix,iy)*
-     .                            (phi(ix,iy)+phi(ix2,iy))*sx(ix,iy)
-        enddo
-      enddo
-c ... Radial J*phi fluxes
-      do iy = j1, j5
-        do ix = i4, i8
-          cjiytot(ix,iy) = cjiytot(ix,iy) + 
-     .                       ( rnewpot*fqya(ix,iy) +
-     .                         cfqydt*fqydt(ix,iy) +
-     .                         cfqym*fqym(ix,iy) +
-     .                         cfqyn*fqyn(ix,iy) )/sy(ix,iy)
-          fphijyi(ix,iy) = 0.5*cjiytot(ix,iy)*
-     .                          (phiy0(ix,iy)+phiy1(ix,iy))*sy(ix,iy)
-	  fphijye(ix,iy) = 0.5*cjey(ix,iy)*
-     .                          (phiy0(ix,iy)+phiy1(ix,iy))*sy(ix,iy)
-        enddo
-      enddo
-
-         if (isnewpot .eq. 1) then # relies on div(J)=0, omit iy=1 & ny
-            iy_min = 2
-            iy_max = ny-1
-         else
-            iy_min = 1
-            iy_max = ny
-         endif
-         do iy = max(iy_min, j2), min(iy_max, j5)
-            do ix = i2, i5
-               ix1 = ixm1(ix,iy)
-               ix2 = ixp1(ix,iy)
-               cjdote(ix,iy) = -( fphijxi(ix,iy) - fphijxi(ix1,iy) +
-     .                            fphijxe(ix,iy) - fphijxe(ix1,iy) +
-     .                            fphijyi(ix,iy) - fphijyi(ix,iy-1) +
-     .                            fphijye(ix,iy) - fphijye(ix,iy-1) )
-
-               wjdote(ix,iy) = -0.5*( 
-     .                          fqx(ix,iy)*(phi(ix,iy)+phi(ix2,iy)) -
-     .                          fqx(ix1,iy)*(phi(ix,iy)+phi(ix1,iy)) +
-     .                          fqy(ix,iy)*(phi(ix,iy)+phi(ix,iy+1)) -
-     .                          fqy(ix,iy-1)*(phi(ix,iy)+phi(ix,iy-1)) )
-                                          
-            enddo
-         enddo
-      endif
 c ... End of new formulation for seec and seic Oct. 2025
+c*****************************************************************
+
 c*****************************************************************
   
 c ... Evaluation of previous seecold, seicold plus unchanged smoc
@@ -2761,6 +2686,8 @@ c...  Add friction part of Q_e here
 
         endif  #test on zi(ifld) > 0, so only ion terms
   101 continue  #ifld loop over ion species
+c ... End of old formulation for seec and seic Oct. 2025
+c*****************************************************************
       
 c********************************************************************
 c  Mix fraction of old & new seec & seic using fracsee,icnew

@@ -1608,13 +1608,9 @@ nz2(0:nx+1,0:ny+1)         _real  [m^-3]  #sum of ni*zi**2 over all ion species
 niupyfacetest(0:nx+1,0:ny+1) _real [m^-3] #diagnose sten logic ni on up-yface
 uu(0:nx+1,0:ny+1,1:nisp)   _real  [m/s]   #ratio ion-flux/density at x-face;
                                           #if orthog mesh, poloidal ion velocity
-cvix(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #total ion pol vel if orthog mesh
+cvix(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #diagn: total ion pol vel if orthog mesh
                                           #if nonorthog mesh, ratio ion flux/density on x-face
-cjix(0:nx+1,0:ny+1,1:nisp) _real [Coul/m**2s] #poloidal ion current on x-face
-cjixtot(0:nx+1,0:ny+1)     _real [Coul/m**2s] #summed pol ion current on x-face
-fphijxi(0:nx+1,0:ny+1)     _real  [W]     #ion power flux phi*jix*sx x-face
-cjdote(0:nx+1,0:ny+1)      _real  [W/m**3] #JdotE with total J's for seic
-cjdotefac                   real   /1./   #scaling factor for cjdote term in seicnew
+cjix(0:nx+1,0:ny+1,1:nisp) _real [Coul/m**2s] #diagn: poloidal ion current on x-face
 uup(0:nx+1,0:ny+1,1:nisp)  _real  [m/s]   #poloidal ion vel (|| flow contrib)
 up(0:nx+1,0:ny+1,1:nisp)   _real  [m/s]   #par ion vel if full mom eqn on
                                           # (mass-dens. avg if isimpon = 5)
@@ -1622,7 +1618,7 @@ upi(0:nx+1,0:ny+1,1:nisp)  _real  [m/s]   #inter. par ion vel even if force bal
 upifmb(0:nx+1,0:ny+1,1:nisp) _real [m/s]  #par ion vel fmombal if isimpon=5
 uz(0:nx+1,0:ny+1,1:nisp)   _real  [m/s]   #toroidal ion vel in pol X rad direct
 v2(0:nx+1,0:ny+1,1:nisp)   _real  [m/s]   #vel normal to parallel & rad. direc.
-cvi2(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #tot-vel normal to parallel & rad. direc.
+cvi2(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #diagn: tot-vel normal to parallel & rad. direc.
 v2xgp(0:nx+1,0:ny+1,1:nisp) _real [m/s]   #v2 ion vel for v2x_gradx_P eng terms
 v2ce(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #portion of v2 from ExB
 v2cb(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #portion of v2 from grad_B
@@ -1633,10 +1629,9 @@ q2cd(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #ion heat flux from grad_PxB
 v2rd(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #portion of v2 from resistive drift
 v2dd(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #portion of v2 from anomalous drift
 vy(0:nx+1,0:ny+1,1:nisp)   _real  [m/s]   #radial ion velocity
-cviy(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #total radial ion velocity
-cjiy(0:nx+1,0:ny+1,1:nisp) _real  [Coul/m**2s] #radial ion current
-cjiytot(0:nx+1,0:ny+1)     _real  [Coul/m**2s] #summed radial ion current	   
-fphijyi(0:nx+1,0:ny+1)     _real  [W]      #ion power flux phi*jiy*sy y-face
+cviy(0:nx+1,0:ny+1,1:nisp) _real  [m/s]   #diagn: total radial ion velocity
+cjiy(0:nx+1,0:ny+1,1:nisp) _real  [Coul/m**2s] #diagn: radial ion current
+cjiytot(0:nx+1,0:ny+1)     _real  [Coul/m**2s] #diagn: summed radial ion current	   
 vygp(0:nx+1,0:ny+1,1:nisp) _real  [m/s]    #radial ion vel for vy_grady_P eng terms
 vytan(0:nx+1,0:ny+1,1:nisp)_real  [m/s]   #radial ion vel.*tan(vtag) on x-face
 vygtan(0:nx+1,0:ny+1,1:ngsp)_real [m/s]   #radial gas grad-T vel.*tan(vtag) on
@@ -1662,7 +1657,6 @@ vey(0:nx+1,0:ny+1)         _real  [m/s]   #Radial electron velocity
 qniviy(0:nx+1,0:ny+1)       _real [m/s]   #work-var total ion y-current
 cvey(0:nx+1,0:ny+1)        _real  [m/s]   #total radial electron velocity
 cjey(0:nx+1,0:ny+1)        _real  [Coul/m**2s]   #total radial electron current
-fphijye(0:nx+1,0:ny+1)     _real  [W]     #elec power flux phi*jey*sy y-face
 vycf(0:nx+1,0:ny+1)	   _real  [m/s]   #radial vel from class. viscosity
 vycr(0:nx+1,0:ny+1)	   _real  [m/s]   #radial vel from class. thermal force
 te(0:nx+1,0:ny+1)          _real  [J]	  #electron temperature in primary cell
