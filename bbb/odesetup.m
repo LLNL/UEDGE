@@ -6715,6 +6715,19 @@ c   Check model switches for UEDGE updates/bugs
             write(*,*) "atom energy equation. "
             write(*,*) ""
       endif
+      #if (isvacuummodel(1) .gt. 0) then  #..zml: add warning messages, but not sure where is the best place to add
+      #      write(*,*) ""
+      #      write(*,*) ""
+      #      write(*,*) "           **** WARNING ****"
+      #      write(*,*) "You are using neutral vacuum transport model with isvacuummodel > 0"
+      #      if (isvacuummodel(1) .gt. 0) then
+      #           write(*,*) "You set isvacuummodel(1) > 1, a DEGAS2 pre-calculated tele-transport matrix is required"
+      #      endif
+      #      write(*,*) "Here is your current tele-transport Matrix"
+      #      if (cftelematrix(1,1,1) .eq. 0.0) then
+      #          write(*,*) "All elements are ZEROS, you HAVE NOT set up your tele-transport matrix cftelematrix"
+      #      endif
+      #endif
 
 c...    TODO: checks used to be on nigmx, a local parameter set in
 c...        pandf while these checks were located there. Checks moved
