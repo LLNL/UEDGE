@@ -296,7 +296,7 @@ c     Ionization of neutral hydrogen by electrons and recombination--
                psorbgg(ix,iy,igsp) = ngbackg(igsp)*( (0.9 + 0.1*
      .                            (ngbackg(igsp)/ng(ix,iy,igsp))**ingb) ) * 
      .                             nuiz(ix,iy,igsp) * vol(ix,iy)
-     .                                              * cfbackg(igsp)  #..zml
+     .                                              * cfbackg(igsp)  # ng numerical difficulty
                psorgc(ix,iy,igsp) = -ng(ix,iy,igsp)*nuiz(ix,iy,igsp)*vol(ix,iy) +
      .                              psorbgg(ix,iy,igsp)
                psorc(ix,iy,ifld) = - psorgc(ix,iy,igsp)
@@ -456,7 +456,7 @@ c              +n_(z+1)[ne K^r_(z+1)+ng K^cx_(z+1)]  # cx/r gain to z from z+1
 			 psorbgg(ix,iy,jg)= ngbackg(jg)*
      .                     (0.9+0.1*(ngbackg(jg)/ng(ix,iy,jg))**ingb) * 
      .                                                      nevol*kionz0
-     .                                                    * cfbackg(jg)  #..zml
+     .                                                    * cfbackg(jg)  # ng numerical difficulty
                          psorg(ix,iy,jg) = -ng(ix,iy,jg)*nevol*kionz0 +
      .                                      psorbgg(ix,iy,jg)
                          psor(ix,iy,ifld_fcs) = - psorg(ix,iy,jg)
@@ -681,7 +681,7 @@ c ...  molecule-molecule collisions would enter viscosity, not nuix
            psorbgg(ix,iy,2) = ngbackg(2)* 
      .                     (0.9+0.1*(ngbackg(2)/ng(ix,iy,2))**ingb ) * 
      .                                        nuiz(ix,iy,2) * vol(ix,iy)
-     .                                                      * cfbackg(2)  #..zml
+     .                                                      * cfbackg(2)  # ng numerical difficulty
            psorgc(ix,iy,2) = - ng(ix,iy,2)*nuiz(ix,iy,2)*vol(ix,iy) +
      .                        psorbgg(ix,iy,2)
                 psorg(ix,iy,2) = psorgc(ix,iy,2)  # no mol sor averaging

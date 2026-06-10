@@ -6715,7 +6715,7 @@ c   Check model switches for UEDGE updates/bugs
             write(*,*) "atom energy equation. "
             write(*,*) ""
       endif
-      #if (isvacuummodel(1) .gt. 0) then  #..zml: add warning messages, but not sure where is the best place to add
+      #if (isvacuummodel(1) .gt. 0) then  # add warning messages, but not sure where is the best place to add
       #      write(*,*) ""
       #      write(*,*) ""
       #      write(*,*) "           **** WARNING ****"
