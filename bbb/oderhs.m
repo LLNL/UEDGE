@@ -2877,12 +2877,6 @@ c ... Implicit function:
 
 # other energy diagnostics are given below
 
-cc            jdote(ix,iy) = -   # this energy is included in resee, not lost
-cc     .                  0.5 * fqx(ix ,iy)*(phi(ix2,iy  )+phi(ix ,iy)) +
-cc     .                  0.5 * fqx(ix1,iy)*(phi(ix ,iy  )+phi(ix1,iy)) -
-cc     .                  0.5 * fqy(ix ,iy)*(phi(ix ,iy+1)+phi(ix ,iy)) +
-cc     .                  0.5 * fqy(ix,iy-1)*(phi(ix,iy)+phi(ix,iy-1))
-cc            ptjdote = ptjdote + jdote(ix,iy)
             ptjdote = ptjdote + wjdote(ix,iy)
 
             if (isupgon(1) .eq. 0) then

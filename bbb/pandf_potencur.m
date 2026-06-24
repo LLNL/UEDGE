@@ -921,7 +921,7 @@ c...    Calc collisionality factors nu_s/(1 + nu_s) = 1/(1 + lambda_s)
               veycp(ix,iy) =  0.25 * temp3
      .               * (rbfbt2(ix,iy)+rbfbt2(ix,iy+1)) /
      .                    (qe*(ney0(ix,iy)+ney1(ix,iy)))
-c...   zero the vy-diamagnetic velocity on the y guard-cell faces
+c...   zero the vy-diamagnetic velocity on the y guard-cell faces ???-10/21/25
               vycp(ix,0,ifld) = 0.
               vycp(ix,ny,ifld) = 0.
               veycp(ix,0) = 0.
@@ -942,6 +942,12 @@ c...  Precompute radial velocities from fixed BOUT turbulence fluxes
      .                         (difpr(ifld) + difp_use(ix,iy,ifld)) * 
      .                    ( 2*gpry(ix,iy)/(pr(ix,iy+1) + pr(ix,iy)) -
      .                      3.0*gtey(ix,iy)/(tey1(ix,iy)+tey0(ix,iy)) )
+
+c ... Total radial electron velocity V_ey from gradPe, ExB, anom D; for seec
+              cvey(ix,iy) = veycp(ix,iy) + vyce(ix,iy,1) + 
+     .                      ccf2dd*vydd(ix,iy,1) + ccf2bf*veycb(ix,iy)
+              cjey(ix,iy) = -qe*cvey(ix,iy)*0.5*(ney0(ix,iy)+ney1(ix,iy))   
+
 c ...   Note that the density grad. term for vydd added below
            if (cfrtaue.ne.0.) then  #special classical mom. transfer term
               vycr(ix,iy) = -0.5*(rtaue(ix,iy)+rtaue(ix,iyp1)) * (
@@ -970,24 +976,9 @@ c ...   Note that the density grad. term for vydd added below
 
 c
 c ... Compute diffusive part of radial velocity.
-c .. Needs further cleaning; no turbulence model used now TDR 9/1/15
          do iy = j1omp1, j5omp
             do ix = i1momp, i6pomp
               difnimix = diffusivwrk(ix,iy)
-
-c ... Alter diffusivity in the SOL by mixing fixed diffusivity
-c     with anomalous diffusivity computed in subroutine turb_diffus but
-c     reduced by the factor difnit(ifld).  The mixing ratio is given by
-c     cdifnit.  Diffusivity is unaltered if difnit(ifld) = 0.
-c...MER NOTE: For a full double-null configuration, the SOL is defined to
-c...  be the region outside the innermost separatrix (see iysptrx definition
-c...  in subroutine nphygeo)
-cc              if (difnit(ifld) .gt. 1.e-20 .and. zi(ifld) .eq. 1.
-cc     .                                 .and. iy .gt. iysptrx) then
-cc                 difnimix = (1. - cdifnit) * 
-cc     .                      (fcdif*difni(ifld) + dif_use(ix,iy,ifld)) +
-cc     .                               cdifnit * difnit(ifld) * difnimix
-cc              endif
 
               vydd(ix,iy,ifld) = vydd(ix,iy,ifld) 
      .           -1. * difnimix * (
@@ -1005,6 +996,14 @@ c ... Compute total radial velocity.
      .                         cfybf * vycb(ix,iy,ifld) +
      .                        cfvycf * vycf(ix,iy) + 
      .                        cfvycr * vycr(ix,iy)
+
+c ... Total radial ion vel & curr V_iy & J_iy from gradPi, ExB, anom D; for seic
+              cviy(ix,iy,ifld) = ccf2dd*vycp(ix,iy,ifld) + 
+     .                           ccf2bf*vycb(ix,iy,ifld) +
+     .                           vyce(ix,iy,ifld) + 
+     .                           vydd(ix,iy,ifld) 
+              cjiy(ix,iy,ifld) = qe*zi(ifld)*cviy(ix,iy,ifld)*0.5*
+     .                           (niy0(ix,iy,ifld)+niy1(ix,iy,ifld))
 c ... Compute radial vel v_grad_P eng eqn terms;cfydd+cfybf=1 or 0
               vygp(ix,iy,ifld) = (cfydd+cfybf)*bfacyrozh(ix,iy) *
      .                                         vycp(ix,iy,ifld) + 
@@ -1129,7 +1128,7 @@ c...  in subroutine nphygeo)
      .                           (ni(ix,iy,ifld)+ni(ix2,iy,ifld)))
               ve2cd(ix,iy,1) = -temp3
      .                    / ((btot(ix,iy)+btot(ix2,iy))*qe*
-     .                           (ni(ix,iy,ifld)+ni(ix2,iy,ifld)))
+     .                                  (ne(ix,iy)+ne(ix2,iy)))
               q2cd(ix,iy,ifld) = (priv(ix,iy,ifld)+priv(ix,iy1,ifld))*temp4
      .                    / ( (btot(ix,iy)+btot(ix2,iy))*qion )
 
@@ -1166,6 +1165,10 @@ c...  Calculate plate electr diamag flux used to find sheath potential
      .                                 v2dd(ix,iy,ifld) + 
      .                         cf2ef * v2ce(ix,iy,ifld) +
      .                         cf2bf * v2cb(ix,iy,ifld)
+              cvi2(ix,iy,ifld) = v2cd(ix,iy,ifld) + 
+     .                           ccf2dd*v2dd(ix,iy,ifld) + 
+     .                           ccf2bf*v2cb(ix,iy,ifld) +
+     .                           v2ce(ix,iy,ifld) 
 c ...         Compute v2 for v2x_gradx_P eng terms; cf2dd+cf2bf=1 or 0
               v2xgp(ix,iy,ifld) =  0.5*(rbfbt(ix,iy)+rbfbt(ix2,iy)) * (
      .                 (cf2dd+cf2bf) * bfacxrozh(ix,iy) *

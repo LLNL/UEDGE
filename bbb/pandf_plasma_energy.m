@@ -47,6 +47,7 @@ c!include "../sptodp.h"
      .  denz(0:1), sv_crumpet, vt1, wallfac, lxtec, qr, lxtic,
      .  ltmax, lmfpe, flxlimf, fniy_recy, temp1, dtdym1, dtdy0,
      .  d2tdy20, d2tdy2p1, d3tdy3, dtdyp1, vt0
+      real phiface,teface,tiface
       external sv_crumpet, radmc
 
 *****************************************************************
@@ -154,15 +155,24 @@ c.... Now do the ions (hcxi is flux-limited previously when it is built)
 *     floxe, floxi  contain the cross-derivative terms now
 *                        JLM      5/3/90
 *  ---------------------------------------------------------------------
+        cfvphite = 0.
+        cfvphiti = 0.        
+        if(isphion+isphiofft == 1) then #incl n*vy*phi in eng convection
+          cfvphite = 1.
+          cfvphiti = 1.
+        endif
 
       do iy = j4omp, j8omp
          do ix = i1momp, i5omp  
             ix1 = ixp1(ix,iy)
+            phiface = 0.5*(phi(ix,iy)+phi(ix1,iy))
+            teface = 0.5*(te(ix,iy)+te(ix1,iy))
             ltmax = min( abs(te(ix,iy)/(rrv(ix,iy)*gtex(ix,iy) + cutlo)),
      .                   lcone(ix,iy) )
             lmfpe = 2e16*(te(ix,iy)/ev)**2/ne(ix,iy)
             flxlimf = flalftf*ltmax/(flalftf*ltmax + lmfpe)
-            floxe(ix,iy) = floxe(ix,iy) + cfcvte*1.25*
+            floxe(ix,iy) = floxe(ix,iy) + ( cfcvte*1.25 -
+     .                      cfvphite*0.5*qe*(phiface/teface) )*
      .                  (ne(ix,iy)+ne(ix1,iy))*vex(ix,iy)*sx(ix,iy)
      .                   - cthe*flxlimf*cfjhf*fqp(ix,iy)/ev
          end do
@@ -198,8 +208,12 @@ c IJ 2016/10/10	add cfneutsor_ei multiplier to control fraction of neutral energ
          else  #ions
             do iy = j4omp, j8omp
                do ix = i1momp, i5omp
-                  floxi(ix,iy) = floxi(ix,iy) +
-     .                           cfcvti*2.5*fnix(ix,iy,ifld)
+                  ix1 = ixp1(ix,iy)
+                  phiface = 0.5*(phi(ix,iy)+phi(ix1,iy))
+                  tiface = 0.5*(ti(ix,iy)+ti(ix1,iy))
+                  floxi(ix,iy) = floxi(ix,iy) + ( cfcvti*2.5 +
+     .                          cfvphiti*qe*zi(ifld)*(phiface/tiface) )*
+     .                                               fnix(ix,iy,ifld)
                 end do 
                floxi(nx+1,iy) = 0.0e0
             end do
@@ -210,10 +224,16 @@ c IJ 2016/10/10	add cfneutsor_ei multiplier to control fraction of neutral energ
 
       do iy = j1omp1, j5omp    # note: cfloye usually = 2.5 or 1.5 (ExB turb)
          do ix = i4omp, i8omp
+            phiface = 0.5*(phiy0(ix,iy)+phiy1(ix,iy))
+            teface = 0.5*(tey0(ix,iy)+tey1(ix,iy))
             floye(ix,iy) = floye(ix,iy) + (cfloye/2.)*
      .                    (ney0(ix,iy)+ney1(ix,iy))*vey(ix,iy)*sy(ix,iy)
      .                + (vyte_use(ix,iy)+vyte_cft(ix,iy))*0.5*sy(ix,iy)*
      .                     (ney0(ix,iy)+ney1(ix,iy))
+            floye(ix,iy) = floye(ix,iy) - cfvphite*0.5*qe*
+     .                                    (phiface/teface)*
+     .                           (ney0(ix,iy)+ney1(ix,iy))*vey(ix,iy)*
+     .                            sy(ix,iy)
         end do
       end do
 
@@ -242,8 +262,11 @@ c ...       Make correction at walls to prevent recyc neutrals injecting pwr
          else
             do iy = j1omp1, j5omp # note: cfloyi usually = 2.5 or 1.5 (ExB turb)
                do ix = i4omp, i8omp
-                  floyi(ix,iy) = floyi(ix,iy)
-     .                            + cfloyi * fniy(ix,iy,ifld)
+                  phiface = 0.5*(phiy0(ix,iy)+phiy1(ix,iy))
+                  tiface = 0.5*(tiy0(ix,iy)+tiy1(ix,iy))
+                  floyi(ix,iy) = floyi(ix,iy) + ( cfloyi +
+     .                            + cfvphiti*qe*(phiface/tiface) )
+     .                                            * fniy(ix,iy,ifld)
      .                            + (vyti_use(ix,iy)+vyti_cft(ix,iy))*
      .                                                  0.5*sy(ix,iy)*
      .                              (niy0(ix,iy,ifld)+niy1(ix,iy,ifld))
@@ -1046,6 +1069,7 @@ c     .                             cmneutdiv*cmneutdiv_feg*seg_ue(ix,iy,jfld)
             ix1 = ixm1(ix,iy)
             w0(ix,iy) = vol(ix,iy) * eqp(ix,iy) * (te(ix,iy)-ti(ix,iy))
             resee(ix,iy) = resee(ix,iy) - w0(ix,iy) + vsoree(ix,iy)
+            resei(ix,iy) = resei(ix,iy) + w0(ix,iy)
             if (isupgon(1).eq.1) then
 c             Set up helper arrays for velocities
               up1cc = 0.5*(up(ix,iy,1)+up(ix1,iy,1))
@@ -1056,7 +1080,7 @@ c             Set up helper arrays for velocities
 c             IONS
 c             -------------------------------------------------------------
 c             Ion rate from CX
-              resei(ix,iy) = resei(ix,iy) + w0(ix,iy)
+              resei(ix,iy) = resei(ix,iy) 
      .              + seik(ix,iy) 
      .              + (1.0-cftiexclg) * seit(ix,iy)
      .              + seid(ix,iy)
@@ -1065,7 +1089,7 @@ c             Ion rate from CX
                 if (ishymol .eq. 0) then
 
 c                   Ion energy source from mol. drift heating
-                    resei(ix,iy) = resei(ix,iy)
+                    fricforeng(ix,iy) =
      .                  - cftiexclg * cfneut * cfneutsor_ei * cnsor 
      .                  * cfnidhdis * 0.5*mg(1)
      .                  * (upgcc**2 + vycc**2 + v2cc**2) 
@@ -1074,8 +1098,9 @@ c                   Ion energy source from mol. drift heating
      .                  +   ishymol*ismolcrm * psordis(ix,iy,1)
      .                  )
                 endif
+                resei(ix,iy) = resei(ix,iy) + fricforeng(ix,iy)
             else
-               resei(ix,iy) = resei(ix,iy) + w0(ix,iy)
+               resei(ix,iy) = resei(ix,iy) 
      .             + cfneut * cfneutsor_ei * ctsor*1.25e-1*mi(1)*
      .                    (upi(ix,iy,1)+upi(ix1,iy,1))**2*
      .                    fac2sp*psor(ix,iy,1)

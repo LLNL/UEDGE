@@ -189,8 +189,12 @@ c            write(*,*) parvis
        smoc = 0.0
        smov = 0.0
        seec = 0.0
+       seecnew(ix,iy) = 0.0
+       seecold(ix,iy) = 0.0
        seev = 0.0
        seic = 0.0
+       seicnew(ix,iy) = 0.0
+       seicold(ix,iy) = 0.0
        seiv = 0.0
        seik = 0.0
        seid = 0.0
@@ -818,6 +822,10 @@ c *** Now do the gas
             enddo
             seec(ix,iy) = 0.0
             seic(ix,iy) = 0.0
+            seecold(ix,iy) = 0.0
+            seicold(ix,iy) = 0.0
+            seecnew(ix,iy) = 0.0
+            seicnew(ix,iy) = 0.0
          end do
         end do
 
@@ -852,6 +860,74 @@ c *** Now do the gas
 
 
 
+**********************************************
+*** New seecnew, seicnew, smoc calc, March 2026
+**********************************************
+*  -- Ion ePhi*div(ni*vi) = ePhi*psor contrib to seec, seic
+      if (isphion+isphiofft==1) then
+       do iy = j2, j5
+         do ix = i2, i5
+            t1new = qe*phi(ix,iy)*psor(ix,iy,1)
+            seicnew(ix,iy) = seicnew(ix,iy) + t1new
+            seecnew(ix,iy) = seecnew(ix,iy) - t1new
+         enddo
+       enddo
+      endif  
+
+c   --- Add V_i*R_i_|| for seec, seic
+*****************************************
+      do ifld = 1, nusp
+         do iy = j2, j5
+            do ix = i2,i5
+               ix1 = ixm1(ix,iy)
+               if (ifld == 1) then  # add electron contribution once
+                  tv = 0.25*(frici(ix,iy,ifld)+frici(ix1,iy,ifld))*
+     .                ( upi(ix,iy,ifld) + upi(ix1,iy,ifld) )
+               else  # impurity ions
+                  tv = 0.25*(frici(ix,iy,ifld)+frici(ix1,iy,ifld))*
+     .                 ( upi(ix,iy,ifld) + upi(ix1,iy,ifld))
+               endif
+               seicnew(ix,iy) = seicnew(ix,iy) -
+     .                                zi(ifld)**2*ni(ix,iy,ifld)*
+     .                                 tv*vol(ix,iy)/nz2(ix,iy)
+               seecnew(ix,iy) = seecnew(ix,iy) + 
+     .                                 zi(ifld)**2*ni(ix,iy,ifld)*
+     .                                  tv*vol(ix,iy)/nz2(ix,iy)
+            enddo
+         enddo 
+      enddo
+
+c  -- Add neutral gas v*grad_P contribution to seic          
+      if(isupgon(1)==1.and.zi(2)<1.e-20) then # .and. istgon(1)==0) then 
+c ... WARNING: only includes deuterium neutral pressure, not impurities
+        do igsp = 1, 1  
+          do iy = j2, j5
+            do ix = i2, i5
+              ix1 = ixm1(ix,iy)
+              ix2 = ixp1(ix,iy)
+              iy1 = max(0,iy-1)
+              if(iy > iyseicgmin) then  #omit iy<=iyseicgmin region
+                seicnew(ix,iy) = seicnew(ix,iy) + cftiexclg
+     .                                   *0.5*cfvgpx(igsp)*( 
+     .                   uuxg(ix, iy,igsp)*gpix(ix,iy,2) +
+     .                   uuxg(ix1,iy,igsp)*gpix(ix1,iy,2) )*vol(ix,iy)
+                seicnew(ix,iy) = seicnew(ix,iy) + cftiexclg
+     .                                   *0.5*cfvgpy(igsp)*( 
+     .                    vyg(ix, iy,igsp)*gpiy(ix,iy,2) +
+     .                    vyg(ix,iy1,igsp)*gpiy(ix,iy1,2) )*vol(ix,iy)
+              endif
+            enddo
+          enddo
+        enddo
+      endif  
+
+c ... End of new formulation for seec and seic Oct. 2025
+c*****************************************************************
+
+c*****************************************************************
+
+c ... Evaluation of previous seecold, seicold plus unchanged smoc
+c*****************************************************************
 
 *  -- Set up electron parallel contribution to seec & smoc
       do iy = j2omp, j5omp
@@ -876,7 +952,7 @@ c *** Now do the gas
      .          vey(ix,iy)*
      .          ave(gy(ix,iy),gy(ix,iym1))*gpey(ix,iym1)/gyf(ix,iym1)
      .                                                            )
-            seec(ix,iy) = seec(ix,iy)
+            seecold(ix,iy) = seecold(ix,iy)
      .          + (t1old*vol(ix,iy) - t2old)*oldseec
      .          + ((t1new+t2new)*vol(ix,iy))*(1-oldseec)
             if (nusp-isupgon(1).eq.1) smoc(ix,iy,1)=(( -cpgx*gpex(ix,iy)-
@@ -903,7 +979,8 @@ c *** Now do the gas
      .                                 ave(gx(ix2,iy),gx(ix,iy))*tv
      .                      + up(ix1,iy,ifld)*rrv(ix1,iy)*
      .                                 ave(gx(ix,iy),gx(ix1,iy))*t1 )
-               seic(ix,iy) = seic(ix,iy) + cfvgpx(ifld)*t1*vol(ix,iy)
+               seicold(ix,iy) = seicold(ix,iy) + 
+     .                                     cfvgpx(ifld)*t1*vol(ix,iy)
                t0 = - cpiup(ifld)*( gpix(ix,iy,ifld)*rrv(ix,iy) -
      .                                  pondomfpari_use(ix,iy,ifld) )*
      .                                            sx(ix,iy)/gxf(ix,iy)
@@ -920,9 +997,9 @@ c...  Add friction part of Q_e here
                tv = 0.25*(frice(ix,iy)+frice(ix1,iy))*
      .              ( upe(ix,iy)     + upe(ix1,iy) -
      .              upi(ix,iy,ifld) - upi(ix1,iy,ifld) )
-               seec(ix,iy) = seec(ix,iy) - zi(ifld)**2*ni(ix,iy,ifld)*
-     .                                        tv*vol(ix,iy)/nz2(ix,iy)
-               
+               seecold(ix,iy) = seecold(ix,iy) - 
+     .                                     zi(ifld)**2*ni(ix,iy,ifld)*
+     .                                     tv*vol(ix,iy)/nz2(ix,iy) 
             end do
         end do
 
@@ -955,8 +1032,8 @@ c...  Add friction part of Q_e here
                t1 = -0.5*( vy(ix,iy  ,ifld)*gpey(ix,iy  ) +
      .                     vy(ix,iy-1,ifld)*gpey(ix,iy-1) )
              endif
-             seec(ix,iy) = seec(ix,iy) - fluxfacy*t1 * vol(ix,iy)
-             seic(ix,iy) = seic(ix,iy) + fluxfacy*cfvgpy(ifld)*t2*
+             seecold(ix,iy) = seecold(ix,iy) - fluxfacy*t1 * vol(ix,iy)
+             seicold(ix,iy) = seicold(ix,iy) + fluxfacy*cfvgpy(ifld)*t2*
      .                                                     vol(ix,iy)
             end do
         end do
@@ -964,44 +1041,21 @@ c...  Add friction part of Q_e here
         endif  #test on zi(ifld) > 0, so only ion terms
         end do  #ifld loop over ion species
 
-c ... Now include seic contribution from hydrogen atoms if isupgon=1
-c ... Then "ion" species 2 (redundant as gas species 1) is hydr atom
+c ... End of old formulation for seec and seic Oct. 2025
+c*****************************************************************
 
-      if(isupgon(1)==1 .and. zi(2)<1.e-20) then # .and. istgon(1)==0) then 
-        if(cfvgpx(2) > 0.) then
-          do iy = j2omp, j5omp
-            do ix = i2omp, i5omp
-              ix1 = ixm1(ix,iy)
-              ix2 = ixp1(ix,iy)
-              iy1 = max(0,iy-1)
-              seic(ix,iy) = seic(ix,iy) + cftiexclg
-     .                                   *0.5*cfvgpx(2)*( 
-     .                       uuxg(ix, iy,1)*gpix(ix,iy,2) +
-     .                       uuxg(ix1,iy,1)*gpix(ix1,iy,2) )*vol(ix,iy)
-              seic(ix,iy) = seic(ix,iy) + cftiexclg
-     .                                   *0.5*cfvgpy(2)*( 
-     .                        vyg(ix, iy,1)*gpiy(ix,iy,2) +
-     .                        vyg(ix,iy1,1)*gpiy(ix,iy1,2) )*vol(ix,iy)
-            enddo
-          enddo
-        else  # Here if cfvgpx(2)=0, old vpar_g*grad_Pg only => ifld=2
-          do iy = j2omp, j5omp
-            do ix = i2omp, i5omp
-               ix1 = ixm1(ix,iy)
-               ix2 = ixp1(ix,iy)
-               tv = gpix(ix ,iy,2)/gxf(ix,iy)
-               t1 = gpix(ix1,iy,2)/gxf(ix1,iy)
-               t1 = .5*cvgp*( up(ix,iy,2)*rrv(ix,iy)*
-     .                               ave(gx(ix2,iy),gx(ix,iy))*tv
-     .                    + up(ix1,iy,2)*rrv(ix1,iy)*
-     .                               ave(gx(ix,iy),gx(ix1,iy))*t1 )
-               seic(ix,iy) = seic(ix,iy) + cftiexclg*t1*vol(ix,iy)
-            enddo
-          enddo
-        endif  #test on cfvgpx(2) > 0 or = 0
-      endif   #test for inertial neutrals
-
-
+c********************************************************************
+c  Mix fraction of old & new seec & seic using fracsee,icnew
+c********************************************************************
+      do iy = j2, j5
+         do ix = i2, i5
+            seec(ix,iy) = (1.-fracseecnew)*seecold(ix,iy) +
+     .                         fracseecnew*seecnew(ix,iy)
+            seic(ix,iy) = (1.-fracseicnew)*seicold(ix,iy) +
+     .                         fracseicnew*seicnew(ix,iy)
+         enddo
+      enddo
+    
 
       END SUBROUTINE calc_srcmod
 
@@ -1167,6 +1221,9 @@ c                   if (ix .eq. 1 .and. iy .eq. 1) write(*,*) 'sng_ue', ifld, jf
               uu(nxc-1,iy,ifld) = 0.
               uu(nxc  ,iy,ifld) = 0.
               uu(nxc+1,iy,ifld) = 0.
+              cvix(nxc-1,iy,ifld) = 0.
+              cvix(nxc  ,iy,ifld) = 0.
+              cvix(nxc+1,iy,ifld) = 0.
               vytan(nxc-1,iy,ifld) = 0.
               vytan(nxc  ,iy,ifld) = 0.
               vytan(nxc+1,iy,ifld) = 0.
