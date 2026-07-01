@@ -1184,7 +1184,7 @@ c ...  Add a pseudo timestep to the diagonal ## if eqn is not algebraic
                if (iv.eq.ii .and. yl(neq+1).eq.1) 
      .             jacelem = jacelem - nufak  #omit .and. iseqalg(iv).eq.0)
             endif
-            if (abs(jacelem*sfscal(ii)) .gt. jaccliplim) then
+            if (abs(jacelem*sfscal(iv)) .gt. jaccliplim) then
                if (nnz .gt. nnzmx) then
                   write(STDOUT,*)
      .             '*** jac_calc -- More storage needed for Jacobian.',
