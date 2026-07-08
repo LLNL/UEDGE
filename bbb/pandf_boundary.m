@@ -1338,6 +1338,7 @@ c----------------------------------------------------------------------c
      .  feiytotc, fmiytotc, fngytotc, fniytotc, fqytotc, sytotc, 
      .  sfeeytotc, sfeiytotc, lengg, uztotc, uztotc1, uztotc2,
      .  upbdry1, upbdry2, upbdry, r_major, xtotc, zflux, ut0
+      real Mi_nu,Mi_taunu,Mi_nunu,dng2dnu,dng2dtau,lmfpn,fteledifftrim,fngytelelim
       real ave, t0,t1
       ave(t0,t1) = 2*t0*t1 / (cutlo+t0+t1)
 
@@ -1367,6 +1368,66 @@ c  Note: j3 is local range index for iy passed from pandf in oderhs.m
               # this is a very large if-loop; check for 'j3 index' to find end
 
       do ifld = 1, nisp
+         if (isupgon(1) .eq. 1 .and. zi(ifld) .eq. 0.0 .and. isvacuummodel(1) .gt. 0) then #..zml
+           do ix = i4+1-ixmnbcl, i8-1+ixmxbcl
+             if (isixcore(ix) .ne. 1) then
+               # half-Maxwellian
+               t0 = max(tg(ix,1,1),tgmin*ev)
+               vyn = sqrt( 0.5*t0/(pi*mi(ifld)) )
+               fngytelemaxw(1,ix,1) = cfteleout(1)*ni(ix,1,ifld)*vyn*sy(ix,0)
+               # CX diffusion
+               ix1 = ixm1(ix,1)
+               ix2 = ixp1(ix,1)
+               t1 = max(ti(ix,1),temin*ev)
+               Mi_nu = -sqrt( 0.5*t1/(pi*mi(1)) )
+               Mi_taunu = 0.5*( up(ix,1,0)*rrv(ix,1) + up(ix1,1,0)*rrv(ix1,1) )*Mi_nu  # = Utau*Mi_nu
+               Mi_nunu = 0.5*t0/mi(1)
+               dng2dnu = 0.5*( (ngy1(ix,0,1) - ngy0(ix,0,1))/dynog(ix,0)
+     .                       + (ngy1(ix,1,1) - ngy0(ix,1,1))/dynog(ix,1) )
+               dng2dtau = 0.5*( (ng(ix2,1,1) - ng(ix,1,1))*gxf(ix,1)
+     .                        + (ng(ix,1,1) - ng(ix1,1,1))*gxf(ix1,1) )
+               fngytelediff1(1,ix,1) = - nucx(ix,1,1)/(nucx(ix,1,1)+nuiz(ix,1,1)) *
+     .                                   ng(ix,1,1)*Mi_nu * sy(ix,0)
+               fngytelediff2(1,ix,1) = nucx(ix,1,1)/(nucx(ix,1,1)+nuiz(ix,1,1))**2 *
+     .                                 dng2dtau*Mi_taunu * sy(ix,0)
+               fngytelediff30(1,ix,1) = nucx(ix,1,1)/(nucx(ix,1,1)+nuiz(ix,1,1))**2 *
+     .                                  dng2dnu*Mi_nunu * sy(ix,0)
+               # The third component is dominant in divertor regions and can cause numerical instability
+               # We add a flux limiter to this term fngytelediff3,
+               # where the constant 1.2533 is a result of pi/sqrt(2*pi)
+               fngytelelim = cftelelim * 1.2533*abs(nucx(ix,1,1)/(nucx(ix,1,1)+nuiz(ix,1,1))*ng(ix,1,1)*Mi_nu * sy(ix,0))
+               fngytelediff3(1,ix,1) = fngytelediff30(1,ix,1)/
+     .                               (1 + (abs(fngytelediff30(1,ix,1)/fngytelelim))**ntelelim )**(1./ntelelim)
+               fngytelediff(1,ix,1) = cfteleout(1) * (fngytelediff1(1,ix,1) +
+     .                                          fngytelediff2(1,ix,1) + fngytelediff3(1,ix,1))
+               fteledifftrim = max(fngytelediff(1,ix,1),0.)  # Trim to avoid negative influx
+               if (isvacuummodel(1) .eq. 1) then  # half-Maxwellian
+                 fngyteleout(1,ix,1) = fngytelemaxw(1,ix,1)
+               elseif (isvacuummodel(1) .eq. 2) then  # CX diff, Eq.(3.88) in AFN manual from KU Lueven
+                 fngyteleout(1,ix,1) = fteledifftrim
+               elseif (isvacuummodel(1) .eq. 3) then
+                 lmfpn = sqrt(t0/mi(ifld))/nucx(ix,1,1)
+                 Kn(1,ix,1) = lmfpn/lteleout
+                 if (Kn(1,ix,1) <= Knb1) then
+                     fngyteleout(1,ix,1) = fteledifftrim
+                 elseif (Kn(1,ix,1) >= Knb2) then
+                     fngyteleout(1,ix,1) = fngytelemaxw(1,ix,1)
+                 else
+                     fngyteleout(1,ix,1) = (Kn(1,ix,1)-Knb1)/(Knb2-Knb1)*fngytelemaxw(1,ix,1) +
+     .                                   (Knb2-Kn(1,ix,1))/(Knb2-Knb1)*fteledifftrim
+                 endif
+               else
+                 write (*,*) 'isvacuummodel > 3 not available for atom at PFR, placeholder for future extention'
+               endif
+             endif
+           enddo
+           do ix = 0, nx+1
+             if (isixcore(ix) .ne. 1) then
+               fngytelein(1,ix,1) = sum(fngyteleout(1,:,1)*cftelematrix(1,:,ix,1))
+             endif
+           enddo
+         endif
+
          do ix = i4+1-ixmnbcl, i8-1+ixmxbcl # ix-loop over ion dens
            if (isnionxy(ix,0,ifld)==1) then
              iv1 = idxn(ix,0,ifld)
@@ -1421,6 +1482,7 @@ c ---  Below, isupon(1) & ngbackg(1) used, so implies hydrogen
                   nharmave = 2.*(ni(ix,0,ifld)*ni(ix,1,ifld)) /
      .                          (ni(ix,0,ifld)+ni(ix,1,ifld))
                   fng_alb = (1-albedoi(ix,1))*nharmave*vyn*sy(ix,0)
+                  if (isvacuummodel(1) .gt. 0) fng_alb = fngyteleout(1,ix,1) - fngytelein(1,ix,1)
                   yldot(iv1) = -nurlxg*( fniy(ix,0,ifld) + fng_alb -
      .                                   fng_chem ) / 
      .                                        (vyn*sy(ix,0)* n0(ifld))
@@ -1620,6 +1682,44 @@ c...  Now do the parallel velocity BC at iy = 0 for full mom eqn species
                   else   # isupcore does not correspond to cases above
                     call xerrab ("*** Illegal setting of isupcore ***")
                   endif
+
+               elseif (isupgon(1) .eq. 1 .and. zi(ifld) .eq. 0.0 .and. isvacuummodel(1) .gt. 0) then  # VNM
+                 ix1 = ixm1(ix,ny)
+                 # Maxwellian
+                 fmgytelemaxw(1,ix,1) = 0.5*fngytelemaxw(1,ix,1)*mg(1)*(up(ix,1,ifld)+up(ix1,1,ifld))
+                 # CX diffusion
+                 fmgytelediff1(1,ix,1) = 0.5*fngytelediff1(1,ix,1)*mg(1)*(up(ix,1,ifld)+up(ix1,1,ifld))
+                 fmgytelediff2(1,ix,1) = 0.5*fngytelediff2(1,ix,1)*mg(1)*(up(ix,1,ifld)+up(ix1,1,ifld)) #..approximation, omitting small terms
+                 fmgytelediff3(1,ix,1) = 0.5*fngytelediff3(1,ix,1)*mg(1)*(up(ix,1,ifld)+up(ix1,1,ifld))
+                 fmgytelediff(1,ix,1) = cfteleout(1)*(fmgytelediff1(1,ix,1) +
+     .                                                fmgytelediff2(1,ix,1) + fmgytelediff3(1,ix,1))
+                 # Trim diffusion to avoid negative influx
+                 if (fngytelediff(1,ix,1) .gt. 0.) then
+                   fteledifftrim = fmgytelediff(1,ix,1)
+                 else
+                   fteledifftrim = 0.
+                 endif
+                 # compute fmgyteleout
+                 if (isvacuummodel(1) .eq. 1) then
+                   fmgyteleout(1,ix,1) = fmgytelemaxw(1,ix,1)
+                 elseif (isvacuummodel(1) .eq. 2) then
+                   fmgyteleout(1,ix,1) = fteledifftrim
+                 elseif (isvacuummodel(1) .eq. 3) then
+                   if (Kn(1,ix,1) <= Knb1) then
+                     fmgyteleout(1,ix,1) = fteledifftrim
+                   elseif (Kn(1,ix,1) >= Knb2) then
+                     fmgyteleout(1,ix,1) = fmgytelemaxw(1,ix,1)
+                   else
+                     fmgyteleout(1,ix,1) = (Kn(1,ix,1)-Knb1)/(Knb2-Knb1)*fmgytelemaxw(1,ix,1) +
+     .                                   (Knb2-Kn(1,ix,1))/(Knb2-Knb1)*fteledifftrim
+                   endif
+                 else
+                   write (*,*) 'isvacuummodel > 3 not available for upg at PFR, placeholder for future extention'
+                 endif
+                 # place holder for momentu influx fmgytelein
+                 fmgytelein(1,ix,1) = 0.
+                 yldot(iv2) = nurlxu * (fmiy(ix,0,ifld) + (fmgyteleout(1,ix,1)-fmgytelein(1,ix,1)))/
+     .                                 (vpnorm*sy(ix,0)*fnorm(ifld))
 
                elseif (isupwiix(ix,ifld)==1) then   # isixcore if-test; PF bdry
                   yldot(iv2) = -nurlxu * fmiy(ix,0,ifld) / 
@@ -2058,54 +2158,90 @@ c... BC for neutral gas temperature/energy at iy=0
      .                                                      (temp0*ev)
               endif
             else   # PF wall
-              if (istgpfcix(ix,igsp) == 0) then   # fixed Tg
-                yldot(iv) = nurlxg*(tgwall(igsp)*ev-tg(ix,0,igsp))/
+              if (isvacuummodel(igsp) .gt. 0) then
+                fegytelemaxw(1,ix,igsp) = fngytelemaxw(1,ix,igsp)*2.*tg(ix,1,igsp)
+                fegytelediff1(1,ix,igsp) = fngytelediff1(1,ix,igsp)*2.*tg(ix,1,igsp)
+                fegytelediff2(1,ix,igsp) = fngytelediff2(1,ix,igsp)*2.5*tg(ix,1,igsp)
+                fegytelediff3(1,ix,igsp) = fngytelediff3(1,ix,igsp)*2.5*tg(ix,1,igsp)
+                fegytelediff(1,ix,igsp) = cfteleout(1)*(fegytelediff1(1,ix,igsp) +
+     .                                                  fegytelediff2(1,ix,igsp) + fegytelediff3(1,ix,igsp))
+                # Trim diffusion to avoid negative influx
+                if (fngytelediff(1,ix,igsp) .gt. 0.) then
+                  fteledifftrim = fegytelediff(1,ix,igsp)
+                else
+                  fteledifftrim = 0.
+                endif
+                # compute fegyteleout
+                if (isvacuummodel(igsp) .eq. 1) then
+                  fegyteleout(1,ix,igsp) = fegytelemaxw(1,ix,igsp)
+                elseif (isvacuummodel(igsp) .eq. 2) then
+                  fegyteleout(1,ix,igsp) = fteledifftrim
+                elseif (isvacuummodel(igsp) .eq. 3) then
+                  if (Kn(1,ix,igsp) <= Knb1) then
+                    fegyteleout(1,ix,igsp) = fteledifftrim
+                  elseif (Kn(1,ix,igsp) >= Knb2) then
+                    fegyteleout(1,ix,igsp) = fegytelemaxw(1,ix,igsp)
+                  else
+                    fegyteleout(1,ix,igsp) = (Kn(1,ix,igsp)-Knb1)/(Knb2-Knb1)*fegytelemaxw(1,ix,igsp) +
+     .                                     (Knb2-Kn(1,ix,igsp))/(Knb2-Knb1)*fteledifftrim
+                  endif
+                else
+                  write (*,*) 'isvacuummodel > 3 not available for tg at PFR, placeholder for future extention'
+                endif
+                # place holder for momentu influx fmgytelein
+                fegytelein(1,ix,igsp) = 0.
+                yldot(iv) = nurlxg*( fegy(ix,0,igsp) + (fegyteleout(1,ix,igsp)-fegytelein(1,ix,igsp)) )/
+     .                                        (sy(ix,ny)*vpnorm*ennorm)
+              else
+                if (istgpfcix(ix,igsp) == 0) then   # fixed Tg
+                  yldot(iv) = nurlxg*(tgwall(igsp)*ev-tg(ix,0,igsp))/
      .                                                      (temp0*ev)
-              elseif (istgpfcix(ix,igsp) == 1)    # extrapolation
-                tbound = tg(ix,1,igsp) - gyf(ix,1)*
-     .                      (tg(ix,2,igsp)-tg(ix,1,igsp))/gyf(ix,0)
-                tbound = max(tbound, 0.25*tbmin*ev)  #tbmin=.1 eV
-                yldot(iv) = nurlxi *(tbound - tg(ix,0,igsp))/(temp0*ev)
-              elseif (istgpfcix(ix,igsp) == 2)    # specified gradient
-                yldot(iv) = nurlxi*( (tg(ix,1,igsp) - tg(ix,0,igsp)) -
+                elseif (istgpfcix(ix,igsp) == 1)    # extrapolation
+                  tbound = tg(ix,1,igsp) - gyf(ix,1)*
+     .                        (tg(ix,2,igsp)-tg(ix,1,igsp))/gyf(ix,0)
+                  tbound = max(tbound, 0.25*tbmin*ev)  #tbmin=.1 eV
+                  yldot(iv) = nurlxi *(tbound - tg(ix,0,igsp))/(temp0*ev)
+                elseif (istgpfcix(ix,igsp) == 2)    # specified gradient
+                  yldot(iv) = nurlxi*( (tg(ix,1,igsp) - tg(ix,0,igsp)) -
      .                           0.5*(tg(ix,1,igsp) + tg(ix,0,igsp))/
      .                           (gyf(ix,0)*lytg(1,igsp)) )/(temp0*ev)
-              elseif (istgpfcix(ix,igsp) == 3)  #Maxwell thermal flux to wall
-                t0 = max(cdifg(igsp)*tg(ix,1,igsp), temin*ev)
-                vyn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
-                yldot(iv) =  -nurlxg*( fegy(ix,0,igsp) + 2*cgengmw*
+                elseif (istgpfcix(ix,igsp) == 3)  #Maxwell thermal flux to wall
+                  t0 = max(cdifg(igsp)*tg(ix,1,igsp), temin*ev)
+                  vyn = 0.25 * sqrt( 8*t0/(pi*mg(igsp)) )
+                  yldot(iv) =  -nurlxg*( fegy(ix,0,igsp) + 2*cgengmw*
      .                               ng(ix,1,igsp)*vyn*t0*sy(ix,0) )/
      .                                     (sy(ix,0)*vpnorm*ennorm)
-              elseif (istgpfcix(ix,igsp) == 4) 
-        	t0 = max(tg(ix,0,igsp),tgmin*ev)
-                vyn = sqrt( 0.5*t0/(pi*mg(igsp)) )
-                nharmave = 2.*(ng(ix,0,igsp)*ng(ix,1,igsp)) /
+                elseif (istgpfcix(ix,igsp) == 4) 
+          	  t0 = max(tg(ix,0,igsp),tgmin*ev)
+                  vyn = sqrt( 0.5*t0/(pi*mg(igsp)) )
+                  nharmave = 2.*(ng(ix,0,igsp)*ng(ix,1,igsp)) /
      .                        (ng(ix,0,igsp)+ng(ix,1,igsp))
-                fng_alb = (1-albedoi(ix,1))*
+                  fng_alb = (1-albedoi(ix,1))*
      .                               nharmave*vyn*sy(ix,0)
-                fng_chem = 0.  #..double check
-                yldot(iv)=-nurlxg*(fegy(ix,0,igsp) + cfalbedo*fng_alb*t0
+                  fng_chem = 0.  #..double check
+                  yldot(iv)=-nurlxg*(fegy(ix,0,igsp) + cfalbedo*fng_alb*t0
      .                                             - 2.*fng_chem*t0)
      .                                     /(vpnorm*ennorm*sy(ix,0))
-                fniy_recy = 0.
-                if (matwalli(ix) .gt. 0) then
-                  if (recycwit(ix,igsp,1) .gt. 0) then
-                    fniy_recy = recycwit(ix,igsp,1)*fac2sp*fniy(ix,0,1)
-                    if (isrefluxclip==1) fniy_recy=min(fniy_recy,0.)
-                    yldot(iv)=-nurlxg*(fegy(ix,0,igsp) + cfalbedo*fng_alb*t0
+                  fniy_recy = 0.
+                  if (matwalli(ix) .gt. 0) then
+                    if (recycwit(ix,igsp,1) .gt. 0) then
+                      fniy_recy = recycwit(ix,igsp,1)*fac2sp*fniy(ix,0,1)
+                      if (isrefluxclip==1) fniy_recy=min(fniy_recy,0.)
+                      yldot(iv)=-nurlxg*(fegy(ix,0,igsp) + cfalbedo*fng_alb*t0
      .                                             - 2.*fng_chem*t0
      .                                             + fniy_recy*(1.-cfdiss)
      .                                              *cfalbedo*recycwe
      .                                              *ti(ix,0) )
      .                                     /(vpnorm*ennorm*sy(ix,0))
+                    endif
                   endif
-                endif
-              elseif (istgpfc(igsp) == 5) then   # tg=ti*cftgtipfc
-                yldot(iv) = nurlxg*(ti(ix,0)*cftgtipfc(igsp)
+                elseif (istgpfc(igsp) == 5) then   # tg=ti*cftgtipfc
+                  yldot(iv) = nurlxg*(ti(ix,0)*cftgtipfc(igsp)
      .                                        -tg(ix,0,igsp))/
      .                                                      (temp0*ev)
-              elseif (istgpfc(igsp) > 5)
-                 call xerrab("***Input error: invalid istgpfc ***")
+                elseif (istgpfc(igsp) > 5)
+                   call xerrab("***Input error: invalid istgpfc ***")
+                endif
               endif
 
             endif           
@@ -2442,7 +2578,7 @@ c...  if extrapolation b.c.on outer wall, isextrw=1, otherwise isextrw=0
               # half-Maxwellian
               t0 = max(tg(ix,ny,1),tgmin*ev)
               vyn = sqrt( 0.5*t0/(pi*mi(ifld)) )
-              fngytelemaxw(ix,1) = cfteleout*ni(ix,ny,ifld)*vyn*sy(ix,ny)
+              fngytelemaxw(2,ix,1) = cfteleout(2)*ni(ix,ny,ifld)*vyn*sy(ix,ny)
               # CX diffusion
               ix1 = ixm1(ix,ny)
               ix2 = ixp1(ix,ny)
@@ -2454,44 +2590,44 @@ c...  if extrapolation b.c.on outer wall, isextrw=1, otherwise isextrw=0
      .                     + (ngy1(ix,ny-1,1) - ngy0(ix,ny-1,1))/dynog(ix,ny-1) )
               dng2dtau = -0.5*( (ng(ix2,ny,1) - ng(ix,ny,1))*gxf(ix,ny)
      .                        + (ng(ix,ny,1) - ng(ix1,ny,1))*gxf(ix1,ny) )
-              fngytelediff1(ix,1) = - nucx(ix,ny,1)/(nucx(ix,ny,1)+nuiz(ix,ny,1)) *
+              fngytelediff1(2,ix,1) = - nucx(ix,ny,1)/(nucx(ix,ny,1)+nuiz(ix,ny,1)) *
      .                                ng(ix,ny,1)*Mi_nu * sy(ix,ny)
-              fngytelediff2(ix,1) =   nucx(ix,ny,1)/(nucx(ix,ny,1)+nuiz(ix,ny,1))**2 *
+              fngytelediff2(2,ix,1) =   nucx(ix,ny,1)/(nucx(ix,ny,1)+nuiz(ix,ny,1))**2 *
      .                                dng2dtau*Mi_taunu * sy(ix,ny)
-              fngytelediff30(ix,1) =   nucx(ix,ny,1)/(nucx(ix,ny,1)+nuiz(ix,ny,1))**2 *
+              fngytelediff30(2,ix,1) =   nucx(ix,ny,1)/(nucx(ix,ny,1)+nuiz(ix,ny,1))**2 *
      .                                dng2dnu*Mi_nunu * sy(ix,ny)
               # The third component is dominant in divertor regions and can cause numerical instability
               # We add a flux limiter to this term fngytelediff3,
               # where the constant 1.2533 is a result of pi/sqrt(2*pi)
               fngytelelim = cftelelim * 1.2533*abs(nucx(ix,ny,1)/(nucx(ix,ny,1)+nuiz(ix,ny,1))*ng(ix,ny,1)*Mi_nu * sy(ix,ny))
-              fngytelediff3(ix,1) = fngytelediff30(ix,1)/
-     .                              (1 + (abs(fngytelediff30(ix,1)/fngytelelim))**ntelelim )**(1./ntelelim)
-              fngytelediff(ix,1) = cfteleout * (fngytelediff1(ix,1) +
-     .                                          fngytelediff2(ix,1) + fngytelediff3(ix,1))
-              fteledifftrim = max(fngytelediff(ix,1),0.)  # Trim to avoid negative influx
+              fngytelediff3(2,ix,1) = fngytelediff30(2,ix,1)/
+     .                              (1 + (abs(fngytelediff30(2,ix,1)/fngytelelim))**ntelelim )**(1./ntelelim)
+              fngytelediff(2,ix,1) = cfteleout(2) * (fngytelediff1(2,ix,1) +
+     .                                          fngytelediff2(2,ix,1) + fngytelediff3(2,ix,1))
+              fteledifftrim = max(fngytelediff(2,ix,1),0.)  # Trim to avoid negative influx
               if (isvacuummodel(1) .eq. 1) then  # half-Maxwellian
-                fngyteleout(ix,1) = fngytelemaxw(ix,1)
+                fngyteleout(2,ix,1) = fngytelemaxw(2,ix,1)
               elseif (isvacuummodel(1) .eq. 2) then  # CX diff, Eq.(3.88) in AFN manual from KU Lueven
-                fngyteleout(ix,1) = fteledifftrim
+                fngyteleout(2,ix,1) = fteledifftrim
               elseif (isvacuummodel(1) .eq. 3) then
                 lmfpn = sqrt(t0/mi(ifld))/nucx(ix,ny,1)
-                Kn(ix,1) = lmfpn/lteleout
-                if (Kn(ix,1) <= Knb1) then
-                    fngyteleout(ix,1) = fteledifftrim
-                elseif (Kn(ix,1) >= Knb2) then
-                    fngyteleout(ix,1) = fngytelemaxw(ix,1)
+                Kn(2,ix,1) = lmfpn/lteleout
+                if (Kn(2,ix,1) <= Knb1) then
+                    fngyteleout(2,ix,1) = fteledifftrim
+                elseif (Kn(2,ix,1) >= Knb2) then
+                    fngyteleout(2,ix,1) = fngytelemaxw(2,ix,1)
                 else
-                    fngyteleout(ix,1) = (Kn(ix,1)-Knb1)/(Knb2-Knb1)*fngytelemaxw(ix,1) +
-     .                                  (Knb2-Kn(ix,1))/(Knb2-Knb1)*fteledifftrim
+                    fngyteleout(2,ix,1) = (Kn(2,ix,1)-Knb1)/(Knb2-Knb1)*fngytelemaxw(2,ix,1) +
+     .                                  (Knb2-Kn(2,ix,1))/(Knb2-Knb1)*fteledifftrim
                 endif
               else
-                write (*,*) 'isvacuummodel > 3 not available, placeholder for future extention'
+                write (*,*) 'isvacuummodel > 3 not available for atom at outer wall, placeholder for future extention'
               endif
           enddo
           do ix = 0, nx+1   #..compute fngytelein
               t0 = max(tg(ix,ny,1),tgmin*ev)
               vyn = sqrt( 0.5*t0/(pi*mi(ifld)) )
-              fngytelein(ix,1) = sum(fngyteleout(:,1)*cftelematrix(:,ix,1))
+              fngytelein(2,ix,1) = sum(fngyteleout(2,:,1)*cftelematrix(2,:,ix,1))
           enddo
         endif
         do ix = i4+1-ixmnbcl, i8-1+ixmxbcl
@@ -2514,7 +2650,7 @@ c ---  typically hydrogen only, so DIVIMP chem sputt not used here
                 nharmave = 2.*(ni(ix,ny,ifld)*ni(ix,ny+1,ifld)) /
      ,                        (ni(ix,ny,ifld)+ni(ix,ny+1,ifld))
                 fng_alb = (1-albedoo(ix,1))*nharmave*vyn*sy(ix,ny)
-                if (isvacuummodel(1) .gt. 0) fng_alb = fngyteleout(ix,1) - fngytelein(ix,1)
+                if (isvacuummodel(1) .gt. 0) fng_alb = fngyteleout(2,ix,1) - fngytelein(2,ix,1)
                 yldot(iv1) = nurlxg*( fniy(ix,ny,ifld) - fng_alb + 
      .                             fng_chem ) / (vyn*sy(ix,ny)* n0(ifld))
 
@@ -2609,38 +2745,39 @@ c...  Do the parallel velocity BC along iy = ny+1
                if (isupgon(1) .eq. 1 .and. zi(ifld) .eq. 0.0 .and. isvacuummodel(1) .gt. 0) then
                  ix1 = ixm1(ix,ny)
                  # Maxwellian
-                 fmgytelemaxw(ix,1) = 0.5*fngytelemaxw(ix,1)*mg(1)*(up(ix,ny,ifld)+up(ix1,ny,ifld))
+                 fmgytelemaxw(2,ix,1) = 0.5*fngytelemaxw(2,ix,1)*mg(1)*(up(ix,ny,ifld)+up(ix1,ny,ifld))
                  # CX diffusion
-                 fmgytelediff1(ix,1) = 0.5*fngytelediff1(ix,1)*mg(1)*(up(ix,ny,ifld)+up(ix1,ny,ifld))
-                 fmgytelediff2(ix,1) = 0.5*fngytelediff2(ix,1)*mg(1)*(up(ix,ny,ifld)+up(ix1,ny,ifld)) #..approximation, omitting small terms
-                 fmgytelediff3(ix,1) = 0.5*fngytelediff3(ix,1)*mg(1)*(up(ix,ny,ifld)+up(ix1,ny,ifld))
-                 fmgytelediff(ix,1) = cfteleout*(fmgytelediff1(ix,1) + fmgytelediff2(ix,1) + fmgytelediff3(ix,1))
+                 fmgytelediff1(2,ix,1) = 0.5*fngytelediff1(2,ix,1)*mg(1)*(up(ix,ny,ifld)+up(ix1,ny,ifld))
+                 fmgytelediff2(2,ix,1) = 0.5*fngytelediff2(2,ix,1)*mg(1)*(up(ix,ny,ifld)+up(ix1,ny,ifld)) #..approximation, omitting small terms
+                 fmgytelediff3(2,ix,1) = 0.5*fngytelediff3(2,ix,1)*mg(1)*(up(ix,ny,ifld)+up(ix1,ny,ifld))
+                 fmgytelediff(2,ix,1) = cfteleout(2)*(fmgytelediff1(2,ix,1) +
+     .                                                fmgytelediff2(2,ix,1) + fmgytelediff3(2,ix,1))
                  # Trim diffusion to avoid negative influx
-                 if (fngytelediff(ix,1) .gt. 0.) then
-                   fteledifftrim = fmgytelediff(ix,1)
+                 if (fngytelediff(2,ix,1) .gt. 0.) then
+                   fteledifftrim = fmgytelediff(2,ix,1)
                  else
                    fteledifftrim = 0.
                  endif
                  # compute fmgyteleout
                  if (isvacuummodel(1) .eq. 1) then
-                   fmgyteleout(ix,1) = fmgytelemaxw(ix,1)
+                   fmgyteleout(2,ix,1) = fmgytelemaxw(2,ix,1)
                  elseif (isvacuummodel(1) .eq. 2) then
-                   fmgyteleout(ix,1) = fteledifftrim
+                   fmgyteleout(2,ix,1) = fteledifftrim
                  elseif (isvacuummodel(1) .eq. 3) then
-                   if (Kn(ix,1) <= Knb1) then
-                     fmgyteleout(ix,1) = fteledifftrim
-                   elseif (Kn(ix,1) >= Knb2) then
-                     fmgyteleout(ix,1) = fmgytelemaxw(ix,1)
+                   if (Kn(2,ix,1) <= Knb1) then
+                     fmgyteleout(2,ix,1) = fteledifftrim
+                   elseif (Kn(2,ix,1) >= Knb2) then
+                     fmgyteleout(2,ix,1) = fmgytelemaxw(2,ix,1)
                    else
-                     fmgyteleout(ix,1) = (Kn(ix,1)-Knb1)/(Knb2-Knb1)*fmgytelemaxw(ix,1) +
-     .                                   (Knb2-Kn(ix,1))/(Knb2-Knb1)*fteledifftrim
+                     fmgyteleout(2,ix,1) = (Kn(2,ix,1)-Knb1)/(Knb2-Knb1)*fmgytelemaxw(2,ix,1) +
+     .                                   (Knb2-Kn(2,ix,1))/(Knb2-Knb1)*fteledifftrim
                    endif
                  else
-                   write (*,*) 'isvacuummodel > 3 not available, placeholder for future extention'
+                   write (*,*) 'isvacuummodel > 3 not available for upg at outer wall, placeholder for future extention'
                  endif
                  # place holder for momentu influx fmgytelein
-                 fmgytelein(ix,1) = 0.
-                 yldot(iv2) = nurlxu * (fmiy(ix,ny,ifld) - (fmgyteleout(ix,1)-fmgytelein(ix,1)))/
+                 fmgytelein(2,ix,1) = 0.
+                 yldot(iv2) = nurlxu * (fmiy(ix,ny,ifld) - (fmgyteleout(2,ix,1)-fmgytelein(2,ix,1)))/
      .                                 (vpnorm*sy(ix,ny)*fnorm(ifld))
                else
                  if (isupwoix(ix,ifld)==1) then  #zero parallel momentum flux
@@ -2881,37 +3018,38 @@ c... BC for neutral gas temperature/energy at iy=ny+1
           if (istgonxy(ix,ny+1,igsp) == 1) then
             iv = idxtg(ix,ny+1,igsp)
             if (isvacuummodel(igsp) .gt. 0) then
-              fegytelemaxw(ix,igsp) = fngytelemaxw(ix,igsp)*2.*tg(ix,ny,igsp)
-              fegytelediff1(ix,igsp) = fngytelediff1(ix,igsp)*2.*tg(ix,ny,igsp)
-              fegytelediff2(ix,igsp) = fngytelediff2(ix,igsp)*2.5*tg(ix,ny,igsp)
-              fegytelediff3(ix,igsp) = fngytelediff3(ix,igsp)*2.5*tg(ix,ny,igsp)
-              fegytelediff(ix,igsp) = cfteleout*(fegytelediff1(ix,igsp) + fegytelediff2(ix,igsp) + fegytelediff3(ix,igsp))
+              fegytelemaxw(2,ix,igsp) = fngytelemaxw(2,ix,igsp)*2.*tg(ix,ny,igsp)
+              fegytelediff1(2,ix,igsp) = fngytelediff1(2,ix,igsp)*2.*tg(ix,ny,igsp)
+              fegytelediff2(2,ix,igsp) = fngytelediff2(2,ix,igsp)*2.5*tg(ix,ny,igsp)
+              fegytelediff3(2,ix,igsp) = fngytelediff3(2,ix,igsp)*2.5*tg(ix,ny,igsp)
+              fegytelediff(2,ix,igsp) = cfteleout(2)*(fegytelediff1(2,ix,igsp) + 
+     .                                                fegytelediff2(2,ix,igsp) + fegytelediff3(2,ix,igsp))
               # Trim diffusion to avoid negative influx
-              if (fngytelediff(ix,igsp) .gt. 0.) then
-                fteledifftrim = fegytelediff(ix,igsp)
+              if (fngytelediff(2,ix,igsp) .gt. 0.) then
+                fteledifftrim = fegytelediff(2,ix,igsp)
               else
                 fteledifftrim = 0.
               endif
               # compute fegyteleout
               if (isvacuummodel(igsp) .eq. 1) then 
-                fegyteleout(ix,igsp) = fegytelemaxw(ix,igsp)
+                fegyteleout(2,ix,igsp) = fegytelemaxw(2,ix,igsp)
               elseif (isvacuummodel(igsp) .eq. 2) then
-                fegyteleout(ix,igsp) = fteledifftrim
+                fegyteleout(2,ix,igsp) = fteledifftrim
               elseif (isvacuummodel(igsp) .eq. 3) then
-                if (Kn(ix,igsp) <= Knb1) then
-                  fegyteleout(ix,igsp) = fteledifftrim 
-                elseif (Kn(ix,igsp) >= Knb2) then
-                  fegyteleout(ix,igsp) = fegytelemaxw(ix,igsp)
+                if (Kn(2,ix,igsp) <= Knb1) then
+                  fegyteleout(2,ix,igsp) = fteledifftrim 
+                elseif (Kn(2,ix,igsp) >= Knb2) then
+                  fegyteleout(2,ix,igsp) = fegytelemaxw(2,ix,igsp)
                 else
-                  fegyteleout(ix,igsp) = (Kn(ix,igsp)-Knb1)/(Knb2-Knb1)*fegytelemaxw(ix,igsp) +
-     .                                   (Knb2-Kn(ix,igsp))/(Knb2-Knb1)*fteledifftrim
+                  fegyteleout(2,ix,igsp) = (Kn(2,ix,igsp)-Knb1)/(Knb2-Knb1)*fegytelemaxw(2,ix,igsp) +
+     .                                   (Knb2-Kn(2,ix,igsp))/(Knb2-Knb1)*fteledifftrim
                 endif
               else
-                write (*,*) 'isvacuummodel > 3 not available, placeholder for future extention'
+                write (*,*) 'isvacuummodel > 3 not available for tg at outer wall, placeholder for future extention'
               endif
               # place holder for momentu influx fmgytelein
-              fegytelein(ix,igsp) = 0.
-              yldot(iv) = nurlxg*( fegy(ix,ny,igsp) - (fegyteleout(ix,igsp)-fegytelein(ix,igsp)) )/
+              fegytelein(2,ix,igsp) = 0.
+              yldot(iv) = nurlxg*( fegy(ix,ny,igsp) - (fegyteleout(2,ix,igsp)-fegytelein(2,ix,igsp)) )/
      .                                      (sy(ix,ny)*vpnorm*ennorm)
             else
               if (istgwcix(ix,igsp) == 0) then    # fixed Tg
