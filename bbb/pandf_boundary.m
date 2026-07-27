@@ -1987,6 +1987,28 @@ ccc     .             (vpnorm*ennorm*sy(ix,0))
 
 ccc  Diffusive neutrals on iy=0 boundary
 ccc  - - - - - - - - - - - - -
+      do igsp = 1, ngsp  #..VNM                           
+        if (isvacuummodel(igsp) .gt. 0) then
+          do ix = i4+1-ixmnbcl, i8-1+ixmxbcl
+            if (isixcore(ix) .ne. 1) then
+              if (isngonxy(ix,0,igsp) .eq. 1) then
+                # half-Maxwellian
+                t0 = max(tg(ix,1,igsp),tgmin*ev)
+                vyn = sqrt( 0.5*t0/(pi*mg(igsp)) )
+                fngytelemaxw(1,ix,igsp) = cfteleout(1)*ng(ix,1,igsp)*vyn*sy(ix,0)
+                fngyteleout(1,ix,igsp) = fngytelemaxw(1,ix,igsp)
+              endif 
+            endif 
+          enddo   
+          do ix = 0, nx+1       
+            if (isixcore(ix) .ne. 1) then
+              if (isngonxy(ix,0,igsp) .eq. 1) then
+                fngytelein(1,ix,igsp) = sum(fngyteleout(1,:,igsp)*cftelematrix(1,:,ix,igsp))            
+              endif                      
+            endif     
+          enddo     
+        endif       
+      enddo
       do ix = i4+1-ixmnbcl, i8-1+ixmxbcl #long ix-loop for diff neut dens
          nzsp_rt = nhsp
          do igsp = 1, ngsp
@@ -2082,6 +2104,7 @@ c ... Include gas BC from sputtering by ions
                nharmave = 2.*(ng(ix,0,igsp)*ng(ix,1,igsp)) /
      .                       (ng(ix,0,igsp)+ng(ix,1,igsp))
                fng_alb = (1-albedoi(ix,igsp))*nharmave*vyn*sy(ix,0) 
+               if (isvacuummodel(igsp) .gt. 0) fng_alb = fngyteleout(1,ix,igsp) - fngytelein(1,ix,igsp)
                yldot(iv) = -nurlxg*( fngy(ix,0,igsp) + fng_alb -
      .                                   fng_chem + sputflxpf(ix,igsp) ) / 
      .                                        (vyn*sy(ix,0)*n0g(igsp))
@@ -2912,6 +2935,24 @@ ccc  - - - - - - - - - - - - - -
 
 ccc  Now do the diffusive neutral density (ng) and Tg equations
 ccc  - - - - - - - - - - - - - -          
+      do igsp = 1, ngsp  #..VNM
+        if (isvacuummodel(igsp) .gt. 0) then
+          do ix = i4+1-ixmnbcl, i8-1+ixmxbcl
+            if(isngonxy(ix,ny+1,igsp) .eq. 1) then
+              # half-Maxwellian
+              t0 = max(tg(ix,ny,igsp),tgmin*ev)
+              vyn = sqrt( 0.5*t0/(pi*mg(igsp)) )
+              fngytelemaxw(2,ix,igsp) = cfteleout(2)*ng(ix,ny,igsp)*vyn*sy(ix,ny)
+              fngyteleout(2,ix,igsp) = fngytelemaxw(2,ix,igsp)
+            endif
+          enddo
+          do ix = 0, nx+1
+            if(isngonxy(ix,ny+1,igsp) .eq. 1) then
+              fngytelein(2,ix,igsp) = sum(fngyteleout(2,:,igsp)*cftelematrix(2,:,ix,igsp))
+            endif
+          enddo
+        endif
+      enddo
       do ix = i4+1-ixmnbcl, i8-1+ixmxbcl  # ix-loop for ng & Tg
         nzsp_rt = nhsp
         do igsp = 1, ngsp
@@ -2968,6 +3009,7 @@ c ... add ion sputtering to gas BC
             nharmave = 2.*(ng(ix,ny,igsp)*ng(ix,ny+1,igsp)) /
      .                    (ng(ix,ny,igsp)+ng(ix,ny+1,igsp))
             fng_alb = (1-albedoo(ix,igsp))*nharmave*vyn*sy(ix,ny)
+            if (isvacuummodel(igsp) .gt. 0) fng_alb = fngyteleout(2,ix,igsp) - fngytelein(2,ix,igsp)
             yldot(iv) = nurlxg*( fngy(ix,ny,igsp) - fng_alb + fng_chem +
      .                                             sputflxw(ix,igsp) )
      .                                      /(vyn*sy(ix,ny)*n0g(igsp))
