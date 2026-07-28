@@ -6,8 +6,9 @@ from h5py import File
 
 def read_gridpars(fname=None):
     from uedge import bbb, com, grd
-    dblxpts = ['dnull', 'snowflake15', 'snowflake45', 'snowflake75', 
-        'dnXtarget', 'isoleg']
+    dblxpts =   ['dnull', 'dnXtarget', 'isoleg'] + \
+                [f'snowflake{15+i*30}' for i in range(6)]
+
     geometry = com.geometry[0].decode('UTF-8').strip()
     if fname is None:
         fname = bbb.GridFileName[0].decode('UTF-8').strip()
@@ -30,12 +31,22 @@ def read_gridpars(fname=None):
         if geometry == 'dnXtarget':
             com.nxc = com.ixmdp[0]
     else:
-        com.ixpt1[0] = _com['ixpt1'][()]
-        com.ixpt2[0] = _com['ixpt2'][()]
-        com.iysptrx1[0] = _com['iysptrx1'][()]
-        com.iysptrx2[0] = com.iysptrx1[0]
-        com.ixlb[0] = 0
-        com.ixrb[0] = com.nxm
+        try:
+            com.ixpt1[0] = _com['ixpt1'][()]
+            com.ixpt2[0] = _com['ixpt2'][()]
+            com.iysptrx1[0] = _com['iysptrx1'][()]
+            com.iysptrx2[0] = com.iysptrx1[0]
+        except:
+            com.ixpt1 = _com['ixpt1'][()]
+            com.ixpt2 = _com['ixpt2'][()]
+            com.iysptrx1 = _com['iysptrx1'][()]
+            com.iysptrx2 = com.iysptrx1[0]
+        try:
+            com.ixlb[0] = 0
+            com.ixrb[0] = com.nxm
+        except:
+            com.ixlb = 0
+            com.ixrb = com.nxm
     try:
         com.simagxs = _com['simagxs'][()]
     except:
@@ -56,6 +67,8 @@ def read_gridue(fname=None):
 
     if len(fname.split('/'))>3:
         prfname="/".join(["..."]+fname.split("/")[-2:])
+    else:
+        prfname = fname
 
     if com.iprint != 0:
         print(' Reading grid data from {}.hdf5'.format(prfname))
