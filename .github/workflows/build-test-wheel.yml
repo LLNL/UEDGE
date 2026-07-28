@@ -61,7 +61,7 @@ jobs:
             echo "testbranch=pytests" >> $GITHUB_ENV
             echo "Using pytests test branch"
         else
-            echo "testbranch=pytests-develop" >> $GITHUB_ENV
+            echo "testbranch=pytests" >> $GITHUB_ENV
             echo "Using pytests-develop test branch"
         fi
 
