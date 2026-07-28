@@ -31,12 +31,22 @@ def read_gridpars(fname=None):
         if geometry == 'dnXtarget':
             com.nxc = com.ixmdp[0]
     else:
-        com.ixpt1[0] = _com['ixpt1'][()]
-        com.ixpt2[0] = _com['ixpt2'][()]
-        com.iysptrx1[0] = _com['iysptrx1'][()]
-        com.iysptrx2[0] = com.iysptrx1[0]
-        com.ixlb[0] = 0
-        com.ixrb[0] = com.nxm
+        try:
+            com.ixpt1[0] = _com['ixpt1'][()]
+            com.ixpt2[0] = _com['ixpt2'][()]
+            com.iysptrx1[0] = _com['iysptrx1'][()]
+            com.iysptrx2[0] = com.iysptrx1[0]
+        except:
+            com.ixpt1 = _com['ixpt1'][()]
+            com.ixpt2 = _com['ixpt2'][()]
+            com.iysptrx1 = _com['iysptrx1'][()]
+            com.iysptrx2 = com.iysptrx1[0]
+        try:
+            com.ixlb[0] = 0
+            com.ixrb[0] = com.nxm
+        except:
+            com.ixlb = 0
+            com.ixrb = com.nxm
     try:
         com.simagxs = _com['simagxs'][()]
     except:
