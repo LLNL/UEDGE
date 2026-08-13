@@ -1381,7 +1381,7 @@ c  Note: j3 is local range index for iy passed from pandf in oderhs.m
                t1 = max(ti(ix,1),temin*ev)
                Mi_nu = -sqrt( 0.5*t1/(pi*mi(1)) )
                Mi_taunu = 0.5*( up(ix,1,0)*rrv(ix,1) + up(ix1,1,0)*rrv(ix1,1) )*Mi_nu  # = Utau*Mi_nu
-               Mi_nunu = 0.5*t0/mi(1)
+               Mi_nunu = 0.5*t1/mi(1)
                dng2dnu = 0.5*( (ngy1(ix,0,1) - ngy0(ix,0,1))/dynog(ix,0)
      .                       + (ngy1(ix,1,1) - ngy0(ix,1,1))/dynog(ix,1) )
                dng2dtau = 0.5*( (ng(ix2,1,1) - ng(ix,1,1))*gxf(ix,1)
@@ -2608,7 +2608,7 @@ c...  if extrapolation b.c.on outer wall, isextrw=1, otherwise isextrw=0
               t1 = max(ti(ix,ny),temin*ev)
               Mi_nu = -sqrt( 0.5*t1/(pi*mi(1)) )
               Mi_taunu = -0.5*( up(ix,ny,0)*rrv(ix,ny) + up(ix1,ny,0)*rrv(ix1,ny) )*Mi_nu  # = Utau*Mi_nu
-              Mi_nunu = 0.5*t0/mi(1)
+              Mi_nunu = 0.5*t1/mi(1)
               dng2dnu = -0.5*( (ngy1(ix,ny,1) - ngy0(ix,ny,1))/dynog(ix,ny)
      .                     + (ngy1(ix,ny-1,1) - ngy0(ix,ny-1,1))/dynog(ix,ny-1) )
               dng2dtau = -0.5*( (ng(ix2,ny,1) - ng(ix,ny,1))*gxf(ix,ny)
